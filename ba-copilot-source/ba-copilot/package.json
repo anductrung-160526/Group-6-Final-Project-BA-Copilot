@@ -1,0 +1,36 @@
+{
+  "name": "ba-copilot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BA Copilot – hệ thống hỗ trợ BA: Prompt → Thiết kế UI → UC/SRS/Sequence → Test case → Truy vết",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "node scripts/build.mjs --watch & tsx watch server/index.ts",
+    "build": "node scripts/build.mjs",
+    "start": "node scripts/build.mjs && tsx server/index.ts",
+    "test": "tsx --test tests/*.test.ts",
+    "e2e": "node scripts/build.mjs && node e2e/e2e.mjs",
+    "seed": "tsx scripts/seed.ts",
+    "bundle": "node scripts/bundle.mjs",
+    "start:prebuilt": "node dist/server.mjs"
+  },
+  "dependencies": {
+    "docx": "^9.6.1",
+    "jszip": "^3.10.1",
+    "mermaid": "^11.14.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "esbuild": "^0.27.0",
+    "playwright": "^1.56.0",
+    "typescript": "^5.9.0"
+  }
+}
