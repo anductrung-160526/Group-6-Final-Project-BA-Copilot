@@ -119,7 +119,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
         .catch(() => setSuggestions([]));
     }, 300);
     return () => clearTimeout(t);
-  }, [screen?.id, screen?.currentVersionId, selKey, m.annotations.length]);
+  }, [screen?.id, screen?.currentVersionId, screen?.status, selKey, m.annotations.length]);
 
   const visibleSuggestions = suggestions.filter((s) => !dismissed.has(s.id));
   const logSugg = (s: Suggestion, action: "shown" | "applied" | "dismissed") =>
