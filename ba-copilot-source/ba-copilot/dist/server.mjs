@@ -10708,7 +10708,11 @@ function mockEditOps(tree, selectedIds, instruction) {
         ops.push({ op: "update", id: leaf.id, props: { [key]: rename[1].trim() } });
       }
     }
-    if (addButton) insertNear(n, { type: "Button", props: { label: (quoted ?? addButton[1]).trim(), variant: "secondary" } });
+    if (addButton) {
+      const variant = text.match(/variant\s+(primary|secondary|danger|ghost)/i)?.[1] ?? "secondary";
+      const action = text.match(/action\s+([a-z_]+)/i)?.[1];
+      insertNear(n, { type: "Button", props: { label: (quoted ?? addButton[1]).trim(), variant, ...action ? { action } : {} } });
+    }
     if (addField) insertNear(n, { type: "Input", props: { label: (quoted ?? addField[1]).trim(), required: /bắt buộc/.test(low) } });
     if (/\b(xóa|xoá|bỏ|loại bỏ)\b/.test(low) && !addButton && !addField && !rename && n.id !== tree.id) ops.push({ op: "remove", id: n.id });
     if (/bắt buộc/.test(low) && !addField) walk(n, (d) => {
@@ -11810,7 +11814,9 @@ var RULES = [
     if (n.type !== "Form") return null;
     let hasBtn = false;
     walk(n, (d) => hasBtn ||= d.type === "Button");
-    return hasBtn ? null : { nodeId: n.id, code: "R3", message: "Form ch\u01B0a c\xF3 n\xFAt g\u1EEDi", severity: 3, fixPrompt: 'Th\xEAm n\xFAt "L\u01B0u" (variant primary, action submit) v\xE0o cu\u1ED1i form n\xE0y.' };
+    if (hasBtn) return null;
+    const b = submitLabel(t, n);
+    return { nodeId: n.id, code: "R3", message: "Form ch\u01B0a c\xF3 n\xFAt g\u1EEDi", severity: 3, fixPrompt: `Th\xEAm n\xFAt "${b.label}" (variant primary, action ${b.action}) v\xE0o cu\u1ED1i form n\xE0y.` };
   }),
   // R4 nút không có hành động
   (t) => each(
@@ -11841,10 +11847,65 @@ var RULES = [
 function ruleFindings(tree, ctx = {}) {
   return RULES.flatMap((r) => r(tree, ctx));
 }
-var ADD_PROMPT = {
-  Button: (w) => `Th\xEAm n\xFAt "X\xE1c nh\u1EADn" (variant primary, action submit) v\xE0o cu\u1ED1i ${w}.`,
-  Input: (w) => `Th\xEAm tr\u01B0\u1EDDng "Th\xF4ng tin" (b\u1EAFt bu\u1ED9c) v\xE0o cu\u1ED1i ${w}.`
-};
+var has2 = (texts, re) => texts.some((t) => re.test(t));
+function contextTexts(tree, container) {
+  const out = [String(tree.props.title ?? ""), String(container.props.title ?? "")];
+  walk(container, (d) => out.push(String(d.props.label ?? d.props.text ?? d.props.title ?? "")));
+  return out.map((t) => t.toLowerCase());
+}
+function submitLabel(tree, container) {
+  const t = contextTexts(tree, container);
+  const pw = has2(t, /mật khẩu|password/);
+  if (has2(t, /xác nhận mật khẩu|đăng ký|register|sign up/)) return { label: "\u0110\u0103ng k\xFD", action: "register" };
+  if (has2(t, /quên mật khẩu|đặt lại/) && !has2(t, /^mật khẩu$/)) return { label: "G\u1EEDi li\xEAn k\u1EBFt", action: "send_reset" };
+  if (pw && has2(t, /email|tên đăng nhập|username|tài khoản/)) return { label: "\u0110\u0103ng nh\u1EADp", action: "login" };
+  if (has2(t, /tìm kiếm|tra cứu|search|lọc/)) return { label: "T\xECm ki\u1EBFm", action: "search" };
+  if (has2(t, /thanh toán|checkout/)) return { label: "\u0110\u1EB7t h\xE0ng", action: "checkout" };
+  if (has2(t, /chỉnh sửa|cập nhật/)) return { label: "C\u1EADp nh\u1EADt", action: "update" };
+  return { label: "L\u01B0u", action: "save" };
+}
+function missingField(tree, container) {
+  const t = contextTexts(tree, container);
+  if (has2(t, /email/) && !has2(t, /mật khẩu|password/) && !has2(t, /quên/)) return { label: "M\u1EADt kh\u1EA9u", extra: "b\u1EAFt bu\u1ED9c, ki\u1EC3u password, t\u1ED1i thi\u1EC3u 8 k\xFD t\u1EF1" };
+  if (has2(t, /^mật khẩu/) && has2(t, /đăng ký/) && !has2(t, /xác nhận mật khẩu/)) return { label: "X\xE1c nh\u1EADn m\u1EADt kh\u1EA9u", extra: "b\u1EAFt bu\u1ED9c, ki\u1EC3u password" };
+  if (has2(t, /tìm kiếm|tra cứu/)) return { label: "T\u1EEB kh\xF3a", extra: "kh\xF4ng b\u1EAFt bu\u1ED9c" };
+  return { label: "Ghi ch\xFA", extra: "kh\xF4ng b\u1EAFt bu\u1ED9c" };
+}
+function addPrompt(tree, container, type) {
+  const where = nodeLabel(container);
+  const kids = container.children ?? [];
+  switch (type) {
+    case "Button": {
+      if (container.type === "Form" || kids.some((k) => FIELD_TYPES2.includes(k.type))) {
+        const b = submitLabel(tree, container);
+        return `Th\xEAm n\xFAt "${b.label}" (variant primary, action ${b.action}) v\xE0o cu\u1ED1i ${where}.`;
+      }
+      const parent = findParent(tree, container.id);
+      if ((parent?.children ?? []).some((c) => c.type === "Table")) return `Th\xEAm n\xFAt "Th\xEAm m\u1EDBi" (variant primary, action create) v\xE0o cu\u1ED1i ${where}.`;
+      return `Th\xEAm n\xFAt "Xem chi ti\u1EBFt" (variant secondary) v\xE0o cu\u1ED1i ${where}.`;
+    }
+    case "Input": {
+      const f = missingField(tree, container);
+      return `Th\xEAm tr\u01B0\u1EDDng "${f.label}" (${f.extra}) v\xE0o cu\u1ED1i ${where}.`;
+    }
+    case "Link":
+      return has2(contextTexts(tree, container), /mật khẩu|password/) ? `Th\xEAm link "Qu\xEAn m\u1EADt kh\u1EA9u?" v\xE0o cu\u1ED1i ${where}.` : `Th\xEAm m\u1ED9t Link \u0111i\u1EC1u h\u01B0\u1EDBng ph\xF9 h\u1EE3p v\xE0o cu\u1ED1i ${where}.`;
+    case "Pagination":
+      return `Th\xEAm ph\xE2n trang (Pagination) ngay sau b\u1EA3ng trong ${where}.`;
+    case "Heading":
+      return `Th\xEAm ti\xEAu \u0111\u1EC1 (Heading) m\xF4 t\u1EA3 n\u1ED9i dung c\u1EE7a ${where}.`;
+    case "Text":
+      return `Th\xEAm \u0111o\u1EA1n m\xF4 t\u1EA3 ng\u1EAFn (Text) h\u01B0\u1EDBng d\u1EABn ng\u01B0\u1EDDi d\xF9ng trong ${where}.`;
+    case "Checkbox":
+      return has2(contextTexts(tree, container), /mật khẩu/) ? `Th\xEAm \xF4 t\xEDch "Ghi nh\u1EDB \u0111\u0103ng nh\u1EADp" v\xE0o ${where}.` : `Th\xEAm \xF4 t\xEDch (Checkbox) ph\xF9 h\u1EE3p v\xE0o ${where}.`;
+    default:
+      return `Th\xEAm m\u1ED9t ${type} ph\xF9 h\u1EE3p v\xE0o cu\u1ED1i ${where}.`;
+  }
+}
+function ctxText(ctx) {
+  if (!ctx) return "";
+  return ctx.s === START ? `\u0110\u1EA7u ${ctx.p}` : `Sau ${ctx.s} trong ${ctx.p}`;
+}
 function suggest(model2, tree, opts = {}) {
   const k = opts.k ?? 5;
   const scope = opts.selectedIds?.length ? regionIds(tree, opts.selectedIds) : null;
@@ -11860,9 +11921,9 @@ function suggest(model2, tree, opts = {}) {
         kind: "add",
         targetNodeId: n.id,
         title: `Th\xEAm ${type} v\xE0o ${where}`,
-        reason: `${Math.round(p2 * 100)}% tr\u01B0\u1EDDng h\u1EE3p t\u01B0\u01A1ng t\u1EF1 c\xF3 ${type} ti\u1EBFp theo`,
+        reason: `${ctxText(ctxForAppend(tree, n.id))}: ${Math.round(p2 * 100)}% tr\u01B0\u1EDDng h\u1EE3p t\u01B0\u01A1ng t\u1EF1 l\xE0 ${type}`,
         confidence: Math.min(1, p2),
-        fixPrompt: (ADD_PROMPT[type] ?? ((w) => `Th\xEAm m\u1ED9t ${type} ph\xF9 h\u1EE3p v\xE0o cu\u1ED1i ${w}.`))(where)
+        fixPrompt: addPrompt(tree, n, type)
       });
     }
   });
@@ -32543,9 +32604,9 @@ var relationshipsIn = (relationships) => {
 };
 var createTemplatePackage = (parts, binaryParts, file, context) => {
   const formatter2 = new Formatter();
-  const has2 = (path) => parts.has(path) || binaryParts.has(path);
+  const has3 = (path) => parts.has(path) || binaryParts.has(path);
   const findPath = (path) => {
-    if (has2(path)) return path;
+    if (has3(path)) return path;
     const decoded = (() => {
       try {
         return decodeURI(path);
@@ -32553,7 +32614,7 @@ var createTemplatePackage = (parts, binaryParts, file, context) => {
         return;
       }
     })();
-    if (decoded !== void 0 && has2(decoded)) return decoded;
+    if (decoded !== void 0 && has3(decoded)) return decoded;
     const lower = path.toLowerCase();
     return [...parts.keys(), ...binaryParts.keys()].find((key) => key.toLowerCase() === lower);
   };

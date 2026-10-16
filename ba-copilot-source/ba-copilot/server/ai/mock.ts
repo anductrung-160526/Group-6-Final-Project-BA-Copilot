@@ -202,7 +202,12 @@ export function mockEditOps(tree: UINode, selectedIds: string[], instruction: st
         ops.push({ op: "update", id: leaf.id, props: { [key]: rename[1].trim() } });
       }
     }
-    if (addButton) insertNear(n, { type: "Button", props: { label: (quoted ?? addButton[1]).trim(), variant: "secondary" } });
+    if (addButton) {
+      // đọc "variant primary" / "action login" nếu prompt có ghi (vd từ gợi ý thành phần)
+      const variant = text.match(/variant\s+(primary|secondary|danger|ghost)/i)?.[1] ?? "secondary";
+      const action = text.match(/action\s+([a-z_]+)/i)?.[1];
+      insertNear(n, { type: "Button", props: { label: (quoted ?? addButton[1]).trim(), variant, ...(action ? { action } : {}) } });
+    }
     if (addField) insertNear(n, { type: "Input", props: { label: (quoted ?? addField[1]).trim(), required: /bắt buộc/.test(low) } });
     if (/\b(xóa|xoá|bỏ|loại bỏ)\b/.test(low) && !addButton && !addField && !rename && n.id !== tree.id) ops.push({ op: "remove", id: n.id });
     if (/bắt buộc/.test(low) && !addField) walk(n, (d) => {

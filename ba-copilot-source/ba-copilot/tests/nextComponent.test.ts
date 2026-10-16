@@ -168,3 +168,19 @@ test("suggest: < 50 ms cho cây 120 node", () => {
   assert.ok(performance.now() - t0 < 50);
   assert.equal(START, "<START>");
 });
+
+test("câu gợi ý theo ngữ cảnh: nhãn nút và trường thiếu", async () => {
+  const { addPrompt, submitLabel } = await import("../shared/nextComponent.ts");
+  const login = page({ id: "f", type: "Form", props: {}, children: [{ id: "e", type: "Input", props: { label: "Email" } }, { id: "p", type: "Input", props: { label: "Mật khẩu" } }] });
+  assert.equal(submitLabel(login, login.children![0]).label, "Đăng nhập");
+  assert.match(addPrompt(login, login.children![0], "Button"), /Thêm nút "Đăng nhập"/);
+  const reg = page({ id: "f", type: "Form", props: {}, children: [{ id: "e", type: "Input", props: { label: "Email" } }, { id: "p", type: "Input", props: { label: "Mật khẩu" } }, { id: "c", type: "Input", props: { label: "Xác nhận mật khẩu" } }] });
+  assert.equal(submitLabel(reg, reg.children![0]).label, "Đăng ký");
+  const onlyEmail = page({ id: "f", type: "Form", props: {}, children: [{ id: "e", type: "Input", props: { label: "Email" } }] });
+  assert.match(addPrompt(onlyEmail, onlyEmail.children![0], "Input"), /Thêm trường "Mật khẩu"/);
+  const search = page({ id: "f", type: "Form", props: {}, children: [{ id: "k", type: "Input", props: { label: "Tìm kiếm sản phẩm" } }] });
+  assert.match(addPrompt(search, search.children![0], "Button"), /"Tìm kiếm"/);
+  // gợi ý "add" có lý do nêu ngữ cảnh n-gram
+  const s = suggest(trained(), page({ id: "f2", type: "Form", props: {}, children: [{ id: "a", type: "Input", props: { label: "Email", name: "e", inputType: "email" } }, { id: "b", type: "Input", props: { label: "Mật khẩu", name: "p", inputType: "password", minLength: 8 } }] }), { selectedIds: ["f2"], k: 10 }).find((x) => x.kind === "add" && x.title.includes("Button"));
+  assert.ok(s && /Sau Input trong Form/.test(s.reason) && /"Đăng nhập"/.test(s.fixPrompt), JSON.stringify(s));
+});

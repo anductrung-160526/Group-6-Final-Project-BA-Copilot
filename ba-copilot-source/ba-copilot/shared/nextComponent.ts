@@ -189,7 +189,9 @@ export const RULES: Rule[] = [
       if (n.type !== "Form") return null;
       let hasBtn = false;
       walk(n, (d) => (hasBtn ||= d.type === "Button"));
-      return hasBtn ? null : { nodeId: n.id, code: "R3", message: "Form chưa có nút gửi", severity: 3, fixPrompt: 'Thêm nút "Lưu" (variant primary, action submit) vào cuối form này.' };
+      if (hasBtn) return null;
+      const b = submitLabel(t, n);
+      return { nodeId: n.id, code: "R3", message: "Form chưa có nút gửi", severity: 3, fixPrompt: `Thêm nút "${b.label}" (variant primary, action ${b.action}) vào cuối form này.` };
     }),
   // R4 nút không có hành động
   (t) =>
@@ -242,10 +244,76 @@ export interface SuggestOptions extends RuleCtx {
   k?: number;
 }
 
-const ADD_PROMPT: Record<string, (where: string) => string> = {
-  Button: (w) => `Thêm nút "Xác nhận" (variant primary, action submit) vào cuối ${w}.`,
-  Input: (w) => `Thêm trường "Thông tin" (bắt buộc) vào cuối ${w}.`,
-};
+// ------------------------------------------------------------------ Câu gợi ý theo ngữ cảnh
+const has = (texts: string[], re: RegExp) => texts.some((t) => re.test(t));
+
+/** Gom chữ trong container và tiêu đề màn để đoán mục đích (đăng nhập, đăng ký, tìm kiếm...). */
+function contextTexts(tree: UINode, container: UINode): string[] {
+  const out = [String(tree.props.title ?? ""), String(container.props.title ?? "")];
+  walk(container, (d) => out.push(String(d.props.label ?? d.props.text ?? d.props.title ?? "")));
+  return out.map((t) => t.toLowerCase());
+}
+
+/** Nhãn nút gửi phù hợp với mục đích của form. */
+export function submitLabel(tree: UINode, container: UINode): { label: string; action: string } {
+  const t = contextTexts(tree, container);
+  const pw = has(t, /mật khẩu|password/);
+  if (has(t, /xác nhận mật khẩu|đăng ký|register|sign up/)) return { label: "Đăng ký", action: "register" };
+  if (has(t, /quên mật khẩu|đặt lại/) && !has(t, /^mật khẩu$/)) return { label: "Gửi liên kết", action: "send_reset" };
+  if (pw && has(t, /email|tên đăng nhập|username|tài khoản/)) return { label: "Đăng nhập", action: "login" };
+  if (has(t, /tìm kiếm|tra cứu|search|lọc/)) return { label: "Tìm kiếm", action: "search" };
+  if (has(t, /thanh toán|checkout/)) return { label: "Đặt hàng", action: "checkout" };
+  if (has(t, /chỉnh sửa|cập nhật/)) return { label: "Cập nhật", action: "update" };
+  return { label: "Lưu", action: "save" };
+}
+
+/** Trường còn thiếu hợp lý nhất cho form. */
+function missingField(tree: UINode, container: UINode): { label: string; extra: string } {
+  const t = contextTexts(tree, container);
+  if (has(t, /email/) && !has(t, /mật khẩu|password/) && !has(t, /quên/)) return { label: "Mật khẩu", extra: "bắt buộc, kiểu password, tối thiểu 8 ký tự" };
+  if (has(t, /^mật khẩu/) && has(t, /đăng ký/) && !has(t, /xác nhận mật khẩu/)) return { label: "Xác nhận mật khẩu", extra: "bắt buộc, kiểu password" };
+  if (has(t, /tìm kiếm|tra cứu/)) return { label: "Từ khóa", extra: "không bắt buộc" };
+  return { label: "Ghi chú", extra: "không bắt buộc" };
+}
+
+/** Câu prompt cụ thể cho gợi ý "Thêm <type>" vào container (dùng thẳng cho "Sửa vùng đã khoanh"). */
+export function addPrompt(tree: UINode, container: UINode, type: string): string {
+  const where = nodeLabel(container);
+  const kids = container.children ?? [];
+  switch (type) {
+    case "Button": {
+      if (container.type === "Form" || kids.some((k) => FIELD_TYPES.includes(k.type))) {
+        const b = submitLabel(tree, container);
+        return `Thêm nút "${b.label}" (variant primary, action ${b.action}) vào cuối ${where}.`;
+      }
+      const parent = findParent(tree, container.id);
+      if ((parent?.children ?? []).some((c) => c.type === "Table")) return `Thêm nút "Thêm mới" (variant primary, action create) vào cuối ${where}.`;
+      return `Thêm nút "Xem chi tiết" (variant secondary) vào cuối ${where}.`;
+    }
+    case "Input": {
+      const f = missingField(tree, container);
+      return `Thêm trường "${f.label}" (${f.extra}) vào cuối ${where}.`;
+    }
+    case "Link":
+      return has(contextTexts(tree, container), /mật khẩu|password/) ? `Thêm link "Quên mật khẩu?" vào cuối ${where}.` : `Thêm một Link điều hướng phù hợp vào cuối ${where}.`;
+    case "Pagination":
+      return `Thêm phân trang (Pagination) ngay sau bảng trong ${where}.`;
+    case "Heading":
+      return `Thêm tiêu đề (Heading) mô tả nội dung của ${where}.`;
+    case "Text":
+      return `Thêm đoạn mô tả ngắn (Text) hướng dẫn người dùng trong ${where}.`;
+    case "Checkbox":
+      return has(contextTexts(tree, container), /mật khẩu/) ? `Thêm ô tích "Ghi nhớ đăng nhập" vào ${where}.` : `Thêm ô tích (Checkbox) phù hợp vào ${where}.`;
+    default:
+      return `Thêm một ${type} phù hợp vào cuối ${where}.`;
+  }
+}
+
+/** Mô tả ngữ cảnh n-gram cho người đọc: "Sau Input trong Form". */
+function ctxText(ctx: Ctx | null): string {
+  if (!ctx) return "";
+  return ctx.s === START ? `Đầu ${ctx.p}` : `Sau ${ctx.s} trong ${ctx.p}`;
+}
 
 export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = {}): Suggestion[] {
   const k = opts.k ?? 5;
@@ -263,9 +331,9 @@ export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = 
         kind: "add",
         targetNodeId: n.id,
         title: `Thêm ${type} vào ${where}`,
-        reason: `${Math.round(p * 100)}% trường hợp tương tự có ${type} tiếp theo`,
+        reason: `${ctxText(ctxForAppend(tree, n.id))}: ${Math.round(p * 100)}% trường hợp tương tự là ${type}`,
         confidence: Math.min(1, p),
-        fixPrompt: (ADD_PROMPT[type] ?? ((w: string) => `Thêm một ${type} phù hợp vào cuối ${w}.`))(where),
+        fixPrompt: addPrompt(tree, n, type),
       });
     }
   });
