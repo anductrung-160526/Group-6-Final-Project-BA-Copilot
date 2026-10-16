@@ -353,7 +353,7 @@ export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = 
       targetNodeId: f.nodeId,
       title: f.message,
       reason: `Luật ${f.code}`,
-      confidence: 0.3 + 0.2 * f.severity,
+      confidence: f.code === "R8" || f.code === "R9" ? 0.3 : 0.3 + 0.2 * f.severity, // thiếu sót nhỏ xếp sau gợi ý thêm phần tử
       fixPrompt: f.fixPrompt,
     });
   }

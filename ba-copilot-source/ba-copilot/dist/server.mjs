@@ -10525,7 +10525,125 @@ function entityFrom(prompt, fallback) {
   const e = (m?.[1] ?? fallback).trim();
   return e.charAt(0).toUpperCase() + e.slice(1);
 }
-function mockScreen(prompt, name) {
+function mockScreen(prompt, name, opts = {}) {
+  if (opts.mode !== "template") {
+    const built = mockFromPrompt(prompt, name);
+    if (built) return built;
+  }
+  return mockTemplate(prompt, name);
+}
+var ACTIONS = [
+  [/đăng nhập/, "login"],
+  [/đăng ký/, "register"],
+  [/lưu/, "save"],
+  [/hủy|huỷ/, "cancel"],
+  [/tìm/, "search"],
+  [/xóa|xoá/, "delete"],
+  [/thêm/, "create"],
+  [/cập nhật/, "update"],
+  [/gửi/, "submit"],
+  [/duyệt/, "approve"],
+  [/từ chối/, "reject"],
+  [/xuất/, "export"],
+  [/thanh toán|đặt hàng/, "checkout"],
+  [/quay lại/, "back"]
+];
+var actionOf = (label2) => ACTIONS.find(([re]) => re.test(label2.toLowerCase()))?.[1] ?? "click";
+var cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+var splitList = (s) => s.split(/\s*(?:,|;|\/|\bvà\b|\bhoặc\b)\s*/).map((x) => x.replace(/["“”']/g, "").trim()).filter((x) => x && x.length <= 40);
+function mockFromPrompt(prompt, name) {
+  const text = prompt.trim();
+  const p2 = text.toLowerCase();
+  const fields = [];
+  const tools = [];
+  const buttons = [];
+  const links = [];
+  const req = /bắt buộc/.test(p2);
+  const maxLen = p2.match(/tối đa\s+(\d+)\s*ký tự/)?.[1];
+  const minLen = p2.match(/tối thiểu\s+(\d+)\s*ký tự/)?.[1];
+  const at = (re) => p2.search(re);
+  const field = (re, type, props) => {
+    const i = at(re);
+    if (i < 0) return;
+    const base2 = { ...props, name: slugName(String(props.label)) };
+    if (type === "Input" || type === "Textarea") base2.placeholder ??= `Nh\u1EADp ${String(props.label).toLowerCase()}`;
+    if (req && type !== "Checkbox") base2.required = true;
+    if (maxLen && type === "Input" && props.inputType !== "password") base2.maxLength = Number(maxLen);
+    fields.push({ at: i, node: { type, props: base2 } });
+  };
+  field(/email/, "Input", { label: "Email", inputType: "email" });
+  field(/xác nhận mật khẩu/, "Input", { label: "X\xE1c nh\u1EADn m\u1EADt kh\u1EA9u", inputType: "password" });
+  field(/(?<!quên |xác nhận )mật khẩu|password/, "Input", { label: "M\u1EADt kh\u1EA9u", inputType: "password", ...minLen ? { minLength: Number(minLen) } : {} });
+  field(/họ (và )?tên|tên đầy đủ/, "Input", { label: "H\u1ECD v\xE0 t\xEAn" });
+  field(/số điện thoại|sđt/, "Input", { label: "S\u1ED1 \u0111i\u1EC7n tho\u1EA1i", inputType: "tel" });
+  field(/địa chỉ(?! email)/, "Input", { label: "\u0110\u1ECBa ch\u1EC9" });
+  field(/ngày sinh/, "DatePicker", { label: "Ng\xE0y sinh" });
+  field(/ngày hiệu lực/, "DatePicker", { label: "Ng\xE0y hi\u1EC7u l\u1EF1c" });
+  field(/giới tính/, "Radio", { label: "Gi\u1EDBi t\xEDnh", options: ["Nam", "N\u1EEF", "Kh\xE1c"] });
+  field(/giá( bán)?\b/, "Input", { label: "Gi\xE1 b\xE1n", inputType: "number" });
+  field(/số lượng|tồn kho/, "Input", { label: "S\u1ED1 l\u01B0\u1EE3ng", inputType: "number" });
+  field(/\bmã\b(?! số)/, "Input", { label: "M\xE3" });
+  field(/danh mục/, "Select", { label: "Danh m\u1EE5c", options: ["Lo\u1EA1i 1", "Lo\u1EA1i 2", "Lo\u1EA1i 3"] });
+  field(/người phụ trách/, "Select", { label: "Ng\u01B0\u1EDDi ph\u1EE5 tr\xE1ch", options: ["Ch\u01B0a ph\xE2n c\xF4ng"] });
+  field(/mô tả/, "Textarea", { label: "M\xF4 t\u1EA3" });
+  field(/ghi chú/, "Textarea", { label: "Ghi ch\xFA" });
+  field(/ghi nhớ đăng nhập/, "Checkbox", { label: "Ghi nh\u1EDB \u0111\u0103ng nh\u1EADp" });
+  field(/đồng ý|điều khoản/, "Checkbox", { label: "T\xF4i \u0111\u1ED3ng \xFD v\u1EDBi \u0111i\u1EC1u kho\u1EA3n s\u1EED d\u1EE5ng" });
+  const tenX = text.match(/(?<![Hh]ọ )\btên\s+([\p{L}]+(?:\s[\p{L}]+)?)/u);
+  if (tenX && !/^(đăng|tài khoản)/i.test(tenX[1])) field(new RegExp(`t\xEAn\\s+${tenX[1].toLowerCase()}`), "Input", { label: `T\xEAn ${tenX[1].toLowerCase()}` });
+  const isList = /\bbảng\b|danh sách/.test(p2) && !/^màn hình (đăng|quên)/.test(p2);
+  const iSearch = at(/tìm kiếm|tra cứu/);
+  if (iSearch >= 0 && (isList || !fields.length)) tools.push({ at: iSearch, node: { type: "Input", props: { label: "T\xECm ki\u1EBFm", name: "keyword", placeholder: "Nh\u1EADp t\u1EEB kh\xF3a..." } } });
+  for (const m of p2.matchAll(/lọc theo\s+([^,.;\n]+)/g)) for (const f of splitList(m[1]))
+    tools.push({ at: m.index, node: { type: "Select", props: { label: cap(f), name: slugName(f), options: ["T\u1EA5t c\u1EA3"] } } });
+  if (/khoảng thời gian|từ ngày/.test(p2)) {
+    const i = at(/khoảng thời gian|từ ngày/);
+    tools.push({ at: i, node: { type: "DatePicker", props: { label: "T\u1EEB ng\xE0y", name: "from_date" } } }, { at: i + 1, node: { type: "DatePicker", props: { label: "\u0110\u1EBFn ng\xE0y", name: "to_date" } } });
+  }
+  for (const m of text.matchAll(/nút\s+([^.;:\n]+?)(?=$|[.;:\n]|,\s*(?:có|bảng|phân trang|link|liên kết)\b)/giu))
+    for (const lb of splitList(m[1].replace(/\s+(vào|ở|bên|phía|cuối|dưới|trên).*$/i, ""))) buttons.push({ at: m.index, node: { type: "Button", props: { label: cap(lb) } } });
+  if (/xuất excel/.test(p2) && !buttons.some((b) => /xuất/i.test(String(b.node.props.label)))) buttons.push({ at: at(/xuất excel/), node: { type: "Button", props: { label: "Xu\u1EA5t Excel" } } });
+  if (/quên mật khẩu/.test(p2) && !/^màn hình quên|^quên/.test(p2)) links.push({ at: at(/quên mật khẩu/), node: { type: "Link", props: { text: "Qu\xEAn m\u1EADt kh\u1EA9u?", navigateTo: "Qu\xEAn m\u1EADt kh\u1EA9u" } } });
+  if (/(link|liên kết)\s+đăng ký|đăng ký tài khoản/.test(p2) && /đăng nhập/.test(p2)) links.push({ at: at(/đăng ký/), node: { type: "Link", props: { text: "\u0110\u0103ng k\xFD t\xE0i kho\u1EA3n", navigateTo: "\u0110\u0103ng k\xFD" } } });
+  const hasTable = isList;
+  if (isList) {
+    for (let i = fields.length - 1; i >= 0; i--) if (tools.some((t) => slugName(String(t.node.props.label)) === slugName(String(fields[i].node.props.label)))) fields.splice(i, 1);
+  }
+  const stats = p2.match(/chỉ số\s+([^.;\n]+?)(?:\s+và\s+bảng|[.;\n]|$)/)?.[1];
+  const count = fields.length + tools.length + buttons.length + links.length + (hasTable ? 1 : 0) + (stats ? 1 : 0);
+  if (count < 2) return null;
+  const intent = /đăng nhập/.test(p2) && fields.some((f) => /mật khẩu/i.test(String(f.node.props.label))) && !/đăng ký tài khoản:|xác nhận mật khẩu/.test(p2) ? "login" : /đăng ký/.test(p2) && fields.length ? "register" : "";
+  const title = name || cap(text.split(/[:,.]|\s+(?:có|gồm|với|bằng)\s+/)[0].replace(/^(màn hình|form|trang)\s+/i, "")).slice(0, 60);
+  const byAt = (a, b) => a.at - b.at;
+  const btn = (b) => {
+    const lb = String(b.node.props.label);
+    const action = actionOf(lb);
+    return { id: action === "click" ? void 0 : `btn_${action}`, type: "Button", props: { label: lb, variant: /hủy|huỷ|quay lại|từ chối/i.test(lb) ? "secondary" : "primary", action } };
+  };
+  const formBtns = buttons.filter((b) => !(hasTable && /thêm|xuất/i.test(String(b.node.props.label))));
+  const toolBtns = buttons.filter((b) => !formBtns.includes(b));
+  const children = [{ type: "Heading", props: { text: title, level: 1 } }];
+  if (stats) children.push({ type: "Row", props: { gap: 12 }, children: splitList(stats).map((l) => ({ type: "Stat", props: { label: cap(l), value: "0" } })) });
+  if (tools.length || toolBtns.length)
+    children.push({ type: "Row", props: { gap: 8, align: "between" }, children: [...tools.sort(byAt).map((t) => t.node), ...toolBtns.map(btn)] });
+  if (fields.length) {
+    const formKids = [...fields.sort(byAt).map((f) => f.node), ...formBtns.length > 1 ? [{ type: "Row", props: { gap: 8, align: "end" }, children: formBtns.map(btn) }] : formBtns.map(btn)];
+    children.push({ id: intent ? `${intent}_form` : void 0, type: "Form", props: { submitAction: intent || "save" }, children: formKids });
+  } else if (formBtns.length && !hasTable) children.push({ type: "Row", props: { gap: 8 }, children: formBtns.map(btn) });
+  if (hasTable) {
+    const cols = p2.match(/cột\s+([^.;\n]+)/)?.[1];
+    const acts = p2.match(/(xem\/sửa\/xóa|sửa\/xóa|sửa và xóa)/)?.[1];
+    children.push({ type: "Table", props: { columns: cols ? splitList(cols).map(cap) : ["M\xE3", "T\xEAn", "Tr\u1EA1ng th\xE1i"], rows: [], ...acts ? { rowActions: splitList(acts).map(cap) } : {} } });
+    if (hasTable && formBtns.length && fields.length === 0) children.push({ type: "Row", props: { gap: 8 }, children: formBtns.map(btn) });
+  }
+  if (/phân trang/.test(p2)) children.push({ type: "Pagination", props: { pages: 5 } });
+  if (links.length) children.push({ type: "Row", props: { align: "between" }, children: links.sort(byAt).map((l) => l.node) });
+  return normalizeTree({ id: "page", type: "Page", props: { title }, children });
+}
+function slugName(s) {
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "field";
+}
+function mockTemplate(prompt, name) {
   const p2 = prompt.toLowerCase();
   let tree;
   if (has(p2, /đăng nhập|login|sign in/)) {
@@ -10545,7 +10663,7 @@ function mockScreen(prompt, name) {
               props: { submitAction: "login" },
               children: [
                 { id: "email", type: "Input", props: { label: "Email", name: "email", inputType: "email", placeholder: "ban@congty.vn", required: true, maxLength: 100 } },
-                { id: "password", type: "Input", props: { label: "M\u1EADt kh\u1EA9u", name: "password", inputType: "password", required: true, minLength: 8, maxLength: 32 } },
+                { id: "password", type: "Input", props: { label: "M\u1EADt kh\u1EA9u", name: "password", inputType: "password", placeholder: "T\u1ED1i thi\u1EC3u 8 k\xFD t\u1EF1", required: true, minLength: 8, maxLength: 32 } },
                 { id: "remember", type: "Checkbox", props: { label: "Ghi nh\u1EDB \u0111\u0103ng nh\u1EADp", name: "remember" } },
                 { id: "btn_login", type: "Button", props: { label: "\u0110\u0103ng nh\u1EADp", variant: "primary", action: "login", navigateTo: "Trang ch\u1EE7" } }
               ]
@@ -10776,7 +10894,6 @@ function mockActors(requirementInput) {
   if (!actors.size) actors.add("Ng\u01B0\u1EDDi d\xF9ng");
   return [...actors];
 }
-var cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 function mockUseCases(model2, requirementInput) {
   const actors = mockActors(requirementInput);
   const primary = actors[0];
@@ -11958,7 +12075,8 @@ function suggest(model2, tree, opts = {}) {
       targetNodeId: f.nodeId,
       title: f.message,
       reason: `Lu\u1EADt ${f.code}`,
-      confidence: 0.3 + 0.2 * f.severity,
+      confidence: f.code === "R8" || f.code === "R9" ? 0.3 : 0.3 + 0.2 * f.severity,
+      // thiếu sót nhỏ xếp sau gợi ý thêm phần tử
       fixPrompt: f.fixPrompt
     });
   }
@@ -11990,7 +12108,7 @@ var base = null;
 var model = null;
 function fallbackModel() {
   const m = emptyModel();
-  for (const p2 of ["\u0111\u0103ng nh\u1EADp", "\u0111\u0103ng k\xFD", "qu\u1EA3n l\xFD s\u1EA3n ph\u1EA9m", "th\xEAm s\u1EA3n ph\u1EA9m", "dashboard t\u1ED5ng quan"]) countTree(m, mockScreen(p2, p2), 1, "fallback");
+  for (const p2 of ["\u0111\u0103ng nh\u1EADp", "\u0111\u0103ng k\xFD", "qu\u1EA3n l\xFD s\u1EA3n ph\u1EA9m", "th\xEAm s\u1EA3n ph\u1EA9m", "dashboard t\u1ED5ng quan"]) countTree(m, mockScreen(p2, p2, { mode: "template" }), 1, "fallback");
   return m;
 }
 function loadBase() {

@@ -37,7 +37,7 @@ test("luồng end-to-end (mock): dự án → màn hình → khoanh vùng + bìn
   const m = await api("POST", `/api/projects/${p.data.id}/modules`, { name: "Xác thực", requirementInput: "As a Khách hàng, I want đăng nhập để mua hàng" });
   const mid = m.data.id;
 
-  const s = await api("POST", `/api/modules/${mid}/screens`, { prompt: "Màn hình đăng nhập bằng email và mật khẩu", name: "Đăng nhập" });
+  const s = await api("POST", `/api/modules/${mid}/screens`, { prompt: "Màn hình đăng nhập bằng email và mật khẩu (bắt buộc, mật khẩu tối thiểu 8 ký tự, email tối đa 100 ký tự), nút Đăng nhập", name: "Đăng nhập" });
   assert.equal(s.status, 200, JSON.stringify(s.data));
   const sid = s.data.screen.id;
 

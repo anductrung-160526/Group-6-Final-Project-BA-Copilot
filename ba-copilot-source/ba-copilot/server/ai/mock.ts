@@ -15,7 +15,140 @@ function entityFrom(prompt: string, fallback: string): string {
   return e.charAt(0).toUpperCase() + e.slice(1);
 }
 
-export function mockScreen(prompt: string, name: string): UINode {
+/**
+ * Sinh màn hình ở chế độ Mock.
+ * - Prompt mô tả cụ thể các thành phần (trường, nút, bảng...) → dựng ĐÚNG những gì được mô tả (mockFromPrompt),
+ *   nên prompt thiếu gì thì màn thiếu cái đó – tab "Gợi ý" sẽ phát hiện.
+ * - Prompt chỉ nêu loại màn (vd "đăng nhập", "dashboard") hoặc mode "template" → dùng khuôn mẫu đầy đủ.
+ */
+export function mockScreen(prompt: string, name: string, opts: { mode?: "auto" | "template" } = {}): UINode {
+  if (opts.mode !== "template") {
+    const built = mockFromPrompt(prompt, name);
+    if (built) return built;
+  }
+  return mockTemplate(prompt, name);
+}
+
+// ------------------------------------------------------------------ Dựng màn từ prompt
+interface Part {
+  at: number; // vị trí xuất hiện trong prompt để giữ thứ tự
+  node: { id?: string; type: string; props: Record<string, unknown> };
+}
+
+const ACTIONS: [RegExp, string][] = [
+  [/đăng nhập/, "login"], [/đăng ký/, "register"], [/lưu/, "save"], [/hủy|huỷ/, "cancel"], [/tìm/, "search"],
+  [/xóa|xoá/, "delete"], [/thêm/, "create"], [/cập nhật/, "update"], [/gửi/, "submit"], [/duyệt/, "approve"],
+  [/từ chối/, "reject"], [/xuất/, "export"], [/thanh toán|đặt hàng/, "checkout"], [/quay lại/, "back"],
+];
+const actionOf = (label: string) => ACTIONS.find(([re]) => re.test(label.toLowerCase()))?.[1] ?? "click";
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const splitList = (s: string) => s.split(/\s*(?:,|;|\/|\bvà\b|\bhoặc\b)\s*/).map((x) => x.replace(/["“”']/g, "").trim()).filter((x) => x && x.length <= 40);
+
+export function mockFromPrompt(prompt: string, name: string): UINode | null {
+  const text = prompt.trim();
+  const p = text.toLowerCase();
+  const fields: Part[] = [];
+  const tools: Part[] = []; // tìm kiếm / bộ lọc trên thanh công cụ
+  const buttons: Part[] = [];
+  const links: Part[] = [];
+  const req = /bắt buộc/.test(p);
+  const maxLen = p.match(/tối đa\s+(\d+)\s*ký tự/)?.[1];
+  const minLen = p.match(/tối thiểu\s+(\d+)\s*ký tự/)?.[1];
+  const at = (re: RegExp) => p.search(re);
+  const field = (re: RegExp, type: string, props: Record<string, unknown>) => {
+    const i = at(re);
+    if (i < 0) return;
+    const base: Record<string, unknown> = { ...props, name: slugName(String(props.label)) };
+    if (type === "Input" || type === "Textarea") base.placeholder ??= `Nhập ${String(props.label).toLowerCase()}`;
+    if (req && type !== "Checkbox") base.required = true;
+    if (maxLen && type === "Input" && props.inputType !== "password") base.maxLength = Number(maxLen);
+    fields.push({ at: i, node: { type, props: base } });
+  };
+
+  field(/email/, "Input", { label: "Email", inputType: "email" });
+  field(/xác nhận mật khẩu/, "Input", { label: "Xác nhận mật khẩu", inputType: "password" });
+  field(/(?<!quên |xác nhận )mật khẩu|password/, "Input", { label: "Mật khẩu", inputType: "password", ...(minLen ? { minLength: Number(minLen) } : {}) });
+  field(/họ (và )?tên|tên đầy đủ/, "Input", { label: "Họ và tên" });
+  field(/số điện thoại|sđt/, "Input", { label: "Số điện thoại", inputType: "tel" });
+  field(/địa chỉ(?! email)/, "Input", { label: "Địa chỉ" });
+  field(/ngày sinh/, "DatePicker", { label: "Ngày sinh" });
+  field(/ngày hiệu lực/, "DatePicker", { label: "Ngày hiệu lực" });
+  field(/giới tính/, "Radio", { label: "Giới tính", options: ["Nam", "Nữ", "Khác"] });
+  field(/giá( bán)?\b/, "Input", { label: "Giá bán", inputType: "number" });
+  field(/số lượng|tồn kho/, "Input", { label: "Số lượng", inputType: "number" });
+  field(/\bmã\b(?! số)/, "Input", { label: "Mã" });
+  field(/danh mục/, "Select", { label: "Danh mục", options: ["Loại 1", "Loại 2", "Loại 3"] });
+  field(/người phụ trách/, "Select", { label: "Người phụ trách", options: ["Chưa phân công"] });
+  field(/mô tả/, "Textarea", { label: "Mô tả" });
+  field(/ghi chú/, "Textarea", { label: "Ghi chú" });
+  field(/ghi nhớ đăng nhập/, "Checkbox", { label: "Ghi nhớ đăng nhập" });
+  field(/đồng ý|điều khoản/, "Checkbox", { label: "Tôi đồng ý với điều khoản sử dụng" });
+  const tenX = text.match(/(?<![Hh]ọ )\btên\s+([\p{L}]+(?:\s[\p{L}]+)?)/u);
+  if (tenX && !/^(đăng|tài khoản)/i.test(tenX[1])) field(new RegExp(`tên\\s+${tenX[1].toLowerCase()}`), "Input", { label: `Tên ${tenX[1].toLowerCase()}` });
+
+  // thanh công cụ của màn danh sách
+  const isList = /\bbảng\b|danh sách/.test(p) && !/^màn hình (đăng|quên)/.test(p);
+  const iSearch = at(/tìm kiếm|tra cứu/);
+  if (iSearch >= 0 && (isList || !fields.length)) tools.push({ at: iSearch, node: { type: "Input", props: { label: "Tìm kiếm", name: "keyword", placeholder: "Nhập từ khóa..." } } });
+  for (const m of p.matchAll(/lọc theo\s+([^,.;\n]+)/g)) for (const f of splitList(m[1]))
+    tools.push({ at: m.index!, node: { type: "Select", props: { label: cap(f), name: slugName(f), options: ["Tất cả"] } } });
+  if (/khoảng thời gian|từ ngày/.test(p)) {
+    const i = at(/khoảng thời gian|từ ngày/);
+    tools.push({ at: i, node: { type: "DatePicker", props: { label: "Từ ngày", name: "from_date" } } }, { at: i + 1, node: { type: "DatePicker", props: { label: "Đến ngày", name: "to_date" } } });
+  }
+
+  // nút: "nút Lưu và Hủy", "nút duyệt và từ chối", "nút thêm mới", "xuất Excel"
+  for (const m of text.matchAll(/nút\s+([^.;:\n]+?)(?=$|[.;:\n]|,\s*(?:có|bảng|phân trang|link|liên kết)\b)/giu))
+    for (const lb of splitList(m[1].replace(/\s+(vào|ở|bên|phía|cuối|dưới|trên).*$/i, ""))) buttons.push({ at: m.index!, node: { type: "Button", props: { label: cap(lb) } } });
+  if (/xuất excel/.test(p) && !buttons.some((b) => /xuất/i.test(String(b.node.props.label)))) buttons.push({ at: at(/xuất excel/), node: { type: "Button", props: { label: "Xuất Excel" } } });
+
+  // liên kết
+  if (/quên mật khẩu/.test(p) && !/^màn hình quên|^quên/.test(p)) links.push({ at: at(/quên mật khẩu/), node: { type: "Link", props: { text: "Quên mật khẩu?", navigateTo: "Quên mật khẩu" } } });
+  if (/(link|liên kết)\s+đăng ký|đăng ký tài khoản/.test(p) && /đăng nhập/.test(p)) links.push({ at: at(/đăng ký/), node: { type: "Link", props: { text: "Đăng ký tài khoản", navigateTo: "Đăng ký" } } });
+
+  const hasTable = isList;
+  // trên màn danh sách, trường trùng với bộ lọc là bộ lọc chứ không phải form
+  if (isList) for (let i = fields.length - 1; i >= 0; i--) if (tools.some((t) => slugName(String(t.node.props.label)) === slugName(String(fields[i].node.props.label)))) fields.splice(i, 1);
+  const stats = p.match(/chỉ số\s+([^.;\n]+?)(?:\s+và\s+bảng|[.;\n]|$)/)?.[1];
+  const count = fields.length + tools.length + buttons.length + links.length + (hasTable ? 1 : 0) + (stats ? 1 : 0);
+  if (count < 2) return null; // prompt quá chung → dùng khuôn mẫu
+
+  const intent = /đăng nhập/.test(p) && fields.some((f) => /mật khẩu/i.test(String(f.node.props.label))) && !/đăng ký tài khoản:|xác nhận mật khẩu/.test(p) ? "login" : /đăng ký/.test(p) && fields.length ? "register" : "";
+  const title = name || cap(text.split(/[:,.]|\s+(?:có|gồm|với|bằng)\s+/)[0].replace(/^(màn hình|form|trang)\s+/i, "")).slice(0, 60);
+  const byAt = (a: Part, b: Part) => a.at - b.at;
+  const btn = (b: Part) => {
+    const lb = String(b.node.props.label);
+    const action = actionOf(lb);
+    return { id: action === "click" ? undefined : `btn_${action}`, type: "Button", props: { label: lb, variant: /hủy|huỷ|quay lại|từ chối/i.test(lb) ? "secondary" : "primary", action } };
+  };
+  const formBtns = buttons.filter((b) => !(hasTable && /thêm|xuất/i.test(String(b.node.props.label))));
+  const toolBtns = buttons.filter((b) => !formBtns.includes(b));
+  const children: unknown[] = [{ type: "Heading", props: { text: title, level: 1 } }];
+
+  if (stats) children.push({ type: "Row", props: { gap: 12 }, children: splitList(stats).map((l) => ({ type: "Stat", props: { label: cap(l), value: "0" } })) });
+  if (tools.length || toolBtns.length)
+    children.push({ type: "Row", props: { gap: 8, align: "between" }, children: [...tools.sort(byAt).map((t) => t.node), ...toolBtns.map(btn)] });
+  if (fields.length) {
+    const formKids = [...fields.sort(byAt).map((f) => f.node), ...(formBtns.length > 1 ? [{ type: "Row", props: { gap: 8, align: "end" }, children: formBtns.map(btn) }] : formBtns.map(btn))];
+    children.push({ id: intent ? `${intent}_form` : undefined, type: "Form", props: { submitAction: intent || "save" }, children: formKids });
+  } else if (formBtns.length && !hasTable) children.push({ type: "Row", props: { gap: 8 }, children: formBtns.map(btn) });
+  if (hasTable) {
+    const cols = p.match(/cột\s+([^.;\n]+)/)?.[1];
+    const acts = p.match(/(xem\/sửa\/xóa|sửa\/xóa|sửa và xóa)/)?.[1];
+    children.push({ type: "Table", props: { columns: cols ? splitList(cols).map(cap) : ["Mã", "Tên", "Trạng thái"], rows: [], ...(acts ? { rowActions: splitList(acts).map(cap) } : {}) } });
+    if (hasTable && formBtns.length && fields.length === 0) children.push({ type: "Row", props: { gap: 8 }, children: formBtns.map(btn) });
+  }
+  if (/phân trang/.test(p)) children.push({ type: "Pagination", props: { pages: 5 } });
+  if (links.length) children.push({ type: "Row", props: { align: "between" }, children: links.sort(byAt).map((l) => l.node) });
+  return normalizeTree({ id: "page", type: "Page", props: { title }, children });
+}
+
+function slugName(s: string): string {
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "field";
+}
+
+/** Khuôn mẫu đầy đủ theo loại màn (hành vi cũ của chế độ Mock). */
+export function mockTemplate(prompt: string, name: string): UINode {
   const p = prompt.toLowerCase();
   let tree: unknown;
   if (has(p, /đăng nhập|login|sign in/)) {
@@ -35,7 +168,7 @@ export function mockScreen(prompt: string, name: string): UINode {
               props: { submitAction: "login" },
               children: [
                 { id: "email", type: "Input", props: { label: "Email", name: "email", inputType: "email", placeholder: "ban@congty.vn", required: true, maxLength: 100 } },
-                { id: "password", type: "Input", props: { label: "Mật khẩu", name: "password", inputType: "password", required: true, minLength: 8, maxLength: 32 } },
+                { id: "password", type: "Input", props: { label: "Mật khẩu", name: "password", inputType: "password", placeholder: "Tối thiểu 8 ký tự", required: true, minLength: 8, maxLength: 32 } },
                 { id: "remember", type: "Checkbox", props: { label: "Ghi nhớ đăng nhập", name: "remember" } },
                 { id: "btn_login", type: "Button", props: { label: "Đăng nhập", variant: "primary", action: "login", navigateTo: "Trang chủ" } },
               ],
@@ -279,7 +412,6 @@ export function mockActors(requirementInput: string): string[] {
   return [...actors];
 }
 
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export interface MockUcResult {
   useCases: UseCase[];

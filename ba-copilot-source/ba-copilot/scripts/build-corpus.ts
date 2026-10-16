@@ -54,7 +54,7 @@ const lines: string[] = [];
 for (const [i, p] of prompts.entries()) {
   const name = p.split(":")[0].replace(/^(Màn hình|Form|Trang)\s+/i, "").slice(0, 40);
   try {
-    const tree = generate ? await generate(p, name) : mockScreen(p, name);
+    const tree = generate ? await generate(p, name) : mockScreen(p, name, { mode: "template" });
     lines.push(JSON.stringify({ source: "internal", prompt: p, tree }));
   } catch (e) {
     console.warn(`Bỏ qua prompt ${i}: ${(e as Error).message}`);

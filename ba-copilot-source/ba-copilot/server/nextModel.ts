@@ -17,7 +17,7 @@ let model: NGramModel | null = null;
 /** Mô hình dự phòng khi chưa có file: đếm từ các mẫu rule-based để app vẫn chạy. */
 function fallbackModel(): NGramModel {
   const m = emptyModel();
-  for (const p of ["đăng nhập", "đăng ký", "quản lý sản phẩm", "thêm sản phẩm", "dashboard tổng quan"]) countTree(m, mockScreen(p, p), 1, "fallback");
+  for (const p of ["đăng nhập", "đăng ký", "quản lý sản phẩm", "thêm sản phẩm", "dashboard tổng quan"]) countTree(m, mockScreen(p, p, { mode: "template" }), 1, "fallback");
   return m;
 }
 
