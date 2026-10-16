@@ -10586,7 +10586,9 @@ function mockFromPrompt(prompt, name) {
   };
   field(/email/, "Input", { label: "Email", inputType: "email" });
   field(/xác nhận mật khẩu/, "Input", { label: "X\xE1c nh\u1EADn m\u1EADt kh\u1EA9u", inputType: "password" });
-  field(/(?<!quên |xác nhận )mật khẩu|password/, "Input", { label: "M\u1EADt kh\u1EA9u", inputType: "password" });
+  field(/mật khẩu (cũ|hiện tại)/, "Input", { label: "M\u1EADt kh\u1EA9u hi\u1EC7n t\u1EA1i", inputType: "password" });
+  field(/mật khẩu mới/, "Input", { label: "M\u1EADt kh\u1EA9u m\u1EDBi", inputType: "password" });
+  if (!/mật khẩu (cũ|hiện tại|mới)/.test(p2)) field(/(?<!quên |xác nhận )mật khẩu|password/, "Input", { label: "M\u1EADt kh\u1EA9u", inputType: "password" });
   field(/họ (và )?tên|tên đầy đủ/, "Input", { label: "H\u1ECD v\xE0 t\xEAn" });
   field(/số điện thoại|sđt/, "Input", { label: "S\u1ED1 \u0111i\u1EC7n tho\u1EA1i", inputType: "tel" });
   field(/địa chỉ(?! email)/, "Input", { label: "\u0110\u1ECBa ch\u1EC9" });
@@ -10929,6 +10931,7 @@ var TYPE_ALIASES = [
   [/tiêu đề/i, "Heading"],
   [/đoạn mô tả|đoạn văn/i, "Text"],
   [/\blink\b|liên kết/i, "Link"],
+  [/chỉ số/i, "Stat"],
   [/\bbảng\b/i, "Table"],
   [/thông báo/i, "Alert"],
   [/nhãn trạng thái|badge/i, "Badge"],
@@ -10964,6 +10967,8 @@ function defaultNode(type, label2) {
       return { type, props: { label: lb ?? "L\u1EF1a ch\u1ECDn", name: name ?? "lua_chon", options: ["C\xF3", "Kh\xF4ng"] } };
     case "Pagination":
       return { type, props: { pages: 5 } };
+    case "Stat":
+      return { type, props: { label: lb ?? "Ch\u1EC9 s\u1ED1", value: "0" } };
     case "Heading":
       return { type, props: { text: lb ?? "Ti\xEAu \u0111\u1EC1", level: 2 } };
     case "Text":
@@ -11947,7 +11952,7 @@ var ADD_MIN_P = 0.15;
 var SURPRISAL_REVIEW = 6;
 var LAYOUT_TYPES = /* @__PURE__ */ new Set(["Card", "Section", "Row", "Column", "Header", "Sidebar"]);
 var OUTCOMES = [...ALL_TYPES, END];
-var CONTROL_TYPES = /* @__PURE__ */ new Set(["Input", "Textarea", "Select", "DatePicker", "Checkbox", "Radio", "Button", "Link"]);
+var CONTROL_TYPES = /* @__PURE__ */ new Set(["Stat", "Input", "Textarea", "Select", "DatePicker", "Checkbox", "Radio", "Button", "Link"]);
 function emptyModel() {
   return { version: 1, counts: { tri: {}, bi: {}, uni: {}, all: {} }, meta: { trees: 0, events: 0, sources: {}, builtAt: (/* @__PURE__ */ new Date()).toISOString() } };
 }
@@ -12106,12 +12111,14 @@ function contextTexts(tree, container) {
 function submitLabel(tree, container) {
   const t = contextTexts(tree, container);
   const pw = has2(t, /mật khẩu|password/);
+  if (has2(t, /đổi mật khẩu|mật khẩu (cũ|hiện tại)/)) return { label: "\u0110\u1ED5i m\u1EADt kh\u1EA9u", action: "change_password" };
   if (has2(t, /xác nhận mật khẩu|đăng ký|register|sign up/)) return { label: "\u0110\u0103ng k\xFD", action: "register" };
   if (has2(t, /quên mật khẩu|đặt lại/) && !has2(t, /^mật khẩu$/)) return { label: "G\u1EEDi li\xEAn k\u1EBFt", action: "send_reset" };
   if (pw && has2(t, /email|tên đăng nhập|username|tài khoản/)) return { label: "\u0110\u0103ng nh\u1EADp", action: "login" };
   if (has2(t, /tìm kiếm|tra cứu|search|lọc/)) return { label: "T\xECm ki\u1EBFm", action: "search" };
   if (has2(t, /thanh toán|checkout/)) return { label: "\u0110\u1EB7t h\xE0ng", action: "checkout" };
   if (has2(t, /chỉnh sửa|cập nhật/)) return { label: "C\u1EADp nh\u1EADt", action: "update" };
+  if (has2(t, /^gửi|yêu cầu|phản hồi|liên hệ|góp ý/)) return { label: "G\u1EEDi", action: "submit" };
   return { label: "L\u01B0u", action: "save" };
 }
 function missingField(tree, container) {
@@ -12150,6 +12157,8 @@ function addPrompt(tree, container, type) {
       return `Th\xEAm \xF4 ch\u1ECDn ng\xE0y (DatePicker) "${kids.some((k) => k.type === "DatePicker") ? "\u0110\u1EBFn ng\xE0y" : container.type === "Row" ? "T\u1EEB ng\xE0y" : "Ng\xE0y"}" v\xE0o cu\u1ED1i ${where}.`;
     case "Textarea":
       return `Th\xEAm \xF4 nh\u1EADp nhi\u1EC1u d\xF2ng (Textarea) "${kids.some((k) => /mô tả/i.test(String(k.props.label ?? ""))) ? "Ghi ch\xFA" : "M\xF4 t\u1EA3"}" v\xE0o cu\u1ED1i ${where}.`;
+    case "Stat":
+      return `Th\xEAm ch\u1EC9 s\u1ED1 (Stat) "${kids.some((k) => /doanh thu/i.test(String(k.props.label ?? ""))) ? "T\u1EF7 l\u1EC7 chuy\u1EC3n \u0111\u1ED5i" : "T\u1ED5ng s\u1ED1"}" v\xE0o cu\u1ED1i ${where}.`;
     case "Pagination":
       return `Th\xEAm ph\xE2n trang (Pagination) ngay sau b\u1EA3ng trong ${where}.`;
     case "Heading":
@@ -12175,7 +12184,7 @@ function suggest(model2, tree, opts = {}) {
     if (!inScope(n.id) || !isContainer(n.type)) return;
     const last = n.children?.at(-1)?.type;
     const where = nodeLabel(n);
-    for (const { type, p: p2 } of predictNext(model2, tree, n.id, 5).filter((x) => x.p >= ADD_MIN_P && (x.type !== last || x.p >= 0.3)).slice(0, 2)) {
+    for (const { type, p: p2 } of predictNext(model2, tree, n.id, 5).filter((x) => x.p >= ADD_MIN_P && (x.type !== last || x.p >= 0.3) && !LAYOUT_TYPES.has(x.type)).slice(0, 2)) {
       out.push({
         id: `add:${n.id}:${type}`,
         kind: "add",

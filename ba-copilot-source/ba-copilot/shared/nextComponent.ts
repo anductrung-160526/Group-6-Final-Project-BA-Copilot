@@ -14,7 +14,7 @@ export const SURPRISAL_REVIEW = 6;
 /** Container bố cục thường được đặt tự do – không đánh dấu "Xem lại". */
 const LAYOUT_TYPES = new Set(["Card", "Section", "Row", "Column", "Header", "Sidebar"]);
 const OUTCOMES = [...ALL_TYPES, END];
-const CONTROL_TYPES = new Set(["Input", "Textarea", "Select", "DatePicker", "Checkbox", "Radio", "Button", "Link"]);
+const CONTROL_TYPES = new Set(["Stat", "Input", "Textarea", "Select", "DatePicker", "Checkbox", "Radio", "Button", "Link"]);
 
 type Table = Record<string, Record<string, number>>;
 
@@ -267,12 +267,14 @@ function contextTexts(tree: UINode, container: UINode): string[] {
 export function submitLabel(tree: UINode, container: UINode): { label: string; action: string } {
   const t = contextTexts(tree, container);
   const pw = has(t, /mật khẩu|password/);
+  if (has(t, /đổi mật khẩu|mật khẩu (cũ|hiện tại)/)) return { label: "Đổi mật khẩu", action: "change_password" };
   if (has(t, /xác nhận mật khẩu|đăng ký|register|sign up/)) return { label: "Đăng ký", action: "register" };
   if (has(t, /quên mật khẩu|đặt lại/) && !has(t, /^mật khẩu$/)) return { label: "Gửi liên kết", action: "send_reset" };
   if (pw && has(t, /email|tên đăng nhập|username|tài khoản/)) return { label: "Đăng nhập", action: "login" };
   if (has(t, /tìm kiếm|tra cứu|search|lọc/)) return { label: "Tìm kiếm", action: "search" };
   if (has(t, /thanh toán|checkout/)) return { label: "Đặt hàng", action: "checkout" };
   if (has(t, /chỉnh sửa|cập nhật/)) return { label: "Cập nhật", action: "update" };
+  if (has(t, /^gửi|yêu cầu|phản hồi|liên hệ|góp ý/)) return { label: "Gửi", action: "submit" };
   return { label: "Lưu", action: "save" };
 }
 
@@ -316,6 +318,8 @@ export function addPrompt(tree: UINode, container: UINode, type: string): string
       return `Thêm ô chọn ngày (DatePicker) "${kids.some((k) => k.type === "DatePicker") ? "Đến ngày" : container.type === "Row" ? "Từ ngày" : "Ngày"}" vào cuối ${where}.`;
     case "Textarea":
       return `Thêm ô nhập nhiều dòng (Textarea) "${kids.some((k) => /mô tả/i.test(String(k.props.label ?? ""))) ? "Ghi chú" : "Mô tả"}" vào cuối ${where}.`;
+    case "Stat":
+      return `Thêm chỉ số (Stat) "${kids.some((k) => /doanh thu/i.test(String(k.props.label ?? ""))) ? "Tỷ lệ chuyển đổi" : "Tổng số"}" vào cuối ${where}.`;
     case "Pagination":
       return `Thêm phân trang (Pagination) ngay sau bảng trong ${where}.`;
     case "Heading":
@@ -345,7 +349,7 @@ export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = 
     if (!inScope(n.id) || !isContainer(n.type)) return;
     const last = n.children?.at(-1)?.type;
     const where = nodeLabel(n);
-    for (const { type, p } of predictNext(model, tree, n.id, 5).filter((x) => x.p >= ADD_MIN_P && (x.type !== last || x.p >= 0.3)).slice(0, 2)) {
+    for (const { type, p } of predictNext(model, tree, n.id, 5).filter((x) => x.p >= ADD_MIN_P && (x.type !== last || x.p >= 0.3) && !LAYOUT_TYPES.has(x.type)).slice(0, 2)) {
       out.push({
         id: `add:${n.id}:${type}`,
         kind: "add",

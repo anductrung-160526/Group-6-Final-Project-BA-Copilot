@@ -81,7 +81,9 @@ export function mockFromPrompt(prompt: string, name: string): UINode | null {
 
   field(/email/, "Input", { label: "Email", inputType: "email" });
   field(/xác nhận mật khẩu/, "Input", { label: "Xác nhận mật khẩu", inputType: "password" });
-  field(/(?<!quên |xác nhận )mật khẩu|password/, "Input", { label: "Mật khẩu", inputType: "password" });
+  field(/mật khẩu (cũ|hiện tại)/, "Input", { label: "Mật khẩu hiện tại", inputType: "password" });
+  field(/mật khẩu mới/, "Input", { label: "Mật khẩu mới", inputType: "password" });
+  if (!/mật khẩu (cũ|hiện tại|mới)/.test(p)) field(/(?<!quên |xác nhận )mật khẩu|password/, "Input", { label: "Mật khẩu", inputType: "password" });
   field(/họ (và )?tên|tên đầy đủ/, "Input", { label: "Họ và tên" });
   field(/số điện thoại|sđt/, "Input", { label: "Số điện thoại", inputType: "tel" });
   field(/địa chỉ(?! email)/, "Input", { label: "Địa chỉ" });
@@ -440,7 +442,7 @@ export function mockEditOps(tree: UINode, selectedIds: string[], instruction: st
 const TYPE_ALIASES: [RegExp, string][] = [
   [/phân trang/i, "Pagination"], [/bộ lọc|ô chọn(?! ngày)|dropdown|danh sách chọn/i, "Select"], [/ô chọn ngày|chọn ngày|lịch/i, "DatePicker"],
   [/ô nhập nhiều dòng|textarea/i, "Textarea"], [/ô tích|checkbox/i, "Checkbox"], [/tiêu đề/i, "Heading"], [/đoạn mô tả|đoạn văn/i, "Text"],
-  [/\blink\b|liên kết/i, "Link"], [/\bbảng\b/i, "Table"], [/thông báo/i, "Alert"], [/nhãn trạng thái|badge/i, "Badge"], [/hình ảnh|ảnh/i, "Image"],
+  [/\blink\b|liên kết/i, "Link"], [/chỉ số/i, "Stat"], [/\bbảng\b/i, "Table"], [/thông báo/i, "Alert"], [/nhãn trạng thái|badge/i, "Badge"], [/hình ảnh|ảnh/i, "Image"],
 ];
 
 /** Loại component được yêu cầu thêm: ưu tiên tên loại trong ngoặc/viết thẳng, sau đó từ khóa tiếng Việt. */
@@ -470,6 +472,7 @@ function defaultNode(type: string, label?: string): { type: string; props: Recor
     case "Checkbox": return { type, props: { label: lb ?? "Lựa chọn", name: name ?? "lua_chon" } };
     case "Radio": return { type, props: { label: lb ?? "Lựa chọn", name: name ?? "lua_chon", options: ["Có", "Không"] } };
     case "Pagination": return { type, props: { pages: 5 } };
+    case "Stat": return { type, props: { label: lb ?? "Chỉ số", value: "0" } };
     case "Heading": return { type, props: { text: lb ?? "Tiêu đề", level: 2 } };
     case "Text": return { type, props: { text: lb ?? "Mô tả ngắn cho người dùng." } };
     case "Link": return { type, props: { text: lb ?? "Xem thêm" } };
