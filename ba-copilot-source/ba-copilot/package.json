@@ -15,7 +15,10 @@
     "e2e": "node scripts/build.mjs && node e2e/e2e.mjs",
     "seed": "tsx scripts/seed.ts",
     "bundle": "node scripts/bundle.mjs",
-    "start:prebuilt": "node dist/server.mjs"
+    "start:prebuilt": "node dist/server.mjs",
+    "build-corpus": "tsx scripts/build-corpus.ts",
+    "build-model": "tsx scripts/build-next-model.ts",
+    "eval-next": "tsx scripts/eval-next.ts"
   },
   "dependencies": {
     "docx": "^9.6.1",

@@ -3,3 +3,5 @@ data/
 .env
 *.map
 e2e/screenshots/
+data/corpus/
+analysis/
