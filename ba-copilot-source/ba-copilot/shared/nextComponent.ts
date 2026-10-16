@@ -10,7 +10,7 @@ export const ROOT = "<ROOT>";
 export const MIN_COUNT = 5;
 export const BACKOFF = 0.4;
 export const ADD_MIN_P = 0.15;
-export const SURPRISAL_REVIEW = 8;
+export const SURPRISAL_REVIEW = 6;
 /** Container bố cục thường được đặt tự do – không đánh dấu "Xem lại". */
 const LAYOUT_TYPES = new Set(["Card", "Section", "Row", "Column", "Header", "Sidebar"]);
 const OUTCOMES = [...ALL_TYPES, END];
@@ -223,6 +223,22 @@ export const RULES: Rule[] = [
       return { nodeId: n.id, code: "R6", message: `Màn "${to}" chưa được thiết kế`, severity: 1, fixPrompt: `Màn hình ${to}`, createScreen: to };
     });
   },
+  // R8 trường nhập chưa có placeholder hướng dẫn
+  (t) =>
+    each(t, (n) => {
+      if ((n.type !== "Input" && n.type !== "Textarea") || n.props.placeholder) return null;
+      const lb = label(n);
+      return { nodeId: n.id, code: "R8", message: `Trường "${lb}" chưa có placeholder`, severity: 1, fixPrompt: `Thêm placeholder "Nhập ${lb.toLowerCase()}" cho trường "${lb}".` };
+    }),
+  // R9 ô nhập chữ chưa giới hạn độ dài
+  (t) =>
+    each(t, (n) => {
+      if (n.type !== "Input" || n.props.maxLength !== undefined) return null;
+      const kind = String(n.props.inputType ?? "text");
+      if (!["text", "email", "tel", "password"].includes(kind)) return null;
+      const max = kind === "password" ? 32 : kind === "tel" ? 15 : 100;
+      return { nodeId: n.id, code: "R9", message: `Trường "${label(n)}" chưa giới hạn độ dài`, severity: 1, fixPrompt: `Đặt trường "${label(n)}" tối đa ${max} ký tự.` };
+    }),
   // R7 node còn bình luận chưa xử lý
   (t, ctx) => {
     const open = new Set(ctx.openAnnotationNodeIds ?? []);
@@ -237,7 +253,7 @@ export function ruleFindings(tree: UINode, ctx: RuleCtx = {}): Finding[] {
 // ------------------------------------------------------------------ Xếp hạng gợi ý
 export interface Suggestion {
   id: string;
-  kind: "add" | "fix" | "review";
+  kind: "add" | "fix" | "review" | "screen";
   targetNodeId: string;
   title: string;
   reason: string;
@@ -332,7 +348,7 @@ export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = 
     if (!inScope(n.id) || !isContainer(n.type)) return;
     const last = n.children?.at(-1)?.type;
     const where = nodeLabel(n);
-    for (const { type, p } of predictNext(model, tree, n.id, 5).filter((x) => x.p >= ADD_MIN_P && x.type !== last).slice(0, 2)) {
+    for (const { type, p } of predictNext(model, tree, n.id, 5).filter((x) => x.p >= ADD_MIN_P && (x.type !== last || x.p >= 0.3)).slice(0, 2)) {
       out.push({
         id: `add:${n.id}:${type}`,
         kind: "add",
@@ -348,8 +364,8 @@ export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = 
   for (const f of ruleFindings(tree, opts)) {
     if (!inScope(f.nodeId)) continue;
     out.push({
-      id: `fix:${f.nodeId}:${f.code}`,
-      kind: "fix",
+      id: `${f.createScreen ? "screen" : "fix"}:${f.nodeId}:${f.code}`,
+      kind: f.createScreen ? "screen" : "fix",
       targetNodeId: f.nodeId,
       title: f.message,
       reason: f.createScreen ? `"${label(findNode(tree, f.nodeId)!)}" dẫn tới màn này (luật ${f.code})` : `Luật ${f.code}`,
@@ -360,7 +376,7 @@ export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = 
   }
 
   walk(tree, (n, parent) => {
-    if (!parent || !inScope(n.id) || LAYOUT_TYPES.has(n.type)) return;
+    if (!parent || !inScope(n.id) || LAYOUT_TYPES.has(n.type) || isContainer(n.type)) return;
     const s = surprisal(model, tree, n.id);
     if (s < SURPRISAL_REVIEW) return;
     out.push({
@@ -374,9 +390,8 @@ export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = 
     });
   });
 
+  // top-k là phần tử TRONG màn; gợi ý tạo màn liên quan xếp riêng ở cuối, không chiếm chỗ
   const seen = new Set<string>();
-  return out
-    .filter((s) => (seen.has(s.id) ? false : (seen.add(s.id), true)))
-    .sort((a, b) => b.confidence - a.confidence)
-    .slice(0, k);
+  const uniq = out.filter((s) => (seen.has(s.id) ? false : (seen.add(s.id), true))).sort((a, b) => b.confidence - a.confidence);
+  return [...uniq.filter((s) => s.kind !== "screen").slice(0, k), ...uniq.filter((s) => s.kind === "screen")];
 }

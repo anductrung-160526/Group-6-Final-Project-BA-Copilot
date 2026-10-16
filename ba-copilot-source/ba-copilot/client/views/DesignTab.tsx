@@ -44,6 +44,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [suggHover, setSuggHover] = useState<string | null>(null);
   const shownRef = useRef<Set<string>>(new Set());
+  const fromSuggestion = useRef(false);
   const [newScreen, setNewScreen] = useState<{ name: string; prompt: string } | null>(null);
   const [drag, setDrag] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
   const [rects, setRects] = useState<Record<string, Rect>>({});
@@ -145,6 +146,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
     }
     setSelected([s.targetNodeId]);
     setPrompt(s.fixPrompt);
+    fromSuggestion.current = true;
     setPanel("edit");
     setSuggHover(null);
     toast("Đã khoanh vùng và điền sẵn prompt – kiểm tra rồi bấm “Sửa vùng đã khoanh”", "info");
@@ -265,6 +267,12 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
     setPrompt("");
     setChecked(new Set());
     setShowChanges(true);
+    // sửa xong theo gợi ý → bỏ vùng chọn và mở lại tab Gợi ý để thấy phần tử tiếp theo cần sửa
+    if (fromSuggestion.current && r.version) {
+      fromSuggestion.current = false;
+      setSelected([]);
+      setPanel("suggest");
+    }
     await reload();
     await loadVersions();
   };
@@ -468,7 +476,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
               Phiên bản ({versions.length})
             </button>
             <button className={panel === "suggest" ? "on" : ""} onClick={() => setPanel("suggest")} data-testid="suggest-tab">
-              Gợi ý {visibleSuggestions.length ? `(${visibleSuggestions.length})` : ""}
+              Gợi ý {visibleSuggestions.filter((s) => s.kind !== "screen").length ? `(${visibleSuggestions.filter((s) => s.kind !== "screen").length})` : ""}
             </button>
           </div>
 
@@ -477,10 +485,12 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
               <div className="muted small">
                 {selected.length ? `Gợi ý cho vùng đang chọn (${selected.length} phần tử)` : "Gợi ý cho toàn màn hình – khoanh vùng để thu hẹp"}
               </div>
-              {visibleSuggestions.map((s) => (
-                <div key={s.id} className={`sugg sugg-${s.kind}`} onMouseEnter={() => setSuggHover(s.targetNodeId)} onMouseLeave={() => setSuggHover(null)} data-testid="suggestion">
+              {[...visibleSuggestions.filter((s) => s.kind !== "screen"), ...visibleSuggestions.filter((s) => s.kind === "screen")].map((s, i, all) => (
+                <React.Fragment key={s.id}>
+                {s.kind === "screen" && all[i - 1]?.kind !== "screen" && <div className="box-title sugg-group">Màn liên quan chưa thiết kế</div>}
+                <div className={`sugg sugg-${s.kind}`} onMouseEnter={() => setSuggHover(s.targetNodeId)} onMouseLeave={() => setSuggHover(null)} data-testid="suggestion">
                   <div className="sugg-head">
-                    <Badge tone={s.kind === "add" ? "blue" : s.kind === "fix" ? "amber" : "violet"}>{s.kind === "add" ? "Thêm" : s.kind === "fix" ? "Sửa" : "Xem lại"}</Badge>
+                    <Badge tone={s.kind === "add" ? "blue" : s.kind === "fix" ? "amber" : s.kind === "screen" ? "gray" : "violet"}>{s.kind === "add" ? "Thêm" : s.kind === "fix" ? "Sửa" : s.kind === "screen" ? "Màn" : "Xem lại"}</Badge>
                     <span className="sugg-title">{s.title}</span>
                   </div>
                   <div className="muted small">{s.reason}</div>
@@ -497,6 +507,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
                     <span className="muted small right">{Math.round(s.confidence * 100)}%</span>
                   </div>
                 </div>
+                </React.Fragment>
               ))}
               {!visibleSuggestions.length && <div className="muted small pad">Chưa có gợi ý cho vùng này.</div>}
               {suggMeta && <div className="muted small sugg-foot">Mô hình học từ {suggMeta.trees.toLocaleString("vi-VN")} màn hình</div>}

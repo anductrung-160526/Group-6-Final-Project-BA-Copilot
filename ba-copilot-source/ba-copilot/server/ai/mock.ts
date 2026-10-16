@@ -213,6 +213,11 @@ export function mockEditOps(tree: UINode, selectedIds: string[], instruction: st
     }
     if (addField) insertNear(n, { type: "Input", props: { label: (quoted ?? addField[1]).trim(), required: /bắt buộc/.test(low) } });
     if (/\b(xóa|xoá|bỏ|loại bỏ)\b/.test(low) && !addButton && !addField && !rename && n.id !== tree.id) ops.push({ op: "remove", id: n.id });
+    const placeholder = text.match(/placeholder\s+["“]([^"”]+)["”]/i)?.[1];
+    const maxLen = text.match(/tối đa\s+(\d+)\s*ký tự/i)?.[1];
+    if ((placeholder || maxLen) && !addField) walk(n, (d) => {
+      if (d.type === "Input" || d.type === "Textarea") ops.push({ op: "update", id: d.id, props: { ...(placeholder ? { placeholder } : {}), ...(maxLen ? { maxLength: Number(maxLen) } : {}) } });
+    });
     if ((setType || minLen) && !addField) walk(n, (d) => {
       if (d.type === "Input") ops.push({ op: "update", id: d.id, props: { ...(setType ? { inputType: setType } : {}), ...(minLen ? { minLength: Number(minLen) } : {}) } });
     });

@@ -10717,6 +10717,11 @@ function mockEditOps(tree, selectedIds, instruction) {
     }
     if (addField) insertNear(n, { type: "Input", props: { label: (quoted ?? addField[1]).trim(), required: /bắt buộc/.test(low) } });
     if (/\b(xóa|xoá|bỏ|loại bỏ)\b/.test(low) && !addButton && !addField && !rename && n.id !== tree.id) ops.push({ op: "remove", id: n.id });
+    const placeholder = text.match(/placeholder\s+["“]([^"”]+)["”]/i)?.[1];
+    const maxLen = text.match(/tối đa\s+(\d+)\s*ký tự/i)?.[1];
+    if ((placeholder || maxLen) && !addField) walk(n, (d) => {
+      if (d.type === "Input" || d.type === "Textarea") ops.push({ op: "update", id: d.id, props: { ...placeholder ? { placeholder } : {}, ...maxLen ? { maxLength: Number(maxLen) } : {} } });
+    });
     if ((setType || minLen) && !addField) walk(n, (d) => {
       if (d.type === "Input") ops.push({ op: "update", id: d.id, props: { ...setType ? { inputType: setType } : {}, ...minLen ? { minLength: Number(minLen) } : {} } });
     });
@@ -11714,7 +11719,7 @@ var ROOT = "<ROOT>";
 var MIN_COUNT = 5;
 var BACKOFF = 0.4;
 var ADD_MIN_P = 0.15;
-var SURPRISAL_REVIEW = 8;
+var SURPRISAL_REVIEW = 6;
 var LAYOUT_TYPES = /* @__PURE__ */ new Set(["Card", "Section", "Row", "Column", "Header", "Sidebar"]);
 var OUTCOMES = [...ALL_TYPES, END];
 function emptyModel() {
@@ -11855,6 +11860,20 @@ var RULES = [
       return { nodeId: n.id, code: "R6", message: `M\xE0n "${to}" ch\u01B0a \u0111\u01B0\u1EE3c thi\u1EBFt k\u1EBF`, severity: 1, fixPrompt: `M\xE0n h\xECnh ${to}`, createScreen: to };
     });
   },
+  // R8 trường nhập chưa có placeholder hướng dẫn
+  (t) => each(t, (n) => {
+    if (n.type !== "Input" && n.type !== "Textarea" || n.props.placeholder) return null;
+    const lb = label(n);
+    return { nodeId: n.id, code: "R8", message: `Tr\u01B0\u1EDDng "${lb}" ch\u01B0a c\xF3 placeholder`, severity: 1, fixPrompt: `Th\xEAm placeholder "Nh\u1EADp ${lb.toLowerCase()}" cho tr\u01B0\u1EDDng "${lb}".` };
+  }),
+  // R9 ô nhập chữ chưa giới hạn độ dài
+  (t) => each(t, (n) => {
+    if (n.type !== "Input" || n.props.maxLength !== void 0) return null;
+    const kind = String(n.props.inputType ?? "text");
+    if (!["text", "email", "tel", "password"].includes(kind)) return null;
+    const max = kind === "password" ? 32 : kind === "tel" ? 15 : 100;
+    return { nodeId: n.id, code: "R9", message: `Tr\u01B0\u1EDDng "${label(n)}" ch\u01B0a gi\u1EDBi h\u1EA1n \u0111\u1ED9 d\xE0i`, severity: 1, fixPrompt: `\u0110\u1EB7t tr\u01B0\u1EDDng "${label(n)}" t\u1ED1i \u0111a ${max} k\xFD t\u1EF1.` };
+  }),
   // R7 node còn bình luận chưa xử lý
   (t, ctx) => {
     const open = new Set(ctx.openAnnotationNodeIds ?? []);
@@ -11932,7 +11951,7 @@ function suggest(model2, tree, opts = {}) {
     if (!inScope(n.id) || !isContainer(n.type)) return;
     const last = n.children?.at(-1)?.type;
     const where = nodeLabel(n);
-    for (const { type, p: p2 } of predictNext(model2, tree, n.id, 5).filter((x) => x.p >= ADD_MIN_P && x.type !== last).slice(0, 2)) {
+    for (const { type, p: p2 } of predictNext(model2, tree, n.id, 5).filter((x) => x.p >= ADD_MIN_P && (x.type !== last || x.p >= 0.3)).slice(0, 2)) {
       out.push({
         id: `add:${n.id}:${type}`,
         kind: "add",
@@ -11947,8 +11966,8 @@ function suggest(model2, tree, opts = {}) {
   for (const f of ruleFindings(tree, opts)) {
     if (!inScope(f.nodeId)) continue;
     out.push({
-      id: `fix:${f.nodeId}:${f.code}`,
-      kind: "fix",
+      id: `${f.createScreen ? "screen" : "fix"}:${f.nodeId}:${f.code}`,
+      kind: f.createScreen ? "screen" : "fix",
       targetNodeId: f.nodeId,
       title: f.message,
       reason: f.createScreen ? `"${label(findNode(tree, f.nodeId))}" d\u1EABn t\u1EDBi m\xE0n n\xE0y (lu\u1EADt ${f.code})` : `Lu\u1EADt ${f.code}`,
@@ -11958,7 +11977,7 @@ function suggest(model2, tree, opts = {}) {
     });
   }
   walk(tree, (n, parent) => {
-    if (!parent || !inScope(n.id) || LAYOUT_TYPES.has(n.type)) return;
+    if (!parent || !inScope(n.id) || LAYOUT_TYPES.has(n.type) || isContainer(n.type)) return;
     const s = surprisal(model2, tree, n.id);
     if (s < SURPRISAL_REVIEW) return;
     out.push({
@@ -11972,7 +11991,8 @@ function suggest(model2, tree, opts = {}) {
     });
   });
   const seen = /* @__PURE__ */ new Set();
-  return out.filter((s) => seen.has(s.id) ? false : (seen.add(s.id), true)).sort((a, b) => b.confidence - a.confidence).slice(0, k);
+  const uniq = out.filter((s) => seen.has(s.id) ? false : (seen.add(s.id), true)).sort((a, b) => b.confidence - a.confidence);
+  return [...uniq.filter((s) => s.kind !== "screen").slice(0, k), ...uniq.filter((s) => s.kind === "screen")];
 }
 
 // server/nextModel.ts

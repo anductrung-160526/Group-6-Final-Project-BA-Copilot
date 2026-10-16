@@ -184,3 +184,16 @@ test("câu gợi ý theo ngữ cảnh: nhãn nút và trường thiếu", async 
   const s = suggest(trained(), page({ id: "f2", type: "Form", props: {}, children: [{ id: "a", type: "Input", props: { label: "Email", name: "e", inputType: "email" } }, { id: "b", type: "Input", props: { label: "Mật khẩu", name: "p", inputType: "password", minLength: 8 } }] }), { selectedIds: ["f2"], k: 10 }).find((x) => x.kind === "add" && x.title.includes("Button"));
   assert.ok(s && /Sau Input trong Form/.test(s.reason) && /"Đăng nhập"/.test(s.fixPrompt), JSON.stringify(s));
 });
+
+test("gợi ý tạo màn (R6) không chiếm chỗ của gợi ý phần tử; R8/R9 bắt thiếu sót nhỏ", () => {
+  const t = page(
+    { id: "f", type: "Form", props: {}, children: [{ id: "a", type: "Input", props: { label: "Họ tên", name: "ho_ten" } }, { id: "b", type: "Button", props: { label: "Lưu", action: "save" } }] },
+    { id: "l1", type: "Link", props: { text: "A", navigateTo: "Màn A" } },
+    { id: "l2", type: "Link", props: { text: "B", navigateTo: "Màn B" } },
+  );
+  const s = suggest(trained(), t, { screenNames: ["Khác"], k: 1 });
+  assert.equal(s[0].kind === "screen", false); // phần tử đứng trước
+  assert.equal(s.filter((x) => x.kind !== "screen").length, 1); // k chỉ tính phần tử
+  assert.equal(s.filter((x) => x.kind === "screen").length, 2); // màn liên quan vẫn liệt kê
+  assert.ok(codes(t).includes("R8") && codes(t).includes("R9"));
+});
