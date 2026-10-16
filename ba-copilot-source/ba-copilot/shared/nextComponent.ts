@@ -385,7 +385,8 @@ export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = 
       title: `Xem lại ${nodeLabel(n)} trong ${nodeLabel(parent)}`,
       reason: `Hiếm gặp trong ngữ cảnh này (${s.toFixed(1)} bit)`,
       confidence: Math.min(1, s / 12) * 0.6,
-      fixPrompt: `Kiểm tra lại ${nodeLabel(n)} – cân nhắc dùng loại component khác hoặc dời vị trí.`,
+      // đề xuất cụ thể để Mock/Claude làm được; prompt chỉ điền sẵn, BA tự quyết định có gửi hay không
+      fixPrompt: `Xóa ${nodeLabel(n)} khỏi ${nodeLabel(parent)}.`,
     });
   });
 

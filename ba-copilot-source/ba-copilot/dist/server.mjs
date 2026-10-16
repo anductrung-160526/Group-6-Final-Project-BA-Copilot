@@ -12213,7 +12213,8 @@ function suggest(model2, tree, opts = {}) {
       title: `Xem l\u1EA1i ${nodeLabel(n)} trong ${nodeLabel(parent)}`,
       reason: `Hi\u1EBFm g\u1EB7p trong ng\u1EEF c\u1EA3nh n\xE0y (${s.toFixed(1)} bit)`,
       confidence: Math.min(1, s / 12) * 0.6,
-      fixPrompt: `Ki\u1EC3m tra l\u1EA1i ${nodeLabel(n)} \u2013 c\xE2n nh\u1EAFc d\xF9ng lo\u1EA1i component kh\xE1c ho\u1EB7c d\u1EDDi v\u1ECB tr\xED.`
+      // đề xuất cụ thể để Mock/Claude làm được; prompt chỉ điền sẵn, BA tự quyết định có gửi hay không
+      fixPrompt: `X\xF3a ${nodeLabel(n)} kh\u1ECFi ${nodeLabel(parent)}.`
     });
   });
   const seen = /* @__PURE__ */ new Set();
