@@ -10595,7 +10595,7 @@ function mockFromPrompt(prompt, name) {
   field(/giới tính/, "Radio", { label: "Gi\u1EDBi t\xEDnh", options: ["Nam", "N\u1EEF", "Kh\xE1c"] });
   field(/giá( bán)?\b/, "Input", { label: "Gi\xE1 b\xE1n", inputType: "number" });
   field(/số lượng|tồn kho/, "Input", { label: "S\u1ED1 l\u01B0\u1EE3ng", inputType: "number" });
-  field(/\bmã\b(?! số)/, "Input", { label: "M\xE3" });
+  field(new RegExp("(?<!\\p{L})m\xE3(?!\\p{L})(?! s\u1ED1)", "u"), "Input", { label: "M\xE3" });
   field(/danh mục/, "Select", { label: "Danh m\u1EE5c", options: ["Lo\u1EA1i 1", "Lo\u1EA1i 2", "Lo\u1EA1i 3"] });
   field(/người phụ trách/, "Select", { label: "Ng\u01B0\u1EDDi ph\u1EE5 tr\xE1ch", options: ["Ch\u01B0a ph\xE2n c\xF4ng"] });
   field(/mô tả/, "Textarea", { label: "M\xF4 t\u1EA3" });

@@ -90,7 +90,7 @@ export function mockFromPrompt(prompt: string, name: string): UINode | null {
   field(/giới tính/, "Radio", { label: "Giới tính", options: ["Nam", "Nữ", "Khác"] });
   field(/giá( bán)?\b/, "Input", { label: "Giá bán", inputType: "number" });
   field(/số lượng|tồn kho/, "Input", { label: "Số lượng", inputType: "number" });
-  field(/\bmã\b(?! số)/, "Input", { label: "Mã" });
+  field(/(?<!\p{L})mã(?!\p{L})(?! số)/u, "Input", { label: "Mã" });
   field(/danh mục/, "Select", { label: "Danh mục", options: ["Loại 1", "Loại 2", "Loại 3"] });
   field(/người phụ trách/, "Select", { label: "Người phụ trách", options: ["Chưa phân công"] });
   field(/mô tả/, "Textarea", { label: "Mô tả" });
