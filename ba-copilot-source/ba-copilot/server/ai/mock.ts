@@ -42,7 +42,7 @@ const ACTIONS: [RegExp, string][] = [
 ];
 const actionOf = (label: string) => ACTIONS.find(([re]) => re.test(label.toLowerCase()))?.[1] ?? "click";
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-const splitList = (s: string) => s.split(/\s*(?:,|;|\/|\bvà\b|\bhoặc\b)\s*/).map((x) => x.replace(/["“”']/g, "").trim()).filter((x) => x && x.length <= 40);
+const splitList = (s: string) => s.split(/\s*(?:,|;|\/)\s*|\s+(?:và|hoặc)\s+/).map((x) => x.replace(/["“”']/g, "").trim()).filter((x) => x && x.length <= 40);
 
 export function mockFromPrompt(prompt: string, name: string): UINode | null {
   const text = prompt.trim();
@@ -51,23 +51,37 @@ export function mockFromPrompt(prompt: string, name: string): UINode | null {
   const tools: Part[] = []; // tìm kiếm / bộ lọc trên thanh công cụ
   const buttons: Part[] = [];
   const links: Part[] = [];
-  const req = /bắt buộc/.test(p);
-  const maxLen = p.match(/tối đa\s+(\d+)\s*ký tự/)?.[1];
-  const minLen = p.match(/tối thiểu\s+(\d+)\s*ký tự/)?.[1];
   const at = (re: RegExp) => p.search(re);
+  const fieldRes: { re: RegExp; node: { type: string; props: Record<string, unknown> } }[] = [];
   const field = (re: RegExp, type: string, props: Record<string, unknown>) => {
     const i = at(re);
     if (i < 0) return;
     const base: Record<string, unknown> = { ...props, name: slugName(String(props.label)) };
     if (type === "Input" || type === "Textarea") base.placeholder ??= `Nhập ${String(props.label).toLowerCase()}`;
-    if (req && type !== "Checkbox") base.required = true;
-    if (maxLen && type === "Input" && props.inputType !== "password") base.maxLength = Number(maxLen);
-    fields.push({ at: i, node: { type, props: base } });
+    const node = { type, props: base };
+    fieldRes.push({ re, node });
+    fields.push({ at: i, node });
+  };
+  /** Ràng buộc chỉ áp cho trường được nhắc cùng mệnh đề ("Họ tên và email bắt buộc"); không nhắc trường nào → áp cho tất cả. */
+  const constrain = () => {
+    for (const seg of p.split(/[.;,()\n]/)) {
+      const req = /bắt buộc/.test(seg);
+      const max = seg.match(/tối đa\s+(\d+)\s*ký tự/)?.[1];
+      const min = seg.match(/tối thiểu\s+(\d+)\s*ký tự/)?.[1];
+      if (!req && !max && !min) continue;
+      const named = fieldRes.filter((f) => f.re.test(seg));
+      const targets = named.length ? named : fieldRes.filter((f) => !(min && !max && !req) || f.node.props.inputType === "password");
+      for (const { node } of targets) {
+        if (req && node.type !== "Checkbox") node.props.required = true;
+        if (max && (node.type === "Input" || node.type === "Textarea") && node.props.inputType !== "password") node.props.maxLength = Number(max);
+        if (min && node.type === "Input") node.props.minLength = Number(min);
+      }
+    }
   };
 
   field(/email/, "Input", { label: "Email", inputType: "email" });
   field(/xác nhận mật khẩu/, "Input", { label: "Xác nhận mật khẩu", inputType: "password" });
-  field(/(?<!quên |xác nhận )mật khẩu|password/, "Input", { label: "Mật khẩu", inputType: "password", ...(minLen ? { minLength: Number(minLen) } : {}) });
+  field(/(?<!quên |xác nhận )mật khẩu|password/, "Input", { label: "Mật khẩu", inputType: "password" });
   field(/họ (và )?tên|tên đầy đủ/, "Input", { label: "Họ và tên" });
   field(/số điện thoại|sđt/, "Input", { label: "Số điện thoại", inputType: "tel" });
   field(/địa chỉ(?! email)/, "Input", { label: "Địa chỉ" });
@@ -85,6 +99,8 @@ export function mockFromPrompt(prompt: string, name: string): UINode | null {
   field(/đồng ý|điều khoản/, "Checkbox", { label: "Tôi đồng ý với điều khoản sử dụng" });
   const tenX = text.match(/(?<![Hh]ọ )\btên\s+([\p{L}]+(?:\s[\p{L}]+)?)/u);
   if (tenX && !/^(đăng|tài khoản)/i.test(tenX[1])) field(new RegExp(`tên\\s+${tenX[1].toLowerCase()}`), "Input", { label: `Tên ${tenX[1].toLowerCase()}` });
+
+  constrain();
 
   // thanh công cụ của màn danh sách
   const isList = /\bbảng\b|danh sách/.test(p) && !/^màn hình (đăng|quên)/.test(p);
@@ -133,9 +149,9 @@ export function mockFromPrompt(prompt: string, name: string): UINode | null {
     children.push({ id: intent ? `${intent}_form` : undefined, type: "Form", props: { submitAction: intent || "save" }, children: formKids });
   } else if (formBtns.length && !hasTable) children.push({ type: "Row", props: { gap: 8 }, children: formBtns.map(btn) });
   if (hasTable) {
-    const cols = p.match(/cột\s+([^.;\n]+)/)?.[1];
+    const cols = p.match(/cột\s+([^.;\n]+?)(?=$|[.;\n]|,\s*(?:thao tác|nút|phân trang|có|xuất)\b)/)?.[1];
     const acts = p.match(/(xem\/sửa\/xóa|sửa\/xóa|sửa và xóa)/)?.[1];
-    children.push({ type: "Table", props: { columns: cols ? splitList(cols).map(cap) : ["Mã", "Tên", "Trạng thái"], rows: [], ...(acts ? { rowActions: splitList(acts).map(cap) } : {}) } });
+    children.push({ type: "Table", props: { columns: [...(cols ? splitList(cols).map(cap) : ["Mã", "Tên", "Trạng thái"]), ...(acts ? ["Thao tác"] : [])], rows: [], ...(acts ? { rowActions: splitList(acts).map(cap) } : {}) } });
     if (hasTable && formBtns.length && fields.length === 0) children.push({ type: "Row", props: { gap: 8 }, children: formBtns.map(btn) });
   }
   if (/phân trang/.test(p)) children.push({ type: "Pagination", props: { pages: 5 } });

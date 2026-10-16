@@ -219,6 +219,7 @@ export const RULES: Rule[] = [
   (t) =>
     each(t, (n) => {
       if (n.type !== "Input" || n.props.maxLength !== undefined) return null;
+      if (/tìm kiếm|search|keyword/i.test(`${n.props.label ?? ""} ${n.props.name ?? ""}`)) return null; // ô tìm kiếm không cần
       const kind = String(n.props.inputType ?? "text");
       if (!["text", "email", "tel", "password"].includes(kind)) return null;
       const max = kind === "password" ? 32 : kind === "tel" ? 15 : 100;

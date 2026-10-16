@@ -10550,7 +10550,7 @@ var ACTIONS = [
 ];
 var actionOf = (label2) => ACTIONS.find(([re]) => re.test(label2.toLowerCase()))?.[1] ?? "click";
 var cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-var splitList = (s) => s.split(/\s*(?:,|;|\/|\bvà\b|\bhoặc\b)\s*/).map((x) => x.replace(/["“”']/g, "").trim()).filter((x) => x && x.length <= 40);
+var splitList = (s) => s.split(/\s*(?:,|;|\/)\s*|\s+(?:và|hoặc)\s+/).map((x) => x.replace(/["“”']/g, "").trim()).filter((x) => x && x.length <= 40);
 function mockFromPrompt(prompt, name) {
   const text = prompt.trim();
   const p2 = text.toLowerCase();
@@ -10558,22 +10558,35 @@ function mockFromPrompt(prompt, name) {
   const tools = [];
   const buttons = [];
   const links = [];
-  const req = /bắt buộc/.test(p2);
-  const maxLen = p2.match(/tối đa\s+(\d+)\s*ký tự/)?.[1];
-  const minLen = p2.match(/tối thiểu\s+(\d+)\s*ký tự/)?.[1];
   const at = (re) => p2.search(re);
+  const fieldRes = [];
   const field = (re, type, props) => {
     const i = at(re);
     if (i < 0) return;
     const base2 = { ...props, name: slugName(String(props.label)) };
     if (type === "Input" || type === "Textarea") base2.placeholder ??= `Nh\u1EADp ${String(props.label).toLowerCase()}`;
-    if (req && type !== "Checkbox") base2.required = true;
-    if (maxLen && type === "Input" && props.inputType !== "password") base2.maxLength = Number(maxLen);
-    fields.push({ at: i, node: { type, props: base2 } });
+    const node = { type, props: base2 };
+    fieldRes.push({ re, node });
+    fields.push({ at: i, node });
+  };
+  const constrain = () => {
+    for (const seg of p2.split(/[.;,()\n]/)) {
+      const req = /bắt buộc/.test(seg);
+      const max = seg.match(/tối đa\s+(\d+)\s*ký tự/)?.[1];
+      const min = seg.match(/tối thiểu\s+(\d+)\s*ký tự/)?.[1];
+      if (!req && !max && !min) continue;
+      const named = fieldRes.filter((f) => f.re.test(seg));
+      const targets = named.length ? named : fieldRes.filter((f) => !(min && !max && !req) || f.node.props.inputType === "password");
+      for (const { node } of targets) {
+        if (req && node.type !== "Checkbox") node.props.required = true;
+        if (max && (node.type === "Input" || node.type === "Textarea") && node.props.inputType !== "password") node.props.maxLength = Number(max);
+        if (min && node.type === "Input") node.props.minLength = Number(min);
+      }
+    }
   };
   field(/email/, "Input", { label: "Email", inputType: "email" });
   field(/xác nhận mật khẩu/, "Input", { label: "X\xE1c nh\u1EADn m\u1EADt kh\u1EA9u", inputType: "password" });
-  field(/(?<!quên |xác nhận )mật khẩu|password/, "Input", { label: "M\u1EADt kh\u1EA9u", inputType: "password", ...minLen ? { minLength: Number(minLen) } : {} });
+  field(/(?<!quên |xác nhận )mật khẩu|password/, "Input", { label: "M\u1EADt kh\u1EA9u", inputType: "password" });
   field(/họ (và )?tên|tên đầy đủ/, "Input", { label: "H\u1ECD v\xE0 t\xEAn" });
   field(/số điện thoại|sđt/, "Input", { label: "S\u1ED1 \u0111i\u1EC7n tho\u1EA1i", inputType: "tel" });
   field(/địa chỉ(?! email)/, "Input", { label: "\u0110\u1ECBa ch\u1EC9" });
@@ -10591,6 +10604,7 @@ function mockFromPrompt(prompt, name) {
   field(/đồng ý|điều khoản/, "Checkbox", { label: "T\xF4i \u0111\u1ED3ng \xFD v\u1EDBi \u0111i\u1EC1u kho\u1EA3n s\u1EED d\u1EE5ng" });
   const tenX = text.match(/(?<![Hh]ọ )\btên\s+([\p{L}]+(?:\s[\p{L}]+)?)/u);
   if (tenX && !/^(đăng|tài khoản)/i.test(tenX[1])) field(new RegExp(`t\xEAn\\s+${tenX[1].toLowerCase()}`), "Input", { label: `T\xEAn ${tenX[1].toLowerCase()}` });
+  constrain();
   const isList = /\bbảng\b|danh sách/.test(p2) && !/^màn hình (đăng|quên)/.test(p2);
   const iSearch = at(/tìm kiếm|tra cứu/);
   if (iSearch >= 0 && (isList || !fields.length)) tools.push({ at: iSearch, node: { type: "Input", props: { label: "T\xECm ki\u1EBFm", name: "keyword", placeholder: "Nh\u1EADp t\u1EEB kh\xF3a..." } } });
@@ -10631,9 +10645,9 @@ function mockFromPrompt(prompt, name) {
     children.push({ id: intent ? `${intent}_form` : void 0, type: "Form", props: { submitAction: intent || "save" }, children: formKids });
   } else if (formBtns.length && !hasTable) children.push({ type: "Row", props: { gap: 8 }, children: formBtns.map(btn) });
   if (hasTable) {
-    const cols = p2.match(/cột\s+([^.;\n]+)/)?.[1];
+    const cols = p2.match(/cột\s+([^.;\n]+?)(?=$|[.;\n]|,\s*(?:thao tác|nút|phân trang|có|xuất)\b)/)?.[1];
     const acts = p2.match(/(xem\/sửa\/xóa|sửa\/xóa|sửa và xóa)/)?.[1];
-    children.push({ type: "Table", props: { columns: cols ? splitList(cols).map(cap) : ["M\xE3", "T\xEAn", "Tr\u1EA1ng th\xE1i"], rows: [], ...acts ? { rowActions: splitList(acts).map(cap) } : {} } });
+    children.push({ type: "Table", props: { columns: [...cols ? splitList(cols).map(cap) : ["M\xE3", "T\xEAn", "Tr\u1EA1ng th\xE1i"], ...acts ? ["Thao t\xE1c"] : []], rows: [], ...acts ? { rowActions: splitList(acts).map(cap) } : {} } });
     if (hasTable && formBtns.length && fields.length === 0) children.push({ type: "Row", props: { gap: 8 }, children: formBtns.map(btn) });
   }
   if (/phân trang/.test(p2)) children.push({ type: "Pagination", props: { pages: 5 } });
@@ -11973,6 +11987,7 @@ var RULES = [
   // R9 ô nhập chữ chưa giới hạn độ dài
   (t) => each(t, (n) => {
     if (n.type !== "Input" || n.props.maxLength !== void 0) return null;
+    if (/tìm kiếm|search|keyword/i.test(`${n.props.label ?? ""} ${n.props.name ?? ""}`)) return null;
     const kind = String(n.props.inputType ?? "text");
     if (!["text", "email", "tel", "password"].includes(kind)) return null;
     const max = kind === "password" ? 32 : kind === "tel" ? 15 : 100;
