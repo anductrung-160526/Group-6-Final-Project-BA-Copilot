@@ -142,3 +142,31 @@ test("đường gọi Claude thật: tool use, tự sửa khi kết quả sai sc
     delete process.env.ANTHROPIC_BASE_URL;
   }
 });
+
+test("gợi ý thành phần: lấy gợi ý, ghi event, thống kê, học khi duyệt", async () => {
+  const p = await api("POST", "/api/projects", { name: "Gợi ý" });
+  const m = await api("POST", `/api/projects/${p.data.id}/modules`, { name: "Sản phẩm" });
+  const s = await api("POST", `/api/modules/${m.data.id}/screens`, { prompt: "Form thêm sản phẩm: tên, giá; nút Lưu", name: "Thêm sản phẩm" });
+  const sid = s.data.screen.id;
+  const r = await api("GET", `/api/screens/${sid}/suggestions`);
+  assert.equal(r.status, 200);
+  assert.ok(r.data.suggestions.length >= 1);
+  assert.ok(r.data.model.trees >= 1);
+  const first = r.data.suggestions[0];
+  const region = await api("GET", `/api/screens/${sid}/suggestions?nodeIds=${encodeURIComponent(first.targetNodeId)}`);
+  assert.equal(region.status, 200);
+
+  for (const action of ["shown", "shown", "applied", "dismissed"])
+    assert.equal((await api("POST", "/api/suggestions/events", { screenId: sid, versionId: r.data.versionId, kind: first.kind, targetNodeId: first.targetNodeId, title: first.title, confidence: first.confidence, action })).status, 200);
+  assert.equal((await api("POST", "/api/suggestions/events", { screenId: sid, action: "bad" })).status, 400);
+  const st = await api("GET", `/api/modules/${m.data.id}/suggestion-stats`);
+  assert.equal(st.data.shown, 2);
+  assert.equal(st.data.applied, 1);
+  assert.equal(st.data.acceptanceRate, 0.5);
+
+  const before = r.data.model.trees;
+  await api("POST", `/api/screens/${sid}/approve`, { approved: true });
+  await api("POST", `/api/screens/${sid}/approve`, { approved: true }); // duyệt lại cùng phiên bản → không học trùng
+  const after = await api("GET", `/api/screens/${sid}/suggestions`);
+  assert.equal(after.data.model.trees, before + 1);
+});

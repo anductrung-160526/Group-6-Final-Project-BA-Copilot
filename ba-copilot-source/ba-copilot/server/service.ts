@@ -7,6 +7,8 @@ import { collectIds, diffTrees, topMostIds, validateTree } from "../shared/desig
 import { extractModel, DesignModel } from "../shared/extract.ts";
 import { buildTrace } from "../shared/trace.ts";
 import type { Requirement, SequenceDiagram, UseCase } from "../shared/types.ts";
+import { suggest } from "../shared/nextComponent.ts";
+import { getModel, learnFromScreen } from "./nextModel.ts";
 
 export class BizError extends Error {
   constructor(message: string, public status = 400) {
@@ -99,7 +101,27 @@ export function setScreenApproval(screenId: string, approved: boolean) {
   const screen = mustScreen(screenId);
   repo.updateScreen(screenId, { status: approved ? "approved" : "draft" });
   if (!approved) repo.markOutdated(screen.moduleId);
+  // Màn được duyệt là mẫu tốt → mô hình gợi ý học thêm
+  if (approved && screen.currentVersionId) {
+    const v = repo.getVersion(screen.currentVersionId);
+    if (v) learnFromScreen(screenId, v.id, v.tree);
+  }
   return repo.getScreen(screenId);
+}
+
+// ------------------------------------------------------------- Gợi ý thành phần tiếp theo
+export function screenSuggestions(screenId: string, nodeIds: string[]) {
+  const screen = mustScreen(screenId);
+  if (!screen.currentVersionId) throw new BizError("Màn hình chưa có phiên bản");
+  const v = repo.getVersion(screen.currentVersionId)!;
+  const screenNames = [...new Set(repo.listScreens(screen.moduleId).flatMap((s) => [s.name, String(s.tree?.props.title ?? "")]).filter(Boolean))];
+  const openAnnotationNodeIds = repo
+    .listAnnotationsForModule(screen.moduleId)
+    .filter((a) => a.screenId === screenId && a.status === "open")
+    .flatMap((a) => a.nodeIds);
+  const model = getModel();
+  const suggestions = suggest(model, v.tree, { selectedIds: nodeIds, screenNames, openAnnotationNodeIds, k: 5 });
+  return { suggestions, versionId: v.id, model: { trees: model.meta.trees, events: Math.round(model.meta.events) } };
 }
 
 // ------------------------------------------------------------- Docs
