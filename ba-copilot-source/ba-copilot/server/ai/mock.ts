@@ -1,7 +1,7 @@
 // Bộ sinh rule-based (chế độ Mock): chạy khi không có API key, dùng cho demo/test tự động
 // và làm "baseline" để so sánh với LLM trong chương thực nghiệm.
 
-import { findNode, findParent, isContainer, newId, normalizeTree, UINode, walk } from "../../shared/design.ts";
+import { ALL_TYPES, findNode, findParent, isContainer, newId, normalizeTree, UINode, walk } from "../../shared/design.ts";
 import type { PatchOp } from "../../shared/patch.ts";
 import type { DesignModel, ScreenModel, FieldSpec } from "../../shared/extract.ts";
 import type { AltFlow, Requirement, SequenceDiagram, SrsDoc, TestCase, UseCase, FlowStep } from "../../shared/types.ts";
@@ -342,7 +342,13 @@ export function mockEditOps(tree: UINode, selectedIds: string[], instruction: st
   const setType = text.match(/kiểu\s+(email|password|number|tel|text)\b/i)?.[1];
   const minLen = text.match(/tối thiểu\s+(\d+)\s*ký tự/i)?.[1];
   const addButton = text.match(/thêm\s+(?:nút|button)\s*["“]?([^"”\n,.]+)["”]?/i);
-  const addField = text.match(/thêm\s+(?:ô|trường|field)(?:\s+nhập)?\s*["“]?([^"”\n,.]+)["”]?/i);
+  const addField = /\((?!Input\))[A-Z]\w+\)|ô (tích|chọn|nhập nhiều)/.test(text) ? null : text.match(/thêm\s+(?:ô|trường|field)(?:\s+nhập)?\s*["“]?([^"”\n,.(]+?)["”]?(?=\s*[(,.]|\s+vào|$)/i);
+  // "Thêm bộ lọc (Select) "Khách hàng"", "Thêm phân trang (Pagination)", "Thêm Select vào Row"
+  const addCols = text.match(/thêm\s+(?:các\s+)?cột\s+["“]?([^"”\n.]+?)["”]?(?=\s+vào|\s*[.]|$)/i)?.[1];
+  const addRowActs = text.match(/thêm\s+(?:các\s+)?thao tác\s+([^\n.]+?)(?=\s+vào|\s+cho|\s*[.]|$)/i)?.[1];
+  const addRange = /thêm[^.\n]*(khoảng thời gian|từ ngày)/i.test(text);
+  const addType = addButton || addField || addCols || addRowActs || addRange ? null : addTypeOf(text);
+  const isAdd = /^\s*(thêm|bổ sung)\b/i.test(text);
 
   for (const id of targets) {
     const n = findNode(tree, id);
@@ -357,11 +363,37 @@ export function mockEditOps(tree: UINode, selectedIds: string[], instruction: st
     if (addButton) {
       // đọc "variant primary" / "action login" nếu prompt có ghi (vd từ gợi ý thành phần)
       const variant = text.match(/variant\s+(primary|secondary|danger|ghost)/i)?.[1] ?? "secondary";
-      const action = text.match(/action\s+([a-z_]+)/i)?.[1];
-      insertNear(n, { type: "Button", props: { label: (quoted ?? addButton[1]).trim(), variant, ...(action ? { action } : {}) } });
+      const label = cap((quoted ?? addButton[1]).replace(/\s+(vào|ở|bên|cho)\s.*$/i, "").trim());
+      const action = text.match(/action\s+([a-z_]+)/i)?.[1] ?? (actionOf(label) !== "click" ? actionOf(label) : undefined);
+      insertNear(n, { type: "Button", props: { label, variant, ...(action ? { action } : {}) } });
     }
-    if (addField) insertNear(n, { type: "Input", props: { label: (quoted ?? addField[1]).trim(), required: /bắt buộc/.test(low) } });
-    if (/\b(xóa|xoá|bỏ|loại bỏ)\b/.test(low) && !addButton && !addField && !rename && n.id !== tree.id) ops.push({ op: "remove", id: n.id });
+    const table = n.type === "Table" ? n : (isContainer(n.type) ? (n.children ?? []).find((c) => c.type === "Table") : null) ?? (findParent(tree, n.id)?.children ?? []).find((c) => c.type === "Table");
+    if ((addCols || addRowActs) && table) {
+      const cols = [...((table.props.columns as string[] | undefined) ?? [])];
+      const acts = addRowActs ? splitList(addRowActs).map(cap) : [];
+      if (addCols) cols.splice(cols.includes("Thao tác") ? cols.indexOf("Thao tác") : cols.length, 0, ...splitList(addCols).map(cap));
+      if (acts.length && !cols.includes("Thao tác")) cols.push("Thao tác");
+      ops.push({ op: "update", id: table.id, props: { columns: cols, ...(acts.length ? { rowActions: acts } : {}) } });
+    }
+    if (addRange) {
+      insertNear(n, { type: "DatePicker", props: { label: "Từ ngày", name: "from_date" } });
+      insertNear(n, { type: "DatePicker", props: { label: "Đến ngày", name: "to_date" } });
+    }
+    if (addType) {
+      const node = defaultNode(addType, quoted ?? labelAfterAlias(text, addType));
+      // phân trang đặt ngay sau bảng nếu có
+      const table = addType === "Pagination" ? (isContainer(n.type) ? n.children ?? [] : []).find((c) => c.type === "Table") ?? (n.type === "Table" ? n : null) : null;
+      if (table) {
+        const parent = findParent(tree, table.id)!;
+        ops.push({ op: "insert", parentId: parent.id, index: (parent.children ?? []).indexOf(table) + 1, node: { id: newId(), ...node } });
+      } else insertNear(n, node);
+    }
+    if (addField) {
+      const label = cap((quoted ?? addField[1]).replace(/\s+(vào|ở|bên|cho)\s.*$/i, "").trim());
+      const search = /tìm kiếm/i.test(label);
+      insertNear(n, { type: "Input", props: { label, name: search ? "keyword" : snake(label), placeholder: search ? "Nhập từ khóa..." : `Nhập ${label.toLowerCase()}`, ...(/bắt buộc/.test(low) ? { required: true } : {}) } });
+    }
+    if (!isAdd && /\b(xóa|xoá|bỏ|loại bỏ)\b/.test(low) && !addButton && !addField && !addType && !rename && n.id !== tree.id) ops.push({ op: "remove", id: n.id });
     const placeholder = text.match(/placeholder\s+["“]([^"”]+)["”]/i)?.[1];
     const maxLen = text.match(/tối đa\s+(\d+)\s*ký tự/i)?.[1];
     if ((placeholder || maxLen) && !addField) walk(n, (d) => {
@@ -402,6 +434,51 @@ export function mockEditOps(tree: UINode, selectedIds: string[], instruction: st
       const idx = (parent.children ?? []).findIndex((c) => c.id === n.id);
       ops.push({ op: "insert", parentId: parent.id, index: idx + 1, node: full });
     }
+  }
+}
+
+const TYPE_ALIASES: [RegExp, string][] = [
+  [/phân trang/i, "Pagination"], [/bộ lọc|ô chọn(?! ngày)|dropdown|danh sách chọn/i, "Select"], [/ô chọn ngày|chọn ngày|lịch/i, "DatePicker"],
+  [/ô nhập nhiều dòng|textarea/i, "Textarea"], [/ô tích|checkbox/i, "Checkbox"], [/tiêu đề/i, "Heading"], [/đoạn mô tả|đoạn văn/i, "Text"],
+  [/\blink\b|liên kết/i, "Link"], [/\bbảng\b/i, "Table"], [/thông báo/i, "Alert"], [/nhãn trạng thái|badge/i, "Badge"], [/hình ảnh|ảnh/i, "Image"],
+];
+
+/** Loại component được yêu cầu thêm: ưu tiên tên loại trong ngoặc/viết thẳng, sau đó từ khóa tiếng Việt. */
+function addTypeOf(text: string): string | null {
+  if (!/\bthêm\b/i.test(text)) return null;
+  const named = text.match(/\(([A-Z][A-Za-z]+)\)/)?.[1] ?? text.match(/thêm\s+(?:một\s+)?([A-Z][A-Za-z]+)\b/)?.[1];
+  if (named && ALL_TYPES.includes(named) && named !== "Page") return named;
+  return TYPE_ALIASES.find(([re]) => re.test(text))?.[1] ?? null;
+}
+
+/** Nhãn viết liền sau từ khóa loại: "bộ lọc khách hàng" → "Khách hàng". */
+function labelAfterAlias(text: string, type: string): string | undefined {
+  const re = TYPE_ALIASES.find(([, t]) => t === type)?.[0];
+  const m = re && text.match(new RegExp(`(?:${re.source})\\s+(?:theo\\s+)?([\\p{L}\\d ]+?)(?=\\s+(?:vào|ở|cho|bên|phía|ngay)\\b|\\s*[(,.]|$)`, "iu"));
+  const lb = m?.[1]?.trim();
+  return lb && lb.length <= 40 ? cap(lb) : undefined;
+}
+
+function defaultNode(type: string, label?: string): { type: string; props: Record<string, unknown> } {
+  const lb = label?.trim();
+  const name = lb ? snake(lb) : undefined;
+  switch (type) {
+    case "Select": return { type, props: { label: lb ?? "Loại", name: name ?? "loai", options: ["Tất cả"] } };
+    case "DatePicker": return { type, props: { label: lb ?? "Ngày", name: name ?? "ngay" } };
+    case "Textarea": return { type, props: { label: lb ?? "Mô tả", name: name ?? "mo_ta", placeholder: `Nhập ${(lb ?? "mô tả").toLowerCase()}` } };
+    case "Input": return { type, props: { label: lb ?? "Trường mới", name: name ?? "truong_moi", placeholder: `Nhập ${(lb ?? "giá trị").toLowerCase()}` } };
+    case "Checkbox": return { type, props: { label: lb ?? "Lựa chọn", name: name ?? "lua_chon" } };
+    case "Radio": return { type, props: { label: lb ?? "Lựa chọn", name: name ?? "lua_chon", options: ["Có", "Không"] } };
+    case "Pagination": return { type, props: { pages: 5 } };
+    case "Heading": return { type, props: { text: lb ?? "Tiêu đề", level: 2 } };
+    case "Text": return { type, props: { text: lb ?? "Mô tả ngắn cho người dùng." } };
+    case "Link": return { type, props: { text: lb ?? "Xem thêm" } };
+    case "Table": return { type, props: { columns: ["Mã", "Tên", "Trạng thái"], rows: [] } };
+    case "Alert": return { type, props: { text: lb ?? "Thông báo", tone: "info" } };
+    case "Badge": return { type, props: { text: lb ?? "Mới" } };
+    case "Image": return { type, props: { alt: lb ?? "Hình ảnh" } };
+    case "Button": return { type, props: { label: lb ?? "Nút mới", variant: "secondary" } };
+    default: return { type, props: lb ? { title: lb } : {}, ...(isContainer(type) ? { children: [] } : {}) } as { type: string; props: Record<string, unknown> };
   }
 }
 

@@ -14,6 +14,7 @@ export const SURPRISAL_REVIEW = 6;
 /** Container bố cục thường được đặt tự do – không đánh dấu "Xem lại". */
 const LAYOUT_TYPES = new Set(["Card", "Section", "Row", "Column", "Header", "Sidebar"]);
 const OUTCOMES = [...ALL_TYPES, END];
+const CONTROL_TYPES = new Set(["Input", "Textarea", "Select", "DatePicker", "Checkbox", "Radio", "Button", "Link"]);
 
 type Table = Record<string, Record<string, number>>;
 
@@ -304,6 +305,17 @@ export function addPrompt(tree: UINode, container: UINode, type: string): string
     }
     case "Link":
       return has(contextTexts(tree, container), /mật khẩu|password/) ? `Thêm link "Quên mật khẩu?" vào cuối ${where}.` : `Thêm một Link điều hướng phù hợp vào cuối ${where}.`;
+    case "Select": {
+      // thanh lọc cạnh bảng: gợi ý lọc theo cột chưa có bộ lọc
+      const table = (findParent(tree, container.id)?.children ?? []).find((c) => c.type === "Table");
+      const have = new Set(kids.map((k) => String(k.props.label ?? "").toLowerCase()));
+      const col = ((table?.props.columns as string[] | undefined) ?? []).find((c) => !have.has(c.toLowerCase()) && !/^(mã|thao tác|stt)|tiền|giá|số lượng|ngày/i.test(c));
+      return col ? `Thêm bộ lọc (Select) "${col}" vào cuối ${where}.` : `Thêm ô chọn (Select) "Loại" vào cuối ${where}.`;
+    }
+    case "DatePicker":
+      return `Thêm ô chọn ngày (DatePicker) "${kids.some((k) => k.type === "DatePicker") ? "Đến ngày" : container.type === "Row" ? "Từ ngày" : "Ngày"}" vào cuối ${where}.`;
+    case "Textarea":
+      return `Thêm ô nhập nhiều dòng (Textarea) "${kids.some((k) => /mô tả/i.test(String(k.props.label ?? ""))) ? "Ghi chú" : "Mô tả"}" vào cuối ${where}.`;
     case "Pagination":
       return `Thêm phân trang (Pagination) ngay sau bảng trong ${where}.`;
     case "Heading":
@@ -313,7 +325,7 @@ export function addPrompt(tree: UINode, container: UINode, type: string): string
     case "Checkbox":
       return has(contextTexts(tree, container), /mật khẩu/) ? `Thêm ô tích "Ghi nhớ đăng nhập" vào ${where}.` : `Thêm ô tích (Checkbox) phù hợp vào ${where}.`;
     default:
-      return `Thêm một ${type} phù hợp vào cuối ${where}.`;
+      return `Thêm ${type} vào cuối ${where}.`;
   }
 }
 
@@ -361,6 +373,9 @@ export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = 
 
   walk(tree, (n, parent) => {
     if (!parent || !inScope(n.id) || LAYOUT_TYPES.has(n.type) || isContainer(n.type)) return;
+    // ô nhập/bộ lọc/nút trong Row, Form là bố cục hợp lệ của BA (thanh công cụ, form) – dữ liệu web ít gặp nhưng không sai
+    if (CONTROL_TYPES.has(n.type) && (parent.type === "Row" || parent.type === "Form")) return;
+    if (n.type === "Alert" && /^Ghi chú BA/.test(String(n.props.text ?? ""))) return;
     const s = surprisal(model, tree, n.id);
     if (s < SURPRISAL_REVIEW) return;
     out.push({
@@ -377,6 +392,8 @@ export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = 
   const seen = new Set<string>();
   return out
     .filter((s) => (seen.has(s.id) ? false : (seen.add(s.id), true)))
+    // R3 đã đề xuất thêm nút cho form → bỏ gợi ý n-gram "Thêm Button" trùng ý
+    .filter((s) => !(s.kind === "add" && s.title.startsWith("Thêm Button") && out.some((o) => o.kind === "fix" && o.targetNodeId === s.targetNodeId && /chưa có nút/.test(o.title))))
     .sort((a, b) => b.confidence - a.confidence)
     .slice(0, k);
 }

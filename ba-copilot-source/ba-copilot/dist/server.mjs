@@ -10831,7 +10831,12 @@ function mockEditOps(tree, selectedIds, instruction) {
   const setType = text.match(/kiểu\s+(email|password|number|tel|text)\b/i)?.[1];
   const minLen = text.match(/tối thiểu\s+(\d+)\s*ký tự/i)?.[1];
   const addButton = text.match(/thêm\s+(?:nút|button)\s*["“]?([^"”\n,.]+)["”]?/i);
-  const addField = text.match(/thêm\s+(?:ô|trường|field)(?:\s+nhập)?\s*["“]?([^"”\n,.]+)["”]?/i);
+  const addField = /\((?!Input\))[A-Z]\w+\)|ô (tích|chọn|nhập nhiều)/.test(text) ? null : text.match(/thêm\s+(?:ô|trường|field)(?:\s+nhập)?\s*["“]?([^"”\n,.(]+?)["”]?(?=\s*[(,.]|\s+vào|$)/i);
+  const addCols = text.match(/thêm\s+(?:các\s+)?cột\s+["“]?([^"”\n.]+?)["”]?(?=\s+vào|\s*[.]|$)/i)?.[1];
+  const addRowActs = text.match(/thêm\s+(?:các\s+)?thao tác\s+([^\n.]+?)(?=\s+vào|\s+cho|\s*[.]|$)/i)?.[1];
+  const addRange = /thêm[^.\n]*(khoảng thời gian|từ ngày)/i.test(text);
+  const addType = addButton || addField || addCols || addRowActs || addRange ? null : addTypeOf(text);
+  const isAdd = /^\s*(thêm|bổ sung)\b/i.test(text);
   for (const id of targets) {
     const n = findNode(tree, id);
     if (!n) continue;
@@ -10844,11 +10849,36 @@ function mockEditOps(tree, selectedIds, instruction) {
     }
     if (addButton) {
       const variant = text.match(/variant\s+(primary|secondary|danger|ghost)/i)?.[1] ?? "secondary";
-      const action = text.match(/action\s+([a-z_]+)/i)?.[1];
-      insertNear(n, { type: "Button", props: { label: (quoted ?? addButton[1]).trim(), variant, ...action ? { action } : {} } });
+      const label2 = cap((quoted ?? addButton[1]).replace(/\s+(vào|ở|bên|cho)\s.*$/i, "").trim());
+      const action = text.match(/action\s+([a-z_]+)/i)?.[1] ?? (actionOf(label2) !== "click" ? actionOf(label2) : void 0);
+      insertNear(n, { type: "Button", props: { label: label2, variant, ...action ? { action } : {} } });
     }
-    if (addField) insertNear(n, { type: "Input", props: { label: (quoted ?? addField[1]).trim(), required: /bắt buộc/.test(low) } });
-    if (/\b(xóa|xoá|bỏ|loại bỏ)\b/.test(low) && !addButton && !addField && !rename && n.id !== tree.id) ops.push({ op: "remove", id: n.id });
+    const table2 = n.type === "Table" ? n : (isContainer(n.type) ? (n.children ?? []).find((c) => c.type === "Table") : null) ?? (findParent(tree, n.id)?.children ?? []).find((c) => c.type === "Table");
+    if ((addCols || addRowActs) && table2) {
+      const cols = [...table2.props.columns ?? []];
+      const acts = addRowActs ? splitList(addRowActs).map(cap) : [];
+      if (addCols) cols.splice(cols.includes("Thao t\xE1c") ? cols.indexOf("Thao t\xE1c") : cols.length, 0, ...splitList(addCols).map(cap));
+      if (acts.length && !cols.includes("Thao t\xE1c")) cols.push("Thao t\xE1c");
+      ops.push({ op: "update", id: table2.id, props: { columns: cols, ...acts.length ? { rowActions: acts } : {} } });
+    }
+    if (addRange) {
+      insertNear(n, { type: "DatePicker", props: { label: "T\u1EEB ng\xE0y", name: "from_date" } });
+      insertNear(n, { type: "DatePicker", props: { label: "\u0110\u1EBFn ng\xE0y", name: "to_date" } });
+    }
+    if (addType) {
+      const node = defaultNode(addType, quoted ?? labelAfterAlias(text, addType));
+      const table3 = addType === "Pagination" ? (isContainer(n.type) ? n.children ?? [] : []).find((c) => c.type === "Table") ?? (n.type === "Table" ? n : null) : null;
+      if (table3) {
+        const parent = findParent(tree, table3.id);
+        ops.push({ op: "insert", parentId: parent.id, index: (parent.children ?? []).indexOf(table3) + 1, node: { id: newId(), ...node } });
+      } else insertNear(n, node);
+    }
+    if (addField) {
+      const label2 = cap((quoted ?? addField[1]).replace(/\s+(vào|ở|bên|cho)\s.*$/i, "").trim());
+      const search = /tìm kiếm/i.test(label2);
+      insertNear(n, { type: "Input", props: { label: label2, name: search ? "keyword" : snake(label2), placeholder: search ? "Nh\u1EADp t\u1EEB kh\xF3a..." : `Nh\u1EADp ${label2.toLowerCase()}`, .../bắt buộc/.test(low) ? { required: true } : {} } });
+    }
+    if (!isAdd && /\b(xóa|xoá|bỏ|loại bỏ)\b/.test(low) && !addButton && !addField && !addType && !rename && n.id !== tree.id) ops.push({ op: "remove", id: n.id });
     const placeholder = text.match(/placeholder\s+["“]([^"”]+)["”]/i)?.[1];
     const maxLen = text.match(/tối đa\s+(\d+)\s*ký tự/i)?.[1];
     if ((placeholder || maxLen) && !addField) walk(n, (d) => {
@@ -10888,6 +10918,70 @@ function mockEditOps(tree, selectedIds, instruction) {
       const idx = (parent.children ?? []).findIndex((c) => c.id === n.id);
       ops.push({ op: "insert", parentId: parent.id, index: idx + 1, node: full });
     }
+  }
+}
+var TYPE_ALIASES = [
+  [/phân trang/i, "Pagination"],
+  [/bộ lọc|ô chọn(?! ngày)|dropdown|danh sách chọn/i, "Select"],
+  [/ô chọn ngày|chọn ngày|lịch/i, "DatePicker"],
+  [/ô nhập nhiều dòng|textarea/i, "Textarea"],
+  [/ô tích|checkbox/i, "Checkbox"],
+  [/tiêu đề/i, "Heading"],
+  [/đoạn mô tả|đoạn văn/i, "Text"],
+  [/\blink\b|liên kết/i, "Link"],
+  [/\bbảng\b/i, "Table"],
+  [/thông báo/i, "Alert"],
+  [/nhãn trạng thái|badge/i, "Badge"],
+  [/hình ảnh|ảnh/i, "Image"]
+];
+function addTypeOf(text) {
+  if (!/\bthêm\b/i.test(text)) return null;
+  const named = text.match(/\(([A-Z][A-Za-z]+)\)/)?.[1] ?? text.match(/thêm\s+(?:một\s+)?([A-Z][A-Za-z]+)\b/)?.[1];
+  if (named && ALL_TYPES.includes(named) && named !== "Page") return named;
+  return TYPE_ALIASES.find(([re]) => re.test(text))?.[1] ?? null;
+}
+function labelAfterAlias(text, type) {
+  const re = TYPE_ALIASES.find(([, t]) => t === type)?.[0];
+  const m = re && text.match(new RegExp(`(?:${re.source})\\s+(?:theo\\s+)?([\\p{L}\\d ]+?)(?=\\s+(?:v\xE0o|\u1EDF|cho|b\xEAn|ph\xEDa|ngay)\\b|\\s*[(,.]|$)`, "iu"));
+  const lb = m?.[1]?.trim();
+  return lb && lb.length <= 40 ? cap(lb) : void 0;
+}
+function defaultNode(type, label2) {
+  const lb = label2?.trim();
+  const name = lb ? snake(lb) : void 0;
+  switch (type) {
+    case "Select":
+      return { type, props: { label: lb ?? "Lo\u1EA1i", name: name ?? "loai", options: ["T\u1EA5t c\u1EA3"] } };
+    case "DatePicker":
+      return { type, props: { label: lb ?? "Ng\xE0y", name: name ?? "ngay" } };
+    case "Textarea":
+      return { type, props: { label: lb ?? "M\xF4 t\u1EA3", name: name ?? "mo_ta", placeholder: `Nh\u1EADp ${(lb ?? "m\xF4 t\u1EA3").toLowerCase()}` } };
+    case "Input":
+      return { type, props: { label: lb ?? "Tr\u01B0\u1EDDng m\u1EDBi", name: name ?? "truong_moi", placeholder: `Nh\u1EADp ${(lb ?? "gi\xE1 tr\u1ECB").toLowerCase()}` } };
+    case "Checkbox":
+      return { type, props: { label: lb ?? "L\u1EF1a ch\u1ECDn", name: name ?? "lua_chon" } };
+    case "Radio":
+      return { type, props: { label: lb ?? "L\u1EF1a ch\u1ECDn", name: name ?? "lua_chon", options: ["C\xF3", "Kh\xF4ng"] } };
+    case "Pagination":
+      return { type, props: { pages: 5 } };
+    case "Heading":
+      return { type, props: { text: lb ?? "Ti\xEAu \u0111\u1EC1", level: 2 } };
+    case "Text":
+      return { type, props: { text: lb ?? "M\xF4 t\u1EA3 ng\u1EAFn cho ng\u01B0\u1EDDi d\xF9ng." } };
+    case "Link":
+      return { type, props: { text: lb ?? "Xem th\xEAm" } };
+    case "Table":
+      return { type, props: { columns: ["M\xE3", "T\xEAn", "Tr\u1EA1ng th\xE1i"], rows: [] } };
+    case "Alert":
+      return { type, props: { text: lb ?? "Th\xF4ng b\xE1o", tone: "info" } };
+    case "Badge":
+      return { type, props: { text: lb ?? "M\u1EDBi" } };
+    case "Image":
+      return { type, props: { alt: lb ?? "H\xECnh \u1EA3nh" } };
+    case "Button":
+      return { type, props: { label: lb ?? "N\xFAt m\u1EDBi", variant: "secondary" } };
+    default:
+      return { type, props: lb ? { title: lb } : {}, ...isContainer(type) ? { children: [] } : {} };
   }
 }
 function snake(s) {
@@ -11853,6 +11947,7 @@ var ADD_MIN_P = 0.15;
 var SURPRISAL_REVIEW = 6;
 var LAYOUT_TYPES = /* @__PURE__ */ new Set(["Card", "Section", "Row", "Column", "Header", "Sidebar"]);
 var OUTCOMES = [...ALL_TYPES, END];
+var CONTROL_TYPES = /* @__PURE__ */ new Set(["Input", "Textarea", "Select", "DatePicker", "Checkbox", "Radio", "Button", "Link"]);
 function emptyModel() {
   return { version: 1, counts: { tri: {}, bi: {}, uni: {}, all: {} }, meta: { trees: 0, events: 0, sources: {}, builtAt: (/* @__PURE__ */ new Date()).toISOString() } };
 }
@@ -12045,6 +12140,16 @@ function addPrompt(tree, container, type) {
     }
     case "Link":
       return has2(contextTexts(tree, container), /mật khẩu|password/) ? `Th\xEAm link "Qu\xEAn m\u1EADt kh\u1EA9u?" v\xE0o cu\u1ED1i ${where}.` : `Th\xEAm m\u1ED9t Link \u0111i\u1EC1u h\u01B0\u1EDBng ph\xF9 h\u1EE3p v\xE0o cu\u1ED1i ${where}.`;
+    case "Select": {
+      const table2 = (findParent(tree, container.id)?.children ?? []).find((c) => c.type === "Table");
+      const have = new Set(kids.map((k) => String(k.props.label ?? "").toLowerCase()));
+      const col = (table2?.props.columns ?? []).find((c) => !have.has(c.toLowerCase()) && !/^(mã|thao tác|stt)|tiền|giá|số lượng|ngày/i.test(c));
+      return col ? `Th\xEAm b\u1ED9 l\u1ECDc (Select) "${col}" v\xE0o cu\u1ED1i ${where}.` : `Th\xEAm \xF4 ch\u1ECDn (Select) "Lo\u1EA1i" v\xE0o cu\u1ED1i ${where}.`;
+    }
+    case "DatePicker":
+      return `Th\xEAm \xF4 ch\u1ECDn ng\xE0y (DatePicker) "${kids.some((k) => k.type === "DatePicker") ? "\u0110\u1EBFn ng\xE0y" : container.type === "Row" ? "T\u1EEB ng\xE0y" : "Ng\xE0y"}" v\xE0o cu\u1ED1i ${where}.`;
+    case "Textarea":
+      return `Th\xEAm \xF4 nh\u1EADp nhi\u1EC1u d\xF2ng (Textarea) "${kids.some((k) => /mô tả/i.test(String(k.props.label ?? ""))) ? "Ghi ch\xFA" : "M\xF4 t\u1EA3"}" v\xE0o cu\u1ED1i ${where}.`;
     case "Pagination":
       return `Th\xEAm ph\xE2n trang (Pagination) ngay sau b\u1EA3ng trong ${where}.`;
     case "Heading":
@@ -12054,7 +12159,7 @@ function addPrompt(tree, container, type) {
     case "Checkbox":
       return has2(contextTexts(tree, container), /mật khẩu/) ? `Th\xEAm \xF4 t\xEDch "Ghi nh\u1EDB \u0111\u0103ng nh\u1EADp" v\xE0o ${where}.` : `Th\xEAm \xF4 t\xEDch (Checkbox) ph\xF9 h\u1EE3p v\xE0o ${where}.`;
     default:
-      return `Th\xEAm m\u1ED9t ${type} ph\xF9 h\u1EE3p v\xE0o cu\u1ED1i ${where}.`;
+      return `Th\xEAm ${type} v\xE0o cu\u1ED1i ${where}.`;
   }
 }
 function ctxText(ctx) {
@@ -12097,6 +12202,8 @@ function suggest(model2, tree, opts = {}) {
   }
   walk(tree, (n, parent) => {
     if (!parent || !inScope(n.id) || LAYOUT_TYPES.has(n.type) || isContainer(n.type)) return;
+    if (CONTROL_TYPES.has(n.type) && (parent.type === "Row" || parent.type === "Form")) return;
+    if (n.type === "Alert" && /^Ghi chú BA/.test(String(n.props.text ?? ""))) return;
     const s = surprisal(model2, tree, n.id);
     if (s < SURPRISAL_REVIEW) return;
     out.push({
@@ -12110,7 +12217,7 @@ function suggest(model2, tree, opts = {}) {
     });
   });
   const seen = /* @__PURE__ */ new Set();
-  return out.filter((s) => seen.has(s.id) ? false : (seen.add(s.id), true)).sort((a, b) => b.confidence - a.confidence).slice(0, k);
+  return out.filter((s) => seen.has(s.id) ? false : (seen.add(s.id), true)).filter((s) => !(s.kind === "add" && s.title.startsWith("Th\xEAm Button") && out.some((o) => o.kind === "fix" && o.targetNodeId === s.targetNodeId && /chưa có nút/.test(o.title)))).sort((a, b) => b.confidence - a.confidence).slice(0, k);
 }
 
 // server/nextModel.ts

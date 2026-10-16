@@ -141,7 +141,9 @@ test("suggest: giới hạn trong vùng chọn, cây rỗng, vùng rỗng, k", (
   assert.ok(all.some((s) => s.targetNodeId === "other")); // R4 ngoài form
   const inForm = suggest(m, t, { selectedIds: ["f"], k: 10 });
   assert.ok(inForm.every((s) => ["f", "a", "b2"].includes(s.targetNodeId)));
-  assert.ok(inForm.some((s) => s.kind === "add" && s.title.includes("Button")));
+  // form thiếu nút: R3 đề xuất nút, gợi ý n-gram "Thêm Button" trùng ý bị gộp
+  assert.ok(inForm.some((s) => s.kind === "fix" && /chưa có nút/.test(s.title)));
+  assert.ok(!inForm.some((s) => s.kind === "add" && s.title.includes("Button")));
   assert.equal(suggest(m, t, { k: 2 }).length, 2);
   assert.deepEqual(suggest(m, t, { selectedIds: [] , k: 10 }).length, all.length);
   const only = page();
@@ -174,12 +176,33 @@ test("câu gợi ý theo ngữ cảnh: nhãn nút và trường thiếu", async 
   const search = page({ id: "f", type: "Form", props: {}, children: [{ id: "k", type: "Input", props: { label: "Tìm kiếm sản phẩm" } }] });
   assert.match(addPrompt(search, search.children![0], "Button"), /"Tìm kiếm"/);
   // gợi ý "add" có lý do nêu ngữ cảnh n-gram
-  const s = suggest(trained(), page({ id: "f2", type: "Form", props: {}, children: [{ id: "a", type: "Input", props: { label: "Email", name: "e", inputType: "email" } }, { id: "b", type: "Input", props: { label: "Mật khẩu", name: "p", inputType: "password", minLength: 8 } }] }), { selectedIds: ["f2"], k: 10 }).find((x) => x.kind === "add" && x.title.includes("Button"));
-  assert.ok(s && /Sau Input trong Form/.test(s.reason) && /"Đăng nhập"/.test(s.fixPrompt), JSON.stringify(s));
+  // container Card (không phải Form) nên R3 không bắt → gợi ý n-gram "Thêm Button" hiện ra
+  const m2 = emptyModel();
+  for (let i = 0; i < 10; i++) countTree(m2, T({ id: "page", type: "Page", props: { title: "x" }, children: [{ id: "c", type: "Card", props: {}, children: [{ id: "e", type: "Input", props: { label: "Email", name: "email" } }, { id: "p", type: "Input", props: { label: "Mật khẩu", name: "password" } }, { id: "b", type: "Button", props: { label: "Đăng nhập", action: "login" } }] }] }));
+  const s = suggest(m2, page({ id: "f2", type: "Card", props: {}, children: [{ id: "a", type: "Input", props: { label: "Email", name: "e", inputType: "email" } }, { id: "b", type: "Input", props: { label: "Mật khẩu", name: "p", inputType: "password", minLength: 8 } }] }), { selectedIds: ["f2"], k: 10 }).find((x) => x.kind === "add" && x.title.includes("Button"));
+  assert.ok(s && /Sau Input trong Card/.test(s.reason) && /"Đăng nhập"/.test(s.fixPrompt), JSON.stringify(s));
 });
 
 test("R8/R9 bắt thiếu sót nhỏ của trường nhập", () => {
   const t = page({ id: "f", type: "Form", props: {}, children: [{ id: "a", type: "Input", props: { label: "Họ tên", name: "ho_ten" } }, { id: "b", type: "Button", props: { label: "Lưu", action: "save" } }] });
   assert.ok(codes(t).includes("R8") && codes(t).includes("R9"));
   assert.ok(!codes(page({ id: "a", type: "Input", props: { label: "X", name: "x", placeholder: "p", maxLength: 10 } })).some((c) => c === "R8" || c === "R9"));
+});
+
+test("Mock hiểu được câu gợi ý: áp dụng gợi ý không sinh 'Ghi chú BA'", async () => {
+  const { mockScreen, mockEditOps } = await import("../server/ai/mock.ts");
+  const { applyPatch } = await import("../shared/patch.ts");
+  const m = trained();
+  for (const p of ["Danh sách đơn hàng có lọc theo trạng thái, bảng cột Mã đơn, Khách hàng", "Màn hình thêm nhân viên gồm họ tên, email, ngày sinh", "Màn hình đăng nhập bằng email và mật khẩu"]) {
+    const t = mockScreen(p, "");
+    for (const s of suggest(m, t, { k: 10 })) {
+      const { ops } = mockEditOps(t, [s.targetNodeId], s.fixPrompt);
+      const after = applyPatch(t, ops, { selectedIds: [s.targetNodeId] });
+      assert.ok(!JSON.stringify(after).includes("Ghi chú BA"), `${p} :: ${s.fixPrompt}`);
+    }
+  }
+  const t = mockScreen("Danh sách đơn hàng có lọc theo trạng thái, bảng cột Mã đơn, Khách hàng", "");
+  const table = t.children!.find((c) => c.type === "Table")!;
+  const ops = mockEditOps(t, [table.id], "Thêm thao tác xem, sửa, xóa").ops;
+  assert.ok(ops.every((o) => o.op === "update"), JSON.stringify(ops)); // không bị hiểu thành "xóa"
 });
