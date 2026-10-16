@@ -312,7 +312,7 @@ var require_BufferList = __commonJS({
         this.head = this.tail = null;
         this.length = 0;
       };
-      BufferList.prototype.join = function join3(s) {
+      BufferList.prototype.join = function join4(s) {
         if (this.length === 0) return "";
         var p2 = this.head;
         var ret = "" + p2.data;
@@ -2287,8 +2287,8 @@ var require_lib2 = __commonJS({
         return this;
       }
       var p2 = this.constructor;
-      return this.then(resolve4, reject2);
-      function resolve4(value) {
+      return this.then(resolve5, reject2);
+      function resolve5(value) {
         function yes() {
           return value;
         }
@@ -2441,8 +2441,8 @@ var require_lib2 = __commonJS({
       }
       return out;
     }
-    Promise2.resolve = resolve3;
-    function resolve3(value) {
+    Promise2.resolve = resolve4;
+    function resolve4(value) {
       if (value instanceof this) {
         return value;
       }
@@ -2977,10 +2977,10 @@ var require_utils2 = __commonJS({
           if (typeof Blob.prototype.arrayBuffer !== "undefined") {
             return data.arrayBuffer();
           } else if (typeof FileReader !== "undefined") {
-            return new external.Promise(function(resolve3, reject) {
+            return new external.Promise(function(resolve4, reject) {
               var reader = new FileReader();
               reader.onload = function(e) {
-                resolve3(e.target.result);
+                resolve4(e.target.result);
               };
               reader.onerror = function(e) {
                 reject(e.target.error);
@@ -3539,7 +3539,7 @@ var require_StreamHelper = __commonJS({
       }
     }
     function accumulate(helper, updateCallback) {
-      return new external.Promise(function(resolve3, reject) {
+      return new external.Promise(function(resolve4, reject) {
         var dataArray = [];
         var chunkType = helper._internalType, resultType = helper._outputType, mimeType = helper._mimeType;
         helper.on("data", function(data, meta) {
@@ -3553,7 +3553,7 @@ var require_StreamHelper = __commonJS({
         }).on("end", function() {
           try {
             var result = transformZipOutput(resultType, concat(chunkType, dataArray), mimeType);
-            resolve3(result);
+            resolve4(result);
           } catch (e) {
             reject(e);
           }
@@ -4223,7 +4223,7 @@ var require_trees = __commonJS({
       var stree = desc.stat_desc.static_tree;
       var has_stree = desc.stat_desc.has_stree;
       var extra = desc.stat_desc.extra_bits;
-      var base = desc.stat_desc.extra_base;
+      var base2 = desc.stat_desc.extra_base;
       var max_length = desc.stat_desc.max_length;
       var h2;
       var n, m;
@@ -4248,8 +4248,8 @@ var require_trees = __commonJS({
         }
         s.bl_count[bits]++;
         xbits = 0;
-        if (n >= base) {
-          xbits = extra[n - base];
+        if (n >= base2) {
+          xbits = extra[n - base2];
         }
         f = tree[n * 2];
         s.opt_len += f * (bits + xbits);
@@ -6572,7 +6572,7 @@ var require_inftrees = __commonJS({
       var len = 0;
       var sym = 0;
       var min = 0, max = 0;
-      var root2 = 0;
+      var root3 = 0;
       var curr = 0;
       var drop = 0;
       var left = 0;
@@ -6583,7 +6583,7 @@ var require_inftrees = __commonJS({
       var low;
       var mask;
       var next;
-      var base = null;
+      var base2 = null;
       var base_index = 0;
       var end;
       var count = new utils.Buf16(MAXBITS + 1);
@@ -6597,14 +6597,14 @@ var require_inftrees = __commonJS({
       for (sym = 0; sym < codes; sym++) {
         count[lens[lens_index + sym]]++;
       }
-      root2 = bits;
+      root3 = bits;
       for (max = MAXBITS; max >= 1; max--) {
         if (count[max] !== 0) {
           break;
         }
       }
-      if (root2 > max) {
-        root2 = max;
+      if (root3 > max) {
+        root3 = max;
       }
       if (max === 0) {
         table2[table_index++] = 1 << 24 | 64 << 16 | 0;
@@ -6617,8 +6617,8 @@ var require_inftrees = __commonJS({
           break;
         }
       }
-      if (root2 < min) {
-        root2 = min;
+      if (root3 < min) {
+        root3 = min;
       }
       left = 1;
       for (len = 1; len <= MAXBITS; len++) {
@@ -6641,16 +6641,16 @@ var require_inftrees = __commonJS({
         }
       }
       if (type === CODES) {
-        base = extra = work;
+        base2 = extra = work;
         end = 19;
       } else if (type === LENS) {
-        base = lbase;
+        base2 = lbase;
         base_index -= 257;
         extra = lext;
         extra_index -= 257;
         end = 256;
       } else {
-        base = dbase;
+        base2 = dbase;
         extra = dext;
         end = -1;
       }
@@ -6658,10 +6658,10 @@ var require_inftrees = __commonJS({
       sym = 0;
       len = min;
       next = table_index;
-      curr = root2;
+      curr = root3;
       drop = 0;
       low = -1;
-      used = 1 << root2;
+      used = 1 << root3;
       mask = used - 1;
       if (type === LENS && used > ENOUGH_LENS || type === DISTS && used > ENOUGH_DISTS) {
         return 1;
@@ -6673,7 +6673,7 @@ var require_inftrees = __commonJS({
           here_val = work[sym];
         } else if (work[sym] > end) {
           here_op = extra[extra_index + work[sym]];
-          here_val = base[base_index + work[sym]];
+          here_val = base2[base_index + work[sym]];
         } else {
           here_op = 32 + 64;
           here_val = 0;
@@ -6702,9 +6702,9 @@ var require_inftrees = __commonJS({
           }
           len = lens[lens_index + work[sym]];
         }
-        if (len > root2 && (huff & mask) !== low) {
+        if (len > root3 && (huff & mask) !== low) {
           if (drop === 0) {
-            drop = root2;
+            drop = root3;
           }
           next += min;
           curr = len - drop;
@@ -6722,13 +6722,13 @@ var require_inftrees = __commonJS({
             return 1;
           }
           low = huff & mask;
-          table2[low] = root2 << 24 | curr << 16 | next - table_index | 0;
+          table2[low] = root3 << 24 | curr << 16 | next - table_index | 0;
         }
       }
       if (huff !== 0) {
         table2[next + huff] = len - drop << 24 | 64 << 16 | 0;
       }
-      opts.bits = root2;
+      opts.bits = root3;
       return 0;
     };
   }
@@ -9666,7 +9666,7 @@ var require_load = __commonJS({
     var Crc32Probe = require_Crc32Probe();
     var nodejsUtils = require_nodejsUtils();
     function checkEntryCRC32(zipEntry) {
-      return new external.Promise(function(resolve3, reject) {
+      return new external.Promise(function(resolve4, reject) {
         var worker = zipEntry.decompressed.getContentWorker().pipe(new Crc32Probe());
         worker.on("error", function(e) {
           reject(e);
@@ -9674,7 +9674,7 @@ var require_load = __commonJS({
           if (worker.streamInfo.crc32 !== zipEntry.decompressed.crc32) {
             reject(new Error("Corrupted zip : CRC32 mismatch"));
           } else {
-            resolve3();
+            resolve4();
           }
         }).resume();
       });
@@ -9772,9 +9772,9 @@ var require_lib3 = __commonJS({
 });
 
 // server/index.ts
-import { existsSync, readFileSync } from "node:fs";
-import { dirname as dirname2, join as join2, resolve as resolve2 } from "node:path";
-import { fileURLToPath } from "node:url";
+import { existsSync as existsSync2, readFileSync as readFileSync2 } from "node:fs";
+import { dirname as dirname3, join as join3, resolve as resolve3 } from "node:path";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
 
 // server/db.ts
 import { DatabaseSync } from "node:sqlite";
@@ -9830,6 +9830,15 @@ CREATE TABLE IF NOT EXISTS prompt_runs (
   input_tokens INTEGER NOT NULL DEFAULT 0, output_tokens INTEGER NOT NULL DEFAULT 0, latency_ms INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS suggestion_events (
+  id TEXT PRIMARY KEY, screen_id TEXT NOT NULL, version_id TEXT, suggestion_kind TEXT NOT NULL,
+  target_node_id TEXT, title TEXT NOT NULL, confidence REAL NOT NULL,
+  action TEXT NOT NULL CHECK(action IN ('shown','applied','dismissed')), created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS model_learned_trees (
+  version_id TEXT PRIMARY KEY, screen_id TEXT NOT NULL, tree TEXT NOT NULL, created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_sugg_screen ON suggestion_events(screen_id);
 CREATE INDEX IF NOT EXISTS idx_modules_project ON modules(project_id);
 CREATE INDEX IF NOT EXISTS idx_screens_module ON screens(module_id);
 CREATE INDEX IF NOT EXISTS idx_versions_screen ON screen_versions(screen_id);
@@ -9863,7 +9872,7 @@ function tx(fn) {
 // server/app.ts
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
-import { join, extname, resolve } from "node:path";
+import { join as join2, extname, resolve as resolve2 } from "node:path";
 import { createRequire } from "node:module";
 
 // server/repo.ts
@@ -10163,6 +10172,25 @@ function countClaudeRunsToday() {
   const r = getDb().prepare("SELECT COUNT(*) AS n FROM prompt_runs WHERE provider = 'claude' AND created_at >= ?").get(start.toISOString());
   return Number(r.n);
 }
+function logSuggestionEvent(e) {
+  getDb().prepare("INSERT INTO suggestion_events (id, screen_id, version_id, suggestion_kind, target_node_id, title, confidence, action, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(uid(), e.screenId, e.versionId, e.kind, e.targetNodeId, e.title, e.confidence, e.action, now());
+}
+function suggestionStats(moduleId) {
+  const rows = getDb().prepare(
+    `SELECT e.suggestion_kind AS kind, e.action AS action, COUNT(*) AS n FROM suggestion_events e JOIN screens s ON s.id = e.screen_id
+       WHERE s.module_id = ? GROUP BY e.suggestion_kind, e.action`
+  ).all(moduleId);
+  const t = { shown: 0, applied: 0, dismissed: 0 };
+  const byKind = {};
+  for (const r of rows) {
+    const n = Number(r.n);
+    t[r.action] += n;
+    const k = byKind[r.kind] ??= { shown: 0, applied: 0 };
+    if (r.action === "shown") k.shown += n;
+    if (r.action === "applied") k.applied += n;
+  }
+  return { ...t, acceptanceRate: t.shown ? t.applied / t.shown : 0, byKind };
+}
 
 // shared/design.ts
 var CONTAINER_TYPES = [
@@ -10250,11 +10278,11 @@ function normalizeTree(input, seen = /* @__PURE__ */ new Set()) {
   }
   return node;
 }
-function validateTree(root2) {
+function validateTree(root3) {
   const errors = [];
   const ids = /* @__PURE__ */ new Set();
-  if (root2.type !== "Page") errors.push(`Node g\u1ED1c ph\u1EA3i l\xE0 Page (\u0111ang l\xE0 ${root2.type})`);
-  walk(root2, (n, parent) => {
+  if (root3.type !== "Page") errors.push(`Node g\u1ED1c ph\u1EA3i l\xE0 Page (\u0111ang l\xE0 ${root3.type})`);
+  walk(root3, (n, parent) => {
     if (!n.id) errors.push("C\xF3 node thi\u1EBFu id");
     if (ids.has(n.id)) errors.push(`Tr\xF9ng id: ${n.id}`);
     ids.add(n.id);
@@ -10271,27 +10299,27 @@ function validateTree(root2) {
   });
   return { ok: errors.length === 0, errors };
 }
-function walk(root2, fn, parent = null, depth = 0) {
-  fn(root2, parent, depth);
-  for (const c of root2.children ?? []) walk(c, fn, root2, depth + 1);
+function walk(root3, fn, parent = null, depth = 0) {
+  fn(root3, parent, depth);
+  for (const c of root3.children ?? []) walk(c, fn, root3, depth + 1);
 }
-function findNode(root2, id) {
+function findNode(root3, id) {
   let found = null;
-  walk(root2, (n) => {
+  walk(root3, (n) => {
     if (!found && n.id === id) found = n;
   });
   return found;
 }
-function findParent(root2, id) {
+function findParent(root3, id) {
   let found = null;
-  walk(root2, (n, parent) => {
+  walk(root3, (n, parent) => {
     if (!found && n.id === id) found = parent;
   });
   return found;
 }
-function collectIds(root2) {
+function collectIds(root3) {
   const out = [];
-  walk(root2, (n) => out.push(n.id));
+  walk(root3, (n) => out.push(n.id));
   return out;
 }
 function cloneTree(t) {
@@ -10302,7 +10330,7 @@ function nodeLabel(n) {
   const txt = p2.label ?? p2.text ?? p2.title ?? p2.alt ?? p2.name ?? "";
   return txt ? `${n.type} "${String(txt).slice(0, 40)}"` : n.type;
 }
-function topMostIds(root2, ids) {
+function topMostIds(root3, ids) {
   const set = new Set(ids);
   const result = [];
   const visit = (n, covered) => {
@@ -10310,13 +10338,13 @@ function topMostIds(root2, ids) {
     if (isSel && !covered) result.push(n.id);
     for (const c of n.children ?? []) visit(c, covered || isSel);
   };
-  visit(root2, false);
+  visit(root3, false);
   return result;
 }
-function regionIds(root2, selected) {
+function regionIds(root3, selected) {
   const allowed = /* @__PURE__ */ new Set();
   for (const id of selected) {
-    const n = findNode(root2, id);
+    const n = findNode(root3, id);
     if (n) walk(n, (d) => allowed.add(d.id));
   }
   return allowed;
@@ -10726,7 +10754,7 @@ function mockActors(requirementInput) {
   return [...actors];
 }
 var cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-function mockUseCases(model, requirementInput) {
+function mockUseCases(model2, requirementInput) {
   const actors = mockActors(requirementInput);
   const primary = actors[0];
   const useCases = [];
@@ -10735,7 +10763,7 @@ function mockUseCases(model, requirementInput) {
   let fr = 0;
   const ucCode = () => `UC-${String(++uc).padStart(2, "0")}`;
   const frCode = () => `FR-${String(++fr).padStart(2, "0")}`;
-  for (const s of model.screens) {
+  for (const s of model2.screens) {
     const mainActions = s.actions.filter((a) => a.variant !== "secondary" && a.variant !== "ghost" && !/hủy|quay lại|cancel/i.test(a.label));
     for (const a of mainActions) {
       const fields = a.formId ? s.fields.filter((f) => s.forms.find((fm) => fm.nodeId === a.formId)?.fieldIds.includes(f.nodeId)) : [];
@@ -10775,8 +10803,8 @@ function mockUseCases(model, requirementInput) {
   let nfr = 0;
   const nfrCode = () => `NFR-${String(++nfr).padStart(2, "0")}`;
   requirements.push({ code: nfrCode(), type: "NFR", statement: "Th\u1EDDi gian ph\u1EA3n h\u1ED3i c\u1EE7a c\xE1c thao t\xE1c ch\xEDnh kh\xF4ng v\u01B0\u1EE3t qu\xE1 2 gi\xE2y v\u1EDBi 100 ng\u01B0\u1EDDi d\xF9ng \u0111\u1ED3ng th\u1EDDi.", priority: "Medium", useCaseCodes: useCases.map((u) => u.code), source: "G\u1EE3i \xFD m\u1EB7c \u0111\u1ECBnh", isAssumption: true });
-  if (model.screens.some((s) => s.fields.some((f) => f.inputType === "password")))
-    requirements.push({ code: nfrCode(), type: "NFR", statement: "M\u1EADt kh\u1EA9u ph\u1EA3i \u0111\u01B0\u1EE3c l\u01B0u d\u01B0\u1EDBi d\u1EA1ng b\u0103m (bcrypt/argon2), kh\xF4ng l\u01B0u b\u1EA3n r\xF5.", priority: "High", useCaseCodes: useCases.filter((u) => model.screens.some((s) => u.screenIds.includes(s.screenId) && s.fields.some((f) => f.inputType === "password"))).map((u) => u.code), source: "Suy ra t\u1EEB tr\u01B0\u1EDDng m\u1EADt kh\u1EA9u", isAssumption: true });
+  if (model2.screens.some((s) => s.fields.some((f) => f.inputType === "password")))
+    requirements.push({ code: nfrCode(), type: "NFR", statement: "M\u1EADt kh\u1EA9u ph\u1EA3i \u0111\u01B0\u1EE3c l\u01B0u d\u01B0\u1EDBi d\u1EA1ng b\u0103m (bcrypt/argon2), kh\xF4ng l\u01B0u b\u1EA3n r\xF5.", priority: "High", useCaseCodes: useCases.filter((u) => model2.screens.some((s) => u.screenIds.includes(s.screenId) && s.fields.some((f) => f.inputType === "password"))).map((u) => u.code), source: "Suy ra t\u1EEB tr\u01B0\u1EDDng m\u1EADt kh\u1EA9u", isAssumption: true });
   return { useCases, requirements };
   function buildFormUC(code, name, actor, s, actionId, actionLabel, navigateTo, fields) {
     const steps = [{ no: 1, actor, text: `M\u1EDF m\xE0n h\xECnh "${s.title}"`, screenId: s.screenId }];
@@ -10815,11 +10843,11 @@ function mockUseCases(model, requirementInput) {
     };
   }
 }
-function mockSrs(moduleName, requirementInput, model, ucs, reqs) {
+function mockSrs(moduleName, requirementInput, model2, ucs, reqs) {
   const actors = [...new Set(ucs.flatMap((u) => u.actors))];
   const frs = reqs.filter((r) => r.type === "FR");
   const nfrs = reqs.filter((r) => r.type === "NFR");
-  const fields = model.screens.flatMap((s) => s.fields.map((f) => ({ ...f, screen: s.title })));
+  const fields = model2.screens.flatMap((s) => s.fields.map((f) => ({ ...f, screen: s.title })));
   return {
     sections: [
       { key: "intro", title: "1. Gi\u1EDBi thi\u1EC7u", content: `### 1.1 M\u1EE5c \u0111\xEDch
@@ -10835,15 +10863,15 @@ ${requirementInput.trim() || "Ph\u1EA1m vi \u0111\u01B0\u1EE3c x\xE1c \u0111\u1E
 ${actors.map((a) => `- ${a}`).join("\n")}
 
 ### 2.2 Danh s\xE1ch m\xE0n h\xECnh
-${model.screens.map((s) => `- ${s.title}`).join("\n")}
+${model2.screens.map((s) => `- ${s.title}`).join("\n")}
 
 ### 2.3 \u0110i\u1EC1u h\u01B0\u1EDBng
-${model.navigation.length ? model.navigation.map((n) => `- ${n.from} \u2192 ${n.to} (qua "${n.via}")`).join("\n") : "- Ch\u01B0a c\xF3 li\xEAn k\u1EBFt \u0111i\u1EC1u h\u01B0\u1EDBng"}` },
+${model2.navigation.length ? model2.navigation.map((n) => `- ${n.from} \u2192 ${n.to} (qua "${n.via}")`).join("\n") : "- Ch\u01B0a c\xF3 li\xEAn k\u1EBFt \u0111i\u1EC1u h\u01B0\u1EDBng"}` },
       { key: "functional", title: "3. Y\xEAu c\u1EA7u ch\u1EE9c n\u0103ng", content: `| M\xE3 | Y\xEAu c\u1EA7u | \u01AFu ti\xEAn | Use Case |
 | --- | --- | --- | --- |
 ${frs.map((r) => `| ${r.code} | ${r.statement} | ${r.priority} | ${r.useCaseCodes.join(", ")} |`).join("\n")}` },
       { key: "nonfunctional", title: "4. Y\xEAu c\u1EA7u phi ch\u1EE9c n\u0103ng", content: `${nfrs.map((r) => `- **${r.code}**: ${r.statement}${r.isAssumption ? " _(Gi\u1EA3 \u0111\u1ECBnh \u2013 c\u1EA7n x\xE1c nh\u1EADn)_" : ""}`).join("\n") || "- Ch\u01B0a x\xE1c \u0111\u1ECBnh"}` },
-      { key: "interfaces", title: "5. Giao di\u1EC7n ng\u01B0\u1EDDi d\xF9ng", content: model.screens.map((s) => `### ${s.title}
+      { key: "interfaces", title: "5. Giao di\u1EC7n ng\u01B0\u1EDDi d\xF9ng", content: model2.screens.map((s) => `### ${s.title}
 - Tr\u01B0\u1EDDng d\u1EEF li\u1EC7u: ${s.fields.map((f) => f.label).join(", ") || "kh\xF4ng c\xF3"}
 - Thao t\xE1c: ${s.actions.map((a) => a.label).join(", ") || "kh\xF4ng c\xF3"}`).join("\n\n") },
       { key: "data", title: "6. T\u1EEB \u0111i\u1EC3n d\u1EEF li\u1EC7u", content: `| M\xE0n h\xECnh | Tr\u01B0\u1EDDng | Ki\u1EC3u | B\u1EAFt bu\u1ED9c | R\xE0ng bu\u1ED9c |
@@ -10874,16 +10902,16 @@ function mockSequence(uc, screenTitle) {
 function safe(s) {
   return s.replace(/[;#:]/g, " ").replace(/"/g, "'").replace(/\s+/g, " ").trim().slice(0, 90);
 }
-function mockTests(ucs, reqs, model) {
+function mockTests(ucs, reqs, model2) {
   const tests = [];
   let n = 0;
   const code = () => `TC-${String(++n).padStart(3, "0")}`;
-  const fieldsById = new Map(model.screens.flatMap((s) => s.fields.map((f) => [f.nodeId, f])));
+  const fieldsById = new Map(model2.screens.flatMap((s) => s.fields.map((f) => [f.nodeId, f])));
   for (const u of ucs) {
     const ucReqs = reqs.filter((r) => r.type === "FR" && r.useCaseCodes.includes(u.code));
     const mainReq = ucReqs.slice(0, 1).map((r) => r.code);
     const pre = u.preconditions.join("; ");
-    const ucFields = model.screens.filter((s) => u.screenIds.includes(s.screenId)).flatMap((s) => s.fields);
+    const ucFields = model2.screens.filter((s) => u.screenIds.includes(s.screenId)).flatMap((s) => s.fields);
     const sample = ucFields.map((f) => `${f.label} = ${sampleValue(f)}`).join("; ");
     tests.push({ code: code(), title: `${u.name} \u2013 lu\u1ED3ng ch\xEDnh th\xE0nh c\xF4ng`, type: "Positive", priority: "High", useCaseCode: u.code, flowRef: "main", requirementCodes: mainReq, preconditions: pre, testData: sample || "-", steps: u.mainFlow.filter((s) => s.actor !== "H\u1EC7 th\u1ED1ng").map((s) => s.text), expected: u.postconditions.join("; ") });
     for (const a of u.altFlows) tests.push({ code: code(), title: `${u.name} \u2013 ${a.name}`, type: "Positive", priority: "Medium", useCaseCode: u.code, flowRef: a.code, requirementCodes: mainReq, preconditions: pre, testData: "-", steps: a.steps.filter((s) => !s.startsWith("H\u1EC7 th\u1ED1ng")), expected: a.steps.filter((s) => s.startsWith("H\u1EC7 th\u1ED1ng")).join("; ") || "H\u1EC7 th\u1ED1ng x\u1EED l\xFD \u0111\xFAng lu\u1ED3ng thay th\u1EBF" });
@@ -11133,8 +11161,8 @@ function coerceRequirement(r) {
     isAssumption: Boolean(r.isAssumption)
   };
 }
-function modelForPrompt(model) {
-  return JSON.stringify(model, null, 1);
+function modelForPrompt(model2) {
+  return JSON.stringify(model2, null, 1);
 }
 async function generateUseCases(args) {
   const screenIds = new Set(args.model.screens.map((s) => s.screenId));
@@ -11466,11 +11494,11 @@ function applyPatch(tree, ops, opts = {}) {
     else applied.push(op);
   }
   return { tree: working, applied, rejected, touchedIds: [...touched] };
-  function applyOne(root2, op, touchedSet) {
-    const existing = new Set(collectIds(root2));
+  function applyOne(root3, op, touchedSet) {
+    const existing = new Set(collectIds(root3));
     switch (op.op) {
       case "update": {
-        const n = findNode(root2, op.id);
+        const n = findNode(root3, op.id);
         if (!n) return `Kh\xF4ng t\xECm th\u1EA5y node ${op.id}`;
         const next = { ...n.props };
         for (const [k, v] of Object.entries(op.props ?? {})) {
@@ -11482,9 +11510,9 @@ function applyPatch(tree, ops, opts = {}) {
         return null;
       }
       case "replace": {
-        const n = findNode(root2, op.id);
+        const n = findNode(root3, op.id);
         if (!n) return `Kh\xF4ng t\xECm th\u1EA5y node ${op.id}`;
-        if (n === root2) {
+        if (n === root3) {
           const fresh2 = normalizeTree(op.node, /* @__PURE__ */ new Set());
           if (fresh2.type !== "Page") return "Node g\u1ED1c ph\u1EA3i l\xE0 Page";
           working = fresh2;
@@ -11493,7 +11521,7 @@ function applyPatch(tree, ops, opts = {}) {
         }
         existing.delete(op.id);
         const raw = { ...op.node, id: op.node?.id ?? op.id };
-        const fresh = normalizeTree(raw, subtreeExclusive(root2, op.id, existing));
+        const fresh = normalizeTree(raw, subtreeExclusive(root3, op.id, existing));
         Object.assign(n, { id: fresh.id, type: fresh.type, props: fresh.props });
         if (fresh.children) n.children = fresh.children;
         else delete n.children;
@@ -11501,7 +11529,7 @@ function applyPatch(tree, ops, opts = {}) {
         return null;
       }
       case "insert": {
-        const parent = findNode(root2, op.parentId);
+        const parent = findNode(root3, op.parentId);
         if (!parent) return `Kh\xF4ng t\xECm th\u1EA5y node cha ${op.parentId}`;
         if (!isContainer(parent.type)) return `${parent.type} kh\xF4ng ch\u1EE9a \u0111\u01B0\u1EE3c node con`;
         const fresh = normalizeTree(op.node, existing);
@@ -11513,8 +11541,8 @@ function applyPatch(tree, ops, opts = {}) {
         return null;
       }
       case "remove": {
-        if (root2.id === op.id) return "Kh\xF4ng \u0111\u01B0\u1EE3c x\xF3a node g\u1ED1c";
-        const parent = findParent(root2, op.id);
+        if (root3.id === op.id) return "Kh\xF4ng \u0111\u01B0\u1EE3c x\xF3a node g\u1ED1c";
+        const parent = findParent(root3, op.id);
         if (!parent || !parent.children) return `Kh\xF4ng t\xECm th\u1EA5y node ${op.id}`;
         parent.children = parent.children.filter((c) => c.id !== op.id);
         touchedSet.add(parent.id);
@@ -11524,8 +11552,8 @@ function applyPatch(tree, ops, opts = {}) {
     return "Thao t\xE1c kh\xF4ng h\u1ED7 tr\u1EE3";
   }
 }
-function subtreeExclusive(root2, subtreeId, existing) {
-  const sub = findNode(root2, subtreeId);
+function subtreeExclusive(root3, subtreeId, existing) {
+  const sub = findNode(root3, subtreeId);
   const out = new Set(existing);
   if (sub) for (const id of collectIds(sub)) out.delete(id);
   return out;
@@ -11661,6 +11689,248 @@ function buildTrace(useCases, requirements, tests) {
   };
 }
 
+// shared/nextComponent.ts
+var END = "<END>";
+var START = "<START>";
+var ROOT = "<ROOT>";
+var MIN_COUNT = 5;
+var BACKOFF = 0.4;
+var ADD_MIN_P = 0.15;
+var SURPRISAL_REVIEW = 6;
+var OUTCOMES = [...ALL_TYPES, END];
+function emptyModel() {
+  return { version: 1, counts: { tri: {}, bi: {}, uni: {}, all: {} }, meta: { trees: 0, events: 0, sources: {}, builtAt: (/* @__PURE__ */ new Date()).toISOString() } };
+}
+var add = (t, key, x, w) => {
+  const row = t[key] ??= {};
+  row[x] = (row[x] ?? 0) + w;
+};
+var sum = (row) => row ? Object.values(row).reduce((a, b) => a + b, 0) : 0;
+function countTree(model2, tree, weight = 1, source = "unknown") {
+  const { tri, bi, uni, all } = model2.counts;
+  const emit = (c, x) => {
+    add(tri, `${c.g}|${c.p}|${c.s}`, x, weight);
+    add(bi, `${c.p}|${c.s}`, x, weight);
+    add(uni, c.p, x, weight);
+    all[x] = (all[x] ?? 0) + weight;
+    model2.meta.events += weight;
+  };
+  walk(tree, (n, parent) => {
+    if (!isContainer(n.type)) return;
+    const g = parent?.type ?? ROOT;
+    let s = START;
+    for (const c of n.children ?? []) {
+      emit({ g, p: n.type, s }, c.type);
+      s = c.type;
+    }
+    emit({ g, p: n.type, s }, END);
+  });
+  model2.meta.trees += 1;
+  model2.meta.sources[source] = (model2.meta.sources[source] ?? 0) + 1;
+  return model2;
+}
+function mergeModels(a, b, wb = 1) {
+  for (const k of ["tri", "bi", "uni"]) for (const [key, row] of Object.entries(b.counts[k])) for (const [x, c] of Object.entries(row)) add(a.counts[k], key, x, c * wb);
+  for (const [x, c] of Object.entries(b.counts.all)) a.counts.all[x] = (a.counts.all[x] ?? 0) + c * wb;
+  a.meta.trees += b.meta.trees;
+  a.meta.events += b.meta.events * wb;
+  for (const [s, n] of Object.entries(b.meta.sources)) a.meta.sources[s] = (a.meta.sources[s] ?? 0) + n;
+  return a;
+}
+function allProb(model2, x) {
+  return ((model2.counts.all[x] ?? 0) + 1) / (sum(model2.counts.all) + OUTCOMES.length);
+}
+function prob(model2, ctx, x) {
+  const levels = [model2.counts.tri[`${ctx.g}|${ctx.p}|${ctx.s}`], model2.counts.bi[`${ctx.p}|${ctx.s}`], model2.counts.uni[ctx.p]];
+  let factor = 1;
+  for (const row of levels) {
+    const total = sum(row);
+    if (total >= MIN_COUNT && row[x]) return factor * (row[x] / total);
+    factor *= BACKOFF;
+  }
+  return factor * allProb(model2, x);
+}
+function ctxForAppend(tree, containerId) {
+  const n = findNode(tree, containerId);
+  if (!n || !isContainer(n.type)) return null;
+  const kids = n.children ?? [];
+  return { g: findParent(tree, n.id)?.type ?? ROOT, p: n.type, s: kids.length ? kids[kids.length - 1].type : START };
+}
+function predictNext(model2, tree, containerId, k = 5) {
+  const ctx = ctxForAppend(tree, containerId);
+  if (!ctx) return [];
+  return rankTypes(model2, ctx, k);
+}
+function rankTypes(model2, ctx, k = 5) {
+  return ALL_TYPES.filter((t) => t !== "Page").map((type) => ({ type, p: prob(model2, ctx, type) })).sort((a, b) => b.p - a.p).slice(0, k);
+}
+function surprisal(model2, tree, nodeId) {
+  const parent = findParent(tree, nodeId);
+  const n = findNode(tree, nodeId);
+  if (!parent || !n) return 0;
+  const kids = parent.children ?? [];
+  const i = kids.findIndex((c) => c.id === nodeId);
+  const ctx = { g: findParent(tree, parent.id)?.type ?? ROOT, p: parent.type, s: i > 0 ? kids[i - 1].type : START };
+  return -Math.log2(prob(model2, ctx, n.type));
+}
+var FIELD_TYPES2 = ["Input", "Textarea", "Select", "DatePicker"];
+var norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase().trim();
+var label = (n) => String(n.props.label ?? n.props.text ?? "");
+var each = (tree, fn) => {
+  const out = [];
+  walk(tree, (n) => {
+    const r = fn(n);
+    if (Array.isArray(r)) out.push(...r);
+    else if (r) out.push(r);
+  });
+  return out;
+};
+var RULES = [
+  // R1 trường nhập thiếu name / thiếu required khi nhãn ghi bắt buộc
+  (t) => each(t, (n) => {
+    if (!FIELD_TYPES2.includes(n.type)) return null;
+    const lb = label(n);
+    if (/bắt buộc|\*/i.test(lb) && !n.props.required)
+      return { nodeId: n.id, code: "R1", message: `"${lb}" ghi b\u1EAFt bu\u1ED9c nh\u01B0ng ch\u01B0a \u0111\u1EB7t required`, severity: 2, fixPrompt: `\u0110\u1EB7t tr\u01B0\u1EDDng "${lb}" l\xE0 b\u1EAFt bu\u1ED9c.` };
+    if (!n.props.name) return { nodeId: n.id, code: "R1", message: `Tr\u01B0\u1EDDng "${lb}" ch\u01B0a c\xF3 name`, severity: 1, fixPrompt: `B\u1ED5 sung name (snake_case) cho tr\u01B0\u1EDDng "${lb}".` };
+    return null;
+  }),
+  // R2 email / mật khẩu sai kiểu hoặc thiếu ràng buộc
+  (t) => each(t, (n) => {
+    if (n.type !== "Input") return null;
+    const lb = label(n);
+    if (/email/i.test(lb) && n.props.inputType !== "email")
+      return { nodeId: n.id, code: "R2", message: `"${lb}" n\xEAn d\xF9ng inputType email`, severity: 2, fixPrompt: `\u0110\u1ED5i tr\u01B0\u1EDDng "${lb}" sang inputType email, b\u1EAFt bu\u1ED9c.` };
+    if (/mật khẩu|password/i.test(lb) && (n.props.inputType !== "password" || n.props.minLength === void 0))
+      return { nodeId: n.id, code: "R2", message: `"${lb}" c\u1EA7n inputType password v\xE0 minLength`, severity: 2, fixPrompt: `\u0110\u1EB7t tr\u01B0\u1EDDng "${lb}" ki\u1EC3u password, b\u1EAFt bu\u1ED9c, t\u1ED1i thi\u1EC3u 8 k\xFD t\u1EF1.` };
+    return null;
+  }),
+  // R3 Form không có nút gửi
+  (t) => each(t, (n) => {
+    if (n.type !== "Form") return null;
+    let hasBtn = false;
+    walk(n, (d) => hasBtn ||= d.type === "Button");
+    return hasBtn ? null : { nodeId: n.id, code: "R3", message: "Form ch\u01B0a c\xF3 n\xFAt g\u1EEDi", severity: 3, fixPrompt: 'Th\xEAm n\xFAt "L\u01B0u" (variant primary, action submit) v\xE0o cu\u1ED1i form n\xE0y.' };
+  }),
+  // R4 nút không có hành động
+  (t) => each(
+    t,
+    (n) => n.type === "Button" && !n.props.action && !n.props.navigateTo ? { nodeId: n.id, code: "R4", message: `N\xFAt "${label(n)}" ch\u01B0a c\xF3 action/navigateTo`, severity: 1, fixPrompt: `B\u1ED5 sung action cho n\xFAt "${label(n)}".` } : null
+  ),
+  // R5 bảng thiếu cột
+  (t) => each(
+    t,
+    (n) => n.type === "Table" && (!Array.isArray(n.props.columns) || !n.props.columns.length) ? { nodeId: n.id, code: "R5", message: "B\u1EA3ng ch\u01B0a c\xF3 c\u1ED9t", severity: 2, fixPrompt: "B\u1ED5 sung danh s\xE1ch c\u1ED9t cho b\u1EA3ng n\xE0y." } : null
+  ),
+  // R6 điều hướng tới màn chưa tồn tại
+  (t, ctx) => {
+    if (!ctx.screenNames?.length) return [];
+    const names = new Set(ctx.screenNames.map(norm));
+    return each(t, (n) => {
+      const to = n.props.navigateTo;
+      if (n.type !== "Button" && n.type !== "Link" || typeof to !== "string" || !to.trim() || names.has(norm(to))) return null;
+      return { nodeId: n.id, code: "R6", message: `"${label(n)}" d\u1EABn t\u1EDBi m\xE0n "${to}" ch\u01B0a c\xF3 trong module`, severity: 1, fixPrompt: `S\u1EEDa navigateTo c\u1EE7a "${label(n)}" sang m\u1ED9t m\xE0n hi\u1EC7n c\xF3 (${ctx.screenNames.slice(0, 5).join(", ")}).` };
+    });
+  },
+  // R7 node còn bình luận chưa xử lý
+  (t, ctx) => {
+    const open = new Set(ctx.openAnnotationNodeIds ?? []);
+    return each(t, (n) => open.has(n.id) ? { nodeId: n.id, code: "R7", message: `${nodeLabel(n)} c\xF2n b\xECnh lu\u1EADn ch\u01B0a x\u1EED l\xFD`, severity: 2, fixPrompt: "X\u1EED l\xFD b\xECnh lu\u1EADn \u0111ang m\u1EDF c\u1EE7a ph\u1EA7n t\u1EED n\xE0y." } : null);
+  }
+];
+function ruleFindings(tree, ctx = {}) {
+  return RULES.flatMap((r) => r(tree, ctx));
+}
+var ADD_PROMPT = {
+  Button: (w) => `Th\xEAm n\xFAt "X\xE1c nh\u1EADn" (variant primary, action submit) v\xE0o cu\u1ED1i ${w}.`,
+  Input: (w) => `Th\xEAm tr\u01B0\u1EDDng "Th\xF4ng tin" (b\u1EAFt bu\u1ED9c) v\xE0o cu\u1ED1i ${w}.`
+};
+function suggest(model2, tree, opts = {}) {
+  const k = opts.k ?? 5;
+  const scope = opts.selectedIds?.length ? regionIds(tree, opts.selectedIds) : null;
+  const inScope = (id) => !scope || scope.has(id);
+  const out = [];
+  walk(tree, (n) => {
+    if (!inScope(n.id) || !isContainer(n.type)) return;
+    const last = n.children?.at(-1)?.type;
+    const where = nodeLabel(n);
+    for (const { type, p: p2 } of predictNext(model2, tree, n.id, 5).filter((x) => x.p >= ADD_MIN_P && x.type !== last).slice(0, 2)) {
+      out.push({
+        id: `add:${n.id}:${type}`,
+        kind: "add",
+        targetNodeId: n.id,
+        title: `Th\xEAm ${type} v\xE0o ${where}`,
+        reason: `${Math.round(p2 * 100)}% tr\u01B0\u1EDDng h\u1EE3p t\u01B0\u01A1ng t\u1EF1 c\xF3 ${type} ti\u1EBFp theo`,
+        confidence: Math.min(1, p2),
+        fixPrompt: (ADD_PROMPT[type] ?? ((w) => `Th\xEAm m\u1ED9t ${type} ph\xF9 h\u1EE3p v\xE0o cu\u1ED1i ${w}.`))(where)
+      });
+    }
+  });
+  for (const f of ruleFindings(tree, opts)) {
+    if (!inScope(f.nodeId)) continue;
+    out.push({ id: `fix:${f.nodeId}:${f.code}`, kind: "fix", targetNodeId: f.nodeId, title: f.message, reason: `Lu\u1EADt ${f.code}`, confidence: 0.3 + 0.2 * f.severity, fixPrompt: f.fixPrompt });
+  }
+  walk(tree, (n, parent) => {
+    if (!parent || !inScope(n.id)) return;
+    const s = surprisal(model2, tree, n.id);
+    if (s < SURPRISAL_REVIEW) return;
+    out.push({
+      id: `review:${n.id}`,
+      kind: "review",
+      targetNodeId: n.id,
+      title: `Xem l\u1EA1i ${nodeLabel(n)} trong ${nodeLabel(parent)}`,
+      reason: `Hi\u1EBFm g\u1EB7p trong ng\u1EEF c\u1EA3nh n\xE0y (${s.toFixed(1)} bit)`,
+      confidence: Math.min(1, s / 12) * 0.6,
+      fixPrompt: `Ki\u1EC3m tra l\u1EA1i ${nodeLabel(n)}: \u0111\u1ED5i sang th\xE0nh ph\u1EA7n ph\xF9 h\u1EE3p h\u01A1n ho\u1EB7c chuy\u1EC3n v\u1ECB tr\xED.`
+    });
+  });
+  const seen = /* @__PURE__ */ new Set();
+  return out.filter((s) => seen.has(s.id) ? false : (seen.add(s.id), true)).sort((a, b) => b.confidence - a.confidence).slice(0, k);
+}
+
+// server/nextModel.ts
+import { existsSync, readFileSync } from "node:fs";
+import { dirname as dirname2, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+var root = resolve(dirname2(fileURLToPath(import.meta.url)), "..");
+var LEARN_WEIGHT = 5;
+var base = null;
+var model = null;
+function fallbackModel() {
+  const m = emptyModel();
+  for (const p2 of ["\u0111\u0103ng nh\u1EADp", "\u0111\u0103ng k\xFD", "qu\u1EA3n l\xFD s\u1EA3n ph\u1EA9m", "th\xEAm s\u1EA3n ph\u1EA9m", "dashboard t\u1ED5ng quan"]) countTree(m, mockScreen(p2, p2), 1, "fallback");
+  return m;
+}
+function loadBase() {
+  const file = process.env.NEXT_MODEL_FILE ?? join(root, "model", "next-component.json");
+  if (existsSync(file)) {
+    try {
+      const m = JSON.parse(readFileSync(file, "utf8"));
+      if (m.version === 1 && m.counts?.all) return m;
+    } catch (e) {
+      console.warn(`Kh\xF4ng \u0111\u1ECDc \u0111\u01B0\u1EE3c ${file}: ${e.message}`);
+    }
+  }
+  return fallbackModel();
+}
+function getModel() {
+  if (model) return model;
+  base ??= loadBase();
+  model = mergeModels(emptyModel(), base);
+  model.meta.builtAt = base.meta.builtAt;
+  for (const r of getDb().prepare("SELECT tree FROM model_learned_trees").all()) {
+    try {
+      countTree(model, JSON.parse(r.tree), LEARN_WEIGHT, "learned");
+    } catch {
+    }
+  }
+  return model;
+}
+function learnFromScreen(screenId, versionId, tree) {
+  const r = getDb().prepare("INSERT OR IGNORE INTO model_learned_trees (version_id, screen_id, tree, created_at) VALUES (?, ?, ?, ?)").run(versionId, screenId, JSON.stringify(tree), (/* @__PURE__ */ new Date()).toISOString());
+  if (Number(r.changes) > 0 && model) countTree(model, tree, LEARN_WEIGHT, "learned");
+}
+
 // server/service.ts
 var BizError = class extends Error {
   constructor(message, status = 400) {
@@ -11745,7 +12015,21 @@ function setScreenApproval(screenId, approved) {
   const screen = mustScreen(screenId);
   updateScreen(screenId, { status: approved ? "approved" : "draft" });
   if (!approved) markOutdated(screen.moduleId);
+  if (approved && screen.currentVersionId) {
+    const v = getVersion(screen.currentVersionId);
+    if (v) learnFromScreen(screenId, v.id, v.tree);
+  }
   return getScreen(screenId);
+}
+function screenSuggestions(screenId, nodeIds) {
+  const screen = mustScreen(screenId);
+  if (!screen.currentVersionId) throw new BizError("M\xE0n h\xECnh ch\u01B0a c\xF3 phi\xEAn b\u1EA3n");
+  const v = getVersion(screen.currentVersionId);
+  const screenNames = [...new Set(listScreens(screen.moduleId).flatMap((s) => [s.name, String(s.tree?.props.title ?? "")]).filter(Boolean))];
+  const openAnnotationNodeIds = listAnnotationsForModule(screen.moduleId).filter((a) => a.screenId === screenId && a.status === "open").flatMap((a) => a.nodeIds);
+  const model2 = getModel();
+  const suggestions = suggest(model2, v.tree, { selectedIds: nodeIds, screenNames, openAnnotationNodeIds, k: 5 });
+  return { suggestions, versionId: v.id, model: { trees: model2.meta.trees, events: Math.round(model2.meta.events) } };
 }
 function approvedModel(moduleId) {
   const screens = listScreens(moduleId).filter((s) => s.status === "approved" && s.tree);
@@ -11759,12 +12043,12 @@ function getDesignModel(moduleId) {
 }
 async function generateDocs(moduleId) {
   const m = mustModule(moduleId);
-  const model = approvedModel(moduleId);
-  const { useCases, requirements } = await generateUseCases({ moduleId, moduleName: m.name, requirementInput: m.requirementInput, model });
+  const model2 = approvedModel(moduleId);
+  const { useCases, requirements } = await generateUseCases({ moduleId, moduleName: m.name, requirementInput: m.requirementInput, model: model2 });
   saveUseCasesAndRequirements(moduleId, useCases, requirements);
   const [srs, sequences] = await Promise.all([
-    generateSrs({ moduleId, moduleName: m.name, requirementInput: m.requirementInput, model, useCases, requirements }),
-    generateSequences({ moduleId, useCases, model })
+    generateSrs({ moduleId, moduleName: m.name, requirementInput: m.requirementInput, model: model2, useCases, requirements }),
+    generateSequences({ moduleId, useCases, model: model2 })
   ]);
   saveSrs(moduleId, srs);
   saveSequences(moduleId, sequences);
@@ -11775,7 +12059,7 @@ async function refineDoc(moduleId, target, instruction) {
   const m = mustModule(moduleId);
   if (!instruction.trim()) throw new BizError("Nh\u1EADp y\xEAu c\u1EA7u ch\u1EC9nh");
   const docs = getDocs(moduleId);
-  const model = getDesignModel(moduleId);
+  const model2 = getDesignModel(moduleId);
   if (target.startsWith("SEQ:")) {
     const code = target.slice(4);
     const seq = docs.sequences.find((s) => s.useCaseCode === code);
@@ -11792,7 +12076,7 @@ async function refineDoc(moduleId, target, instruction) {
   } else {
     const uc = docs.useCases.find((u) => u.code === target);
     if (!uc) throw new BizError("Kh\xF4ng t\xECm th\u1EA5y Use Case");
-    const next = await refineUseCase({ moduleId, uc, instruction, model });
+    const next = await refineUseCase({ moduleId, uc, instruction, model: model2 });
     saveUseCase(moduleId, next);
   }
   if (m.docsStatus === "approved") updateModule(moduleId, { docsStatus: "draft" });
@@ -11814,8 +12098,8 @@ async function generateTests2(moduleId) {
   const m = mustModule(moduleId);
   if (m.docsStatus !== "approved") throw new BizError("C\u1EA7n duy\u1EC7t t\xE0i li\u1EC7u (Approved) tr\u01B0\u1EDBc khi sinh test case");
   const docs = getDocs(moduleId);
-  const model = getDesignModel(moduleId);
-  const tests = await generateTests({ moduleId, useCases: docs.useCases, requirements: docs.requirements, model });
+  const model2 = getDesignModel(moduleId);
+  const tests = await generateTests({ moduleId, useCases: docs.useCases, requirements: docs.requirements, model: model2 });
   saveTests(moduleId, tests);
   updateModule(moduleId, { testsStatus: "draft" });
   return tests;
@@ -12031,7 +12315,7 @@ var XmlAttributeComponent = class extends BaseXmlComponent {
   *
   * @param root - The attribute data object
   */
-  constructor(root2) {
+  constructor(root3) {
     super("_attr");
     _defineProperty(this, "root", void 0);
     _defineProperty(
@@ -12040,7 +12324,7 @@ var XmlAttributeComponent = class extends BaseXmlComponent {
       "xmlKeys",
       void 0
     );
-    this.root = root2;
+    this.root = root3;
   }
   /**
   * Converts the attribute data to an XML-serializable object.
@@ -12068,10 +12352,10 @@ var NextAttributeComponent = class extends BaseXmlComponent {
   *
   * @param root - Attribute payload with explicit key-value mappings
   */
-  constructor(root2) {
+  constructor(root3) {
     super("_attr");
     _defineProperty(this, "root", void 0);
-    this.root = root2;
+    this.root = root3;
   }
   /**
   * Converts the attribute payload to an XML-serializable object.
@@ -12379,14 +12663,14 @@ var require_events = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     return ret;
   }
   function once(emitter, name) {
-    return new Promise(function(resolve3, reject) {
+    return new Promise(function(resolve4, reject) {
       function errorListener(err) {
         emitter.removeListener(name, resolver);
         reject(err);
       }
       function resolver() {
         if (typeof emitter.removeListener === "function") emitter.removeListener("error", errorListener);
-        resolve3([].slice.call(arguments));
+        resolve4([].slice.call(arguments));
       }
       eventTargetAgnosticAddListener(emitter, name, resolver, { once: true });
       if (name !== "error") addErrorHandlerIfEventEmitter(emitter, errorListener, { once: true });
@@ -15098,16 +15382,16 @@ var require_util = /* @__PURE__ */ __commonJSMin(((exports) => {
       if (isDate(value)) return ctx.stylize(Date.prototype.toString.call(value), "date");
       if (isError(value)) return formatError(value);
     }
-    var base = "", array = false, braces = ["{", "}"];
+    var base2 = "", array = false, braces = ["{", "}"];
     if (isArray(value)) {
       array = true;
       braces = ["[", "]"];
     }
-    if (isFunction(value)) base = " [Function" + (value.name ? ": " + value.name : "") + "]";
-    if (isRegExp(value)) base = " " + RegExp.prototype.toString.call(value);
-    if (isDate(value)) base = " " + Date.prototype.toUTCString.call(value);
-    if (isError(value)) base = " " + formatError(value);
-    if (keys.length === 0 && (!array || value.length == 0)) return braces[0] + base + braces[1];
+    if (isFunction(value)) base2 = " [Function" + (value.name ? ": " + value.name : "") + "]";
+    if (isRegExp(value)) base2 = " " + RegExp.prototype.toString.call(value);
+    if (isDate(value)) base2 = " " + Date.prototype.toUTCString.call(value);
+    if (isError(value)) base2 = " " + formatError(value);
+    if (keys.length === 0 && (!array || value.length == 0)) return braces[0] + base2 + braces[1];
     if (recurseTimes < 0) {
       if (isRegExp(value)) return ctx.stylize(RegExp.prototype.toString.call(value), "regexp");
       else return ctx.stylize("[Object]", "special");
@@ -15119,7 +15403,7 @@ var require_util = /* @__PURE__ */ __commonJSMin(((exports) => {
       return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
     });
     ctx.seen.pop();
-    return reduceToSingleString(output, base, braces);
+    return reduceToSingleString(output, base2, braces);
   }
   function formatPrimitive(ctx, value) {
     if (isUndefined(value)) return ctx.stylize("undefined", "undefined");
@@ -15177,14 +15461,14 @@ var require_util = /* @__PURE__ */ __commonJSMin(((exports) => {
     }
     return name + ": " + str2;
   }
-  function reduceToSingleString(output, base, braces) {
+  function reduceToSingleString(output, base2, braces) {
     var numLinesEst = 0;
     if (output.reduce(function(prev, cur) {
       numLinesEst++;
       if (cur.indexOf("\n") >= 0) numLinesEst++;
       return prev + cur.replace(/\u001b\[\d\d?m/g, "").length + 1;
-    }, 0) > 60) return braces[0] + (base === "" ? "" : base + "\n ") + " " + output.join(",\n  ") + " " + braces[1];
-    return braces[0] + base + " " + output.join(", ") + " " + braces[1];
+    }, 0) > 60) return braces[0] + (base2 === "" ? "" : base2 + "\n ") + " " + output.join(",\n  ") + " " + braces[1];
+    return braces[0] + base2 + " " + output.join(", ") + " " + braces[1];
   }
   exports.types = require_types();
   function isArray(ar) {
@@ -15284,11 +15568,11 @@ var require_util = /* @__PURE__ */ __commonJSMin(((exports) => {
     console.log("%s - %s", timestamp(), exports.format.apply(exports, arguments));
   };
   exports.inherits = require_inherits_browser();
-  exports._extend = function(origin, add) {
-    if (!add || !isObject(add)) return origin;
-    var keys = Object.keys(add);
+  exports._extend = function(origin, add2) {
+    if (!add2 || !isObject(add2)) return origin;
+    var keys = Object.keys(add2);
     var i = keys.length;
-    while (i--) origin[keys[i]] = add[keys[i]];
+    while (i--) origin[keys[i]] = add2[keys[i]];
     return origin;
   };
   function hasOwnProperty(obj, prop) {
@@ -15310,8 +15594,8 @@ var require_util = /* @__PURE__ */ __commonJSMin(((exports) => {
     }
     function fn() {
       var promiseResolve, promiseReject;
-      var promise = new Promise(function(resolve3, reject) {
-        promiseResolve = resolve3;
+      var promise = new Promise(function(resolve4, reject) {
+        promiseResolve = resolve4;
         promiseReject = reject;
       });
       var args = [];
@@ -15492,7 +15776,7 @@ var require_buffer_list = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       },
       {
         key: "join",
-        value: function join3(s) {
+        value: function join4(s) {
           if (this.length === 0) return "";
           var p2 = this.head;
           var ret = "" + p2.data;
@@ -16693,14 +16977,14 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
     };
   }
   function readAndResolve(iter) {
-    var resolve3 = iter[kLastResolve];
-    if (resolve3 !== null) {
+    var resolve4 = iter[kLastResolve];
+    if (resolve4 !== null) {
       var data = iter[kStream].read();
       if (data !== null) {
         iter[kLastPromise] = null;
         iter[kLastResolve] = null;
         iter[kLastReject] = null;
-        resolve3(createIterResult(data, false));
+        resolve4(createIterResult(data, false));
       }
     }
   }
@@ -16708,13 +16992,13 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
     process$1.nextTick(readAndResolve, iter);
   }
   function wrapForNext(lastPromise, iter) {
-    return function(resolve3, reject) {
+    return function(resolve4, reject) {
       lastPromise.then(function() {
         if (iter[kEnded]) {
-          resolve3(createIterResult(void 0, true));
+          resolve4(createIterResult(void 0, true));
           return;
         }
-        iter[kHandlePromise](resolve3, reject);
+        iter[kHandlePromise](resolve4, reject);
       }, reject);
     };
   }
@@ -16729,10 +17013,10 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
       var error = this[kError];
       if (error !== null) return Promise.reject(error);
       if (this[kEnded]) return Promise.resolve(createIterResult(void 0, true));
-      if (this[kStream].destroyed) return new Promise(function(resolve3, reject) {
+      if (this[kStream].destroyed) return new Promise(function(resolve4, reject) {
         process$1.nextTick(function() {
           if (_this[kError]) reject(_this[kError]);
-          else resolve3(createIterResult(void 0, true));
+          else resolve4(createIterResult(void 0, true));
         });
       });
       var lastPromise = this[kLastPromise];
@@ -16750,13 +17034,13 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
     return this;
   }), _defineProperty2(_Object$setPrototypeO, "return", function _return() {
     var _this2 = this;
-    return new Promise(function(resolve3, reject) {
+    return new Promise(function(resolve4, reject) {
       _this2[kStream].destroy(null, function(err) {
         if (err) {
           reject(err);
           return;
         }
-        resolve3(createIterResult(void 0, true));
+        resolve4(createIterResult(void 0, true));
       });
     });
   }), _Object$setPrototypeO), AsyncIteratorPrototype);
@@ -16778,15 +17062,15 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
       value: stream._readableState.endEmitted,
       writable: true
     }), _defineProperty2(_Object$create, kHandlePromise, {
-      value: function value(resolve3, reject) {
+      value: function value(resolve4, reject) {
         var data = iterator[kStream].read();
         if (data) {
           iterator[kLastPromise] = null;
           iterator[kLastResolve] = null;
           iterator[kLastReject] = null;
-          resolve3(createIterResult(data, false));
+          resolve4(createIterResult(data, false));
         } else {
-          iterator[kLastResolve] = resolve3;
+          iterator[kLastResolve] = resolve4;
           iterator[kLastReject] = reject;
         }
       },
@@ -16805,12 +17089,12 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
         iterator[kError] = err;
         return;
       }
-      var resolve3 = iterator[kLastResolve];
-      if (resolve3 !== null) {
+      var resolve4 = iterator[kLastResolve];
+      if (resolve4 !== null) {
         iterator[kLastPromise] = null;
         iterator[kLastResolve] = null;
         iterator[kLastReject] = null;
-        resolve3(createIterResult(void 0, true));
+        resolve4(createIterResult(void 0, true));
       }
       iterator[kEnded] = true;
     });
@@ -24617,15 +24901,15 @@ var resolveColumnWidths = ({ rows, width, availableWidth }) => {
   for (const { start, span, width: cellWidth } of spanningCells) {
     const columns = Array.from({ length: span }, (_, i) => start + i).filter((column) => column < columnCount);
     const unresolvedSpanColumns = columns.filter((column) => widths[column] === void 0);
-    const remaining = cellWidth - columns.reduce((sum, column) => {
+    const remaining = cellWidth - columns.reduce((sum2, column) => {
       var _widths$column;
-      return sum + ((_widths$column = widths[column]) !== null && _widths$column !== void 0 ? _widths$column : 0);
+      return sum2 + ((_widths$column = widths[column]) !== null && _widths$column !== void 0 ? _widths$column : 0);
     }, 0);
     if (unresolvedSpanColumns.length > 0 && remaining > 0) for (const column of unresolvedSpanColumns) widths[column] = remaining / unresolvedSpanColumns.length;
   }
   const unresolvedColumns = widths.flatMap((columnWidth, column) => columnWidth === void 0 ? [column] : []);
   if (unresolvedColumns.length > 0) {
-    const remaining = tableWidth - widths.reduce((sum, columnWidth) => sum + (columnWidth !== null && columnWidth !== void 0 ? columnWidth : 0), 0);
+    const remaining = tableWidth - widths.reduce((sum2, columnWidth) => sum2 + (columnWidth !== null && columnWidth !== void 0 ? columnWidth : 0), 0);
     const share = remaining > 0 ? remaining / unresolvedColumns.length : tableWidth / columnCount;
     for (const column of unresolvedColumns) widths[column] = share;
   }
@@ -25234,7 +25518,7 @@ var Table = class Table2 extends FileChild {
     if (cellIndex === -1) return;
     const start = cells.slice(0, cellIndex).reduce((column, previous) => column + (previous.options.columnSpan || 1), 0);
     const columns = this.resolvedColumnWidths.slice(start, start + (cell.options.columnSpan || 1));
-    return columns.length === 0 ? void 0 : columns.reduce((sum, columnWidth) => sum + columnWidth, 0);
+    return columns.length === 0 ? void 0 : columns.reduce((sum2, columnWidth) => sum2 + columnWidth, 0);
   }
   /**
   * Resolves derived grid column widths against the width actually available to the
@@ -25263,7 +25547,7 @@ var Table = class Table2 extends FileChild {
   setCellWidths(availableWidth) {
     var _resolvePreferredWidt;
     if (this.columnWidths === void 0) return;
-    const total = this.columnWidths.reduce((sum, columnWidth) => sum + columnWidth, 0);
+    const total = this.columnWidths.reduce((sum2, columnWidth) => sum2 + columnWidth, 0);
     const tableWidth = (_resolvePreferredWidt = resolvePreferredWidth(this.width, availableWidth)) !== null && _resolvePreferredWidt !== void 0 ? _resolvePreferredWidt : 0;
     const scale = total > 0 && tableWidth > total ? tableWidth / total : 1;
     for (const row of this.rows) {
@@ -25271,7 +25555,7 @@ var Table = class Table2 extends FileChild {
       for (const cell of row.cells) {
         const span = cell.options.columnSpan || 1;
         const spanned = this.columnWidths.slice(column, column + span);
-        const cellWidth = Math.round(spanned.reduce((sum, columnWidth) => sum + columnWidth, 0) * scale);
+        const cellWidth = Math.round(spanned.reduce((sum2, columnWidth) => sum2 + columnWidth, 0) * scale);
         if (spanned.length === span && cellWidth > 0) cell.setColumnWidth(cellWidth);
         column += span;
       }
@@ -31187,8 +31471,8 @@ var require_xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         output = "";
       }
     }
-    function add(value, last) {
-      format(append, resolve3(value, indent, indent ? 1 : 0), last);
+    function add2(value, last) {
+      format(append, resolve4(value, indent, indent ? 1 : 0), last);
     }
     function end() {
       if (stream) {
@@ -31207,7 +31491,7 @@ var require_xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         encoding: declaration.encoding || "UTF-8"
       };
       if (declaration.standalone) attr.standalone = declaration.standalone;
-      add({ "?xml": { _attr: attr } });
+      add2({ "?xml": { _attr: attr } });
       output = output.replace("/>", "?>");
     }
     delay(function() {
@@ -31217,9 +31501,9 @@ var require_xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     if (input && input.forEach) input.forEach(function(value, i) {
       var last;
       if (i + 1 === input.length) last = end;
-      add(value, last);
+      add2(value, last);
     });
-    else add(input, end);
+    else add2(input, end);
     if (stream) {
       stream.readable = true;
       return stream;
@@ -31227,12 +31511,12 @@ var require_xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     return output;
   }
   function element() {
-    var self2 = { _elem: resolve3(Array.prototype.slice.call(arguments)) };
+    var self2 = { _elem: resolve4(Array.prototype.slice.call(arguments)) };
     self2.push = function(input) {
       if (!this.append) throw new Error("not assigned to a parent!");
       var that = this;
       var indent = this._elem.indent;
-      format(this.append, resolve3(input, indent, this._elem.icount + (indent ? 1 : 0)), function() {
+      format(this.append, resolve4(input, indent, this._elem.icount + (indent ? 1 : 0)), function() {
         that.append(true);
       });
     };
@@ -31245,7 +31529,7 @@ var require_xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
   function create_indent(character, count) {
     return new Array(count || 0).join(character || "");
   }
-  function resolve3(data, indent, indent_count) {
+  function resolve4(data, indent, indent_count) {
     indent_count = indent_count || 0;
     var indent_spaces = create_indent(indent, indent_count);
     var name;
@@ -31281,7 +31565,7 @@ var require_xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           values.forEach(function(value) {
             if (typeof value == "object") {
               if (Object.keys(value)[0] == "_attr") get_attributes(value._attr);
-              else content.push(resolve3(value, indent, indent_count + 1));
+              else content.push(resolve4(value, indent, indent_count + 1));
             } else {
               content.pop();
               isStringContent = true;
@@ -33715,6 +33999,24 @@ route("PATCH", "/api/annotations/:id", ({ params, body }) => {
   return getAnnotation(params.id);
 });
 route("DELETE", "/api/annotations/:id", ({ params }) => (deleteAnnotation(params.id), { ok: true }));
+route("GET", "/api/screens/:id/suggestions", ({ params, query }) => screenSuggestions(params.id, (query.get("nodeIds") ?? "").split(",").filter(Boolean)));
+route("POST", "/api/suggestions/events", ({ body }) => {
+  const action = body.action;
+  if (!["shown", "applied", "dismissed"].includes(action)) throw new BizError("action kh\xF4ng h\u1EE3p l\u1EC7");
+  const screenId = str(body.screenId, 100);
+  if (!getScreen(screenId)) throw new BizError("Kh\xF4ng t\xECm th\u1EA5y m\xE0n h\xECnh", 404);
+  logSuggestionEvent({
+    screenId,
+    versionId: str(body.versionId, 100) || null,
+    kind: str(body.kind, 20) || "add",
+    targetNodeId: str(body.targetNodeId, 200) || null,
+    title: str(body.title, 300),
+    confidence: Math.max(0, Math.min(1, Number(body.confidence) || 0)),
+    action
+  });
+  return { ok: true };
+});
+route("GET", "/api/modules/:id/suggestion-stats", ({ params }) => suggestionStats(params.id));
 route("POST", "/api/modules/:id/docs/generate", ({ params }) => generateDocs(params.id));
 route("POST", "/api/modules/:id/docs/refine", ({ params, body }) => refineDoc(params.id, str(body.target, 100), str(body.instruction)));
 route("POST", "/api/modules/:id/docs/approve", ({ params, body }) => approveDocs(params.id, body.approved !== false));
@@ -33771,7 +34073,7 @@ function createApp(opts) {
   const require2 = createRequire(import.meta.url);
   let mermaidPath = "";
   try {
-    mermaidPath = join(resolve(require2.resolve("mermaid/package.json"), ".."), "dist", "mermaid.min.js");
+    mermaidPath = join2(resolve2(require2.resolve("mermaid/package.json"), ".."), "dist", "mermaid.min.js");
   } catch {
   }
   return createServer(async (req, res) => {
@@ -33802,11 +34104,11 @@ function createApp(opts) {
       }
       if (url.pathname === "/vendor/mermaid.min.js" && mermaidPath) return serveFile(res, mermaidPath);
       const safePath = url.pathname === "/" ? "/index.html" : url.pathname;
-      const file = resolve(opts.publicDir, "." + safePath);
-      if (!file.startsWith(resolve(opts.publicDir))) return send(res, 403, { error: "Forbidden" });
+      const file = resolve2(opts.publicDir, "." + safePath);
+      if (!file.startsWith(resolve2(opts.publicDir))) return send(res, 403, { error: "Forbidden" });
       const st = await stat(file).catch(() => null);
       if (st?.isFile()) return serveFile(res, file);
-      return serveFile(res, join(opts.publicDir, "index.html"));
+      return serveFile(res, join2(opts.publicDir, "index.html"));
     } catch (e) {
       if (e instanceof BizError) return send(res, e.status, { error: e.message });
       if (e instanceof AIError) return send(res, 502, { error: e.message, details: e.details });
@@ -33822,17 +34124,17 @@ async function serveFile(res, file) {
 }
 
 // server/index.ts
-var root = resolve2(dirname2(fileURLToPath(import.meta.url)), "..");
-var envFile = join2(root, ".env");
-if (existsSync(envFile)) {
-  for (const line of readFileSync(envFile, "utf8").split(/\r?\n/)) {
+var root2 = resolve3(dirname3(fileURLToPath2(import.meta.url)), "..");
+var envFile = join3(root2, ".env");
+if (existsSync2(envFile)) {
+  for (const line of readFileSync2(envFile, "utf8").split(/\r?\n/)) {
     const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
     if (m && process.env[m[1]] === void 0) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
   }
 }
 var port = Number(process.env.PORT ?? 3e3);
-openDb(process.env.DB_FILE ?? join2(root, "data", "ba-copilot.db"));
-var server = createApp({ publicDir: join2(root, "public") });
+openDb(process.env.DB_FILE ?? join3(root2, "data", "ba-copilot.db"));
+var server = createApp({ publicDir: join3(root2, "public") });
 server.listen(port, () => {
   const c = aiConfig();
   console.log(`
