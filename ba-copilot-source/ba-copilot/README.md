@@ -76,6 +76,33 @@ e2e/               Kiểm thử trình duyệt toàn luồng (Playwright)
 - **Sinh tài liệu 2 bước.** Bước (a) trích mô hình trung gian một cách tất định từ thiết kế; bước (b) LLM sinh UC/SRS/Sequence/Test dựa trên mô hình đó. Cách này giảm việc AI "bịa" chi tiết không có trong thiết kế.
 - **Structured output.** Mọi lời gọi Claude dùng `tool_choice` bắt buộc và JSON schema, kết quả được validate. Khi kết quả sai, hệ thống gửi lỗi về để AI tự sửa đúng 1 lần.
 
+## Gợi ý thành phần tiếp theo (tab "Gợi ý" trong Design Studio)
+
+Khi BA đang thiết kế, hệ thống gợi ý **thành phần nên thêm** hoặc **thành phần cần sửa** trong vùng đang khoanh (hoặc cả màn).
+
+- **Cách đặt bài toán:** hoàn thiện cây giao diện đang dựng dở, đoán con kế tiếp dựa vào cha, anh em liền trước và ông (Li et al., 2020, *Auto Completion of User Interface Layout Design Using Transformer-Based Tree Decoders*, arXiv:2001.05308). Nhóm dùng cách đặt bài toán và thước đo của bài, **không** dùng Transformer.
+- **Mô hình:** n-gram trên cây với *stupid backoff* (Brants et al., 2007): ngữ cảnh `(ông, cha, anh trước)` → `(cha, anh trước)` → `(cha)` → tần suất chung (làm mượt Laplace). "Huấn luyện" chỉ là đếm tần suất, kết quả là file `model/next-component.json`.
+- **3 loại gợi ý:** *Thêm* (loại có xác suất cao ở cuối container), *Sửa* (bộ luật R1–R7: thiếu name/required, sai kiểu email/mật khẩu, Form không có nút, nút không có action, bảng thiếu cột, điều hướng tới màn chưa có, bình luận đang mở), *Xem lại* (node có độ lạ −log₂P ≥ 6 bit).
+- **Áp dụng** khoanh đúng node và điền sẵn prompt; BA vẫn tự bấm "Sửa vùng đã khoanh". Mỗi lần hiện/Áp dụng/Bỏ qua được ghi vào `suggestion_events` (`GET /api/modules/:id/suggestion-stats`).
+- **Học tiếp:** màn được duyệt được cộng vào mô hình với trọng số 5 (bảng `model_learned_trees`).
+
+Mã nguồn: `shared/nextComponent.ts` (thuật toán), `server/nextModel.ts` (nạp/học), tab "Gợi ý" trong `client/views/DesignTab.tsx`.
+
+### Build mô hình và đánh giá
+
+```bash
+npm run build-corpus                               # ~150 màn nghiệp vụ (rule-based; thêm --llm để dùng Claude)
+pip install datasets beautifulsoup4                # (tùy chọn) dữ liệu WebSight
+python scripts/websight_to_trees.py --n 30000 --out data/corpus/websight.jsonl
+python scripts/websight_to_trees.py --html-dir <thư mục HTML> --source admin --out data/corpus/admin.jsonl
+npm run build-model -- --in data/corpus/internal.jsonl,data/corpus/websight.jsonl --holdout 0.1 --seed 42
+npm run eval-next -- --test data/corpus/holdout.jsonl --train data/corpus/internal.jsonl,data/corpus/websight.jsonl
+```
+
+`eval-next` in Top-1/Top-3 ở 10/50/80% cây (so với baseline "loại phổ biến nhất"), tỷ lệ trúng khi phát lại lịch sử phiên bản trong DB, đường cong bão hòa và quy đổi thời gian tiết kiệm theo KLM-GOMS (Card et al., 1980). Kết quả ghi ra `analysis/eval-next.csv`.
+
+**Giới hạn:** mô hình đi kèm repo hiện chỉ đếm từ corpus rule-based (~150 màn, ít mẫu khác nhau) nên số liệu đánh giá trên corpus này bị thổi phồng; cần build lại với WebSight/mẫu admin để có số liệu báo cáo.
+
 ## 4. Kiểm thử
 
 ```bash
