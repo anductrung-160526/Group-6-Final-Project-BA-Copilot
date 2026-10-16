@@ -141,3 +141,33 @@ export function saveBuffer(
     createdAt: new Date().toISOString(),
   });
 }
+
+/**
+ * Tự động lưu bản xuất Word/Excel vào Kho tài liệu.
+ * Quy ước: mỗi module chỉ giữ bản xuất MỚI NHẤT cho mỗi loại file.
+ * Nếu đã có bản export cùng (project, module, tên file) thì xóa bản cũ (dòng DB + file trên đĩa) rồi lưu bản mới.
+ * Bọc toàn bộ trong try/catch: nếu lưu vào kho thất bại thì console.error rồi bỏ qua,
+ * TUYỆT ĐỐI không làm hỏng việc tải file về của người dùng.
+ */
+export function saveExport(
+  projectId: string,
+  moduleId: string,
+  name: string,
+  buf: Buffer,
+  _mime?: string,
+): FileRecord | null {
+  try {
+    const cName = cleanName(name);
+    // Kiểm tra nếu đã có bản export cùng (project, module, tên file) thì xóa bản cũ
+    const old = repo.findExportFile(projectId, moduleId, cName);
+    if (old) {
+      removeFileFromDisk(old.storedName);
+      repo.deleteFileRow(old.id);
+    }
+    return saveBuffer(projectId, moduleId, cName, buf, "export");
+  } catch (err) {
+    console.error("Lỗi khi tự lưu file xuất vào kho tài liệu:", err);
+    return null;
+  }
+}
+

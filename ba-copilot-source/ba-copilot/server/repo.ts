@@ -481,3 +481,15 @@ export function deleteFileRow(id: string): void {
   getDb().prepare("DELETE FROM files WHERE id = ?").run(id);
 }
 
+export function findExportFile(projectId: string, moduleId: string, name: string): (FileRecord & { storedName: string }) | null {
+  const r = getDb()
+    .prepare("SELECT * FROM files WHERE project_id = ? AND module_id = ? AND name = ? AND source = 'export'")
+    .get(projectId, moduleId, name) as Row | undefined;
+  if (!r) return null;
+  return {
+    ...toFileRecord(r),
+    storedName: r.stored_name,
+  };
+}
+
+

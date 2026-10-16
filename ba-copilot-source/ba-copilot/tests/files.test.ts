@@ -153,3 +153,96 @@ test("kho tài liệu: tên file chứa '../' bị làm sạch và không ghi ra
   assert.equal(dl.status, 200);
   assert.equal(Buffer.compare(dl.data, fakeDocx), 0);
 });
+
+test("tự lưu bản xuất Word/Excel vào kho tài liệu và thay thế bản cũ", async () => {
+  // 1. Tạo dự án -> module -> màn hình -> duyệt màn hình -> sinh tài liệu -> duyệt tài liệu -> sinh test
+  const p = await api("POST", "/api/projects", { name: "Dự án xuất file tự lưu" });
+  assert.equal(p.status, 200);
+  const pid = p.data.id;
+
+  const m = await api("POST", `/api/projects/${pid}/modules`, {
+    name: "Quản lý kho",
+    requirementInput: "As a Thủ kho, I want kiểm kê hàng hóa",
+  });
+  assert.equal(m.status, 200);
+  const mid = m.data.id;
+
+  const s = await api("POST", `/api/modules/${mid}/screens`, {
+    prompt: "Màn hình kiểm kê hàng hóa gồm bảng danh sách và nút Lưu",
+    name: "Kiểm kê",
+  });
+  assert.equal(s.status, 200);
+  const sid = s.data.screen.id;
+
+  // Duyệt màn hình
+  await api("POST", `/api/screens/${sid}/approve`, {});
+
+  // Sinh tài liệu và duyệt tài liệu
+  const docsRes = await api("POST", `/api/modules/${mid}/docs/generate`);
+  assert.equal(docsRes.status, 200);
+  await api("POST", `/api/modules/${mid}/docs/approve`, {});
+
+  // Sinh test
+  const testRes = await api("POST", `/api/modules/${mid}/tests/generate`);
+  assert.equal(testRes.status, 200);
+
+  // 2. Gọi export/docx -> GET /api/projects/:id/files phải có đúng 1 file source "export", moduleId đúng, tên kết thúc .docx, tải xuống ra nội dung giống file export trả về
+  const docxExport1 = await api("GET", `/api/modules/${mid}/export/docx`);
+  assert.equal(docxExport1.status, 200);
+  assert.ok(docxExport1.data instanceof Buffer);
+
+  const filesAfterDocx1 = await api("GET", `/api/projects/${pid}/files`);
+  assert.equal(filesAfterDocx1.status, 200);
+  const exportDocs1 = filesAfterDocx1.data.filter((f: any) => f.source === "export");
+  assert.equal(exportDocs1.length, 1);
+  assert.equal(exportDocs1[0].moduleId, mid);
+  assert.ok(exportDocs1[0].name.endsWith(".docx"));
+
+  const dlDocx1 = await api("GET", `/api/files/${exportDocs1[0].id}/download`);
+  assert.equal(dlDocx1.status, 200);
+  assert.equal(Buffer.compare(dlDocx1.data, docxExport1.data), 0);
+
+  // 3. Gọi export/docx lần 2 -> vẫn đúng 1 file docx (bản cũ bị thay thế)
+  const docxExport2 = await api("GET", `/api/modules/${mid}/export/docx`);
+  assert.equal(docxExport2.status, 200);
+
+  const filesAfterDocx2 = await api("GET", `/api/projects/${pid}/files`);
+  assert.equal(filesAfterDocx2.status, 200);
+  const exportDocs2 = filesAfterDocx2.data.filter((f: any) => f.source === "export" && f.name.endsWith(".docx"));
+  assert.equal(exportDocs2.length, 1);
+
+  // 4. Gọi export/xlsx -> có thêm 1 file .xlsx (tổng 2 file export)
+  const xlsxExport = await api("GET", `/api/modules/${mid}/export/xlsx`);
+  assert.equal(xlsxExport.status, 200);
+
+  const filesAfterXlsx = await api("GET", `/api/projects/${pid}/files`);
+  assert.equal(filesAfterXlsx.status, 200);
+  const allExports = filesAfterXlsx.data.filter((f: any) => f.source === "export");
+  assert.equal(allExports.length, 2);
+  assert.ok(allExports.some((f: any) => f.name.endsWith(".xlsx")));
+  assert.ok(allExports.some((f: any) => f.name.endsWith(".docx")));
+
+  // 5. Xóa module hoặc xóa file không làm hỏng export lần sau
+  // Xóa 1 file export
+  const fileToDelete = allExports[0];
+  const delRes = await api("DELETE", `/api/files/${fileToDelete.id}`);
+  assert.equal(delRes.status, 200);
+
+  // Xuất lại file đó -> vẫn thành công
+  const docxExportAgain = await api("GET", `/api/modules/${mid}/export/docx`);
+  assert.equal(docxExportAgain.status, 200);
+
+  // Xóa module
+  const delModRes = await api("DELETE", `/api/modules/${mid}`);
+  assert.equal(delModRes.status, 200);
+
+  // Tạo module mới trong cùng dự án, làm luồng và xuất tiếp
+  const mNew = await api("POST", `/api/projects/${pid}/modules`, { name: "Module mới" });
+  assert.equal(mNew.status, 200);
+  const sNew = await api("POST", `/api/modules/${mNew.data.id}/screens`, { prompt: "Màn hình mới", name: "Màn hình 1" });
+  await api("POST", `/api/screens/${sNew.data.screen.id}/approve`, {});
+  await api("POST", `/api/modules/${mNew.data.id}/docs/generate`);
+  const docxNew = await api("GET", `/api/modules/${mNew.data.id}/export/docx`);
+  assert.equal(docxNew.status, 200);
+});
+

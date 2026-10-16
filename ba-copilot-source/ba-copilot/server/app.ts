@@ -12,7 +12,7 @@ import { buildDocx } from "./export/docx.ts";
 import { testWorkbook } from "./export/xlsx.ts";
 import { authEnabled, isAuthenticated, login, logout, LOGIN_HTML } from "./auth.ts";
 import { buildTrace } from "../shared/trace.ts";
-import { saveBuffer, readFileFromDisk, removeFileFromDisk } from "./files.ts";
+import { saveBuffer, readFileFromDisk, removeFileFromDisk, saveExport } from "./files.ts";
 
 type Handler = (ctx: { req: IncomingMessage; res: ServerResponse; params: Record<string, string>; body: any; query: URLSearchParams }) => Promise<unknown> | unknown;
 interface Route {
@@ -145,7 +145,10 @@ route("GET", "/api/modules/:id/export/docx", async ({ params }) => {
   if (!m.docs.useCases.length) throw new BizError("Chưa có tài liệu để xuất");
   const names = new Map(m.screens.map((s) => [s.id, s.name]));
   const buf = await buildDocx(m.project, m, m.docs, (id) => names.get(id) ?? id);
-  return new FileResponse(buf, `${fileSafe(m.name)}_UC_SRS_Sequence.docx`, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+  const filename = `${fileSafe(m.name)}_UC_SRS_Sequence.docx`;
+  const mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  saveExport(m.projectId, m.id, filename, buf, mime);
+  return new FileResponse(buf, filename, mime);
 });
 route("GET", "/api/modules/:id/export/xlsx", async ({ params }) => {
   const m = repo.getModuleDetail(params.id);
@@ -153,7 +156,10 @@ route("GET", "/api/modules/:id/export/xlsx", async ({ params }) => {
   if (!m.tests.length) throw new BizError("Chưa có test case để xuất");
   const names = new Map(m.screens.map((s) => [s.id, s.name]));
   const buf = await testWorkbook(m.tests, buildTrace(m.docs.useCases, m.docs.requirements, m.tests), (id) => names.get(id) ?? id);
-  return new FileResponse(buf, `${fileSafe(m.name)}_TestCase.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+  const filename = `${fileSafe(m.name)}_TestCase.xlsx`;
+  const mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  saveExport(m.projectId, m.id, filename, buf, mime);
+  return new FileResponse(buf, filename, mime);
 });
 route("GET", "/api/screens/:id/export/json", ({ params }) => {
   const s = repo.getScreen(params.id);
