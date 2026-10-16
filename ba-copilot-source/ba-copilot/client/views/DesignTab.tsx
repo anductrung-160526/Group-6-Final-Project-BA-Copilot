@@ -139,11 +139,6 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
 
   const applySuggestion = (s: Suggestion) => {
     logSugg(s, "applied");
-    if (s.createScreen) {
-      // màn đích chưa có → mở hộp "Màn hình mới" điền sẵn tên và prompt
-      setNewScreen({ name: s.createScreen, prompt: s.fixPrompt });
-      return;
-    }
     setSelected([s.targetNodeId]);
     setPrompt(s.fixPrompt);
     fromSuggestion.current = true;
@@ -476,7 +471,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
               Phiên bản ({versions.length})
             </button>
             <button className={panel === "suggest" ? "on" : ""} onClick={() => setPanel("suggest")} data-testid="suggest-tab">
-              Gợi ý {visibleSuggestions.filter((s) => s.kind !== "screen").length ? `(${visibleSuggestions.filter((s) => s.kind !== "screen").length})` : ""}
+              Gợi ý {visibleSuggestions.length ? `(${visibleSuggestions.length})` : ""}
             </button>
           </div>
 
@@ -485,12 +480,10 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
               <div className="muted small">
                 {selected.length ? `Gợi ý cho vùng đang chọn (${selected.length} phần tử)` : "Gợi ý cho toàn màn hình – khoanh vùng để thu hẹp"}
               </div>
-              {[...visibleSuggestions.filter((s) => s.kind !== "screen"), ...visibleSuggestions.filter((s) => s.kind === "screen")].map((s, i, all) => (
-                <React.Fragment key={s.id}>
-                {s.kind === "screen" && all[i - 1]?.kind !== "screen" && <div className="box-title sugg-group">Màn liên quan chưa thiết kế</div>}
-                <div className={`sugg sugg-${s.kind}`} onMouseEnter={() => setSuggHover(s.targetNodeId)} onMouseLeave={() => setSuggHover(null)} data-testid="suggestion">
+              {visibleSuggestions.map((s) => (
+                <div key={s.id} className={`sugg sugg-${s.kind}`} onMouseEnter={() => setSuggHover(s.targetNodeId)} onMouseLeave={() => setSuggHover(null)} data-testid="suggestion">
                   <div className="sugg-head">
-                    <Badge tone={s.kind === "add" ? "blue" : s.kind === "fix" ? "amber" : s.kind === "screen" ? "gray" : "violet"}>{s.kind === "add" ? "Thêm" : s.kind === "fix" ? "Sửa" : s.kind === "screen" ? "Màn" : "Xem lại"}</Badge>
+                    <Badge tone={s.kind === "add" ? "blue" : s.kind === "fix" ? "amber" : "violet"}>{s.kind === "add" ? "Thêm" : s.kind === "fix" ? "Sửa" : "Xem lại"}</Badge>
                     <span className="sugg-title">{s.title}</span>
                   </div>
                   <div className="muted small">{s.reason}</div>
@@ -499,7 +492,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
                   </div>
                   <div className="sugg-actions">
                     <Btn size="sm" kind="primary" disabled={!!previewing} onClick={() => applySuggestion(s)} data-testid="apply-suggestion">
-                      {s.createScreen ? "Tạo màn" : "Áp dụng"}
+                      Áp dụng
                     </Btn>
                     <Btn size="sm" kind="ghost" onClick={() => dismissSuggestion(s)}>
                       Bỏ qua
@@ -507,7 +500,6 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
                     <span className="muted small right">{Math.round(s.confidence * 100)}%</span>
                   </div>
                 </div>
-                </React.Fragment>
               ))}
               {!visibleSuggestions.length && <div className="muted small pad">Chưa có gợi ý cho vùng này.</div>}
               {suggMeta && <div className="muted small sugg-foot">Mô hình học từ {suggMeta.trees.toLocaleString("vi-VN")} màn hình</div>}

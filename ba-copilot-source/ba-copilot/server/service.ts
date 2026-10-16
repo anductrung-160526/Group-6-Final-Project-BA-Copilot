@@ -114,13 +114,12 @@ export function screenSuggestions(screenId: string, nodeIds: string[]) {
   const screen = mustScreen(screenId);
   if (!screen.currentVersionId) throw new BizError("Màn hình chưa có phiên bản");
   const v = repo.getVersion(screen.currentVersionId)!;
-  const screenNames = [...new Set(repo.listScreens(screen.moduleId).flatMap((s) => [s.name, String(s.tree?.props.title ?? "")]).filter(Boolean))];
   const openAnnotationNodeIds = repo
     .listAnnotationsForModule(screen.moduleId)
     .filter((a) => a.screenId === screenId && a.status === "open")
     .flatMap((a) => a.nodeIds);
   const model = getModel();
-  const suggestions = suggest(model, v.tree, { selectedIds: nodeIds, screenNames, openAnnotationNodeIds, k: 5 });
+  const suggestions = suggest(model, v.tree, { selectedIds: nodeIds, openAnnotationNodeIds, k: 5 });
   return { suggestions, versionId: v.id, model: { trees: model.meta.trees, events: Math.round(model.meta.events) } };
 }
 

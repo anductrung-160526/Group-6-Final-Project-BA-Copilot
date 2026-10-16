@@ -1586,5 +1586,3 @@ select:focus {
 .sugg-actions { display: flex; gap: 6px; align-items: center; }
 .sugg-actions .right { margin-left: auto; }
 .sugg-foot { margin-top: 10px; border-top: 1px dashed var(--line, #e5e7eb); padding-top: 8px; }
-.sugg-group { margin-top: 14px; }
-.sugg-screen { opacity: 0.85; }

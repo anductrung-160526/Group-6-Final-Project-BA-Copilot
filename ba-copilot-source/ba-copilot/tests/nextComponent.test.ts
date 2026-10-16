@@ -124,13 +124,6 @@ test("R5 bảng thiếu cột", () => {
   assert.ok(!codes(page({ id: "t", type: "Table", props: { columns: ["Tên"] } })).includes("R5"));
 });
 
-test("R6 điều hướng tới màn chưa có", () => {
-  const t = page({ id: "l", type: "Link", props: { text: "Đăng ký", navigateTo: "Đăng ký" } });
-  assert.ok(codes(t, { screenNames: ["Đăng nhập"] }).includes("R6"));
-  assert.ok(!codes(t, { screenNames: ["Dang ky"] }).includes("R6")); // so khớp bỏ dấu
-  assert.ok(!codes(t).includes("R6")); // không truyền danh sách màn → bỏ qua
-});
-
 test("R7 bình luận đang mở", () => {
   assert.ok(codes(loginLike(), { openAnnotationNodeIds: ["b"] }).includes("R7"));
   assert.ok(!codes(loginLike()).includes("R7"));
@@ -185,15 +178,8 @@ test("câu gợi ý theo ngữ cảnh: nhãn nút và trường thiếu", async 
   assert.ok(s && /Sau Input trong Form/.test(s.reason) && /"Đăng nhập"/.test(s.fixPrompt), JSON.stringify(s));
 });
 
-test("gợi ý tạo màn (R6) không chiếm chỗ của gợi ý phần tử; R8/R9 bắt thiếu sót nhỏ", () => {
-  const t = page(
-    { id: "f", type: "Form", props: {}, children: [{ id: "a", type: "Input", props: { label: "Họ tên", name: "ho_ten" } }, { id: "b", type: "Button", props: { label: "Lưu", action: "save" } }] },
-    { id: "l1", type: "Link", props: { text: "A", navigateTo: "Màn A" } },
-    { id: "l2", type: "Link", props: { text: "B", navigateTo: "Màn B" } },
-  );
-  const s = suggest(trained(), t, { screenNames: ["Khác"], k: 1 });
-  assert.equal(s[0].kind === "screen", false); // phần tử đứng trước
-  assert.equal(s.filter((x) => x.kind !== "screen").length, 1); // k chỉ tính phần tử
-  assert.equal(s.filter((x) => x.kind === "screen").length, 2); // màn liên quan vẫn liệt kê
+test("R8/R9 bắt thiếu sót nhỏ của trường nhập", () => {
+  const t = page({ id: "f", type: "Form", props: {}, children: [{ id: "a", type: "Input", props: { label: "Họ tên", name: "ho_ten" } }, { id: "b", type: "Button", props: { label: "Lưu", action: "save" } }] });
   assert.ok(codes(t).includes("R8") && codes(t).includes("R9"));
+  assert.ok(!codes(page({ id: "a", type: "Input", props: { label: "X", name: "x", placeholder: "p", maxLength: 10 } })).some((c) => c === "R8" || c === "R9"));
 });

@@ -140,12 +140,9 @@ export interface Finding {
   message: string;
   severity: 1 | 2 | 3;
   fixPrompt: string;
-  /** Có giá trị khi cách sửa đúng là tạo màn mới (R6), không phải sửa phần tử. */
-  createScreen?: string;
 }
 
 export interface RuleCtx {
-  screenNames?: string[];
   openAnnotationNodeIds?: string[];
 }
 
@@ -211,18 +208,6 @@ export const RULES: Rule[] = [
         ? { nodeId: n.id, code: "R5", message: "Bảng chưa có cột", severity: 2, fixPrompt: "Bổ sung danh sách cột cho bảng này." }
         : null,
     ),
-  // R6 điều hướng tới màn chưa tồn tại → gợi ý tạo màn đó (mỗi màn đích một lần)
-  (t, ctx) => {
-    if (!ctx.screenNames?.length) return [];
-    const names = new Set(ctx.screenNames.map(norm));
-    const seen = new Set<string>();
-    return each(t, (n) => {
-      const to = n.props.navigateTo;
-      if ((n.type !== "Button" && n.type !== "Link") || typeof to !== "string" || !to.trim() || names.has(norm(to)) || seen.has(norm(to))) return null;
-      seen.add(norm(to));
-      return { nodeId: n.id, code: "R6", message: `Màn "${to}" chưa được thiết kế`, severity: 1, fixPrompt: `Màn hình ${to}`, createScreen: to };
-    });
-  },
   // R8 trường nhập chưa có placeholder hướng dẫn
   (t) =>
     each(t, (n) => {
@@ -253,13 +238,12 @@ export function ruleFindings(tree: UINode, ctx: RuleCtx = {}): Finding[] {
 // ------------------------------------------------------------------ Xếp hạng gợi ý
 export interface Suggestion {
   id: string;
-  kind: "add" | "fix" | "review" | "screen";
+  kind: "add" | "fix" | "review";
   targetNodeId: string;
   title: string;
   reason: string;
   confidence: number;
   fixPrompt: string;
-  createScreen?: string;
 }
 
 export interface SuggestOptions extends RuleCtx {
@@ -364,14 +348,13 @@ export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = 
   for (const f of ruleFindings(tree, opts)) {
     if (!inScope(f.nodeId)) continue;
     out.push({
-      id: `${f.createScreen ? "screen" : "fix"}:${f.nodeId}:${f.code}`,
-      kind: f.createScreen ? "screen" : "fix",
+      id: `fix:${f.nodeId}:${f.code}`,
+      kind: "fix",
       targetNodeId: f.nodeId,
       title: f.message,
-      reason: f.createScreen ? `"${label(findNode(tree, f.nodeId)!)}" dẫn tới màn này (luật ${f.code})` : `Luật ${f.code}`,
+      reason: `Luật ${f.code}`,
       confidence: 0.3 + 0.2 * f.severity,
       fixPrompt: f.fixPrompt,
-      ...(f.createScreen ? { createScreen: f.createScreen } : {}),
     });
   }
 
@@ -390,8 +373,9 @@ export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = 
     });
   });
 
-  // top-k là phần tử TRONG màn; gợi ý tạo màn liên quan xếp riêng ở cuối, không chiếm chỗ
   const seen = new Set<string>();
-  const uniq = out.filter((s) => (seen.has(s.id) ? false : (seen.add(s.id), true))).sort((a, b) => b.confidence - a.confidence);
-  return [...uniq.filter((s) => s.kind !== "screen").slice(0, k), ...uniq.filter((s) => s.kind === "screen")];
+  return out
+    .filter((s) => (seen.has(s.id) ? false : (seen.add(s.id), true)))
+    .sort((a, b) => b.confidence - a.confidence)
+    .slice(0, k);
 }

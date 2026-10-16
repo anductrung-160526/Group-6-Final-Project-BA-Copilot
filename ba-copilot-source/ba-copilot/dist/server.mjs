@@ -11798,7 +11798,6 @@ function surprisal(model2, tree, nodeId) {
   return -Math.log2(prob(model2, ctx, n.type));
 }
 var FIELD_TYPES2 = ["Input", "Textarea", "Select", "DatePicker"];
-var norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase().trim();
 var label = (n) => String(n.props.label ?? n.props.text ?? "");
 var each = (tree, fn) => {
   const out = [];
@@ -11848,18 +11847,6 @@ var RULES = [
     t,
     (n) => n.type === "Table" && (!Array.isArray(n.props.columns) || !n.props.columns.length) ? { nodeId: n.id, code: "R5", message: "B\u1EA3ng ch\u01B0a c\xF3 c\u1ED9t", severity: 2, fixPrompt: "B\u1ED5 sung danh s\xE1ch c\u1ED9t cho b\u1EA3ng n\xE0y." } : null
   ),
-  // R6 điều hướng tới màn chưa tồn tại → gợi ý tạo màn đó (mỗi màn đích một lần)
-  (t, ctx) => {
-    if (!ctx.screenNames?.length) return [];
-    const names = new Set(ctx.screenNames.map(norm));
-    const seen = /* @__PURE__ */ new Set();
-    return each(t, (n) => {
-      const to = n.props.navigateTo;
-      if (n.type !== "Button" && n.type !== "Link" || typeof to !== "string" || !to.trim() || names.has(norm(to)) || seen.has(norm(to))) return null;
-      seen.add(norm(to));
-      return { nodeId: n.id, code: "R6", message: `M\xE0n "${to}" ch\u01B0a \u0111\u01B0\u1EE3c thi\u1EBFt k\u1EBF`, severity: 1, fixPrompt: `M\xE0n h\xECnh ${to}`, createScreen: to };
-    });
-  },
   // R8 trường nhập chưa có placeholder hướng dẫn
   (t) => each(t, (n) => {
     if (n.type !== "Input" && n.type !== "Textarea" || n.props.placeholder) return null;
@@ -11966,14 +11953,13 @@ function suggest(model2, tree, opts = {}) {
   for (const f of ruleFindings(tree, opts)) {
     if (!inScope(f.nodeId)) continue;
     out.push({
-      id: `${f.createScreen ? "screen" : "fix"}:${f.nodeId}:${f.code}`,
-      kind: f.createScreen ? "screen" : "fix",
+      id: `fix:${f.nodeId}:${f.code}`,
+      kind: "fix",
       targetNodeId: f.nodeId,
       title: f.message,
-      reason: f.createScreen ? `"${label(findNode(tree, f.nodeId))}" d\u1EABn t\u1EDBi m\xE0n n\xE0y (lu\u1EADt ${f.code})` : `Lu\u1EADt ${f.code}`,
+      reason: `Lu\u1EADt ${f.code}`,
       confidence: 0.3 + 0.2 * f.severity,
-      fixPrompt: f.fixPrompt,
-      ...f.createScreen ? { createScreen: f.createScreen } : {}
+      fixPrompt: f.fixPrompt
     });
   }
   walk(tree, (n, parent) => {
@@ -11991,8 +11977,7 @@ function suggest(model2, tree, opts = {}) {
     });
   });
   const seen = /* @__PURE__ */ new Set();
-  const uniq = out.filter((s) => seen.has(s.id) ? false : (seen.add(s.id), true)).sort((a, b) => b.confidence - a.confidence);
-  return [...uniq.filter((s) => s.kind !== "screen").slice(0, k), ...uniq.filter((s) => s.kind === "screen")];
+  return out.filter((s) => seen.has(s.id) ? false : (seen.add(s.id), true)).sort((a, b) => b.confidence - a.confidence).slice(0, k);
 }
 
 // server/nextModel.ts
@@ -12132,10 +12117,9 @@ function screenSuggestions(screenId, nodeIds) {
   const screen = mustScreen(screenId);
   if (!screen.currentVersionId) throw new BizError("M\xE0n h\xECnh ch\u01B0a c\xF3 phi\xEAn b\u1EA3n");
   const v = getVersion(screen.currentVersionId);
-  const screenNames = [...new Set(listScreens(screen.moduleId).flatMap((s) => [s.name, String(s.tree?.props.title ?? "")]).filter(Boolean))];
   const openAnnotationNodeIds = listAnnotationsForModule(screen.moduleId).filter((a) => a.screenId === screenId && a.status === "open").flatMap((a) => a.nodeIds);
   const model2 = getModel();
-  const suggestions = suggest(model2, v.tree, { selectedIds: nodeIds, screenNames, openAnnotationNodeIds, k: 5 });
+  const suggestions = suggest(model2, v.tree, { selectedIds: nodeIds, openAnnotationNodeIds, k: 5 });
   return { suggestions, versionId: v.id, model: { trees: model2.meta.trees, events: Math.round(model2.meta.events) } };
 }
 function approvedModel(moduleId) {

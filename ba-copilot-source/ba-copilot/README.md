@@ -82,7 +82,7 @@ Khi BA đang thiết kế, hệ thống gợi ý **thành phần nên thêm** ho
 
 - **Cách đặt bài toán:** hoàn thiện cây giao diện đang dựng dở, đoán con kế tiếp dựa vào cha, anh em liền trước và ông (Li et al., 2020, *Auto Completion of User Interface Layout Design Using Transformer-Based Tree Decoders*, arXiv:2001.05308). Nhóm dùng cách đặt bài toán và thước đo của bài, **không** dùng Transformer.
 - **Mô hình:** n-gram trên cây với *stupid backoff* (Brants et al., 2007): ngữ cảnh `(ông, cha, anh trước)` → `(cha, anh trước)` → `(cha)` → tần suất chung (làm mượt Laplace). "Huấn luyện" chỉ là đếm tần suất, kết quả là file `model/next-component.json`.
-- **3 loại gợi ý:** *Thêm* (loại có xác suất cao ở cuối container), *Sửa* (bộ luật R1–R7: thiếu name/required, sai kiểu email/mật khẩu, Form không có nút, nút không có action, bảng thiếu cột, điều hướng tới màn chưa có, bình luận đang mở), *Xem lại* (node có độ lạ −log₂P ≥ 6 bit).
+- **3 loại gợi ý:** *Thêm* (loại có xác suất cao ở cuối container), *Sửa* (bộ luật cấp phần tử: thiếu name/required, sai kiểu email/mật khẩu, Form không có nút, nút không có action, bảng thiếu cột, thiếu placeholder, chưa giới hạn độ dài, bình luận đang mở), *Xem lại* (node có độ lạ −log₂P ≥ 6 bit).
 - **Áp dụng** khoanh đúng node và điền sẵn prompt; BA vẫn tự bấm "Sửa vùng đã khoanh". Mỗi lần hiện/Áp dụng/Bỏ qua được ghi vào `suggestion_events` (`GET /api/modules/:id/suggestion-stats`).
 - **Học tiếp:** màn được duyệt được cộng vào mô hình với trọng số 5 (bảng `model_learned_trees`).
 
