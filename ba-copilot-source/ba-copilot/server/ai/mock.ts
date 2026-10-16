@@ -188,7 +188,10 @@ export function mockEditOps(tree: UINode, selectedIds: string[], instruction: st
   const ops: PatchOp[] = [];
   const quoted = text.match(/["“”']([^"“”']+)["“”']/)?.[1];
 
-  const rename = text.match(/(?:đổi|sửa|thay)[^\n]*?(?:thành|sang)\s*["“]?([^"”\n]+?)["”]?\s*$/im);
+  // chỉ hiểu là đổi chữ khi có "thành" (vd "Đổi chữ thành X"); "sang" thường là đổi bố cục/kiểu
+  const rename = /kiểu|inputType|navigateTo|bố cục/i.test(text) ? null : text.match(/(?:đổi|sửa|thay)[^\n]*?thành\s*["“]?([^"”\n]+?)["”]?\s*$/im);
+  const setType = text.match(/kiểu\s+(email|password|number|tel|text)\b/i)?.[1];
+  const minLen = text.match(/tối thiểu\s+(\d+)\s*ký tự/i)?.[1];
   const addButton = text.match(/thêm\s+(?:nút|button)\s*["“]?([^"”\n,.]+)["”]?/i);
   const addField = text.match(/thêm\s+(?:ô|trường|field)(?:\s+nhập)?\s*["“]?([^"”\n,.]+)["”]?/i);
 
@@ -210,6 +213,15 @@ export function mockEditOps(tree: UINode, selectedIds: string[], instruction: st
     }
     if (addField) insertNear(n, { type: "Input", props: { label: (quoted ?? addField[1]).trim(), required: /bắt buộc/.test(low) } });
     if (/\b(xóa|xoá|bỏ|loại bỏ)\b/.test(low) && !addButton && !addField && !rename && n.id !== tree.id) ops.push({ op: "remove", id: n.id });
+    if ((setType || minLen) && !addField) walk(n, (d) => {
+      if (d.type === "Input") ops.push({ op: "update", id: d.id, props: { ...(setType ? { inputType: setType } : {}), ...(minLen ? { minLength: Number(minLen) } : {}) } });
+    });
+    if (/bổ sung name/i.test(text)) walk(n, (d) => {
+      if (["Input", "Textarea", "Select", "DatePicker", "Checkbox", "Radio"].includes(d.type) && !d.props.name) ops.push({ op: "update", id: d.id, props: { name: snake(String(d.props.label ?? d.id)) } });
+    });
+    if (/bổ sung action/i.test(text)) walk(n, (d) => {
+      if (d.type === "Button" && !d.props.action && !d.props.navigateTo) ops.push({ op: "update", id: d.id, props: { action: snake(String(d.props.label ?? "click")) } });
+    });
     if (/bắt buộc/.test(low) && !addField) walk(n, (d) => {
       if (["Input", "Textarea", "Select", "DatePicker", "Radio"].includes(d.type)) ops.push({ op: "update", id: d.id, props: { required: true } });
     });
@@ -237,6 +249,10 @@ export function mockEditOps(tree: UINode, selectedIds: string[], instruction: st
       ops.push({ op: "insert", parentId: parent.id, index: idx + 1, node: full });
     }
   }
+}
+
+function snake(s: string): string {
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "field";
 }
 
 function firstTextNode(n: UINode): UINode | null {

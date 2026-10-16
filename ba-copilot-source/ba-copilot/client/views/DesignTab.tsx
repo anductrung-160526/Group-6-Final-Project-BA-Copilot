@@ -137,11 +137,16 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
   }, [panel, visibleSuggestions.map((s) => s.id).join()]);
 
   const applySuggestion = (s: Suggestion) => {
+    logSugg(s, "applied");
+    if (s.createScreen) {
+      // màn đích chưa có → mở hộp "Màn hình mới" điền sẵn tên và prompt
+      setNewScreen({ name: s.createScreen, prompt: s.fixPrompt });
+      return;
+    }
     setSelected([s.targetNodeId]);
     setPrompt(s.fixPrompt);
     setPanel("edit");
     setSuggHover(null);
-    logSugg(s, "applied");
     toast("Đã khoanh vùng và điền sẵn prompt – kiểm tra rồi bấm “Sửa vùng đã khoanh”", "info");
   };
   const dismissSuggestion = (s: Suggestion) => {
@@ -484,7 +489,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
                   </div>
                   <div className="sugg-actions">
                     <Btn size="sm" kind="primary" disabled={!!previewing} onClick={() => applySuggestion(s)} data-testid="apply-suggestion">
-                      Áp dụng
+                      {s.createScreen ? "Tạo màn" : "Áp dụng"}
                     </Btn>
                     <Btn size="sm" kind="ghost" onClick={() => dismissSuggestion(s)}>
                       Bỏ qua

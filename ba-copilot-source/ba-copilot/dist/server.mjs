@@ -10695,7 +10695,9 @@ function mockEditOps(tree, selectedIds, instruction) {
   const targets = selectedIds.length ? selectedIds : [tree.id];
   const ops = [];
   const quoted = text.match(/["“”']([^"“”']+)["“”']/)?.[1];
-  const rename = text.match(/(?:đổi|sửa|thay)[^\n]*?(?:thành|sang)\s*["“]?([^"”\n]+?)["”]?\s*$/im);
+  const rename = /kiểu|inputType|navigateTo|bố cục/i.test(text) ? null : text.match(/(?:đổi|sửa|thay)[^\n]*?thành\s*["“]?([^"”\n]+?)["”]?\s*$/im);
+  const setType = text.match(/kiểu\s+(email|password|number|tel|text)\b/i)?.[1];
+  const minLen = text.match(/tối thiểu\s+(\d+)\s*ký tự/i)?.[1];
   const addButton = text.match(/thêm\s+(?:nút|button)\s*["“]?([^"”\n,.]+)["”]?/i);
   const addField = text.match(/thêm\s+(?:ô|trường|field)(?:\s+nhập)?\s*["“]?([^"”\n,.]+)["”]?/i);
   for (const id of targets) {
@@ -10715,6 +10717,15 @@ function mockEditOps(tree, selectedIds, instruction) {
     }
     if (addField) insertNear(n, { type: "Input", props: { label: (quoted ?? addField[1]).trim(), required: /bắt buộc/.test(low) } });
     if (/\b(xóa|xoá|bỏ|loại bỏ)\b/.test(low) && !addButton && !addField && !rename && n.id !== tree.id) ops.push({ op: "remove", id: n.id });
+    if ((setType || minLen) && !addField) walk(n, (d) => {
+      if (d.type === "Input") ops.push({ op: "update", id: d.id, props: { ...setType ? { inputType: setType } : {}, ...minLen ? { minLength: Number(minLen) } : {} } });
+    });
+    if (/bổ sung name/i.test(text)) walk(n, (d) => {
+      if (["Input", "Textarea", "Select", "DatePicker", "Checkbox", "Radio"].includes(d.type) && !d.props.name) ops.push({ op: "update", id: d.id, props: { name: snake(String(d.props.label ?? d.id)) } });
+    });
+    if (/bổ sung action/i.test(text)) walk(n, (d) => {
+      if (d.type === "Button" && !d.props.action && !d.props.navigateTo) ops.push({ op: "update", id: d.id, props: { action: snake(String(d.props.label ?? "click")) } });
+    });
     if (/bắt buộc/.test(low) && !addField) walk(n, (d) => {
       if (["Input", "Textarea", "Select", "DatePicker", "Radio"].includes(d.type)) ops.push({ op: "update", id: d.id, props: { required: true } });
     });
@@ -10741,6 +10752,9 @@ function mockEditOps(tree, selectedIds, instruction) {
       ops.push({ op: "insert", parentId: parent.id, index: idx + 1, node: full });
     }
   }
+}
+function snake(s) {
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "field";
 }
 function firstTextNode(n) {
   let found = null;
@@ -11700,7 +11714,8 @@ var ROOT = "<ROOT>";
 var MIN_COUNT = 5;
 var BACKOFF = 0.4;
 var ADD_MIN_P = 0.15;
-var SURPRISAL_REVIEW = 6;
+var SURPRISAL_REVIEW = 8;
+var LAYOUT_TYPES = /* @__PURE__ */ new Set(["Card", "Section", "Row", "Column", "Header", "Sidebar"]);
 var OUTCOMES = [...ALL_TYPES, END];
 function emptyModel() {
   return { version: 1, counts: { tri: {}, bi: {}, uni: {}, all: {} }, meta: { trees: 0, events: 0, sources: {}, builtAt: (/* @__PURE__ */ new Date()).toISOString() } };
@@ -11804,7 +11819,7 @@ var RULES = [
     if (n.type !== "Input") return null;
     const lb = label(n);
     if (/email/i.test(lb) && n.props.inputType !== "email")
-      return { nodeId: n.id, code: "R2", message: `"${lb}" n\xEAn d\xF9ng inputType email`, severity: 2, fixPrompt: `\u0110\u1ED5i tr\u01B0\u1EDDng "${lb}" sang inputType email, b\u1EAFt bu\u1ED9c.` };
+      return { nodeId: n.id, code: "R2", message: `"${lb}" n\xEAn d\xF9ng inputType email`, severity: 2, fixPrompt: `\u0110\u1EB7t tr\u01B0\u1EDDng "${lb}" ki\u1EC3u email, b\u1EAFt bu\u1ED9c.` };
     if (/mật khẩu|password/i.test(lb) && (n.props.inputType !== "password" || n.props.minLength === void 0))
       return { nodeId: n.id, code: "R2", message: `"${lb}" c\u1EA7n inputType password v\xE0 minLength`, severity: 2, fixPrompt: `\u0110\u1EB7t tr\u01B0\u1EDDng "${lb}" ki\u1EC3u password, b\u1EAFt bu\u1ED9c, t\u1ED1i thi\u1EC3u 8 k\xFD t\u1EF1.` };
     return null;
@@ -11828,14 +11843,16 @@ var RULES = [
     t,
     (n) => n.type === "Table" && (!Array.isArray(n.props.columns) || !n.props.columns.length) ? { nodeId: n.id, code: "R5", message: "B\u1EA3ng ch\u01B0a c\xF3 c\u1ED9t", severity: 2, fixPrompt: "B\u1ED5 sung danh s\xE1ch c\u1ED9t cho b\u1EA3ng n\xE0y." } : null
   ),
-  // R6 điều hướng tới màn chưa tồn tại
+  // R6 điều hướng tới màn chưa tồn tại → gợi ý tạo màn đó (mỗi màn đích một lần)
   (t, ctx) => {
     if (!ctx.screenNames?.length) return [];
     const names = new Set(ctx.screenNames.map(norm));
+    const seen = /* @__PURE__ */ new Set();
     return each(t, (n) => {
       const to = n.props.navigateTo;
-      if (n.type !== "Button" && n.type !== "Link" || typeof to !== "string" || !to.trim() || names.has(norm(to))) return null;
-      return { nodeId: n.id, code: "R6", message: `"${label(n)}" d\u1EABn t\u1EDBi m\xE0n "${to}" ch\u01B0a c\xF3 trong module`, severity: 1, fixPrompt: `S\u1EEDa navigateTo c\u1EE7a "${label(n)}" sang m\u1ED9t m\xE0n hi\u1EC7n c\xF3 (${ctx.screenNames.slice(0, 5).join(", ")}).` };
+      if (n.type !== "Button" && n.type !== "Link" || typeof to !== "string" || !to.trim() || names.has(norm(to)) || seen.has(norm(to))) return null;
+      seen.add(norm(to));
+      return { nodeId: n.id, code: "R6", message: `M\xE0n "${to}" ch\u01B0a \u0111\u01B0\u1EE3c thi\u1EBFt k\u1EBF`, severity: 1, fixPrompt: `M\xE0n h\xECnh ${to}`, createScreen: to };
     });
   },
   // R7 node còn bình luận chưa xử lý
@@ -11929,10 +11946,19 @@ function suggest(model2, tree, opts = {}) {
   });
   for (const f of ruleFindings(tree, opts)) {
     if (!inScope(f.nodeId)) continue;
-    out.push({ id: `fix:${f.nodeId}:${f.code}`, kind: "fix", targetNodeId: f.nodeId, title: f.message, reason: `Lu\u1EADt ${f.code}`, confidence: 0.3 + 0.2 * f.severity, fixPrompt: f.fixPrompt });
+    out.push({
+      id: `fix:${f.nodeId}:${f.code}`,
+      kind: "fix",
+      targetNodeId: f.nodeId,
+      title: f.message,
+      reason: f.createScreen ? `"${label(findNode(tree, f.nodeId))}" d\u1EABn t\u1EDBi m\xE0n n\xE0y (lu\u1EADt ${f.code})` : `Lu\u1EADt ${f.code}`,
+      confidence: 0.3 + 0.2 * f.severity,
+      fixPrompt: f.fixPrompt,
+      ...f.createScreen ? { createScreen: f.createScreen } : {}
+    });
   }
   walk(tree, (n, parent) => {
-    if (!parent || !inScope(n.id)) return;
+    if (!parent || !inScope(n.id) || LAYOUT_TYPES.has(n.type)) return;
     const s = surprisal(model2, tree, n.id);
     if (s < SURPRISAL_REVIEW) return;
     out.push({
@@ -11942,7 +11968,7 @@ function suggest(model2, tree, opts = {}) {
       title: `Xem l\u1EA1i ${nodeLabel(n)} trong ${nodeLabel(parent)}`,
       reason: `Hi\u1EBFm g\u1EB7p trong ng\u1EEF c\u1EA3nh n\xE0y (${s.toFixed(1)} bit)`,
       confidence: Math.min(1, s / 12) * 0.6,
-      fixPrompt: `Ki\u1EC3m tra l\u1EA1i ${nodeLabel(n)}: \u0111\u1ED5i sang th\xE0nh ph\u1EA7n ph\xF9 h\u1EE3p h\u01A1n ho\u1EB7c chuy\u1EC3n v\u1ECB tr\xED.`
+      fixPrompt: `Ki\u1EC3m tra l\u1EA1i ${nodeLabel(n)} \u2013 c\xE2n nh\u1EAFc d\xF9ng lo\u1EA1i component kh\xE1c ho\u1EB7c d\u1EDDi v\u1ECB tr\xED.`
     });
   });
   const seen = /* @__PURE__ */ new Set();

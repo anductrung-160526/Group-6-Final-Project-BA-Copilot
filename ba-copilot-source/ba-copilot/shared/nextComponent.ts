@@ -10,7 +10,9 @@ export const ROOT = "<ROOT>";
 export const MIN_COUNT = 5;
 export const BACKOFF = 0.4;
 export const ADD_MIN_P = 0.15;
-export const SURPRISAL_REVIEW = 6;
+export const SURPRISAL_REVIEW = 8;
+/** Container bố cục thường được đặt tự do – không đánh dấu "Xem lại". */
+const LAYOUT_TYPES = new Set(["Card", "Section", "Row", "Column", "Header", "Sidebar"]);
 const OUTCOMES = [...ALL_TYPES, END];
 
 type Table = Record<string, Record<string, number>>;
@@ -138,6 +140,8 @@ export interface Finding {
   message: string;
   severity: 1 | 2 | 3;
   fixPrompt: string;
+  /** Có giá trị khi cách sửa đúng là tạo màn mới (R6), không phải sửa phần tử. */
+  createScreen?: string;
 }
 
 export interface RuleCtx {
@@ -178,7 +182,7 @@ export const RULES: Rule[] = [
       if (n.type !== "Input") return null;
       const lb = label(n);
       if (/email/i.test(lb) && n.props.inputType !== "email")
-        return { nodeId: n.id, code: "R2", message: `"${lb}" nên dùng inputType email`, severity: 2, fixPrompt: `Đổi trường "${lb}" sang inputType email, bắt buộc.` };
+        return { nodeId: n.id, code: "R2", message: `"${lb}" nên dùng inputType email`, severity: 2, fixPrompt: `Đặt trường "${lb}" kiểu email, bắt buộc.` };
       if (/mật khẩu|password/i.test(lb) && (n.props.inputType !== "password" || n.props.minLength === undefined))
         return { nodeId: n.id, code: "R2", message: `"${lb}" cần inputType password và minLength`, severity: 2, fixPrompt: `Đặt trường "${lb}" kiểu password, bắt buộc, tối thiểu 8 ký tự.` };
       return null;
@@ -207,14 +211,16 @@ export const RULES: Rule[] = [
         ? { nodeId: n.id, code: "R5", message: "Bảng chưa có cột", severity: 2, fixPrompt: "Bổ sung danh sách cột cho bảng này." }
         : null,
     ),
-  // R6 điều hướng tới màn chưa tồn tại
+  // R6 điều hướng tới màn chưa tồn tại → gợi ý tạo màn đó (mỗi màn đích một lần)
   (t, ctx) => {
     if (!ctx.screenNames?.length) return [];
     const names = new Set(ctx.screenNames.map(norm));
+    const seen = new Set<string>();
     return each(t, (n) => {
       const to = n.props.navigateTo;
-      if ((n.type !== "Button" && n.type !== "Link") || typeof to !== "string" || !to.trim() || names.has(norm(to))) return null;
-      return { nodeId: n.id, code: "R6", message: `"${label(n)}" dẫn tới màn "${to}" chưa có trong module`, severity: 1, fixPrompt: `Sửa navigateTo của "${label(n)}" sang một màn hiện có (${ctx.screenNames!.slice(0, 5).join(", ")}).` };
+      if ((n.type !== "Button" && n.type !== "Link") || typeof to !== "string" || !to.trim() || names.has(norm(to)) || seen.has(norm(to))) return null;
+      seen.add(norm(to));
+      return { nodeId: n.id, code: "R6", message: `Màn "${to}" chưa được thiết kế`, severity: 1, fixPrompt: `Màn hình ${to}`, createScreen: to };
     });
   },
   // R7 node còn bình luận chưa xử lý
@@ -237,6 +243,7 @@ export interface Suggestion {
   reason: string;
   confidence: number;
   fixPrompt: string;
+  createScreen?: string;
 }
 
 export interface SuggestOptions extends RuleCtx {
@@ -340,11 +347,20 @@ export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = 
 
   for (const f of ruleFindings(tree, opts)) {
     if (!inScope(f.nodeId)) continue;
-    out.push({ id: `fix:${f.nodeId}:${f.code}`, kind: "fix", targetNodeId: f.nodeId, title: f.message, reason: `Luật ${f.code}`, confidence: 0.3 + 0.2 * f.severity, fixPrompt: f.fixPrompt });
+    out.push({
+      id: `fix:${f.nodeId}:${f.code}`,
+      kind: "fix",
+      targetNodeId: f.nodeId,
+      title: f.message,
+      reason: f.createScreen ? `"${label(findNode(tree, f.nodeId)!)}" dẫn tới màn này (luật ${f.code})` : `Luật ${f.code}`,
+      confidence: 0.3 + 0.2 * f.severity,
+      fixPrompt: f.fixPrompt,
+      ...(f.createScreen ? { createScreen: f.createScreen } : {}),
+    });
   }
 
   walk(tree, (n, parent) => {
-    if (!parent || !inScope(n.id)) return;
+    if (!parent || !inScope(n.id) || LAYOUT_TYPES.has(n.type)) return;
     const s = surprisal(model, tree, n.id);
     if (s < SURPRISAL_REVIEW) return;
     out.push({
@@ -354,7 +370,7 @@ export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = 
       title: `Xem lại ${nodeLabel(n)} trong ${nodeLabel(parent)}`,
       reason: `Hiếm gặp trong ngữ cảnh này (${s.toFixed(1)} bit)`,
       confidence: Math.min(1, s / 12) * 0.6,
-      fixPrompt: `Kiểm tra lại ${nodeLabel(n)}: đổi sang thành phần phù hợp hơn hoặc chuyển vị trí.`,
+      fixPrompt: `Kiểm tra lại ${nodeLabel(n)} – cân nhắc dùng loại component khác hoặc dời vị trí.`,
     });
   });
 
