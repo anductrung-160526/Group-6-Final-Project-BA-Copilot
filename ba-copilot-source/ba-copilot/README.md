@@ -101,7 +101,15 @@ npm run eval-next -- --test data/corpus/holdout.jsonl --train data/corpus/intern
 
 `eval-next` in Top-1/Top-3 ở 10/50/80% cây (so với baseline "loại phổ biến nhất"), tỷ lệ trúng khi phát lại lịch sử phiên bản trong DB, đường cong bão hòa và quy đổi thời gian tiết kiệm theo KLM-GOMS (Card et al., 1980). Kết quả ghi ra `analysis/eval-next.csv`.
 
-**Giới hạn:** mô hình đi kèm repo hiện chỉ đếm từ corpus rule-based (~150 màn, ít mẫu khác nhau) nên số liệu đánh giá trên corpus này bị thổi phồng; cần build lại với WebSight/mẫu admin để có số liệu báo cáo.
+**Kết quả hiện tại** (`model/next-component.json`: 22.429 cây = 22.296 trang WebSight v0.2 + 133 màn nội bộ, holdout 2.503 cây, seed 42):
+
+| Đã có | Top-1 | Top-3 | Baseline Top-1 | Baseline Top-3 |
+|---|---|---|---|---|
+| 10% | 53,2% | 85,5% | 0,2% | 24,7% |
+| 50% | 66,4% | 88,9% | 19,9% | 67,5% |
+| 80% | 77,7% | 93,0% | 36,8% | 83,7% |
+
+Đường cong bão hòa: Top-3 ở mức 50% đạt 87,9% với 1.000 cây và đi ngang khoảng 89% từ 5.000 cây. **Giới hạn:** WebSight là trang tổng hợp, chủ yếu landing page (rất ít Form/Table), nên gợi ý cho màn nghiệp vụ dựa nhiều vào corpus nội bộ và bộ luật; nên bổ sung mẫu admin hoặc màn đã duyệt để sát miền hơn.
 
 ## 4. Kiểm thử
 
