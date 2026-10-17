@@ -1,4 +1,4 @@
-// Sinh cây màn hình nghiệp vụ tổng hợp (đầy đủ, đúng quy ước) để bù phần WebSight/Rico không có:
+// Sinh cây màn hình nghiệp vụ tổng hợp (đầy đủ, đúng quy ước) để bù phần WebSight không có:
 // bảng + phân trang, thanh lọc, form thêm/sửa có nút Lưu/Hủy, dashboard chỉ số...
 // Mỗi cây = mockScreen(prompt) với prompt ghép ngẫu nhiên từ các mẫu bên dưới (seed cố định).
 // Dùng: npm run build-synthetic -- [--n 4000] [--seed 7] [--out data/corpus/synthetic.jsonl]

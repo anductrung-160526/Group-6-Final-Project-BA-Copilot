@@ -382,6 +382,10 @@ export function typedAddPrompt(tree: UINode, container: UINode, type: string, su
       return hasLabel(/điện thoại/) ? null : `Thêm trường "Số điện thoại" (kiểu tel) ${pos}.`;
     case "Input:number":
       return `Thêm trường "${hasLabel(/số lượng/) ? "Đơn giá" : "Số lượng"}" (kiểu number) ${pos}.`;
+    case "Input:text":
+      // form đăng nhập/đổi mật khẩu không cần thêm ô văn bản chung chung
+      if (has(ctx, /mật khẩu|password/)) return null;
+      break;
     case "Input:name":
       return hasLabel(/tên/) ? null : `Thêm trường "Họ và tên" (bắt buộc) ${pos}.`;
     case "Button:submit": {

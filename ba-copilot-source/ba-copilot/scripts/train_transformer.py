@@ -1,6 +1,6 @@
 """Huấn luyện Transformer gợi ý phần tử còn thiếu trong cây giao diện (xem shared/transformer.ts để biết biểu diễn).
 
-Dữ liệu: data/corpus/tf/{train,wi,rico,synth}.jsonl do `npm run export-tf-data` xuất.
+Dữ liệu: data/corpus/tf/{train,wi,synth}.jsonl do `npm run export-tf-data` xuất.
 Mỗi bước, một cây đầy đủ bị "làm hỏng" ngẫu nhiên theo 3 kiểu, mô phỏng màn BA đang làm dở:
   - giữ nguyên (15%)             → mọi ô phải dự đoán "không thiếu"
   - xóa ngẫu nhiên (40%)          → mỗi node bị xóa (kèm cây con) với xác suất 5–35%: thiếu ở giữa hoặc cuối
@@ -239,7 +239,7 @@ def main():
     if a.limit:
         random.Random(1).shuffle(train)
         train = train[:a.limit]
-    tests = {k: [r["tree"] for r in load(f"{a.data}/{k}.jsonl")] for k in ("wi", "rico", "synth")}
+    tests = {k: [r["tree"] for r in load(f"{a.data}/{k}.jsonl")] for k in ("wi", "synth")}
     pool = [r["tree"] for r in train for _ in range(int(r.get("w", 1)))]
     cfg = {"d": a.d, "heads": a.heads, "layers": a.layers, "ff": a.ff, "maxLen": a.max_len, "maxDepth": a.max_depth}
     model = TreeTransformer(a.d, a.heads, a.layers, a.ff, a.max_len, a.max_depth)

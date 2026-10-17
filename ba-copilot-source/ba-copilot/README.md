@@ -86,13 +86,12 @@ Khi BA đang thiết kế, hệ thống tìm **phần tử còn thiếu** (ở c
   - **Khác bài báo:** chú ý hai chiều thay vì sinh tuần tự. Cây BA đang sửa không phải tiền tố DFS, phần tử thiếu có thể nằm giữa form. Mỗi token dự đoán "phần tử còn thiếu ngay trước nó", token `</>` dự đoán "phần tử thiếu ở cuối container". Lớp 0 nghĩa là không thiếu. Loại con được dự đoán có điều kiện theo loại.
   - 4 lớp, d = 96, 4 head, khoảng 479 nghìn tham số (2,6 MB). Suy luận **thuần TypeScript** (`shared/transformer.ts`, không thêm thư viện), khoảng 10–25 ms/màn. Kết quả khớp PyTorch đến 10⁻⁵.
 - **Huấn luyện tự giám sát:** mỗi cây đầy đủ bị "làm hỏng" ngẫu nhiên theo 3 kiểu: giữ nguyên, xóa node ngẫu nhiên, cắt theo BFS. Mô hình học khôi phục phần bị bỏ.
-- **Dữ liệu (64.333 cây):**
+- **Dữ liệu (23.881 cây):**
 
   | Nguồn | Số cây | Ghi chú |
   |---|---|---|
-  | Rico semantic annotations | 40.452 | Liu et al. 2018, chính bộ dữ liệu bài báo dùng; app di động, form đăng nhập/đăng ký/tìm kiếm |
   | WebSight v0.2 | 22.227 | Trang web |
-  | Màn nghiệp vụ tổng hợp | 1.521 | Sinh từ bộ sinh thiết kế, bù phần Table/Select/Pagination/Stat mà Rico và WebSight gần như không có |
+  | Màn nghiệp vụ tổng hợp | 1.521 | Sinh từ bộ sinh thiết kế, bù phần Table/Select/Pagination/Stat mà WebSight gần như không có |
   | Màn nội bộ | 133 | |
   | Màn BA đã duyệt | | Lấy từ DB, trọng số ×5 |
 - **3 loại gợi ý:**
@@ -114,43 +113,38 @@ Mã nguồn:
 
 ```bash
 # dữ liệu (một lần)
-curl -O https://storage.googleapis.com/crowdstf-rico-uiuc-4540/rico_dataset_v0.1/semantic_annotations.zip
-unzip -q semantic_annotations.zip -d data/rico
-python scripts/rico_to_trees.py --dir data/rico/semantic_annotations --out data/corpus/rico.jsonl
 python scripts/websight_to_trees.py --n 30000 --out data/corpus/websight.jsonl    # cần: pip install datasets beautifulsoup4
 npm run build-corpus && npm run build-synthetic -- --n 6000
-# huấn luyện (CPU 4 nhân, khoảng 15 phút cho 20 epoch) và đánh giá
+# huấn luyện (CPU 4 nhân, khoảng 5 phút cho 20 epoch) và đánh giá
 npm run export-tf-data                      # gồm cả màn đã duyệt trong DB
 pip install torch && npm run train-transformer -- --epochs 20
 npm run eval-transformer -- --limit 1500    # → analysis/eval-transformer.csv
 ```
 
-**Kết quả** (n-gram huấn luyện trên *cùng* 64.333 cây; tập kiểm tra không trùng tập huấn luyện, Rico tách theo app):
+**Kết quả** (n-gram huấn luyện trên *cùng* 23.881 cây; tập kiểm tra không trùng tập huấn luyện):
 
 *1. Che bớt cây, đoán loại phần tử kế tiếp (giao thức của Li et al. 2020), Top-1 / Top-3:*
 
 | Tập | Đã có | N-gram | Transformer |
 |---|---|---|---|
-| WebSight + nội bộ (1.500) | 50% | 61,4% / 81,4% | **70,5% / 90,6%** |
-| WebSight + nội bộ | 80% | 75,1% / 88,1% | **81,7% / 94,6%** |
-| Rico (1.500) | 50% | 49,2% / 90,0% | **57,5% / 91,2%** |
-| Rico | 80% | 48,7% / 91,7% | **61,3% / 92,9%** |
-| Nghiệp vụ tổng hợp (189) | 50% | 45,0% / 55,0% | **71,4% / 92,1%** |
-| Nghiệp vụ tổng hợp | 80% | 32,8% / 78,3% | **75,1% / 95,2%** |
+| WebSight + nội bộ (1.500) | 10% | 50,6% / 84,5% | 46,6% / **85,5%** |
+| WebSight + nội bộ | 50% | 66,1% / 87,5% | **69,1% / 90,2%** |
+| WebSight + nội bộ | 80% | 77,3% / 91,9% | **79,0% / 94,0%** |
+| Nghiệp vụ tổng hợp (189) | 50% | 50,3% / 83,6% | **69,8% / 94,2%** |
+| Nghiệp vụ tổng hợp | 80% | 62,4% / 83,1% | **75,1% / 96,8%** |
 
 *2. Tìm phần tử bị thiếu: xóa 1 node, mô hình phải chỉ đúng **vị trí và loại** trong mọi ô của cây. Hit@1 / Hit@3:*
 
 | Tập | N-gram | Transformer |
 |---|---|---|
-| WebSight + nội bộ | 9,0% / 23,1% | **44,4% / 62,8%** |
-| Rico | 4,7% / 12,1% | **18,0% / 31,1%** |
-| Nghiệp vụ tổng hợp | 4,2% / 17,5% | **52,9% / 85,7%** |
+| WebSight + nội bộ | 9,3% / 24,3% | **43,2% / 62,5%** |
+| Nghiệp vụ tổng hợp | 6,9% / 22,2% | **58,7% / 87,3%** |
 
-*3. Báo động giả* (cây hoàn chỉnh vẫn bị gợi ý thêm, ngưỡng 0,3): 17,7% WebSight, 7,9% Rico, 6,3% nghiệp vụ.
+*3. Báo động giả* (cây hoàn chỉnh vẫn bị gợi ý thêm, ngưỡng 0,3): 18,3% WebSight, 14,8% nghiệp vụ.
 
 **Giới hạn:**
 - Dữ liệu nghiệp vụ tổng hợp sinh từ chính bộ sinh thiết kế, nên kết quả trên tập này lạc quan hơn thực tế.
-- Rico là app di động, cấu trúc Form/Row được dựng lại từ vị trí.
+- WebSight chủ yếu là landing page, ít form/bảng.
 - Phần tử bị xóa ngẫu nhiên đôi khi không đoán được về bản chất (một đoạn Text bất kỳ), nên Hit@k không thể đạt 100%.
 
 <details><summary>N-gram cũ (chỉ WebSight + nội bộ, 22.429 cây)</summary>

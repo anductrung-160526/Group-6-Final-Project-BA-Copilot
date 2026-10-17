@@ -127,15 +127,15 @@ function falseAlarm(trees: UINode[], tf: TransformerModel) {
 }
 
 // ------------------------------------------------------------------ chạy
-const W: Record<string, number> = { websight: 1, rico: 1, internal: 5, synthetic: 2, learned: 5 };
+const W: Record<string, number> = { websight: 1, internal: 5, synthetic: 2, learned: 5 };
 const ng = emptyModel();
 for (const r of readRaw(join(dir, "train.raw.jsonl"))) countTree(ng, r.tree, W[r.source] ?? 1, r.source);
 if (process.argv.includes("--write-ngram")) writeFileSync(join(root, "model", "next-component.json"), JSON.stringify(ng));
 const tfFile = arg("--tf", join(root, "model", "next-transformer.json"));
 const tf = existsSync(tfFile) ? loadTransformer(JSON.parse(readFileSync(tfFile, "utf8"))) : null;
-const sets = Object.fromEntries(["wi", "rico", "synth"].map((k) => [k, readRaw(join(dir, `${k}.raw.jsonl`)).map((r) => r.tree).slice(0, limit)]));
+const sets = Object.fromEntries(["wi", "synth"].map((k) => [k, readRaw(join(dir, `${k}.raw.jsonl`)).map((r) => r.tree).slice(0, limit)]));
 const pct = (x: number, n: number) => `${((100 * x) / Math.max(n, 1)).toFixed(1)}%`;
-const NAMES: Record<string, string> = { wi: "WebSight + nội bộ", rico: "Rico (app tách riêng)", synth: "Nghiệp vụ tổng hợp" };
+const NAMES: Record<string, string> = { wi: "WebSight + nội bộ", synth: "Nghiệp vụ tổng hợp" };
 const csv = ["experiment,set,setting,n,ngram_top1,ngram_top3,tf_top1,tf_top3,extra"];
 const report: Record<string, unknown> = { ngramTrees: ng.meta.trees, transformer: tf?.meta ?? null };
 

@@ -2,11 +2,10 @@
 // mà server dùng khi suy luận, để Python và TypeScript nhìn cây giống hệt nhau.
 // Tách tập kiểm tra:
 //   - wi    : data/corpus/holdout.jsonl (WebSight + nội bộ, giữ nguyên để so với n-gram đã báo cáo)
-//   - rico  : 10% số app Rico (tách theo app để không rò rỉ màn của cùng một app)
 //   - synth : 10% cây nghiệp vụ tổng hợp
 // Màn hình được BA duyệt trong DB (model_learned_trees) được thêm vào tập huấn luyện với trọng số cao.
 // Dùng: npm run export-tf-data -- [--db data/ba-copilot.db] [--out data/corpus/tf]
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { join } from "node:path";
 import { UINode } from "../shared/design.ts";
@@ -20,13 +19,12 @@ const arg = (name: string, def: string) => {
 };
 const corpus = join(root, "data", "corpus");
 const outDir = arg("--out", join(corpus, "tf"));
-const WEIGHT: Record<string, number> = { websight: 1, rico: 1, internal: 5, synthetic: 2, learned: 5 };
+const WEIGHT: Record<string, number> = { websight: 1, internal: 5, synthetic: 2, learned: 5 };
 
-const hash = (s: string) => [...s].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) | 0, 7) >>> 0;
 const sig = (t: UINode) => JSON.stringify(t);
-const rows = { train: [] as string[], wi: [] as string[], rico: [] as string[], synth: [] as string[] };
+const rows = { train: [] as string[], wi: [] as string[], synth: [] as string[] };
 // bản cây gốc (UINode) song song để đánh giá n-gram/Transformer bằng TypeScript trên cùng tập
-const raw: Record<string, string[]> = { train: [], wi: [], rico: [], synth: [] };
+const raw: Record<string, string[]> = { train: [], wi: [], synth: [] };
 const enc = (src: string, t: UINode) => JSON.stringify({ src, w: WEIGHT[src] ?? 1, tree: encodeTree(t) });
 const push = (k: keyof typeof rows, src: string, t: UINode) => {
   rows[k].push(enc(src, t));
@@ -46,17 +44,7 @@ for (const f of ["websight.jsonl", "internal.jsonl"]) {
   }
 }
 
-// 2) Rico: tách theo app
-if (existsSync(join(corpus, "rico.jsonl")))
-  for (const l of readFileSync(join(corpus, "rico.jsonl"), "utf8").split("\n")) {
-    if (!l.trim()) continue;
-    const r = JSON.parse(l);
-    const t = cleanTree(r.tree);
-    if (!t) continue;
-    push(hash(String(r.app || r.screen)) % 10 === 0 ? "rico" : "train", "rico", t);
-  }
-
-// 3) Tổng hợp
+// 2) Tổng hợp
 const rand = rng(11);
 if (existsSync(join(corpus, "synthetic.jsonl")))
   for (const r of readCorpus([join(corpus, "synthetic.jsonl")])) {
@@ -64,7 +52,7 @@ if (existsSync(join(corpus, "synthetic.jsonl")))
     if (t) push(rand() < 0.1 ? "synth" : "train", "synthetic", t);
   }
 
-// 4) Màn được BA duyệt
+// 3) Màn được BA duyệt
 const dbFile = arg("--db", process.env.DB_FILE ?? join(root, "data", "ba-copilot.db"));
 let learned = 0;
 if (existsSync(dbFile)) {
@@ -83,4 +71,4 @@ if (existsSync(dbFile)) {
 mkdirSync(outDir, { recursive: true });
 for (const [k, v] of Object.entries(rows)) writeFileSync(join(outDir, `${k}.jsonl`), v.join("\n") + "\n");
 for (const [k, v] of Object.entries(raw)) writeFileSync(join(outDir, `${k}.raw.jsonl`), v.join("\n") + "\n");
-console.log(`Huấn luyện ${rows.train.length} cây (trong đó ${learned} màn đã duyệt) · kiểm tra: wi ${rows.wi.length}, rico ${rows.rico.length}, synth ${rows.synth.length} → ${outDir}`);
+console.log(`Huấn luyện ${rows.train.length} cây (trong đó ${learned} màn đã duyệt) · kiểm tra: wi ${rows.wi.length}, synth ${rows.synth.length} → ${outDir}`);

@@ -12415,6 +12415,9 @@ function typedAddPrompt(tree, container, type, sub, index) {
       return hasLabel(/điện thoại/) ? null : `Th\xEAm tr\u01B0\u1EDDng "S\u1ED1 \u0111i\u1EC7n tho\u1EA1i" (ki\u1EC3u tel) ${pos}.`;
     case "Input:number":
       return `Th\xEAm tr\u01B0\u1EDDng "${hasLabel(/số lượng/) ? "\u0110\u01A1n gi\xE1" : "S\u1ED1 l\u01B0\u1EE3ng"}" (ki\u1EC3u number) ${pos}.`;
+    case "Input:text":
+      if (has2(ctx, /mật khẩu|password/)) return null;
+      break;
     case "Input:name":
       return hasLabel(/tên/) ? null : `Th\xEAm tr\u01B0\u1EDDng "H\u1ECD v\xE0 t\xEAn" (b\u1EAFt bu\u1ED9c) ${pos}.`;
     case "Button:submit": {
