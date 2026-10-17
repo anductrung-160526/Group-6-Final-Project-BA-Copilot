@@ -176,6 +176,13 @@ Báo động giả (cây hoàn chỉnh vẫn bị gợi ý thêm, ngưỡng 0,3 
 - WebSight chủ yếu là landing page, ít form/bảng.
 - Phần tử bị xóa ngẫu nhiên đôi khi không đoán được về bản chất (một đoạn Text bất kỳ), nên Hit@k không thể đạt 100%.
 
+**Kiểm tra trên 30 màn tham chiếu** (`npm run eval-reference`): đây là các màn nhóm tự thiết kế thủ công, mô phỏng sản phẩm thật, có Sidebar/Card/Section/Modal, và không dùng khi huấn luyện. Kết quả cho thấy mô hình **chưa tổng quát tốt** sang bố cục khác dữ liệu huấn luyện:
+- Leave-one-out (bỏ lần lượt 489 node): Hit@3 của Transformer 11,2%, n-gram 9,2%. Riêng Input đạt 44,7%, Button 22%.
+- 12/30 màn hoàn chỉnh vẫn có gợi ý thừa, chủ yếu là "Thêm Heading/Text" (thói quen học từ landing page WebSight).
+- Màn bỏ 2 phần tử (90 lượt):
+  - Transformer *đa dạng hơn*: Jaccard giữa hai màn khác nhau là 0,12 so với 0,36 của n-gram; gợi ý "Thêm" phổ biến nhất chiếm 42% so với 53%.
+  - Nhưng Transformer *ít trúng hơn*: recall 7% so với 42%. N-gram trúng nhiều chủ yếu nhờ "Thêm Link" vào thanh điều hướng.
+
 <details><summary>N-gram cũ (chỉ WebSight + nội bộ, 22.429 cây)</summary>
 
 `npm run build-model` / `npm run eval-next`: Top-1/Top-3 ở mức 50% đạt 66,4% / 88,9% trên holdout 2.503 cây. Bảng trên huấn luyện lại n-gram trên cùng dữ liệu với Transformer nên số khác.

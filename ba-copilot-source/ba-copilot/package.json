@@ -22,7 +22,8 @@
     "build-synthetic": "tsx scripts/build-synthetic.ts",
     "export-tf-data": "tsx scripts/export-tf-data.ts",
     "train-transformer": "python3 scripts/train_transformer.py",
-    "eval-transformer": "tsx scripts/eval-transformer.ts"
+    "eval-transformer": "tsx scripts/eval-transformer.ts",
+    "eval-reference": "tsx scripts/eval-reference.ts"
   },
   "dependencies": {
     "docx": "^9.6.1",
