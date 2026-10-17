@@ -52,9 +52,12 @@ export function mockFromPrompt(prompt: string, name: string): UINode | null {
   const buttons: Part[] = [];
   const links: Part[] = [];
   const at = (re: RegExp) => p.search(re);
+  // phần mô tả cột bảng / bộ lọc / chỉ số không phải trường nhập ("cột Mã, Họ tên" ≠ form có Mã, Họ tên)
+  const blank = (s: string) => s.replace(/(cột|lọc theo|chỉ số)\s+[^.;\n]+?(?=$|[.;\n]|,\s*(?:thao tác|nút|phân trang|có|xuất|bảng|khoảng)\b)/giu, (m) => " ".repeat(m.length));
+  const pf = blank(p);
   const fieldRes: { re: RegExp; node: { type: string; props: Record<string, unknown> } }[] = [];
   const field = (re: RegExp, type: string, props: Record<string, unknown>) => {
-    const i = at(re);
+    const i = pf.search(re);
     if (i < 0) return;
     const base: Record<string, unknown> = { ...props, name: slugName(String(props.label)) };
     if (type === "Input" || type === "Textarea") base.placeholder ??= `Nhập ${String(props.label).toLowerCase()}`;
@@ -99,7 +102,7 @@ export function mockFromPrompt(prompt: string, name: string): UINode | null {
   field(/ghi chú/, "Textarea", { label: "Ghi chú" });
   field(/ghi nhớ đăng nhập/, "Checkbox", { label: "Ghi nhớ đăng nhập" });
   field(/đồng ý|điều khoản/, "Checkbox", { label: "Tôi đồng ý với điều khoản sử dụng" });
-  const tenX = text.match(/(?<![Hh]ọ )\btên\s+([\p{L}]+(?:\s[\p{L}]+)?)/u);
+  const tenX = blank(text).match(/(?<![Hh]ọ )\btên\s+([\p{L}]+(?:\s[\p{L}]+)?)/u);
   if (tenX && !/^(đăng|tài khoản)/i.test(tenX[1])) field(new RegExp(`tên\\s+${tenX[1].toLowerCase()}`), "Input", { label: `Tên ${tenX[1].toLowerCase()}` });
 
   constrain();
@@ -151,7 +154,7 @@ export function mockFromPrompt(prompt: string, name: string): UINode | null {
     children.push({ id: intent ? `${intent}_form` : undefined, type: "Form", props: { submitAction: intent || "save" }, children: formKids });
   } else if (formBtns.length && !hasTable) children.push({ type: "Row", props: { gap: 8 }, children: formBtns.map(btn) });
   if (hasTable) {
-    const cols = p.match(/cột\s+([^.;\n]+?)(?=$|[.;\n]|,\s*(?:thao tác|nút|phân trang|có|xuất)\b)/)?.[1];
+    const cols = text.match(/cột\s+([^.;\n]+?)(?=$|[.;\n]|,\s*(?:thao tác|nút|phân trang|có|xuất)\b)/i)?.[1]; // giữ chữ hoa của BA ("Mã NV")
     const acts = p.match(/(xem\/sửa\/xóa|sửa\/xóa|sửa và xóa)/)?.[1];
     children.push({ type: "Table", props: { columns: [...(cols ? splitList(cols).map(cap) : ["Mã", "Tên", "Trạng thái"]), ...(acts ? ["Thao tác"] : [])], rows: [], ...(acts ? { rowActions: splitList(acts).map(cap) } : {}) } });
     if (hasTable && formBtns.length && fields.length === 0) children.push({ type: "Row", props: { gap: 8 }, children: formBtns.map(btn) });
@@ -333,7 +336,9 @@ export function mockTemplate(prompt: string, name: string): UINode {
 
 // ------------------------------------------------------------------ Edit
 export function mockEditOps(tree: UINode, selectedIds: string[], instruction: string): { ops: PatchOp[]; summary: string } {
-  const text = instruction.trim();
+  // vị trí chèn do gợi ý Transformer ghi: ", ngay sau Input "Email"" / ", ngay trước Button "Lưu""
+  const posRef = instruction.match(/,?\s*ngay (sau|trước)\s+[\p{L}]+\s+["“]([^"”]+)["”]/u);
+  const text = (posRef ? instruction.replace(posRef[0], "") : instruction).trim();
   const low = text.toLowerCase();
   const targets = selectedIds.length ? selectedIds : [tree.id];
   const ops: PatchOp[] = [];
@@ -393,7 +398,7 @@ export function mockEditOps(tree: UINode, selectedIds: string[], instruction: st
     if (addField) {
       const label = cap((quoted ?? addField[1]).replace(/\s+(vào|ở|bên|cho)\s.*$/i, "").trim());
       const search = /tìm kiếm/i.test(label);
-      insertNear(n, { type: "Input", props: { label, name: search ? "keyword" : snake(label), placeholder: search ? "Nhập từ khóa..." : `Nhập ${label.toLowerCase()}`, ...(/bắt buộc/.test(low) ? { required: true } : {}) } });
+      insertNear(n, { type: "Input", props: { label, name: search ? "keyword" : snake(label), placeholder: search ? "Nhập từ khóa..." : `Nhập ${label.toLowerCase()}`, ...(setType ? { inputType: setType } : {}), ...(minLen ? { minLength: Number(minLen) } : {}), ...(/bắt buộc/.test(low) ? { required: true } : {}) } });
     }
     if (!isAdd && /\b(xóa|xoá|bỏ|loại bỏ)\b/.test(low) && !addButton && !addField && !addType && !rename && n.id !== tree.id) ops.push({ op: "remove", id: n.id });
     const placeholder = text.match(/placeholder\s+["“]([^"”]+)["”]/i)?.[1];
@@ -429,7 +434,11 @@ export function mockEditOps(tree: UINode, selectedIds: string[], instruction: st
 
   function insertNear(n: UINode, node: { type: string; props: Record<string, unknown> }) {
     const full = { id: newId(), ...node };
-    if (isContainer(n.type)) ops.push({ op: "insert", parentId: n.id, node: full });
+    if (isContainer(n.type)) {
+      const kids = n.children ?? [];
+      const ref = posRef ? kids.findIndex((c) => String(c.props.label ?? c.props.text ?? c.props.title ?? c.props.alt ?? c.props.name ?? "").slice(0, 40) === posRef[2]) : -1;
+      ops.push({ op: "insert", parentId: n.id, ...(ref >= 0 ? { index: ref + (posRef![1] === "sau" ? 1 : 0) } : {}), node: full });
+    }
     else {
       const parent = findParent(tree, n.id);
       if (!parent) return;

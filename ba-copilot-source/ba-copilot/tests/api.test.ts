@@ -164,9 +164,9 @@ test("gợi ý thành phần: lấy gợi ý, ghi event, thống kê, học khi 
   assert.equal(st.data.applied, 1);
   assert.equal(st.data.acceptanceRate, 0.5);
 
-  const before = r.data.model.trees;
+  const before = r.data.model.learned;
   await api("POST", `/api/screens/${sid}/approve`, { approved: true });
   await api("POST", `/api/screens/${sid}/approve`, { approved: true }); // duyệt lại cùng phiên bản → không học trùng
   const after = await api("GET", `/api/screens/${sid}/suggestions`);
-  assert.equal(after.data.model.trees, before + 1);
+  assert.equal(after.data.model.learned, before + 1);
 });

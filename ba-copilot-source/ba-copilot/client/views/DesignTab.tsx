@@ -40,7 +40,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [panel, setPanel] = useState<"edit" | "versions" | "layers" | "suggest">("edit");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [suggMeta, setSuggMeta] = useState<{ versionId: string; trees: number } | null>(null);
+  const [suggMeta, setSuggMeta] = useState<{ versionId: string; kind: string; trees: number; learned: number } | null>(null);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [suggHover, setSuggHover] = useState<string | null>(null);
   const shownRef = useRef<Set<string>>(new Set());
@@ -112,10 +112,10 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
   useEffect(() => {
     if (!screen?.currentVersionId) return setSuggestions([]);
     const t = setTimeout(() => {
-      get<{ suggestions: Suggestion[]; versionId: string; model: { trees: number } }>(`/api/screens/${screen.id}/suggestions?nodeIds=${encodeURIComponent(selKey)}`)
+      get<{ suggestions: Suggestion[]; versionId: string; model: { kind: string; trees: number; learned: number } }>(`/api/screens/${screen.id}/suggestions?nodeIds=${encodeURIComponent(selKey)}`)
         .then((r) => {
           setSuggestions(r.suggestions);
-          setSuggMeta({ versionId: r.versionId, trees: r.model.trees });
+          setSuggMeta({ versionId: r.versionId, ...r.model });
         })
         .catch(() => setSuggestions([]));
     }, 300);
@@ -502,7 +502,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
                 </div>
               ))}
               {!visibleSuggestions.length && <div className="muted small pad">Chưa có gợi ý cho vùng này.</div>}
-              {suggMeta && <div className="muted small sugg-foot">Mô hình học từ {suggMeta.trees.toLocaleString("vi-VN")} màn hình</div>}
+              {suggMeta && <div className="muted small sugg-foot">{suggMeta.kind === "transformer" ? "Transformer" : "N-gram"} · học từ {suggMeta.trees.toLocaleString("vi-VN")} màn hình{suggMeta.learned ? ` + ${suggMeta.learned} màn đã duyệt` : ""}</div>}
             </div>
           )}
 

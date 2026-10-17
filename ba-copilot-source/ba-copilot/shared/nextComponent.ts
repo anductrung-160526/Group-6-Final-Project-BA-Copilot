@@ -3,6 +3,7 @@
 // dự đoán con kế tiếp dựa vào cha, anh em liền trước và ông. "Huấn luyện" = đếm tần suất.
 
 import { ALL_TYPES, findNode, findParent, isContainer, nodeLabel, regionIds, UINode, walk } from "./design.ts";
+import { predictSlots, Subtype, TransformerModel } from "./transformer.ts";
 
 export const END = "<END>";
 export const START = "<START>";
@@ -339,13 +340,112 @@ function ctxText(ctx: Ctx | null): string {
   return ctx.s === START ? `Đầu ${ctx.p}` : `Sau ${ctx.s} trong ${ctx.p}`;
 }
 
-export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = {}): Suggestion[] {
+// ------------------------------------------------------------------ Gợi ý từ Transformer
+/**
+ * Ngưỡng điểm = P(thiếu tại ô) × P(loại | thiếu) để hiện gợi ý "Thêm" (chọn theo scripts/eval-transformer.ts:
+ * ở 0,3 trên màn nghiệp vụ hoàn chỉnh chỉ ~9% có gợi ý thừa, vẫn bắt ~54% phần tử bị xóa đúng vị trí + loại).
+ * Khi BA đã khoanh vùng (chủ động hỏi) dùng ngưỡng thấp hơn.
+ */
+export const TF_ADD_MIN = 0.3;
+export const TF_ADD_MIN_REGION = 0.15;
+
+/** Cụm vị trí cho câu prompt: "vào cuối Form" / "vào Form, ngay sau Input "Email"" / "vào Form, ngay trước Button "Lưu"". */
+function positionPhrase(container: UINode, index: number): { prompt: string; short: string } {
+  const kids = container.children ?? [];
+  const where = nodeLabel(container);
+  if (index >= kids.length) return { prompt: `vào cuối ${where}`, short: `vào cuối ${where}` };
+  if (index > 0) return { prompt: `vào ${where}, ngay sau ${nodeLabel(kids[index - 1])}`, short: `sau ${nodeLabel(kids[index - 1])}` };
+  return { prompt: `vào ${where}, ngay trước ${nodeLabel(kids[0])}`, short: `trước ${nodeLabel(kids[0])}` };
+}
+
+const SUB_VI: Partial<Record<Subtype, string>> = {
+  email: "email", password: "mật khẩu", search: "tìm kiếm", phone: "số điện thoại", number: "số", name: "tên",
+  submit: "gửi", cancel: "hủy", create: "thêm mới", delete: "xóa", auth: "tài khoản", remember: "ghi nhớ", agree: "đồng ý",
+};
+
+/** Câu prompt "Thêm …" cụ thể theo loại + loại con mà Transformer dự đoán, kèm vị trí chèn. Null nếu phần tử đó đã có. */
+export function typedAddPrompt(tree: UINode, container: UINode, type: string, sub: Subtype, index: number): string | null {
+  const kids = container.children ?? [];
+  const labels = kids.map((k) => String(k.props.label ?? k.props.text ?? "").toLowerCase());
+  const hasLabel = (re: RegExp) => labels.some((l) => re.test(l));
+  const pos = positionPhrase(container, index).prompt;
+  const ctx = contextTexts(tree, container);
+  switch (`${type}:${sub}`) {
+    case "Input:email":
+      return hasLabel(/email/) ? null : `Thêm trường "Email" (kiểu email, bắt buộc) ${pos}.`;
+    case "Input:password":
+      if (hasLabel(/xác nhận mật khẩu/) || (hasLabel(/mật khẩu/) && !has(ctx, /đăng ký|register|mật khẩu mới/))) return null;
+      return hasLabel(/mật khẩu/) ? `Thêm trường "Xác nhận mật khẩu" (bắt buộc, kiểu password) ${pos}.` : `Thêm trường "Mật khẩu" (bắt buộc, kiểu password, tối thiểu 8 ký tự) ${pos}.`;
+    case "Input:search":
+      return hasLabel(/tìm kiếm|từ khóa/) ? null : `Thêm ô tìm kiếm (Input) "Tìm kiếm" ${pos}.`;
+    case "Input:phone":
+      return hasLabel(/điện thoại/) ? null : `Thêm trường "Số điện thoại" (kiểu tel) ${pos}.`;
+    case "Input:number":
+      return `Thêm trường "${hasLabel(/số lượng/) ? "Đơn giá" : "Số lượng"}" (kiểu number) ${pos}.`;
+    case "Input:name":
+      return hasLabel(/tên/) ? null : `Thêm trường "Họ và tên" (bắt buộc) ${pos}.`;
+    case "Button:submit": {
+      if (kids.some((k) => k.type === "Button" && /primary/.test(String(k.props.variant ?? "")))) return null;
+      const b = submitLabel(tree, container);
+      return `Thêm nút "${b.label}" (variant primary, action ${b.action}) ${pos}.`;
+    }
+    case "Button:cancel":
+      return hasLabel(/hủy|huỷ|quay lại/) ? null : `Thêm nút "Hủy" (variant secondary, action cancel) ${pos}.`;
+    case "Button:create":
+      return hasLabel(/thêm/) ? null : `Thêm nút "Thêm mới" (variant primary, action create) ${pos}.`;
+    case "Button:delete":
+      return `Thêm nút "Xóa" (variant danger, action delete) ${pos}.`;
+    case "Button:search":
+      return hasLabel(/tìm/) ? null : `Thêm nút "Tìm kiếm" (variant primary, action search) ${pos}.`;
+    case "Link:auth":
+      if (has(ctx, /mật khẩu|password/) && !hasLabel(/quên/)) return `Thêm link "Quên mật khẩu?" ${pos}.`;
+      return hasLabel(/đăng ký/) ? null : `Thêm link "Đăng ký tài khoản" ${pos}.`;
+    case "Checkbox:remember":
+      return hasLabel(/ghi nhớ/) ? null : `Thêm ô tích "Ghi nhớ đăng nhập" ${pos}.`;
+    case "Checkbox:agree":
+      return hasLabel(/đồng ý|điều khoản/) ? null : `Thêm ô tích "Tôi đồng ý với điều khoản sử dụng" ${pos}.`;
+  }
+  if (type === "Pagination" && (kids.some((k) => k.type === "Pagination") || !kids.some((k) => k.type === "Table"))) return null;
+  // còn lại: dùng câu theo loại, thay "vào cuối X" bằng vị trí thật
+  const base = addPrompt(tree, container, type);
+  return index >= kids.length ? base : base.replace(new RegExp(`(vào cuối|vào|trong|ngay sau bảng trong|mô tả nội dung của) ${nodeLabel(container).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\.$`), `${pos}.`);
+}
+
+function transformerAdds(m: TransformerModel, tree: UINode, inScope: (id: string) => boolean, min: number): Suggestion[] {
+  const out: Suggestion[] = [];
+  for (const s of predictSlots(m, tree)) {
+    const container = findNode(tree, s.parentId);
+    if (!container || !inScope(container.id) || container.type === "Table") continue;
+    for (const t of s.types.slice(0, 2)) {
+      const score = s.pMissing * t.p;
+      if (score < min || LAYOUT_TYPES.has(t.type)) continue;
+      const prompt = typedAddPrompt(tree, container, t.type, t.sub, s.index);
+      if (!prompt) continue;
+      const pos = positionPhrase(container, s.index);
+      const what = SUB_VI[t.sub] ? `${t.type} (${SUB_VI[t.sub]})` : t.type;
+      out.push({
+        id: `add:${container.id}:${s.index}:${t.type}:${t.sub}`,
+        kind: "add",
+        targetNodeId: container.id,
+        title: `Thêm ${what} ${pos.short}`,
+        reason: `Transformer: ${Math.round(s.pMissing * 100)}% còn thiếu phần tử tại đây · ${Math.round(t.p * 100)}% là ${what}`,
+        confidence: Math.min(1, score),
+        fixPrompt: prompt,
+      });
+    }
+  }
+  return out;
+}
+
+const isTransformer = (m: NGramModel | TransformerModel): m is TransformerModel => "config" in m && "t" in m;
+
+export function suggest(model: NGramModel | TransformerModel, tree: UINode, opts: SuggestOptions = {}): Suggestion[] {
   const k = opts.k ?? 5;
   const scope = opts.selectedIds?.length ? regionIds(tree, opts.selectedIds) : null;
   const inScope = (id: string) => !scope || scope.has(id);
-  const out: Suggestion[] = [];
+  const out: Suggestion[] = isTransformer(model) ? transformerAdds(model, tree, inScope, scope ? TF_ADD_MIN_REGION : TF_ADD_MIN) : [];
 
-  walk(tree, (n) => {
+  if (!isTransformer(model)) walk(tree, (n) => {
     if (!inScope(n.id) || !isContainer(n.type)) return;
     const last = n.children?.at(-1)?.type;
     const where = nodeLabel(n);
@@ -375,7 +475,8 @@ export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = 
     });
   }
 
-  walk(tree, (n, parent) => {
+  // "Xem lại" dựa trên độ lạ n-gram – Transformer chỉ dự đoán phần tử còn thiếu nên bỏ qua
+  if (!isTransformer(model)) walk(tree, (n, parent) => {
     if (!parent || !inScope(n.id) || LAYOUT_TYPES.has(n.type) || isContainer(n.type)) return;
     // ô nhập/bộ lọc/nút trong Row, Form là bố cục hợp lệ của BA (thanh công cụ, form) – dữ liệu web ít gặp nhưng không sai
     if (CONTROL_TYPES.has(n.type) && (parent.type === "Row" || parent.type === "Form")) return;
@@ -398,7 +499,7 @@ export function suggest(model: NGramModel, tree: UINode, opts: SuggestOptions = 
   return out
     .filter((s) => (seen.has(s.id) ? false : (seen.add(s.id), true)))
     // R3 đã đề xuất thêm nút cho form → bỏ gợi ý n-gram "Thêm Button" trùng ý
-    .filter((s) => !(s.kind === "add" && s.title.startsWith("Thêm Button") && out.some((o) => o.kind === "fix" && o.targetNodeId === s.targetNodeId && /chưa có nút/.test(o.title))))
+    .filter((s) => !(s.kind === "add" && s.title.startsWith("Thêm Button") && s.fixPrompt.includes("vào cuối") && out.some((o) => o.kind === "fix" && o.targetNodeId === s.targetNodeId && /chưa có nút/.test(o.title))))
     .sort((a, b) => b.confidence - a.confidence)
     .slice(0, k);
 }

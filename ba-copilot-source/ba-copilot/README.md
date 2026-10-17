@@ -78,43 +78,90 @@ e2e/               Kiểm thử trình duyệt toàn luồng (Playwright)
 
 ## Gợi ý thành phần tiếp theo (tab "Gợi ý" trong Design Studio)
 
-Khi BA đang thiết kế, hệ thống gợi ý **thành phần nên thêm** hoặc **thành phần cần sửa** trong vùng đang khoanh (hoặc cả màn).
+Khi BA đang thiết kế, hệ thống tìm **phần tử còn thiếu** (ở cuối *hoặc giữa* một container) và **thiếu sót cần sửa** trong vùng đang khoanh (hoặc cả màn).
 
-- **Cách đặt bài toán:** hoàn thiện cây giao diện đang dựng dở, đoán con kế tiếp dựa vào cha, anh em liền trước và ông (Li et al., 2020, *Auto Completion of User Interface Layout Design Using Transformer-Based Tree Decoders*, arXiv:2001.05308). Nhóm dùng cách đặt bài toán và thước đo của bài, **không** dùng Transformer.
-- **Mô hình:** n-gram trên cây với *stupid backoff* (Brants et al., 2007): ngữ cảnh `(ông, cha, anh trước)` → `(cha, anh trước)` → `(cha)` → tần suất chung (làm mượt Laplace). "Huấn luyện" chỉ là đếm tần suất, kết quả là file `model/next-component.json`.
-- **3 loại gợi ý:** *Thêm* (loại có xác suất cao ở cuối container), *Sửa* (bộ luật cấp phần tử: thiếu name/required, sai kiểu email/mật khẩu, Form không có nút, nút không có action, bảng thiếu cột, thiếu placeholder, chưa giới hạn độ dài, bình luận đang mở), *Xem lại* (node có độ lạ −log₂P ≥ 6 bit).
-- **Áp dụng** khoanh đúng node và điền sẵn prompt; BA vẫn tự bấm "Sửa vùng đã khoanh". Mỗi lần hiện/Áp dụng/Bỏ qua được ghi vào `suggestion_events` (`GET /api/modules/:id/suggestion-stats`).
-- **Học tiếp:** màn được duyệt được cộng vào mô hình với trọng số 5 (bảng `model_learned_trees`).
+- **Mô hình chính: Transformer trên cây** theo Li et al. (2020), *Auto Completion of User Interface Layout Design Using Transformer-Based Tree Decoders* (arXiv:2001.05308):
+  - Cây được duỗi theo DFS, mỗi container có token đóng `</>` (như Vanilla decoder, mục 4.2).
+  - Mỗi token là tổng các embedding thuộc tính (Eq. 5): loại component + **loại con mang nghĩa** (email, password, search, submit, cancel, create…) + độ sâu + vị trí. Bài báo dùng tọa độ khung bao; cây của BA Copilot không có tọa độ nên thay bằng loại con và độ sâu.
+  - **Khác bài báo:** chú ý hai chiều thay vì sinh tuần tự. Cây BA đang sửa không phải tiền tố DFS, phần tử thiếu có thể nằm giữa form. Mỗi token dự đoán "phần tử còn thiếu ngay trước nó", token `</>` dự đoán "phần tử thiếu ở cuối container". Lớp 0 nghĩa là không thiếu. Loại con được dự đoán có điều kiện theo loại.
+  - 4 lớp, d = 96, 4 head, khoảng 479 nghìn tham số (2,6 MB). Suy luận **thuần TypeScript** (`shared/transformer.ts`, không thêm thư viện), khoảng 10–25 ms/màn. Kết quả khớp PyTorch đến 10⁻⁵.
+- **Huấn luyện tự giám sát:** mỗi cây đầy đủ bị "làm hỏng" ngẫu nhiên theo 3 kiểu: giữ nguyên, xóa node ngẫu nhiên, cắt theo BFS. Mô hình học khôi phục phần bị bỏ.
+- **Dữ liệu (64.333 cây):**
 
-Mã nguồn: `shared/nextComponent.ts` (thuật toán), `server/nextModel.ts` (nạp/học), tab "Gợi ý" trong `client/views/DesignTab.tsx`.
+  | Nguồn | Số cây | Ghi chú |
+  |---|---|---|
+  | Rico semantic annotations | 40.452 | Liu et al. 2018, chính bộ dữ liệu bài báo dùng; app di động, form đăng nhập/đăng ký/tìm kiếm |
+  | WebSight v0.2 | 22.227 | Trang web |
+  | Màn nghiệp vụ tổng hợp | 1.521 | Sinh từ bộ sinh thiết kế, bù phần Table/Select/Pagination/Stat mà Rico và WebSight gần như không có |
+  | Màn nội bộ | 133 | |
+  | Màn BA đã duyệt | | Lấy từ DB, trọng số ×5 |
+- **3 loại gợi ý:**
+  - *Thêm:* điểm = P(thiếu tại ô) × P(loại | thiếu) ≥ 0,3 cho cả màn, ≥ 0,15 khi đã khoanh vùng. Câu prompt cụ thể theo loại con, ví dụ `Thêm ô tìm kiếm (Input) "Tìm kiếm" vào Row, ngay trước Select "Trạng thái".`
+  - *Sửa:* bộ luật R1–R9.
+  - *Xem lại:* chỉ có khi chạy dự phòng bằng n-gram.
+- **Dự phòng:** nếu không có `model/next-transformer.json`, hoặc đặt `NEXT_MODEL=ngram`, app dùng n-gram với *stupid backoff* (Brants et al., 2007) như trước.
+- **Áp dụng** sẽ khoanh container và điền sẵn prompt. Chế độ Mock hiểu được vị trí "ngay sau…/ngay trước…". Mỗi lần hiện/Áp dụng/Bỏ qua được ghi vào `suggestion_events`.
+- **Học tiếp:** màn được duyệt lưu vào bảng `model_learned_trees`. N-gram cộng ngay; Transformer dùng ở lần huấn luyện lại.
 
-### Build mô hình và đánh giá
+Mã nguồn:
+- `shared/transformer.ts`: mã hóa cây, suy luận.
+- `shared/nextComponent.ts`: n-gram, bộ luật, xếp hạng gợi ý.
+- `server/nextModel.ts`: nạp mô hình.
+- `scripts/train_transformer.py`: huấn luyện.
+- `scripts/eval-transformer.ts`: so sánh.
+
+### Huấn luyện lại và đánh giá
 
 ```bash
-npm run build-corpus                               # ~150 màn nghiệp vụ (rule-based; thêm --llm để dùng Claude)
-pip install datasets beautifulsoup4                # (tùy chọn) dữ liệu WebSight
-python scripts/websight_to_trees.py --n 30000 --out data/corpus/websight.jsonl
-python scripts/websight_to_trees.py --html-dir <thư mục HTML> --source admin --out data/corpus/admin.jsonl
-npm run build-model -- --in data/corpus/internal.jsonl,data/corpus/websight.jsonl --holdout 0.1 --seed 42
-npm run eval-next -- --test data/corpus/holdout.jsonl --train data/corpus/internal.jsonl,data/corpus/websight.jsonl
+# dữ liệu (một lần)
+curl -O https://storage.googleapis.com/crowdstf-rico-uiuc-4540/rico_dataset_v0.1/semantic_annotations.zip
+unzip -q semantic_annotations.zip -d data/rico
+python scripts/rico_to_trees.py --dir data/rico/semantic_annotations --out data/corpus/rico.jsonl
+python scripts/websight_to_trees.py --n 30000 --out data/corpus/websight.jsonl    # cần: pip install datasets beautifulsoup4
+npm run build-corpus && npm run build-synthetic -- --n 6000
+# huấn luyện (CPU 4 nhân, khoảng 15 phút cho 20 epoch) và đánh giá
+npm run export-tf-data                      # gồm cả màn đã duyệt trong DB
+pip install torch && npm run train-transformer -- --epochs 20
+npm run eval-transformer -- --limit 1500    # → analysis/eval-transformer.csv
 ```
 
-`eval-next` in Top-1/Top-3 ở 10/50/80% cây (so với baseline "loại phổ biến nhất"), tỷ lệ trúng khi phát lại lịch sử phiên bản trong DB, đường cong bão hòa và quy đổi thời gian tiết kiệm theo KLM-GOMS (Card et al., 1980). Kết quả ghi ra `analysis/eval-next.csv`.
+**Kết quả** (n-gram huấn luyện trên *cùng* 64.333 cây; tập kiểm tra không trùng tập huấn luyện, Rico tách theo app):
 
-**Kết quả hiện tại** (`model/next-component.json`: 22.429 cây = 22.296 trang WebSight v0.2 + 133 màn nội bộ, holdout 2.503 cây, seed 42):
+*1. Che bớt cây, đoán loại phần tử kế tiếp (giao thức của Li et al. 2020), Top-1 / Top-3:*
 
-| Đã có | Top-1 | Top-3 | Baseline Top-1 | Baseline Top-3 |
-|---|---|---|---|---|
-| 10% | 53,2% | 85,5% | 0,2% | 24,7% |
-| 50% | 66,4% | 88,9% | 19,9% | 67,5% |
-| 80% | 77,7% | 93,0% | 36,8% | 83,7% |
+| Tập | Đã có | N-gram | Transformer |
+|---|---|---|---|
+| WebSight + nội bộ (1.500) | 50% | 61,4% / 81,4% | **70,5% / 90,6%** |
+| WebSight + nội bộ | 80% | 75,1% / 88,1% | **81,7% / 94,6%** |
+| Rico (1.500) | 50% | 49,2% / 90,0% | **57,5% / 91,2%** |
+| Rico | 80% | 48,7% / 91,7% | **61,3% / 92,9%** |
+| Nghiệp vụ tổng hợp (189) | 50% | 45,0% / 55,0% | **71,4% / 92,1%** |
+| Nghiệp vụ tổng hợp | 80% | 32,8% / 78,3% | **75,1% / 95,2%** |
 
-Đường cong bão hòa: Top-3 ở mức 50% đạt 87,9% với 1.000 cây và đi ngang khoảng 89% từ 5.000 cây. **Giới hạn:** WebSight là trang tổng hợp, chủ yếu landing page (rất ít Form/Table), nên gợi ý cho màn nghiệp vụ dựa nhiều vào corpus nội bộ và bộ luật; nên bổ sung mẫu admin hoặc màn đã duyệt để sát miền hơn.
+*2. Tìm phần tử bị thiếu: xóa 1 node, mô hình phải chỉ đúng **vị trí và loại** trong mọi ô của cây. Hit@1 / Hit@3:*
+
+| Tập | N-gram | Transformer |
+|---|---|---|
+| WebSight + nội bộ | 9,0% / 23,1% | **44,4% / 62,8%** |
+| Rico | 4,7% / 12,1% | **18,0% / 31,1%** |
+| Nghiệp vụ tổng hợp | 4,2% / 17,5% | **52,9% / 85,7%** |
+
+*3. Báo động giả* (cây hoàn chỉnh vẫn bị gợi ý thêm, ngưỡng 0,3): 17,7% WebSight, 7,9% Rico, 6,3% nghiệp vụ.
+
+**Giới hạn:**
+- Dữ liệu nghiệp vụ tổng hợp sinh từ chính bộ sinh thiết kế, nên kết quả trên tập này lạc quan hơn thực tế.
+- Rico là app di động, cấu trúc Form/Row được dựng lại từ vị trí.
+- Phần tử bị xóa ngẫu nhiên đôi khi không đoán được về bản chất (một đoạn Text bất kỳ), nên Hit@k không thể đạt 100%.
+
+<details><summary>N-gram cũ (chỉ WebSight + nội bộ, 22.429 cây)</summary>
+
+`npm run build-model` / `npm run eval-next`: Top-1/Top-3 ở mức 50% đạt 66,4% / 88,9% trên holdout 2.503 cây. Bảng trên huấn luyện lại n-gram trên cùng dữ liệu với Transformer nên số khác.
+</details>
 
 ## 4. Kiểm thử
 
 ```bash
-npm test                          # 13 test unit + tích hợp (gồm cả giả lập Claude API)
+npm test                          # 37 test unit + tích hợp (gồm cả giả lập Claude API, đối chiếu Transformer TS ↔ PyTorch)
 npx playwright install chromium   # chỉ cần chạy lần đầu
 npm run e2e                       # chạy trình duyệt qua toàn luồng, ảnh chụp lưu ở e2e/screenshots/
 ```
@@ -128,6 +175,7 @@ npm run e2e                       # chạy trình duyệt qua toàn luồng, ả
 | `AI_MODE=mock` | Ép chạy rule-based dù đã có key. |
 | `PORT` | Cổng server, mặc định 3000. |
 | `DB_FILE` | Đường dẫn file SQLite, mặc định `data/ba-copilot.db`. |
+| `NEXT_MODEL=ngram` | Dùng n-gram thay cho Transformer trong tab "Gợi ý". |
 
 ## 6. Chưa làm trong bản MVP (theo lộ trình)
 

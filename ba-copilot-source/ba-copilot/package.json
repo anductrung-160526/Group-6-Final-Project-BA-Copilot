@@ -18,7 +18,11 @@
     "start:prebuilt": "node dist/server.mjs",
     "build-corpus": "tsx scripts/build-corpus.ts",
     "build-model": "tsx scripts/build-next-model.ts",
-    "eval-next": "tsx scripts/eval-next.ts"
+    "eval-next": "tsx scripts/eval-next.ts",
+    "build-synthetic": "tsx scripts/build-synthetic.ts",
+    "export-tf-data": "tsx scripts/export-tf-data.ts",
+    "train-transformer": "python3 scripts/train_transformer.py",
+    "eval-transformer": "tsx scripts/eval-transformer.ts"
   },
   "dependencies": {
     "docx": "^9.6.1",

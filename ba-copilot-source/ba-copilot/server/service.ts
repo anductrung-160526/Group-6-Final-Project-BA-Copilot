@@ -8,7 +8,7 @@ import { extractModel, DesignModel } from "../shared/extract.ts";
 import { buildTrace } from "../shared/trace.ts";
 import type { Requirement, SequenceDiagram, UseCase } from "../shared/types.ts";
 import { suggest } from "../shared/nextComponent.ts";
-import { getModel, learnFromScreen } from "./nextModel.ts";
+import { getPredictor, learnFromScreen } from "./nextModel.ts";
 
 export class BizError extends Error {
   constructor(message: string, public status = 400) {
@@ -118,9 +118,9 @@ export function screenSuggestions(screenId: string, nodeIds: string[]) {
     .listAnnotationsForModule(screen.moduleId)
     .filter((a) => a.screenId === screenId && a.status === "open")
     .flatMap((a) => a.nodeIds);
-  const model = getModel();
+  const { model, info } = getPredictor();
   const suggestions = suggest(model, v.tree, { selectedIds: nodeIds, openAnnotationNodeIds, k: 5 });
-  return { suggestions, versionId: v.id, model: { trees: model.meta.trees, events: Math.round(model.meta.events) } };
+  return { suggestions, versionId: v.id, model: info };
 }
 
 // ------------------------------------------------------------- Docs

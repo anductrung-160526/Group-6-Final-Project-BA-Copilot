@@ -10559,9 +10559,11 @@ function mockFromPrompt(prompt, name) {
   const buttons = [];
   const links = [];
   const at = (re) => p2.search(re);
+  const blank = (s) => s.replace(/(cột|lọc theo|chỉ số)\s+[^.;\n]+?(?=$|[.;\n]|,\s*(?:thao tác|nút|phân trang|có|xuất|bảng|khoảng)\b)/giu, (m) => " ".repeat(m.length));
+  const pf = blank(p2);
   const fieldRes = [];
   const field = (re, type, props) => {
-    const i = at(re);
+    const i = pf.search(re);
     if (i < 0) return;
     const base2 = { ...props, name: slugName(String(props.label)) };
     if (type === "Input" || type === "Textarea") base2.placeholder ??= `Nh\u1EADp ${String(props.label).toLowerCase()}`;
@@ -10604,7 +10606,7 @@ function mockFromPrompt(prompt, name) {
   field(/ghi chú/, "Textarea", { label: "Ghi ch\xFA" });
   field(/ghi nhớ đăng nhập/, "Checkbox", { label: "Ghi nh\u1EDB \u0111\u0103ng nh\u1EADp" });
   field(/đồng ý|điều khoản/, "Checkbox", { label: "T\xF4i \u0111\u1ED3ng \xFD v\u1EDBi \u0111i\u1EC1u kho\u1EA3n s\u1EED d\u1EE5ng" });
-  const tenX = text.match(/(?<![Hh]ọ )\btên\s+([\p{L}]+(?:\s[\p{L}]+)?)/u);
+  const tenX = blank(text).match(/(?<![Hh]ọ )\btên\s+([\p{L}]+(?:\s[\p{L}]+)?)/u);
   if (tenX && !/^(đăng|tài khoản)/i.test(tenX[1])) field(new RegExp(`t\xEAn\\s+${tenX[1].toLowerCase()}`), "Input", { label: `T\xEAn ${tenX[1].toLowerCase()}` });
   constrain();
   const isList = /\bbảng\b|danh sách/.test(p2) && !/^màn hình (đăng|quên)/.test(p2);
@@ -10647,7 +10649,7 @@ function mockFromPrompt(prompt, name) {
     children.push({ id: intent ? `${intent}_form` : void 0, type: "Form", props: { submitAction: intent || "save" }, children: formKids });
   } else if (formBtns.length && !hasTable) children.push({ type: "Row", props: { gap: 8 }, children: formBtns.map(btn) });
   if (hasTable) {
-    const cols = p2.match(/cột\s+([^.;\n]+?)(?=$|[.;\n]|,\s*(?:thao tác|nút|phân trang|có|xuất)\b)/)?.[1];
+    const cols = text.match(/cột\s+([^.;\n]+?)(?=$|[.;\n]|,\s*(?:thao tác|nút|phân trang|có|xuất)\b)/i)?.[1];
     const acts = p2.match(/(xem\/sửa\/xóa|sửa\/xóa|sửa và xóa)/)?.[1];
     children.push({ type: "Table", props: { columns: [...cols ? splitList(cols).map(cap) : ["M\xE3", "T\xEAn", "Tr\u1EA1ng th\xE1i"], ...acts ? ["Thao t\xE1c"] : []], rows: [], ...acts ? { rowActions: splitList(acts).map(cap) } : {} } });
     if (hasTable && formBtns.length && fields.length === 0) children.push({ type: "Row", props: { gap: 8 }, children: formBtns.map(btn) });
@@ -10824,7 +10826,8 @@ function mockTemplate(prompt, name) {
   return normalizeTree(tree);
 }
 function mockEditOps(tree, selectedIds, instruction) {
-  const text = instruction.trim();
+  const posRef = instruction.match(/,?\s*ngay (sau|trước)\s+[\p{L}]+\s+["“]([^"”]+)["”]/u);
+  const text = (posRef ? instruction.replace(posRef[0], "") : instruction).trim();
   const low = text.toLowerCase();
   const targets = selectedIds.length ? selectedIds : [tree.id];
   const ops = [];
@@ -10878,7 +10881,7 @@ function mockEditOps(tree, selectedIds, instruction) {
     if (addField) {
       const label2 = cap((quoted ?? addField[1]).replace(/\s+(vào|ở|bên|cho)\s.*$/i, "").trim());
       const search = /tìm kiếm/i.test(label2);
-      insertNear(n, { type: "Input", props: { label: label2, name: search ? "keyword" : snake(label2), placeholder: search ? "Nh\u1EADp t\u1EEB kh\xF3a..." : `Nh\u1EADp ${label2.toLowerCase()}`, .../bắt buộc/.test(low) ? { required: true } : {} } });
+      insertNear(n, { type: "Input", props: { label: label2, name: search ? "keyword" : snake(label2), placeholder: search ? "Nh\u1EADp t\u1EEB kh\xF3a..." : `Nh\u1EADp ${label2.toLowerCase()}`, ...setType ? { inputType: setType } : {}, ...minLen ? { minLength: Number(minLen) } : {}, .../bắt buộc/.test(low) ? { required: true } : {} } });
     }
     if (!isAdd && /\b(xóa|xoá|bỏ|loại bỏ)\b/.test(low) && !addButton && !addField && !addType && !rename && n.id !== tree.id) ops.push({ op: "remove", id: n.id });
     const placeholder = text.match(/placeholder\s+["“]([^"”]+)["”]/i)?.[1];
@@ -10913,8 +10916,11 @@ function mockEditOps(tree, selectedIds, instruction) {
   return { ops, summary: `\xC1p d\u1EE5ng ${ops.length} thay \u0111\u1ED5i (ch\u1EBF \u0111\u1ED9 rule-based)` };
   function insertNear(n, node) {
     const full = { id: newId(), ...node };
-    if (isContainer(n.type)) ops.push({ op: "insert", parentId: n.id, node: full });
-    else {
+    if (isContainer(n.type)) {
+      const kids = n.children ?? [];
+      const ref = posRef ? kids.findIndex((c) => String(c.props.label ?? c.props.text ?? c.props.title ?? c.props.alt ?? c.props.name ?? "").slice(0, 40) === posRef[2]) : -1;
+      ops.push({ op: "insert", parentId: n.id, ...ref >= 0 ? { index: ref + (posRef[1] === "sau" ? 1 : 0) } : {}, node: full });
+    } else {
       const parent = findParent(tree, n.id);
       if (!parent) return;
       const idx = (parent.children ?? []).findIndex((c) => c.id === n.id);
@@ -11942,6 +11948,198 @@ function buildTrace(useCases, requirements, tests) {
   };
 }
 
+// shared/transformer.ts
+var CLOSE = "</>";
+var TOKEN_TYPES = [...ALL_TYPES, CLOSE];
+var SUBTYPES = ["-", "email", "password", "search", "phone", "number", "name", "text", "submit", "cancel", "create", "delete", "icon", "other", "auth", "remember", "agree"];
+var TYPE_IDX = new Map(TOKEN_TYPES.map((t, i) => [t, i]));
+var SUB_IDX = new Map(SUBTYPES.map((s, i) => [s, i]));
+function subtypeOf(n) {
+  const p2 = n.props ?? {};
+  const txt = `${p2.label ?? ""} ${p2.text ?? ""} ${p2.name ?? ""} ${p2.placeholder ?? ""}`.toLowerCase();
+  switch (n.type) {
+    case "Input": {
+      const it = String(p2.inputType ?? "");
+      if (it === "password" || /mật khẩu|password|passwd|pwd/.test(txt)) return "password";
+      if (it === "email" || /e-?mail/.test(txt)) return "email";
+      if (/tìm kiếm|tra cứu|từ khóa|search|keyword/.test(txt)) return "search";
+      if (it === "tel" || /điện thoại|sđt|phone|mobile/.test(txt)) return "phone";
+      if (it === "number" || /giá|số lượng|tồn kho|amount|price|qty|quantity/.test(txt)) return "number";
+      if (/tên|name|user/.test(txt)) return "name";
+      return "text";
+    }
+    case "Button": {
+      const s = `${txt} ${p2.action ?? ""}`;
+      if (p2.icon) return "icon";
+      if (/hủy|huỷ|quay lại|đóng|bỏ qua|từ chối|cancel|back|close|dismiss|skip|not now|reject/.test(s)) return "cancel";
+      if (/xóa|xoá|delete|remove/.test(s)) return "delete";
+      if (/thêm|tạo mới|^\s*\+|\badd\b|\bnew\b|\bcreate\b/.test(s) && !/account|tài khoản/.test(s)) return "create";
+      if (/tìm kiếm|tra cứu|search/.test(s)) return "search";
+      if (/lưu|gửi|xác nhận|cập nhật|đăng nhập|đăng ký|tiếp tục|hoàn tất|đặt hàng|thanh toán|đổi mật khẩu|duyệt|save|submit|send|log ?in|sign ?(in|up)|register|confirm|continue|next|done|\bok\b|apply|update|login|checkout/.test(s)) return "submit";
+      return "other";
+    }
+    case "Link":
+      return /quên|đăng ký|đăng nhập|forgot|sign ?up|register|log ?in|account/.test(txt) ? "auth" : "other";
+    case "Checkbox":
+      return /ghi nhớ|remember|keep me/.test(txt) ? "remember" : /đồng ý|điều khoản|agree|terms|accept/.test(txt) ? "agree" : "other";
+    default:
+      return "-";
+  }
+}
+function linearize(tree, maxDepth) {
+  const out = [];
+  const rec = (n, depth, slot) => {
+    const d = Math.min(depth, maxDepth - 1);
+    out.push({ type: TYPE_IDX.get(n.type), sub: SUB_IDX.get(subtypeOf(n)), depth: d, slot, nodeId: n.id, close: false });
+    if (!isContainer(n.type)) return;
+    const kids = n.children ?? [];
+    kids.forEach((c, i) => rec(c, depth + 1, { parentId: n.id, index: i }));
+    out.push({ type: TYPE_IDX.get(CLOSE), sub: 0, depth: d, slot: { parentId: n.id, index: kids.length }, nodeId: n.id, close: true });
+  };
+  rec(tree, 0, null);
+  return out;
+}
+function loadTransformer(json) {
+  if (json.types.join() !== TOKEN_TYPES.join() || json.subtypes.join() !== SUBTYPES.join()) throw new Error("T\u1EEB v\u1EF1ng c\u1EE7a m\xF4 h\xECnh Transformer kh\xF4ng kh\u1EDBp v\u1EDBi m\xE3 ngu\u1ED3n \u2013 c\u1EA7n hu\u1EA5n luy\u1EC7n l\u1EA1i");
+  const t = {};
+  for (const [name, v] of Object.entries(json.tensors)) {
+    const bin = typeof Buffer !== "undefined" ? Buffer.from(v.b64, "base64") : Uint8Array.from(atob(v.b64), (c) => c.charCodeAt(0));
+    const data = new Float32Array(bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength));
+    t[name] = { shape: v.shape, data };
+  }
+  return { config: json.config, meta: json.meta ?? {}, t };
+}
+function linear(x, n, W, b) {
+  const [out, inn] = W.shape;
+  const y = new Float32Array(n * out);
+  const w = W.data;
+  for (let i = 0; i < n; i++) {
+    const xo = i * inn;
+    for (let o = 0; o < out; o++) {
+      let s = b.data[o];
+      const wo = o * inn;
+      for (let k = 0; k < inn; k++) s += x[xo + k] * w[wo + k];
+      y[i * out + o] = s;
+    }
+  }
+  return y;
+}
+function layerNorm(x, n, d, g, b) {
+  const y = new Float32Array(n * d);
+  for (let i = 0; i < n; i++) {
+    let mean = 0;
+    for (let k = 0; k < d; k++) mean += x[i * d + k];
+    mean /= d;
+    let v = 0;
+    for (let k = 0; k < d; k++) v += (x[i * d + k] - mean) ** 2;
+    const inv = 1 / Math.sqrt(v / d + 1e-5);
+    for (let k = 0; k < d; k++) y[i * d + k] = (x[i * d + k] - mean) * inv * g.data[k] + b.data[k];
+  }
+  return y;
+}
+var GELU_C = Math.sqrt(2 / Math.PI);
+var gelu = (x) => 0.5 * x * (1 + Math.tanh(GELU_C * (x + 0.044715 * x * x * x)));
+function forward(m, toks) {
+  const { d, heads, layers } = m.config;
+  const n = toks.length;
+  const t = m.t;
+  let x = new Float32Array(n * d);
+  for (let i = 0; i < n; i++) {
+    const a = toks[i];
+    for (let k = 0; k < d; k++)
+      x[i * d + k] = t["emb_type.weight"].data[a.type * d + k] + t["emb_sub.weight"].data[a.sub * d + k] + t["emb_depth.weight"].data[a.depth * d + k] + t["emb_pos.weight"].data[i * d + k];
+  }
+  const hd = d / heads;
+  const scale = 1 / Math.sqrt(hd);
+  const att = new Float32Array(n);
+  for (let l = 0; l < layers; l++) {
+    const p2 = `layers.${l}.`;
+    const h2 = layerNorm(x, n, d, t[p2 + "ln1.weight"], t[p2 + "ln1.bias"]);
+    const qkv = linear(h2, n, t[p2 + "qkv.weight"], t[p2 + "qkv.bias"]);
+    const o = new Float32Array(n * d);
+    for (let hh = 0; hh < heads; hh++) {
+      const qo = hh * hd, ko = d + hh * hd, vo = 2 * d + hh * hd;
+      for (let i = 0; i < n; i++) {
+        let mx = -Infinity;
+        for (let j = 0; j < n; j++) {
+          let s = 0;
+          for (let k = 0; k < hd; k++) s += qkv[i * 3 * d + qo + k] * qkv[j * 3 * d + ko + k];
+          s *= scale;
+          att[j] = s;
+          if (s > mx) mx = s;
+        }
+        let sum2 = 0;
+        for (let j = 0; j < n; j++) sum2 += att[j] = Math.exp(att[j] - mx);
+        for (let k = 0; k < hd; k++) {
+          let s = 0;
+          for (let j = 0; j < n; j++) s += att[j] * qkv[j * 3 * d + vo + k];
+          o[i * d + qo + k] = s / sum2;
+        }
+      }
+    }
+    const proj = linear(o, n, t[p2 + "out.weight"], t[p2 + "out.bias"]);
+    for (let i = 0; i < n * d; i++) x[i] += proj[i];
+    const h22 = layerNorm(x, n, d, t[p2 + "ln2.weight"], t[p2 + "ln2.bias"]);
+    const f1 = linear(h22, n, t[p2 + "ff1.weight"], t[p2 + "ff1.bias"]);
+    for (let i = 0; i < f1.length; i++) f1[i] = gelu(f1[i]);
+    const f2 = linear(f1, n, t[p2 + "ff2.weight"], t[p2 + "ff2.bias"]);
+    for (let i = 0; i < n * d; i++) x[i] += f2[i];
+  }
+  x = layerNorm(x, n, d, t["ln_f.weight"], t["ln_f.bias"]);
+  return { hidden: x, type: linear(x, n, t["head_type.weight"], t["head_type.bias"]) };
+}
+function subLogits(m, h2, typeIdx) {
+  const d = m.config.d;
+  const cond = m.t["emb_cond.weight"].data;
+  const x = new Float32Array(d);
+  for (let k = 0; k < d; k++) x[k] = h2[k] + cond[typeIdx * d + k];
+  return linear(x, 1, m.t["head_sub.weight"], m.t["head_sub.bias"]);
+}
+function softmax(a, off, len) {
+  let mx = -Infinity;
+  for (let i = 0; i < len; i++) mx = Math.max(mx, a[off + i]);
+  const e = Array.from({ length: len }, (_, i) => Math.exp(a[off + i] - mx));
+  const s = e.reduce((x, y) => x + y, 0);
+  return e.map((v) => v / s);
+}
+function predictSlots(m, tree, topTypes = 3) {
+  const toks = linearize(tree, m.config.maxDepth);
+  const { maxLen: L, d } = m.config;
+  const nT = TOKEN_TYPES.length;
+  const typeLogits = new Float32Array(toks.length * nT);
+  const hidden = new Float32Array(toks.length * d);
+  const step = Math.max(1, Math.floor(L / 2));
+  for (let start = 0; ; start += step) {
+    const win = toks.slice(start, start + L);
+    const r = forward(m, win);
+    const from = start === 0 ? 0 : Math.floor(L / 4);
+    const last = start + L >= toks.length;
+    const to = last ? win.length : Math.floor(3 * L / 4);
+    for (let i = from; i < to; i++) {
+      typeLogits.set(r.type.subarray(i * nT, (i + 1) * nT), (start + i) * nT);
+      hidden.set(r.hidden.subarray(i * d, (i + 1) * d), (start + i) * d);
+    }
+    if (last) break;
+  }
+  const out = [];
+  toks.forEach((tk, i) => {
+    if (!tk.slot) return;
+    const pt = softmax(typeLogits, i * nT, nT);
+    const pMissing = 1 - pt[0];
+    const ranked = ALL_TYPES.map((type, j) => ({ type, j, p: pt[j + 1] / Math.max(pMissing, 1e-9) })).filter((x) => x.type !== "Page").sort((a, b) => b.p - a.p);
+    const h2 = hidden.subarray(i * d, (i + 1) * d);
+    const types = ranked.map((x, r) => {
+      if (r >= topTypes) return { type: x.type, p: x.p, sub: "-" };
+      const ps = subLogits(m, h2, x.j);
+      let best = 0;
+      for (let k = 1; k < ps.length; k++) if (ps[k] > ps[best]) best = k;
+      return { type: x.type, p: x.p, sub: SUBTYPES[best] };
+    });
+    out.push({ parentId: tk.slot.parentId, index: tk.slot.index, pMissing, types });
+  });
+  return out;
+}
+
 // shared/nextComponent.ts
 var END = "<END>";
 var START = "<START>";
@@ -12175,12 +12373,107 @@ function ctxText(ctx) {
   if (!ctx) return "";
   return ctx.s === START ? `\u0110\u1EA7u ${ctx.p}` : `Sau ${ctx.s} trong ${ctx.p}`;
 }
+var TF_ADD_MIN = 0.3;
+var TF_ADD_MIN_REGION = 0.15;
+function positionPhrase(container, index) {
+  const kids = container.children ?? [];
+  const where = nodeLabel(container);
+  if (index >= kids.length) return { prompt: `v\xE0o cu\u1ED1i ${where}`, short: `v\xE0o cu\u1ED1i ${where}` };
+  if (index > 0) return { prompt: `v\xE0o ${where}, ngay sau ${nodeLabel(kids[index - 1])}`, short: `sau ${nodeLabel(kids[index - 1])}` };
+  return { prompt: `v\xE0o ${where}, ngay tr\u01B0\u1EDBc ${nodeLabel(kids[0])}`, short: `tr\u01B0\u1EDBc ${nodeLabel(kids[0])}` };
+}
+var SUB_VI = {
+  email: "email",
+  password: "m\u1EADt kh\u1EA9u",
+  search: "t\xECm ki\u1EBFm",
+  phone: "s\u1ED1 \u0111i\u1EC7n tho\u1EA1i",
+  number: "s\u1ED1",
+  name: "t\xEAn",
+  submit: "g\u1EEDi",
+  cancel: "h\u1EE7y",
+  create: "th\xEAm m\u1EDBi",
+  delete: "x\xF3a",
+  auth: "t\xE0i kho\u1EA3n",
+  remember: "ghi nh\u1EDB",
+  agree: "\u0111\u1ED3ng \xFD"
+};
+function typedAddPrompt(tree, container, type, sub, index) {
+  const kids = container.children ?? [];
+  const labels = kids.map((k) => String(k.props.label ?? k.props.text ?? "").toLowerCase());
+  const hasLabel = (re) => labels.some((l) => re.test(l));
+  const pos = positionPhrase(container, index).prompt;
+  const ctx = contextTexts(tree, container);
+  switch (`${type}:${sub}`) {
+    case "Input:email":
+      return hasLabel(/email/) ? null : `Th\xEAm tr\u01B0\u1EDDng "Email" (ki\u1EC3u email, b\u1EAFt bu\u1ED9c) ${pos}.`;
+    case "Input:password":
+      if (hasLabel(/xác nhận mật khẩu/) || hasLabel(/mật khẩu/) && !has2(ctx, /đăng ký|register|mật khẩu mới/)) return null;
+      return hasLabel(/mật khẩu/) ? `Th\xEAm tr\u01B0\u1EDDng "X\xE1c nh\u1EADn m\u1EADt kh\u1EA9u" (b\u1EAFt bu\u1ED9c, ki\u1EC3u password) ${pos}.` : `Th\xEAm tr\u01B0\u1EDDng "M\u1EADt kh\u1EA9u" (b\u1EAFt bu\u1ED9c, ki\u1EC3u password, t\u1ED1i thi\u1EC3u 8 k\xFD t\u1EF1) ${pos}.`;
+    case "Input:search":
+      return hasLabel(/tìm kiếm|từ khóa/) ? null : `Th\xEAm \xF4 t\xECm ki\u1EBFm (Input) "T\xECm ki\u1EBFm" ${pos}.`;
+    case "Input:phone":
+      return hasLabel(/điện thoại/) ? null : `Th\xEAm tr\u01B0\u1EDDng "S\u1ED1 \u0111i\u1EC7n tho\u1EA1i" (ki\u1EC3u tel) ${pos}.`;
+    case "Input:number":
+      return `Th\xEAm tr\u01B0\u1EDDng "${hasLabel(/số lượng/) ? "\u0110\u01A1n gi\xE1" : "S\u1ED1 l\u01B0\u1EE3ng"}" (ki\u1EC3u number) ${pos}.`;
+    case "Input:name":
+      return hasLabel(/tên/) ? null : `Th\xEAm tr\u01B0\u1EDDng "H\u1ECD v\xE0 t\xEAn" (b\u1EAFt bu\u1ED9c) ${pos}.`;
+    case "Button:submit": {
+      if (kids.some((k) => k.type === "Button" && /primary/.test(String(k.props.variant ?? "")))) return null;
+      const b = submitLabel(tree, container);
+      return `Th\xEAm n\xFAt "${b.label}" (variant primary, action ${b.action}) ${pos}.`;
+    }
+    case "Button:cancel":
+      return hasLabel(/hủy|huỷ|quay lại/) ? null : `Th\xEAm n\xFAt "H\u1EE7y" (variant secondary, action cancel) ${pos}.`;
+    case "Button:create":
+      return hasLabel(/thêm/) ? null : `Th\xEAm n\xFAt "Th\xEAm m\u1EDBi" (variant primary, action create) ${pos}.`;
+    case "Button:delete":
+      return `Th\xEAm n\xFAt "X\xF3a" (variant danger, action delete) ${pos}.`;
+    case "Button:search":
+      return hasLabel(/tìm/) ? null : `Th\xEAm n\xFAt "T\xECm ki\u1EBFm" (variant primary, action search) ${pos}.`;
+    case "Link:auth":
+      if (has2(ctx, /mật khẩu|password/) && !hasLabel(/quên/)) return `Th\xEAm link "Qu\xEAn m\u1EADt kh\u1EA9u?" ${pos}.`;
+      return hasLabel(/đăng ký/) ? null : `Th\xEAm link "\u0110\u0103ng k\xFD t\xE0i kho\u1EA3n" ${pos}.`;
+    case "Checkbox:remember":
+      return hasLabel(/ghi nhớ/) ? null : `Th\xEAm \xF4 t\xEDch "Ghi nh\u1EDB \u0111\u0103ng nh\u1EADp" ${pos}.`;
+    case "Checkbox:agree":
+      return hasLabel(/đồng ý|điều khoản/) ? null : `Th\xEAm \xF4 t\xEDch "T\xF4i \u0111\u1ED3ng \xFD v\u1EDBi \u0111i\u1EC1u kho\u1EA3n s\u1EED d\u1EE5ng" ${pos}.`;
+  }
+  if (type === "Pagination" && (kids.some((k) => k.type === "Pagination") || !kids.some((k) => k.type === "Table"))) return null;
+  const base2 = addPrompt(tree, container, type);
+  return index >= kids.length ? base2 : base2.replace(new RegExp(`(v\xE0o cu\u1ED1i|v\xE0o|trong|ngay sau b\u1EA3ng trong|m\xF4 t\u1EA3 n\u1ED9i dung c\u1EE7a) ${nodeLabel(container).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\.$`), `${pos}.`);
+}
+function transformerAdds(m, tree, inScope, min) {
+  const out = [];
+  for (const s of predictSlots(m, tree)) {
+    const container = findNode(tree, s.parentId);
+    if (!container || !inScope(container.id) || container.type === "Table") continue;
+    for (const t of s.types.slice(0, 2)) {
+      const score = s.pMissing * t.p;
+      if (score < min || LAYOUT_TYPES.has(t.type)) continue;
+      const prompt = typedAddPrompt(tree, container, t.type, t.sub, s.index);
+      if (!prompt) continue;
+      const pos = positionPhrase(container, s.index);
+      const what = SUB_VI[t.sub] ? `${t.type} (${SUB_VI[t.sub]})` : t.type;
+      out.push({
+        id: `add:${container.id}:${s.index}:${t.type}:${t.sub}`,
+        kind: "add",
+        targetNodeId: container.id,
+        title: `Th\xEAm ${what} ${pos.short}`,
+        reason: `Transformer: ${Math.round(s.pMissing * 100)}% c\xF2n thi\u1EBFu ph\u1EA7n t\u1EED t\u1EA1i \u0111\xE2y \xB7 ${Math.round(t.p * 100)}% l\xE0 ${what}`,
+        confidence: Math.min(1, score),
+        fixPrompt: prompt
+      });
+    }
+  }
+  return out;
+}
+var isTransformer = (m) => "config" in m && "t" in m;
 function suggest(model2, tree, opts = {}) {
   const k = opts.k ?? 5;
   const scope = opts.selectedIds?.length ? regionIds(tree, opts.selectedIds) : null;
   const inScope = (id) => !scope || scope.has(id);
-  const out = [];
-  walk(tree, (n) => {
+  const out = isTransformer(model2) ? transformerAdds(model2, tree, inScope, scope ? TF_ADD_MIN_REGION : TF_ADD_MIN) : [];
+  if (!isTransformer(model2)) walk(tree, (n) => {
     if (!inScope(n.id) || !isContainer(n.type)) return;
     const last = n.children?.at(-1)?.type;
     const where = nodeLabel(n);
@@ -12209,7 +12502,7 @@ function suggest(model2, tree, opts = {}) {
       fixPrompt: f.fixPrompt
     });
   }
-  walk(tree, (n, parent) => {
+  if (!isTransformer(model2)) walk(tree, (n, parent) => {
     if (!parent || !inScope(n.id) || LAYOUT_TYPES.has(n.type) || isContainer(n.type)) return;
     if (CONTROL_TYPES.has(n.type) && (parent.type === "Row" || parent.type === "Form")) return;
     if (n.type === "Alert" && /^Ghi chú BA/.test(String(n.props.text ?? ""))) return;
@@ -12227,7 +12520,7 @@ function suggest(model2, tree, opts = {}) {
     });
   });
   const seen = /* @__PURE__ */ new Set();
-  return out.filter((s) => seen.has(s.id) ? false : (seen.add(s.id), true)).filter((s) => !(s.kind === "add" && s.title.startsWith("Th\xEAm Button") && out.some((o) => o.kind === "fix" && o.targetNodeId === s.targetNodeId && /chưa có nút/.test(o.title)))).sort((a, b) => b.confidence - a.confidence).slice(0, k);
+  return out.filter((s) => seen.has(s.id) ? false : (seen.add(s.id), true)).filter((s) => !(s.kind === "add" && s.title.startsWith("Th\xEAm Button") && s.fixPrompt.includes("v\xE0o cu\u1ED1i") && out.some((o) => o.kind === "fix" && o.targetNodeId === s.targetNodeId && /chưa có nút/.test(o.title)))).sort((a, b) => b.confidence - a.confidence).slice(0, k);
 }
 
 // server/nextModel.ts
@@ -12238,6 +12531,7 @@ var root = resolve(dirname2(fileURLToPath(import.meta.url)), "..");
 var LEARN_WEIGHT = 5;
 var base = null;
 var model = null;
+var tf;
 function fallbackModel() {
   const m = emptyModel();
   for (const p2 of ["\u0111\u0103ng nh\u1EADp", "\u0111\u0103ng k\xFD", "qu\u1EA3n l\xFD s\u1EA3n ph\u1EA9m", "th\xEAm s\u1EA3n ph\u1EA9m", "dashboard t\u1ED5ng quan"]) countTree(m, mockScreen(p2, p2, { mode: "template" }), 1, "fallback");
@@ -12267,6 +12561,27 @@ function getModel() {
     }
   }
   return model;
+}
+function getTransformer() {
+  if (tf !== void 0) return tf;
+  tf = null;
+  if (process.env.NEXT_MODEL === "ngram") return tf;
+  const file = process.env.NEXT_TF_FILE ?? join(root, "model", "next-transformer.json");
+  if (existsSync(file)) {
+    try {
+      tf = loadTransformer(JSON.parse(readFileSync(file, "utf8")));
+    } catch (e) {
+      console.warn(`Kh\xF4ng \u0111\u1ECDc \u0111\u01B0\u1EE3c ${file}: ${e.message} \u2013 d\xF9ng n-gram`);
+    }
+  }
+  return tf;
+}
+function getPredictor() {
+  const learned = getDb().prepare("SELECT COUNT(*) AS c FROM model_learned_trees").get().c;
+  const t = getTransformer();
+  if (t) return { model: t, info: { kind: "transformer", trees: Number(t.meta.trees ?? 0), learned } };
+  const m = getModel();
+  return { model: m, info: { kind: "ngram", trees: m.meta.trees, learned } };
 }
 function learnFromScreen(screenId, versionId, tree) {
   const r = getDb().prepare("INSERT OR IGNORE INTO model_learned_trees (version_id, screen_id, tree, created_at) VALUES (?, ?, ?, ?)").run(versionId, screenId, JSON.stringify(tree), (/* @__PURE__ */ new Date()).toISOString());
@@ -12368,9 +12683,9 @@ function screenSuggestions(screenId, nodeIds) {
   if (!screen.currentVersionId) throw new BizError("M\xE0n h\xECnh ch\u01B0a c\xF3 phi\xEAn b\u1EA3n");
   const v = getVersion(screen.currentVersionId);
   const openAnnotationNodeIds = listAnnotationsForModule(screen.moduleId).filter((a) => a.screenId === screenId && a.status === "open").flatMap((a) => a.nodeIds);
-  const model2 = getModel();
+  const { model: model2, info } = getPredictor();
   const suggestions = suggest(model2, v.tree, { selectedIds: nodeIds, openAnnotationNodeIds, k: 5 });
-  return { suggestions, versionId: v.id, model: { trees: model2.meta.trees, events: Math.round(model2.meta.events) } };
+  return { suggestions, versionId: v.id, model: info };
 }
 function approvedModel(moduleId) {
   const screens = listScreens(moduleId).filter((s) => s.status === "approved" && s.tree);
