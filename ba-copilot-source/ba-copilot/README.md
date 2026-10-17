@@ -121,26 +121,55 @@ pip install torch && npm run train-transformer -- --epochs 20
 npm run eval-transformer -- --limit 1500    # → analysis/eval-transformer.csv
 ```
 
-**Kết quả** (n-gram huấn luyện trên *cùng* 23.881 cây; tập kiểm tra không trùng tập huấn luyện):
+**Kết quả.** Đánh giá theo đúng thiết lập của Li et al. 2020 (mục 5):
+- Cây "đang thiết kế dở" gồm 10/50/80% node đầu theo hai luồng thiết kế **BFS** và **DFS**.
+- Dùng 3 thước đo của mục 5.2, ở bản **nới lỏng theo loại** (mục 6 của bài báo), vì cây không có tọa độ:
+  - **F1** cặp cha–con giữa cây do mô hình *tự hoàn thiện* và cây đúng.
+  - **Next:** độ chính xác Top-1 đoán node kế tiếp, kèm Top-3.
+  - **Edit:** khoảng cách sửa cây Zhang–Shasha, quy ra giây theo KLM-GOMS (chèn 5,05 s; đổi loại 3,95 s; xóa 0,1 s).
+- Mốc so sánh "Không gợi ý" là giữ nguyên cây dở, nghĩa là BA tự thêm mọi thứ.
+- N-gram huấn luyện trên *cùng* 23.881 cây. Next đo trên 1.500 cây, F1/Edit trên 500 cây (`npm run eval-transformer`).
 
-*1. Che bớt cây, đoán loại phần tử kế tiếp (giao thức của Li et al. 2020), Top-1 / Top-3:*
+*WebSight + nội bộ, luồng BFS (so với Bảng 1 của bài báo):*
 
-| Tập | Đã có | N-gram | Transformer |
+| Mô hình | 10% F1 / Next / Edit | 50% F1 / Next / Edit | 80% F1 / Next / Edit |
 |---|---|---|---|
-| WebSight + nội bộ (1.500) | 10% | 50,6% / 84,5% | 46,6% / **85,5%** |
-| WebSight + nội bộ | 50% | 66,1% / 87,5% | **69,1% / 90,2%** |
-| WebSight + nội bộ | 80% | 77,3% / 91,9% | **79,0% / 94,0%** |
-| Nghiệp vụ tổng hợp (189) | 50% | 50,3% / 83,6% | **69,8% / 94,2%** |
-| Nghiệp vụ tổng hợp | 80% | 62,4% / 83,1% | **75,1% / 96,8%** |
+| Không gợi ý | 20,1 / – / 55,9 | 64,3 / – / 32,0 | 86,0 / – / 14,3 |
+| N-gram | 37,7 / **50,6** / 40,2 | 49,2 / 66,1 / **14,7** | 52,4 / 77,3 / 7,7 |
+| Transformer | **42,2** / 46,6 / **33,9** | **75,4 / 69,1** / 15,5 | **88,4 / 79,0 / 6,3** |
 
-*2. Tìm phần tử bị thiếu: xóa 1 node, mô hình phải chỉ đúng **vị trí và loại** trong mọi ô của cây. Hit@1 / Hit@3:*
+*WebSight + nội bộ, luồng DFS (so với Bảng 2):*
+
+| Mô hình | 10% | 50% | 80% |
+|---|---|---|---|
+| Không gợi ý | 20,1 / – / 55,9 | 64,3 / – / 32,0 | **86,0** / – / 14,3 |
+| N-gram | 38,1 / **47,3** / 39,8 | 47,4 / 74,0 / **20,1** | 51,6 / 63,6 / 11,4 |
+| Transformer | **42,7** / 44,3 / **33,1** | **68,5 / 74,3** / 22,7 | 84,4 / **63,8 / 11,2** |
+
+*Màn nghiệp vụ tổng hợp (189 cây):*
+
+| Mô hình | BFS 10% | BFS 50% | BFS 80% | DFS 50% | DFS 80% |
+|---|---|---|---|---|---|
+| Không gợi ý | 23,5 / – / 34,2 | 64,2 / – / 20,7 | 84,8 / – / 10,0 | 64,2 / – / 20,7 | 84,8 / – / 10,0 |
+| N-gram | 21,0 / 0,0 / 33,1 | 47,2 / 50,3 / 14,2 | 64,5 / 62,4 / 5,9 | 46,1 / 56,6 / 14,2 | 66,4 / 77,2 / 7,9 |
+| Transformer | **50,1 / 52,9 / 10,5** | **78,8 / 69,8 / 6,5** | **91,7 / 75,1 / 1,6** | **81,0 / 63,5 / 6,8** | **90,5 / 83,1 / 2,8** |
+
+Next Top-3 của Transformer trên WebSight BFS: 85,5% / 90,2% / 94,0% (bài báo, bản nới lỏng ở BFS 80%: 92,9–95,3%).
+
+**Đọc kết quả:**
+- Transformer cho F1 cao nhất ở hầu hết cấu hình. N-gram có F1 *thấp hơn cả việc không gợi ý* ở mức 50–80%, vì nó chỉ biết nối thêm vào cuối container nên sinh thừa phần tử.
+- Edit distance rất "dễ dãi" với phần tử thừa, vì xóa chỉ tốn 0,1 s theo cách đặt của bài báo. Vì vậy ở mức 50% trên WebSight, n-gram nhỉnh hơn một chút về Edit dù F1 thấp hơn nhiều.
+- Ở DFS 80% trên WebSight, Transformer chưa vượt mốc "không gợi ý" về F1 (84,4 so với 86,0).
+- Trên màn nghiệp vụ, Transformer vượt rõ ở mọi thước đo.
+
+*Bổ sung cho tính năng của nhóm (bài báo không có):* tìm phần tử bị thiếu. Xóa 1 node, mô hình phải chỉ đúng vị trí và loại; kết quả Hit@1 / Hit@3:
 
 | Tập | N-gram | Transformer |
 |---|---|---|
 | WebSight + nội bộ | 9,3% / 24,3% | **43,2% / 62,5%** |
 | Nghiệp vụ tổng hợp | 6,9% / 22,2% | **58,7% / 87,3%** |
 
-*3. Báo động giả* (cây hoàn chỉnh vẫn bị gợi ý thêm, ngưỡng 0,3): 18,3% WebSight, 14,8% nghiệp vụ.
+Báo động giả (cây hoàn chỉnh vẫn bị gợi ý thêm, ngưỡng 0,3 của app): 18,3% WebSight, 14,8% nghiệp vụ. Độ trễ khoảng 9–15 ms/màn.
 
 **Giới hạn:**
 - Dữ liệu nghiệp vụ tổng hợp sinh từ chính bộ sinh thiết kế, nên kết quả trên tập này lạc quan hơn thực tế.

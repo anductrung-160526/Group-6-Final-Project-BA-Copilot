@@ -53,6 +53,17 @@ export function subtypeOf(n: UINode): Subtype {
   }
 }
 
+/** Props tối thiểu để một node mới mang đúng loại con (dùng khi mô hình tự hoàn thiện cây lúc đánh giá). */
+export function propsForSubtype(type: string, sub: Subtype): Record<string, unknown> {
+  const m: Partial<Record<Subtype, Record<string, unknown>>> = {
+    email: { label: "Email", inputType: "email" }, password: { label: "Mật khẩu", inputType: "password" }, search: { label: "Tìm kiếm" },
+    phone: { label: "Số điện thoại", inputType: "tel" }, number: { label: "Số lượng", inputType: "number" }, name: { label: "Tên" },
+    submit: { label: "Lưu" }, cancel: { label: "Hủy" }, create: { label: "Thêm mới" }, delete: { label: "Xóa" }, icon: { label: "icon", icon: true },
+    auth: { text: "Đăng ký" }, remember: { label: "Ghi nhớ đăng nhập" }, agree: { label: "Đồng ý điều khoản" },
+  };
+  return { ...(m[sub] ?? { label: type }) };
+}
+
 /** Cây mã hóa gọn để xuất dữ liệu huấn luyện: [loại, loại con, con?] (container luôn có mảng con). */
 export type EncNode = [number, number] | [number, number, EncNode[]];
 export function encodeTree(n: UINode): EncNode {

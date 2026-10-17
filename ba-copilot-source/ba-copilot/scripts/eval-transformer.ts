@@ -1,16 +1,21 @@
-// So sánh Transformer với n-gram trên cùng các tập kiểm tra (phục vụ phần Method/Evaluation).
-//  1) Che bớt cây (Li et al. 2020): giữ 10/50/80% node đầu theo BFS, đoán loại node kế tiếp → Top-1/Top-3.
-//  2) Tìm phần tử bị thiếu: xóa 1 node ngẫu nhiên khỏi cây hoàn chỉnh, xếp hạng mọi (vị trí, loại) → Hit@1/Hit@3.
-//  3) Báo động giả: tỷ lệ cây HOÀN CHỈNH mà Transformer vẫn gợi ý thêm (điểm ≥ ngưỡng của app).
-//  4) Độ trễ suy luận (TypeScript, CPU).
-// Dùng: npm run eval-transformer -- [--tf model/next-transformer.json] [--limit 1500] [--write-ngram]
+// So sánh Transformer với n-gram trên cùng các tập kiểm tra, theo đúng thiết lập của Li et al. 2020 (mục 5):
+//  Cây "đang thiết kế dở" = 10/50/80% node đầu theo thứ tự BFS hoặc DFS (hai luồng thiết kế của bài báo).
+//  1) 3 thước đo của bài báo (mục 5.2, bản nới lỏng chỉ xét loại vì cây không có tọa độ):
+//     - Next-element accuracy (Top-1, kèm Top-3): đoán loại node kế tiếp theo thứ tự duyệt.
+//     - Parent-child pair F1: so cây mô hình TỰ HOÀN THIỆN với cây đúng.
+//     - Layout tree edit distance (Zhang–Shasha, chi phí KLM-GOMS, giây): công sức sửa cây hoàn thiện thành cây đúng.
+//     Mốc so sánh "Không gợi ý" = giữ nguyên cây dở (BA tự thêm mọi thứ).
+//  2) Bổ sung riêng cho tính năng của nhóm: tìm phần tử bị thiếu (xóa 1 node) → Hit@1/Hit@3.
+//  3) Báo động giả trên cây hoàn chỉnh và độ trễ suy luận.
+// Dùng: npm run eval-transformer -- [--tf model/next-transformer.json] [--limit 1500] [--limit-complete 500] [--write-ngram]
 //   --write-ngram: ghi n-gram huấn luyện trên cùng dữ liệu vào model/next-component.json (mô hình dự phòng của app)
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { findParent, isContainer, UINode } from "../shared/design.ts";
-import { countTree, emptyModel, NGramModel, prob, rankTypes, ROOT, START, TF_ADD_MIN } from "../shared/nextComponent.ts";
-import { loadTransformer, predictSlots, subtypeOf, TransformerModel } from "../shared/transformer.ts";
+import { countTree, emptyModel, END, NGramModel, prob, rankTypes, ROOT, START, TF_ADD_MIN } from "../shared/nextComponent.ts";
+import { loadTransformer, predictSlots, propsForSubtype, subtypeOf, TransformerModel } from "../shared/transformer.ts";
 import { rng } from "./build-next-model.ts";
+import { EDIT_COST, pairPRF, treeEditDistance } from "./tree-metrics.ts";
 
 const root = join(import.meta.dirname, "..");
 const arg = (name: string, def: string) => {
@@ -45,16 +50,31 @@ function prune(n: UINode, keep: Set<string>): UINode {
 
 const top = <T,>(a: T[], k: number) => a.slice(0, k);
 
-function evalMasked(trees: UINode[], f: number, ng: NGramModel, tf: TransformerModel | null) {
+/** Thứ tự tiền tự DFS (bỏ gốc). */
+function dfs(t: UINode): UINode[] {
+  const out: UINode[] = [];
+  const rec = (n: UINode) => (n.children ?? []).forEach((c) => (out.push(c), rec(c)));
+  rec(t);
+  return out;
+}
+const ORDERS = { BFS: bfs, DFS: dfs };
+
+/** Cây dở theo bài báo: k node đầu theo thứ tự duyệt (luôn đóng theo tổ tiên vì cha đứng trước con). */
+function partialOf(t: UINode, order: UINode[], f: number) {
+  const k = Math.min(order.length - 1, Math.max(1, Math.floor(order.length * f)));
+  const keep = new Set(order.slice(0, k).map((n) => n.id));
+  return { k, keep, partial: prune(t, keep) };
+}
+
+function evalMasked(trees: UINode[], orderFn: (t: UINode) => UINode[], f: number, ng: NGramModel, tf: TransformerModel | null) {
   const r = { n: 0, ng1: 0, ng3: 0, tf1: 0, tf3: 0, tfSub: 0 };
   for (const t of trees) {
-    const order = bfs(t);
+    const order = orderFn(t);
     if (order.length < 2) continue;
-    const k = Math.min(order.length - 1, Math.max(1, Math.floor(order.length * f)));
+    const { k, keep, partial } = partialOf(t, order, f);
     const target = order[k];
     const parent = findParent(t, target.id)!;
-    const keep = new Set(order.slice(0, k).map((n) => n.id));
-    const partial = prune(t, keep);
+    // BFS và DFS đều giữ đủ các anh liền trước của node kế tiếp → node kế tiếp nằm ở cuối các con của cha
     const pk = (parent.children ?? []).filter((c) => keep.has(c.id));
     const ctx = { g: findParent(t, parent.id)?.type ?? ROOT, p: parent.type, s: pk.length ? pk[pk.length - 1].type : START };
     const ngTop = rankTypes(ng, ctx, 3).map((x) => x.type);
@@ -68,6 +88,77 @@ function evalMasked(trees: UINode[], f: number, ng: NGramModel, tf: TransformerM
       r.tf3 += +tfTop.includes(target.type);
       r.tfSub += +(tfTop[0] === target.type && slot!.types[0].sub === subtypeOf(target));
     }
+  }
+  return r;
+}
+
+// ------------------------------------------------------------------ hoàn thiện cây (cho F1 và Edit distance)
+const MAX_NODES = 100;
+const MAX_CHILDREN = 30;
+let uid = 0;
+const count = (t: UINode): number => 1 + (t.children ?? []).reduce((a, c) => a + count(c), 0);
+
+/** N-gram: với từng container (kể cả container mới sinh), thêm loại có xác suất cao nhất ở cuối cho tới khi <END> thắng. */
+function completeNgram(partial: UINode, ng: NGramModel): UINode {
+  const t = structuredClone(partial);
+  let total = count(t);
+  const q: { n: UINode; g: string }[] = [{ n: t, g: ROOT }];
+  while (q.length) {
+    const { n, g } = q.shift()!;
+    if (!isContainer(n.type)) continue;
+    n.children ??= [];
+    while (total < MAX_NODES && n.children.length < MAX_CHILDREN) {
+      const ctx = { g, p: n.type, s: n.children.length ? n.children[n.children.length - 1].type : START };
+      const best = rankTypes(ng, ctx, 1)[0];
+      if (!best || prob(ng, ctx, END) >= best.p) break;
+      const c = { id: `ng${uid++}`, type: best.type, props: {}, ...(isContainer(best.type) ? { children: [] } : {}) } as UINode;
+      n.children.push(c);
+      total++;
+    }
+    for (const c of n.children) q.push({ n: c, g: n.type });
+  }
+  return t;
+}
+
+/** Transformer: mỗi vòng chèn đồng thời phần tử có xác suất cao nhất vào mọi ô mà P(thiếu) ≥ 0,5, lặp tới khi hết. */
+function completeTf(partial: UINode, tf: TransformerModel, maxRounds = 12): UINode {
+  const t = structuredClone(partial);
+  const byId = new Map<string, UINode>();
+  const index = (n: UINode) => (byId.set(n.id, n), (n.children ?? []).forEach(index));
+  for (let round = 0; round < maxRounds; round++) {
+    let total = count(t);
+    if (total >= MAX_NODES) break;
+    byId.clear();
+    index(t);
+    const ins = predictSlots(tf, t, 1).filter((s) => s.pMissing >= 0.5 && s.types.length).sort((a, b) => b.index - a.index);
+    if (!ins.length) break;
+    for (const s of ins) {
+      const parent = byId.get(s.parentId)!;
+      if (total >= MAX_NODES || (parent.children ?? []).length >= MAX_CHILDREN) continue;
+      const ty = s.types[0];
+      const c = { id: `tf${uid++}`, type: ty.type, props: propsForSubtype(ty.type, ty.sub), ...(isContainer(ty.type) ? { children: [] } : {}) } as UINode;
+      (parent.children ??= []).splice(s.index, 0, c);
+      total++;
+    }
+  }
+  return t;
+}
+
+function evalComplete(trees: UINode[], orderFn: (t: UINode) => UINode[], f: number, ng: NGramModel, tf: TransformerModel | null) {
+  const z = () => ({ f1: 0, edit: 0 });
+  const r = { n: 0, none: z(), ng: z(), tf: z() };
+  const add = (acc: { f1: number; edit: number }, pred: UINode, truth: UINode) => {
+    acc.f1 += pairPRF(pred, truth).f1;
+    acc.edit += treeEditDistance(pred, truth);
+  };
+  for (const t of trees) {
+    const order = orderFn(t);
+    if (order.length < 2) continue;
+    const { partial } = partialOf(t, order, f);
+    r.n++;
+    add(r.none, partial, t);
+    add(r.ng, completeNgram(partial, ng), t);
+    if (tf) add(r.tf, completeTf(partial, tf), t);
   }
   return r;
 }
@@ -140,15 +231,28 @@ const csv = ["experiment,set,setting,n,ngram_top1,ngram_top3,tf_top1,tf_top3,ext
 const report: Record<string, unknown> = { ngramTrees: ng.meta.trees, transformer: tf?.meta ?? null };
 
 console.log(`N-gram (cùng dữ liệu): ${ng.meta.trees} cây · Transformer: ${tf ? `${tf.meta.params} tham số, ${tf.meta.trees} cây` : "chưa có"}\n`);
-console.log("## 1. Che bớt cây – đoán loại phần tử kế tiếp (Top-1 / Top-3)\n");
-console.log("| Tập | Đã có | n | N-gram Top-1 | N-gram Top-3 | Transformer Top-1 | Transformer Top-3 | Đúng cả loại con |\n|---|---|---|---|---|---|---|---|");
+const limitComplete = Number(arg("--limit-complete", "500"));
+const f1 = (x: number, n: number) => `${((100 * x) / Math.max(n, 1)).toFixed(1)}`;
+const sec = (x: number, n: number) => (x / Math.max(n, 1)).toFixed(1);
+console.log(`## 1. Thước đo của Li et al. 2020 (bản nới lỏng theo loại) – F1 (%), Next (%), Edit (giây KLM; chèn ${EDIT_COST.insert.toFixed(2)} s, đổi loại ${EDIT_COST.relabel.toFixed(2)} s, xóa ${EDIT_COST.delete.toFixed(2)} s)\n`);
 for (const [k, trees] of Object.entries(sets)) {
   if (!trees.length) continue;
-  for (const f of [0.1, 0.5, 0.8]) {
-    const r = evalMasked(trees, f, ng, tf);
-    console.log(`| ${NAMES[k]} | ${f * 100}% | ${r.n} | ${pct(r.ng1, r.n)} | ${pct(r.ng3, r.n)} | ${pct(r.tf1, r.n)} | ${pct(r.tf3, r.n)} | ${pct(r.tfSub, r.n)} |`);
-    csv.push(`masked,${k},${f},${r.n},${r.ng1 / r.n},${r.ng3 / r.n},${r.tf1 / r.n},${r.tf3 / r.n},${r.tfSub / r.n}`);
-    report[`masked_${k}_${f}`] = r;
+  const sub = trees.slice(0, limitComplete);
+  for (const [oname, ofn] of Object.entries(ORDERS)) {
+    console.log(`### ${NAMES[k]} – luồng ${oname} (Next: ${trees.length} cây, F1/Edit: ${sub.length} cây)\n`);
+    console.log(`| Mô hình | ${[0.1, 0.5, 0.8].map((f) => `${oname} ${f * 100}% F1 | Next | Next Top-3 | Edit`).join(" | ")} |\n|---|${"---|---|---|---|".repeat(3)}`);
+    const rows: Record<string, string[]> = { "Không gợi ý (giữ cây dở)": [], "N-gram": [], Transformer: [] };
+    for (const f of [0.1, 0.5, 0.8]) {
+      const m = evalMasked(trees, ofn, f, ng, tf);
+      const c = evalComplete(sub, ofn, f, ng, tf);
+      rows["Không gợi ý (giữ cây dở)"].push(f1(c.none.f1, c.n), "–", "–", sec(c.none.edit, c.n));
+      rows["N-gram"].push(f1(c.ng.f1, c.n), f1(m.ng1, m.n), f1(m.ng3, m.n), sec(c.ng.edit, c.n));
+      rows.Transformer.push(f1(c.tf.f1, c.n), f1(m.tf1, m.n), f1(m.tf3, m.n), sec(c.tf.edit, c.n));
+      csv.push(`paper,${k},${oname}${f},${c.n},${m.ng1 / m.n},${m.ng3 / m.n},${m.tf1 / m.n},${m.tf3 / m.n},none_f1=${c.none.f1 / c.n};ng_f1=${c.ng.f1 / c.n};tf_f1=${c.tf.f1 / c.n};none_edit=${c.none.edit / c.n};ng_edit=${c.ng.edit / c.n};tf_edit=${c.tf.edit / c.n}`);
+      report[`paper_${k}_${oname}_${f}`] = { masked: m, complete: c };
+    }
+    for (const [name, v] of Object.entries(rows)) console.log(`| ${name} | ${v.join(" | ")} |`);
+    console.log("");
   }
 }
 console.log("\n## 2. Tìm phần tử bị thiếu (xóa 1 node, xếp hạng mọi vị trí × loại)\n");
