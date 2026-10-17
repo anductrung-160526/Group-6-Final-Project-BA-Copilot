@@ -4,7 +4,6 @@ import { UIProvider } from "./components/ui.tsx";
 import { Home } from "./views/Home.tsx";
 import { ProjectView } from "./views/ProjectView.tsx";
 import { ModuleView } from "./views/ModuleView.tsx";
-import { ReviewView } from "./views/ReviewView.tsx";
 import { get } from "./api.ts";
 
 export function navigate(hash: string) {
@@ -31,7 +30,6 @@ function App() {
   let view: React.ReactNode;
   if (parts[0] === "p" && parts[1]) view = <ProjectView id={parts[1]} />;
   else if (parts[0] === "m" && parts[1]) view = <ModuleView id={parts[1]} tab={parts[2] || "design"} />;
-  else if (parts[0] === "review") view = <ReviewView />;
   else view = <Home />;
 
   return (
@@ -42,9 +40,6 @@ function App() {
           <span>
             BA Copilot<span className="brand-sub">Prompt → Thiết kế → Tài liệu → Test</span>
           </span>
-        </a>
-        <a href="#/review" className="btn btn-ghost btn-sm" style={{ marginLeft: "auto" }}>
-          Duyệt dữ liệu
         </a>
         {settings && (
           <span className={`ai-pill ${settings.provider === "claude" ? "on" : ""}`} title={settings.provider === "claude" ? "Đang dùng Claude API" : "Chưa có ANTHROPIC_API_KEY – đang chạy bộ sinh rule-based"}>

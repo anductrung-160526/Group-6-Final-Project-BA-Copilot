@@ -4498,5 +4498,1535 @@
   "domain": "Nhân sự",
   "permission": "Chỉ được duyệt/từ chối",
   "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R501",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Xác thực OTP",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R502",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Tổng quan (chỉ số + bảng)",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R503",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Biểu mẫu nhiều phần",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R504",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Chi tiết hồ sơ cần duyệt",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Chỉ xem",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R505",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Không có quyền truy cập",
+  "domain": "Kho hàng",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R506",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Cài đặt tài khoản",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R507",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Danh sách có tìm kiếm, lọc, phân trang",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R508",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Xem chi tiết",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Chỉ xem",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R509",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Màn theo vai trò (người tạo / người duyệt)",
+  "domain": "Dự án & công việc",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R510",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Thông báo thành công",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R511",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Đăng ký tài khoản",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R512",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Báo cáo dạng bảng",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R513",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Bước trong quy trình nhiều bước",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R514",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Chi tiết hồ sơ cần duyệt",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Chỉ xem",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R515",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Hộp thoại xác nhận",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R516",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Hồ sơ cá nhân",
+  "domain": "Nhân sự",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R517",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Kết quả tra cứu",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R518",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Chỉnh sửa",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R519",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Màn theo vai trò (người tạo / người duyệt)",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Chỉ xem",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R520",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Thông báo lỗi",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R521",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Đặt lại mật khẩu",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R522",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Tổng quan (chỉ số + bảng)",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R523",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Tạo mới",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R524",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Hàng chờ phê duyệt",
+  "domain": "Nhân sự",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R525",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Danh sách rỗng",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Chỉ xem",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R526",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Quên mật khẩu",
+  "domain": "Dự án & công việc",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R527",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Báo cáo dạng bảng",
+  "domain": "Kho hàng",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R528",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Xem chi tiết",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Chỉ xem",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R529",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Hàng chờ phê duyệt",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R530",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Không có quyền truy cập",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R531",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Đăng nhập",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R532",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Danh sách có tìm kiếm, lọc, phân trang",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R533",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Chỉnh sửa",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R534",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Chi tiết hồ sơ cần duyệt",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R535",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Thông báo lỗi",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R536",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Cài đặt tài khoản",
+  "domain": "Kho hàng",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R537",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Kết quả tra cứu",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R538",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Biểu mẫu nhiều phần",
+  "domain": "Nhân sự",
+  "permission": "Chỉ xem",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R539",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Màn theo vai trò (người tạo / người duyệt)",
+  "domain": "Dự án & công việc",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R540",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Thông báo thành công",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R541",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Đăng ký tài khoản",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R542",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Tổng quan (chỉ số + bảng)",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R543",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Tạo mới",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R544",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Hàng chờ phê duyệt",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Chỉ xem",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R545",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Hộp thoại xác nhận",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R546",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Hồ sơ cá nhân",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R547",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Kết quả tra cứu",
+  "domain": "Nhân sự",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R548",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Bước trong quy trình nhiều bước",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Chỉ xem",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R549",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Chi tiết hồ sơ cần duyệt",
+  "domain": "Kho hàng",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R550",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Danh sách rỗng",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R551",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Xác thực OTP",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R552",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Báo cáo dạng bảng",
+  "domain": "Dự án & công việc",
+  "permission": "Chỉ xem",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R553",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Biểu mẫu nhiều phần",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R554",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Màn theo vai trò (người tạo / người duyệt)",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R555",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Danh sách rỗng",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R556",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Đổi mật khẩu",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R557",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Danh sách có tìm kiếm, lọc, phân trang",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R558",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Xem chi tiết",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R559",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Hàng chờ phê duyệt",
+  "domain": "Nhân sự",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R560",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Thông báo lỗi",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Chỉ xem",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R561",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Đăng nhập",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R562",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Kết quả tra cứu",
+  "domain": "Kho hàng",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R563",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Chỉnh sửa",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Chỉ xem",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R564",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Màn theo vai trò (người tạo / người duyệt)",
+  "domain": "Dự án & công việc",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R565",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Không có quyền truy cập",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R566",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Đăng ký tài khoản",
+  "domain": "Kho hàng",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R567",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Báo cáo dạng bảng",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R568",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Tạo mới",
+  "domain": "Nhân sự",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R569",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Chi tiết hồ sơ cần duyệt",
+  "domain": "Dự án & công việc",
+  "permission": "Chỉ xem",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R570",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Hộp thoại xác nhận",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R571",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Quên mật khẩu",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R572",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Tổng quan (chỉ số + bảng)",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Chỉ xem",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R573",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Bước trong quy trình nhiều bước",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R574",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Màn theo vai trò (người tạo / người duyệt)",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R575",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Thông báo thành công",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R576",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Đặt lại mật khẩu",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R577",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Danh sách có tìm kiếm, lọc, phân trang",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R578",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Biểu mẫu nhiều phần",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R579",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Chi tiết hồ sơ cần duyệt",
+  "domain": "Dự án & công việc",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R580",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Thông báo thành công",
+  "domain": "Kho hàng",
+  "permission": "Chỉ xem",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R581",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Xác thực OTP",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R582",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Danh sách có tìm kiếm, lọc, phân trang",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R583",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Xem chi tiết",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R584",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Hàng chờ phê duyệt",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Chỉ xem",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R585",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Danh sách rỗng",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R586",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Đổi mật khẩu",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R587",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Báo cáo dạng bảng",
+  "domain": "Nhân sự",
+  "permission": "Chỉ xem",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R588",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Chỉnh sửa",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R589",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Hàng chờ phê duyệt",
+  "domain": "Nhân sự",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R590",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Không có quyền truy cập",
+  "domain": "Dự án & công việc",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R591",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Hồ sơ cá nhân",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R592",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Kết quả tra cứu",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Chỉ xem",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R593",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Bước trong quy trình nhiều bước",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R594",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Chi tiết hồ sơ cần duyệt",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R595",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Thông báo lỗi",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R596",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Cài đặt tài khoản",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R597",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Tổng quan (chỉ số + bảng)",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Chỉ xem",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R598",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Tạo mới",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R599",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Màn theo vai trò (người tạo / người duyệt)",
+  "domain": "Kho hàng",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R600",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Hộp thoại xác nhận",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R601",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Đổi mật khẩu",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R602",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Danh sách có tìm kiếm, lọc, phân trang",
+  "domain": "Dự án & công việc",
+  "permission": "Chỉ xem",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R603",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Biểu mẫu nhiều phần",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R604",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Màn theo vai trò (người tạo / người duyệt)",
+  "domain": "Kho hàng",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R605",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Hộp thoại xác nhận",
+  "domain": "Nhân sự",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R606",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Cài đặt tài khoản",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R607",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Tổng quan (chỉ số + bảng)",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Chỉ xem",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R608",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Xem chi tiết",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R609",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Hàng chờ phê duyệt",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R610",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Thông báo thành công",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R611",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Xác thực OTP",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R612",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Báo cáo dạng bảng",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R613",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Bước trong quy trình nhiều bước",
+  "domain": "Dự án & công việc",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R614",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Chi tiết hồ sơ cần duyệt",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Chỉ xem",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R615",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Thông báo lỗi",
+  "domain": "Nhân sự",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R616",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Đăng nhập",
+  "domain": "Kho hàng",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R617",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Kết quả tra cứu",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R618",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Tạo mới",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R619",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Màn theo vai trò (người tạo / người duyệt)",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R620",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Danh sách rỗng",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Chỉ xem",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R621",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Đăng ký tài khoản",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R622",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Danh sách có tìm kiếm, lọc, phân trang",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R623",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Chỉnh sửa",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R624",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Chi tiết hồ sơ cần duyệt",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R625",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Không có quyền truy cập",
+  "domain": "Kho hàng",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R626",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Quên mật khẩu",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R627",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Kết quả tra cứu",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R628",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Tạo mới",
+  "domain": "Dự án & công việc",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R629",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Hàng chờ phê duyệt",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Chỉ xem",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R630",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Danh sách rỗng",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R631",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Đặt lại mật khẩu",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R632",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Báo cáo dạng bảng",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R633",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Biểu mẫu nhiều phần",
+  "domain": "Nhân sự",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R634",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Màn theo vai trò (người tạo / người duyệt)",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R635",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Thông báo lỗi",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R636",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Hồ sơ cá nhân",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R637",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Tổng quan (chỉ số + bảng)",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R638",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Bước trong quy trình nhiều bước",
+  "domain": "Dự án & công việc",
+  "permission": "Chỉ xem",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R639",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Hàng chờ phê duyệt",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R640",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Hộp thoại xác nhận",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R641",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Đổi mật khẩu",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R642",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Tổng quan (chỉ số + bảng)",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R643",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Chỉnh sửa",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Chỉ xem",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R644",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Chi tiết hồ sơ cần duyệt",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R645",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Thông báo thành công",
+  "domain": "Nhân sự",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R646",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Xác thực OTP",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R647",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Danh sách có tìm kiếm, lọc, phân trang",
+  "domain": "Kho hàng",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R648",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Xem chi tiết",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Chỉ xem",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R649",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Màn theo vai trò (người tạo / người duyệt)",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R650",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Không có quyền truy cập",
+  "domain": "Dự án & công việc",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R651",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Cài đặt tài khoản",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R652",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Báo cáo dạng bảng",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R653",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Xem chi tiết",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Chỉ xem",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R654",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Chi tiết hồ sơ cần duyệt",
+  "domain": "Kho hàng",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R655",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Thông báo thành công",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R656",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Hồ sơ cá nhân",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R657",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Kết quả tra cứu",
+  "domain": "Nhân sự",
+  "permission": "Chỉ xem",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R658",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Tạo mới",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R659",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Hàng chờ phê duyệt",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R660",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Hộp thoại xác nhận",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R661",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Đăng nhập",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R662",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Kết quả tra cứu",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R663",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Bước trong quy trình nhiều bước",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Chỉ xem",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R664",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Màn theo vai trò (người tạo / người duyệt)",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R665",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Thông báo lỗi",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R666",
+  "batch": "main",
+  "group": "auth",
+  "screenKind": "Đăng ký tài khoản",
+  "domain": "Kho hàng",
+  "permission": "Người dùng thao tác trên tài khoản của chính mình",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R667",
+  "batch": "main",
+  "group": "list",
+  "screenKind": "Danh sách có tìm kiếm, lọc, phân trang",
+  "domain": "Dự án & công việc",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R668",
+  "batch": "main",
+  "group": "form",
+  "screenKind": "Chỉnh sửa",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R669",
+  "batch": "main",
+  "group": "approval",
+  "screenKind": "Chi tiết hồ sơ cần duyệt",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R670",
+  "batch": "main",
+  "group": "state",
+  "screenKind": "Danh sách rỗng",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thẻ (Card) ở giữa"
  }
 ]

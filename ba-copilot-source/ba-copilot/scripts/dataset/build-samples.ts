@@ -1,4 +1,4 @@
-// Sinh mẫu "bổ sung UI" (cách B) từ màn gốc ĐÃ ĐƯỢC BA CHẤP NHẬN:
+// Sinh mẫu "bổ sung UI" (cách B) từ màn gốc:
 //   mỗi mẫu = { requirement, partialTree, targetContainerId, acceptedPatch, completedTree, review, ... }
 // Kiểu mẫu:
 //   - missing_one   : bỏ 1 phần tử chức năng (nút, ô nhập, bộ lọc, bảng, phân trang, thông báo...)
@@ -7,7 +7,10 @@
 //   - complete      : màn đủ, đáp án rỗng; nếu màn bị giới hạn quyền (chỉ xem / chỉ tạo / chỉ duyệt) thì là mẫu "bẫy"
 // Không xóa Text/Image/Divider/Avatar/Heading đơn lẻ (khó đoán, ít giá trị cho BA).
 // Chia tập theo MÀN GỐC trước khi sinh biến thể: mọi biến thể của một màn nằm cùng train/val/test.
-// Dùng: npx tsx scripts/dataset/build-samples.ts [--reviews kq1.json,kq2.json] [--allow-unreviewed] [--per-root 20]
+// Kiểm nghiệm màn do nhóm làm theo cách riêng; kết quả (nếu có) đưa vào bằng --reviews: file JSON dạng
+//   { "reviews": [{ "rootId": "R001", "decision": "accept" | "fix" | "reject", "reviewer": "...", "fixedTree": {...}? }] }
+//   màn bị "reject" hoặc "fix" không kèm cây sửa sẽ bị loại; "fix" có cây sửa thì dùng cây sửa.
+// Dùng: npx tsx scripts/dataset/build-samples.ts [--reviews kq.json,...] [--only-reviewed] [--per-root 15]
 //        → data/dataset/samples.jsonl + data/dataset/stats.json
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
@@ -16,7 +19,7 @@ import { cloneTree, findParent, isContainer, UINode, walk } from "../../shared/d
 import { applyPatch } from "../../shared/patch.ts";
 import type { PatchOp } from "../../shared/patch.ts";
 import { rng } from "../build-next-model.ts";
-import { loadRoots, RootItem } from "../../server/dataset.ts";
+import { loadRoots, RootItem } from "./roots.ts";
 
 const root = join(import.meta.dirname, "..", "..");
 const arg = (name: string, def: string) => {
@@ -42,6 +45,7 @@ export interface Sample {
   acceptedAlternatives: PatchOp[][];
   completedTree: UINode;
   review: { status: "accepted" | "unreviewed"; reviewers: string[]; dataVersion: string; source: "claude-authored" };
+  notes?: string;
 }
 
 const size = (n: UINode): number => 1 + (n.children ?? []).reduce((a, c) => a + size(c), 0);
@@ -127,8 +131,8 @@ export function mergeReviews(files: string[]) {
 }
 
 if (process.argv[1]?.endsWith("build-samples.ts")) {
-  const perRoot = Number(arg("--per-root", "20"));
-  const allowUnreviewed = process.argv.includes("--allow-unreviewed");
+  const perRoot = Number(arg("--per-root", "15"));
+  const allowUnreviewed = !process.argv.includes("--only-reviewed");
   const reviews = mergeReviews(arg("--reviews", "").split(",").filter(Boolean));
   const { items, version } = loadRoots();
   const out: Sample[] = [];
