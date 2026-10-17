@@ -312,7 +312,7 @@ var require_BufferList = __commonJS({
         this.head = this.tail = null;
         this.length = 0;
       };
-      BufferList.prototype.join = function join4(s) {
+      BufferList.prototype.join = function join5(s) {
         if (this.length === 0) return "";
         var p2 = this.head;
         var ret = "" + p2.data;
@@ -2287,8 +2287,8 @@ var require_lib2 = __commonJS({
         return this;
       }
       var p2 = this.constructor;
-      return this.then(resolve5, reject2);
-      function resolve5(value) {
+      return this.then(resolve6, reject2);
+      function resolve6(value) {
         function yes() {
           return value;
         }
@@ -2441,8 +2441,8 @@ var require_lib2 = __commonJS({
       }
       return out;
     }
-    Promise2.resolve = resolve4;
-    function resolve4(value) {
+    Promise2.resolve = resolve5;
+    function resolve5(value) {
       if (value instanceof this) {
         return value;
       }
@@ -2977,10 +2977,10 @@ var require_utils2 = __commonJS({
           if (typeof Blob.prototype.arrayBuffer !== "undefined") {
             return data.arrayBuffer();
           } else if (typeof FileReader !== "undefined") {
-            return new external.Promise(function(resolve4, reject) {
+            return new external.Promise(function(resolve5, reject) {
               var reader = new FileReader();
               reader.onload = function(e) {
-                resolve4(e.target.result);
+                resolve5(e.target.result);
               };
               reader.onerror = function(e) {
                 reject(e.target.error);
@@ -3539,7 +3539,7 @@ var require_StreamHelper = __commonJS({
       }
     }
     function accumulate(helper, updateCallback) {
-      return new external.Promise(function(resolve4, reject) {
+      return new external.Promise(function(resolve5, reject) {
         var dataArray = [];
         var chunkType = helper._internalType, resultType = helper._outputType, mimeType = helper._mimeType;
         helper.on("data", function(data, meta) {
@@ -3553,7 +3553,7 @@ var require_StreamHelper = __commonJS({
         }).on("end", function() {
           try {
             var result = transformZipOutput(resultType, concat(chunkType, dataArray), mimeType);
-            resolve4(result);
+            resolve5(result);
           } catch (e) {
             reject(e);
           }
@@ -6572,7 +6572,7 @@ var require_inftrees = __commonJS({
       var len = 0;
       var sym = 0;
       var min = 0, max = 0;
-      var root3 = 0;
+      var root4 = 0;
       var curr = 0;
       var drop = 0;
       var left = 0;
@@ -6597,14 +6597,14 @@ var require_inftrees = __commonJS({
       for (sym = 0; sym < codes; sym++) {
         count[lens[lens_index + sym]]++;
       }
-      root3 = bits;
+      root4 = bits;
       for (max = MAXBITS; max >= 1; max--) {
         if (count[max] !== 0) {
           break;
         }
       }
-      if (root3 > max) {
-        root3 = max;
+      if (root4 > max) {
+        root4 = max;
       }
       if (max === 0) {
         table2[table_index++] = 1 << 24 | 64 << 16 | 0;
@@ -6617,8 +6617,8 @@ var require_inftrees = __commonJS({
           break;
         }
       }
-      if (root3 < min) {
-        root3 = min;
+      if (root4 < min) {
+        root4 = min;
       }
       left = 1;
       for (len = 1; len <= MAXBITS; len++) {
@@ -6658,10 +6658,10 @@ var require_inftrees = __commonJS({
       sym = 0;
       len = min;
       next = table_index;
-      curr = root3;
+      curr = root4;
       drop = 0;
       low = -1;
-      used = 1 << root3;
+      used = 1 << root4;
       mask = used - 1;
       if (type === LENS && used > ENOUGH_LENS || type === DISTS && used > ENOUGH_DISTS) {
         return 1;
@@ -6702,9 +6702,9 @@ var require_inftrees = __commonJS({
           }
           len = lens[lens_index + work[sym]];
         }
-        if (len > root3 && (huff & mask) !== low) {
+        if (len > root4 && (huff & mask) !== low) {
           if (drop === 0) {
-            drop = root3;
+            drop = root4;
           }
           next += min;
           curr = len - drop;
@@ -6722,13 +6722,13 @@ var require_inftrees = __commonJS({
             return 1;
           }
           low = huff & mask;
-          table2[low] = root3 << 24 | curr << 16 | next - table_index | 0;
+          table2[low] = root4 << 24 | curr << 16 | next - table_index | 0;
         }
       }
       if (huff !== 0) {
         table2[next + huff] = len - drop << 24 | 64 << 16 | 0;
       }
-      opts.bits = root3;
+      opts.bits = root4;
       return 0;
     };
   }
@@ -8346,7 +8346,7 @@ var require_ZipFileWorker = __commonJS({
       return (dosPermissions || 0) & 63;
     };
     var generateZipParts = function(streamInfo, streamedContent, streamingEnded, offset, platform, encodeFileName) {
-      var file = streamInfo["file"], compression = streamInfo["compression"], useCustomEncoding = encodeFileName !== utf8.utf8encode, encodedFileName = utils.transformTo("string", encodeFileName(file.name)), utfEncodedFileName = utils.transformTo("string", utf8.utf8encode(file.name)), comment = file.comment, encodedComment = utils.transformTo("string", encodeFileName(comment)), utfEncodedComment = utils.transformTo("string", utf8.utf8encode(comment)), useUTF8ForFileName = utfEncodedFileName.length !== file.name.length, useUTF8ForComment = utfEncodedComment.length !== comment.length, dosTime, dosDate, extraFields = "", unicodePathExtraField = "", unicodeCommentExtraField = "", dir = file.dir, date = file.date;
+      var file = streamInfo["file"], compression = streamInfo["compression"], useCustomEncoding = encodeFileName !== utf8.utf8encode, encodedFileName = utils.transformTo("string", encodeFileName(file.name)), utfEncodedFileName = utils.transformTo("string", utf8.utf8encode(file.name)), comment = file.comment, encodedComment = utils.transformTo("string", encodeFileName(comment)), utfEncodedComment = utils.transformTo("string", utf8.utf8encode(comment)), useUTF8ForFileName = utfEncodedFileName.length !== file.name.length, useUTF8ForComment = utfEncodedComment.length !== comment.length, dosTime, dosDate, extraFields = "", unicodePathExtraField = "", unicodeCommentExtraField = "", dir2 = file.dir, date = file.date;
       var dataInfo = {
         crc32: 0,
         compressedSize: 0,
@@ -8366,15 +8366,15 @@ var require_ZipFileWorker = __commonJS({
       }
       var extFileAttr = 0;
       var versionMadeBy = 0;
-      if (dir) {
+      if (dir2) {
         extFileAttr |= 16;
       }
       if (platform === "UNIX") {
         versionMadeBy = 798;
-        extFileAttr |= generateUnixExternalFileAttr(file.unixPermissions, dir);
+        extFileAttr |= generateUnixExternalFileAttr(file.unixPermissions, dir2);
       } else {
         versionMadeBy = 20;
-        extFileAttr |= generateDosExternalFileAttr(file.dosPermissions, dir);
+        extFileAttr |= generateDosExternalFileAttr(file.dosPermissions, dir2);
       }
       dosTime = date.getUTCHours();
       dosTime = dosTime << 6;
@@ -8624,10 +8624,10 @@ var require_generate = __commonJS({
           entriesCount++;
           var compression = getCompression(file.options.compression, options.compression);
           var compressionOptions = file.options.compressionOptions || options.compressionOptions || {};
-          var dir = file.dir, date = file.date;
+          var dir2 = file.dir, date = file.date;
           file._compressWorker(compression, compressionOptions).withStreamInfo("file", {
             name: relativePath,
-            dir,
+            dir: dir2,
             date,
             comment: file.comment || "",
             unixPermissions: file.unixPermissions,
@@ -9666,7 +9666,7 @@ var require_load = __commonJS({
     var Crc32Probe = require_Crc32Probe();
     var nodejsUtils = require_nodejsUtils();
     function checkEntryCRC32(zipEntry) {
-      return new external.Promise(function(resolve4, reject) {
+      return new external.Promise(function(resolve5, reject) {
         var worker = zipEntry.decompressed.getContentWorker().pipe(new Crc32Probe());
         worker.on("error", function(e) {
           reject(e);
@@ -9674,7 +9674,7 @@ var require_load = __commonJS({
           if (worker.streamInfo.crc32 !== zipEntry.decompressed.crc32) {
             reject(new Error("Corrupted zip : CRC32 mismatch"));
           } else {
-            resolve4();
+            resolve5();
           }
         }).resume();
       });
@@ -9772,9 +9772,9 @@ var require_lib3 = __commonJS({
 });
 
 // server/index.ts
-import { existsSync as existsSync2, readFileSync as readFileSync2 } from "node:fs";
-import { dirname as dirname3, join as join3, resolve as resolve3 } from "node:path";
-import { fileURLToPath as fileURLToPath2 } from "node:url";
+import { existsSync as existsSync3, readFileSync as readFileSync3 } from "node:fs";
+import { dirname as dirname4, join as join4, resolve as resolve4 } from "node:path";
+import { fileURLToPath as fileURLToPath3 } from "node:url";
 
 // server/db.ts
 import { DatabaseSync } from "node:sqlite";
@@ -9838,6 +9838,12 @@ CREATE TABLE IF NOT EXISTS suggestion_events (
 CREATE TABLE IF NOT EXISTS model_learned_trees (
   version_id TEXT PRIMARY KEY, screen_id TEXT NOT NULL, tree TEXT NOT NULL, created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS dataset_reviews (
+  id TEXT PRIMARY KEY, root_id TEXT NOT NULL, reviewer TEXT NOT NULL,
+  decision TEXT NOT NULL CHECK(decision IN ('accept','fix','reject')),
+  criteria TEXT NOT NULL, comment TEXT NOT NULL, fixed_tree TEXT, data_version TEXT NOT NULL, created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_dsrev_root ON dataset_reviews(root_id, reviewer);
 CREATE INDEX IF NOT EXISTS idx_sugg_screen ON suggestion_events(screen_id);
 CREATE INDEX IF NOT EXISTS idx_modules_project ON modules(project_id);
 CREATE INDEX IF NOT EXISTS idx_screens_module ON screens(module_id);
@@ -9872,7 +9878,7 @@ function tx(fn) {
 // server/app.ts
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
-import { join as join2, extname, resolve as resolve2 } from "node:path";
+import { join as join3, extname, resolve as resolve3 } from "node:path";
 import { createRequire } from "node:module";
 
 // server/repo.ts
@@ -10278,11 +10284,11 @@ function normalizeTree(input, seen = /* @__PURE__ */ new Set()) {
   }
   return node;
 }
-function validateTree(root3) {
+function validateTree(root4) {
   const errors = [];
   const ids = /* @__PURE__ */ new Set();
-  if (root3.type !== "Page") errors.push(`Node g\u1ED1c ph\u1EA3i l\xE0 Page (\u0111ang l\xE0 ${root3.type})`);
-  walk(root3, (n, parent) => {
+  if (root4.type !== "Page") errors.push(`Node g\u1ED1c ph\u1EA3i l\xE0 Page (\u0111ang l\xE0 ${root4.type})`);
+  walk(root4, (n, parent) => {
     if (!n.id) errors.push("C\xF3 node thi\u1EBFu id");
     if (ids.has(n.id)) errors.push(`Tr\xF9ng id: ${n.id}`);
     ids.add(n.id);
@@ -10299,27 +10305,27 @@ function validateTree(root3) {
   });
   return { ok: errors.length === 0, errors };
 }
-function walk(root3, fn, parent = null, depth = 0) {
-  fn(root3, parent, depth);
-  for (const c of root3.children ?? []) walk(c, fn, root3, depth + 1);
+function walk(root4, fn, parent = null, depth = 0) {
+  fn(root4, parent, depth);
+  for (const c of root4.children ?? []) walk(c, fn, root4, depth + 1);
 }
-function findNode(root3, id) {
+function findNode(root4, id) {
   let found = null;
-  walk(root3, (n) => {
+  walk(root4, (n) => {
     if (!found && n.id === id) found = n;
   });
   return found;
 }
-function findParent(root3, id) {
+function findParent(root4, id) {
   let found = null;
-  walk(root3, (n, parent) => {
+  walk(root4, (n, parent) => {
     if (!found && n.id === id) found = parent;
   });
   return found;
 }
-function collectIds(root3) {
+function collectIds(root4) {
   const out = [];
-  walk(root3, (n) => out.push(n.id));
+  walk(root4, (n) => out.push(n.id));
   return out;
 }
 function cloneTree(t) {
@@ -10330,7 +10336,7 @@ function nodeLabel(n) {
   const txt = p2.label ?? p2.text ?? p2.title ?? p2.alt ?? p2.name ?? "";
   return txt ? `${n.type} "${String(txt).slice(0, 40)}"` : n.type;
 }
-function topMostIds(root3, ids) {
+function topMostIds(root4, ids) {
   const set = new Set(ids);
   const result = [];
   const visit = (n, covered) => {
@@ -10338,13 +10344,13 @@ function topMostIds(root3, ids) {
     if (isSel && !covered) result.push(n.id);
     for (const c of n.children ?? []) visit(c, covered || isSel);
   };
-  visit(root3, false);
+  visit(root4, false);
   return result;
 }
-function regionIds(root3, selected) {
+function regionIds(root4, selected) {
   const allowed = /* @__PURE__ */ new Set();
   for (const id of selected) {
-    const n = findNode(root3, id);
+    const n = findNode(root4, id);
     if (n) walk(n, (d) => allowed.add(d.id));
   }
   return allowed;
@@ -11753,11 +11759,11 @@ function applyPatch(tree, ops, opts = {}) {
     else applied.push(op);
   }
   return { tree: working, applied, rejected, touchedIds: [...touched] };
-  function applyOne(root3, op, touchedSet) {
-    const existing = new Set(collectIds(root3));
+  function applyOne(root4, op, touchedSet) {
+    const existing = new Set(collectIds(root4));
     switch (op.op) {
       case "update": {
-        const n = findNode(root3, op.id);
+        const n = findNode(root4, op.id);
         if (!n) return `Kh\xF4ng t\xECm th\u1EA5y node ${op.id}`;
         const next = { ...n.props };
         for (const [k, v] of Object.entries(op.props ?? {})) {
@@ -11769,9 +11775,9 @@ function applyPatch(tree, ops, opts = {}) {
         return null;
       }
       case "replace": {
-        const n = findNode(root3, op.id);
+        const n = findNode(root4, op.id);
         if (!n) return `Kh\xF4ng t\xECm th\u1EA5y node ${op.id}`;
-        if (n === root3) {
+        if (n === root4) {
           const fresh2 = normalizeTree(op.node, /* @__PURE__ */ new Set());
           if (fresh2.type !== "Page") return "Node g\u1ED1c ph\u1EA3i l\xE0 Page";
           working = fresh2;
@@ -11780,7 +11786,7 @@ function applyPatch(tree, ops, opts = {}) {
         }
         existing.delete(op.id);
         const raw = { ...op.node, id: op.node?.id ?? op.id };
-        const fresh = normalizeTree(raw, subtreeExclusive(root3, op.id, existing));
+        const fresh = normalizeTree(raw, subtreeExclusive(root4, op.id, existing));
         Object.assign(n, { id: fresh.id, type: fresh.type, props: fresh.props });
         if (fresh.children) n.children = fresh.children;
         else delete n.children;
@@ -11788,7 +11794,7 @@ function applyPatch(tree, ops, opts = {}) {
         return null;
       }
       case "insert": {
-        const parent = findNode(root3, op.parentId);
+        const parent = findNode(root4, op.parentId);
         if (!parent) return `Kh\xF4ng t\xECm th\u1EA5y node cha ${op.parentId}`;
         if (!isContainer(parent.type)) return `${parent.type} kh\xF4ng ch\u1EE9a \u0111\u01B0\u1EE3c node con`;
         const fresh = normalizeTree(op.node, existing);
@@ -11800,8 +11806,8 @@ function applyPatch(tree, ops, opts = {}) {
         return null;
       }
       case "remove": {
-        if (root3.id === op.id) return "Kh\xF4ng \u0111\u01B0\u1EE3c x\xF3a node g\u1ED1c";
-        const parent = findParent(root3, op.id);
+        if (root4.id === op.id) return "Kh\xF4ng \u0111\u01B0\u1EE3c x\xF3a node g\u1ED1c";
+        const parent = findParent(root4, op.id);
         if (!parent || !parent.children) return `Kh\xF4ng t\xECm th\u1EA5y node ${op.id}`;
         parent.children = parent.children.filter((c) => c.id !== op.id);
         touchedSet.add(parent.id);
@@ -11811,8 +11817,8 @@ function applyPatch(tree, ops, opts = {}) {
     return "Thao t\xE1c kh\xF4ng h\u1ED7 tr\u1EE3";
   }
 }
-function subtreeExclusive(root3, subtreeId, existing) {
-  const sub = findNode(root3, subtreeId);
+function subtreeExclusive(root4, subtreeId, existing) {
+  const sub = findNode(root4, subtreeId);
   const out = new Set(existing);
   if (sub) for (const id of collectIds(sub)) out.delete(id);
   return out;
@@ -12974,7 +12980,7 @@ var XmlAttributeComponent = class extends BaseXmlComponent {
   *
   * @param root - The attribute data object
   */
-  constructor(root3) {
+  constructor(root4) {
     super("_attr");
     _defineProperty(this, "root", void 0);
     _defineProperty(
@@ -12983,7 +12989,7 @@ var XmlAttributeComponent = class extends BaseXmlComponent {
       "xmlKeys",
       void 0
     );
-    this.root = root3;
+    this.root = root4;
   }
   /**
   * Converts the attribute data to an XML-serializable object.
@@ -13011,10 +13017,10 @@ var NextAttributeComponent = class extends BaseXmlComponent {
   *
   * @param root - Attribute payload with explicit key-value mappings
   */
-  constructor(root3) {
+  constructor(root4) {
     super("_attr");
     _defineProperty(this, "root", void 0);
-    this.root = root3;
+    this.root = root4;
   }
   /**
   * Converts the attribute payload to an XML-serializable object.
@@ -13322,14 +13328,14 @@ var require_events = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     return ret;
   }
   function once(emitter, name) {
-    return new Promise(function(resolve4, reject) {
+    return new Promise(function(resolve5, reject) {
       function errorListener(err) {
         emitter.removeListener(name, resolver);
         reject(err);
       }
       function resolver() {
         if (typeof emitter.removeListener === "function") emitter.removeListener("error", errorListener);
-        resolve4([].slice.call(arguments));
+        resolve5([].slice.call(arguments));
       }
       eventTargetAgnosticAddListener(emitter, name, resolver, { once: true });
       if (name !== "error") addErrorHandlerIfEventEmitter(emitter, errorListener, { once: true });
@@ -13509,7 +13515,7 @@ var init_dist = __esmMin((() => {
   process2.cwd = function() {
     return "/";
   };
-  process2.chdir = function(dir) {
+  process2.chdir = function(dir2) {
     throw new Error("process.chdir is not supported");
   };
   process2.umask = function() {
@@ -14031,7 +14037,7 @@ var require_buffer = /* @__PURE__ */ __commonJSMin(((exports) => {
     if (y < x) return 1;
     return 0;
   };
-  function bidirectionalIndexOf(buffer, val, byteOffset, encoding, dir) {
+  function bidirectionalIndexOf(buffer, val, byteOffset, encoding, dir2) {
     if (buffer.length === 0) return -1;
     if (typeof byteOffset === "string") {
       encoding = byteOffset;
@@ -14039,30 +14045,30 @@ var require_buffer = /* @__PURE__ */ __commonJSMin(((exports) => {
     } else if (byteOffset > 2147483647) byteOffset = 2147483647;
     else if (byteOffset < -2147483648) byteOffset = -2147483648;
     byteOffset = +byteOffset;
-    if (numberIsNaN(byteOffset)) byteOffset = dir ? 0 : buffer.length - 1;
+    if (numberIsNaN(byteOffset)) byteOffset = dir2 ? 0 : buffer.length - 1;
     if (byteOffset < 0) byteOffset = buffer.length + byteOffset;
     if (byteOffset >= buffer.length) {
-      if (dir) return -1;
+      if (dir2) return -1;
       else byteOffset = buffer.length - 1;
     } else if (byteOffset < 0) {
-      if (dir) byteOffset = 0;
+      if (dir2) byteOffset = 0;
       else return -1;
     }
     if (typeof val === "string") val = Buffer2.from(val, encoding);
     if (Buffer2.isBuffer(val)) {
       if (val.length === 0) return -1;
-      return arrayIndexOf(buffer, val, byteOffset, encoding, dir);
+      return arrayIndexOf(buffer, val, byteOffset, encoding, dir2);
     } else if (typeof val === "number") {
       val = val & 255;
       if (typeof Uint8Array.prototype.indexOf === "function") {
-        if (dir) return Uint8Array.prototype.indexOf.call(buffer, val, byteOffset);
+        if (dir2) return Uint8Array.prototype.indexOf.call(buffer, val, byteOffset);
         else return Uint8Array.prototype.lastIndexOf.call(buffer, val, byteOffset);
       }
-      return arrayIndexOf(buffer, [val], byteOffset, encoding, dir);
+      return arrayIndexOf(buffer, [val], byteOffset, encoding, dir2);
     }
     throw new TypeError("val must be string, number or Buffer");
   }
-  function arrayIndexOf(arr2, val, byteOffset, encoding, dir) {
+  function arrayIndexOf(arr2, val, byteOffset, encoding, dir2) {
     var indexSize = 1;
     var arrLength = arr2.length;
     var valLength = val.length;
@@ -14081,7 +14087,7 @@ var require_buffer = /* @__PURE__ */ __commonJSMin(((exports) => {
       else return buf.readUInt16BE(i2 * indexSize);
     }
     var i;
-    if (dir) {
+    if (dir2) {
       var foundIndex = -1;
       for (i = byteOffset; i < arrLength; i++) if (read(arr2, i) === read(val, foundIndex === -1 ? 0 : i - foundIndex)) {
         if (foundIndex === -1) foundIndex = i;
@@ -16253,8 +16259,8 @@ var require_util = /* @__PURE__ */ __commonJSMin(((exports) => {
     }
     function fn() {
       var promiseResolve, promiseReject;
-      var promise = new Promise(function(resolve4, reject) {
-        promiseResolve = resolve4;
+      var promise = new Promise(function(resolve5, reject) {
+        promiseResolve = resolve5;
         promiseReject = reject;
       });
       var args = [];
@@ -16435,7 +16441,7 @@ var require_buffer_list = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       },
       {
         key: "join",
-        value: function join4(s) {
+        value: function join5(s) {
           if (this.length === 0) return "";
           var p2 = this.head;
           var ret = "" + p2.data;
@@ -17636,14 +17642,14 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
     };
   }
   function readAndResolve(iter) {
-    var resolve4 = iter[kLastResolve];
-    if (resolve4 !== null) {
+    var resolve5 = iter[kLastResolve];
+    if (resolve5 !== null) {
       var data = iter[kStream].read();
       if (data !== null) {
         iter[kLastPromise] = null;
         iter[kLastResolve] = null;
         iter[kLastReject] = null;
-        resolve4(createIterResult(data, false));
+        resolve5(createIterResult(data, false));
       }
     }
   }
@@ -17651,13 +17657,13 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
     process$1.nextTick(readAndResolve, iter);
   }
   function wrapForNext(lastPromise, iter) {
-    return function(resolve4, reject) {
+    return function(resolve5, reject) {
       lastPromise.then(function() {
         if (iter[kEnded]) {
-          resolve4(createIterResult(void 0, true));
+          resolve5(createIterResult(void 0, true));
           return;
         }
-        iter[kHandlePromise](resolve4, reject);
+        iter[kHandlePromise](resolve5, reject);
       }, reject);
     };
   }
@@ -17672,10 +17678,10 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
       var error = this[kError];
       if (error !== null) return Promise.reject(error);
       if (this[kEnded]) return Promise.resolve(createIterResult(void 0, true));
-      if (this[kStream].destroyed) return new Promise(function(resolve4, reject) {
+      if (this[kStream].destroyed) return new Promise(function(resolve5, reject) {
         process$1.nextTick(function() {
           if (_this[kError]) reject(_this[kError]);
-          else resolve4(createIterResult(void 0, true));
+          else resolve5(createIterResult(void 0, true));
         });
       });
       var lastPromise = this[kLastPromise];
@@ -17693,13 +17699,13 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
     return this;
   }), _defineProperty2(_Object$setPrototypeO, "return", function _return() {
     var _this2 = this;
-    return new Promise(function(resolve4, reject) {
+    return new Promise(function(resolve5, reject) {
       _this2[kStream].destroy(null, function(err) {
         if (err) {
           reject(err);
           return;
         }
-        resolve4(createIterResult(void 0, true));
+        resolve5(createIterResult(void 0, true));
       });
     });
   }), _Object$setPrototypeO), AsyncIteratorPrototype);
@@ -17721,15 +17727,15 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
       value: stream._readableState.endEmitted,
       writable: true
     }), _defineProperty2(_Object$create, kHandlePromise, {
-      value: function value(resolve4, reject) {
+      value: function value(resolve5, reject) {
         var data = iterator[kStream].read();
         if (data) {
           iterator[kLastPromise] = null;
           iterator[kLastResolve] = null;
           iterator[kLastReject] = null;
-          resolve4(createIterResult(data, false));
+          resolve5(createIterResult(data, false));
         } else {
-          iterator[kLastResolve] = resolve4;
+          iterator[kLastResolve] = resolve5;
           iterator[kLastReject] = reject;
         }
       },
@@ -17748,12 +17754,12 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
         iterator[kError] = err;
         return;
       }
-      var resolve4 = iterator[kLastResolve];
-      if (resolve4 !== null) {
+      var resolve5 = iterator[kLastResolve];
+      if (resolve5 !== null) {
         iterator[kLastPromise] = null;
         iterator[kLastResolve] = null;
         iterator[kLastReject] = null;
-        resolve4(createIterResult(void 0, true));
+        resolve5(createIterResult(void 0, true));
       }
       iterator[kEnded] = true;
     });
@@ -32131,7 +32137,7 @@ var require_xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       }
     }
     function add2(value, last) {
-      format(append, resolve4(value, indent, indent ? 1 : 0), last);
+      format(append, resolve5(value, indent, indent ? 1 : 0), last);
     }
     function end() {
       if (stream) {
@@ -32170,12 +32176,12 @@ var require_xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     return output;
   }
   function element() {
-    var self2 = { _elem: resolve4(Array.prototype.slice.call(arguments)) };
+    var self2 = { _elem: resolve5(Array.prototype.slice.call(arguments)) };
     self2.push = function(input) {
       if (!this.append) throw new Error("not assigned to a parent!");
       var that = this;
       var indent = this._elem.indent;
-      format(this.append, resolve4(input, indent, this._elem.icount + (indent ? 1 : 0)), function() {
+      format(this.append, resolve5(input, indent, this._elem.icount + (indent ? 1 : 0)), function() {
         that.append(true);
       });
     };
@@ -32188,7 +32194,7 @@ var require_xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
   function create_indent(character, count) {
     return new Array(count || 0).join(character || "");
   }
-  function resolve4(data, indent, indent_count) {
+  function resolve5(data, indent, indent_count) {
     indent_count = indent_count || 0;
     var indent_spaces = create_indent(indent, indent_count);
     var name;
@@ -32224,7 +32230,7 @@ var require_xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           values.forEach(function(value) {
             if (typeof value == "object") {
               if (Object.keys(value)[0] == "_attr") get_attributes(value._attr);
-              else content.push(resolve4(value, indent, indent_count + 1));
+              else content.push(resolve5(value, indent, indent_count + 1));
             } else {
               content.pop();
               isStringContent = true;
@@ -34573,6 +34579,99 @@ var r=await fetch('/api/login',{method:'POST',headers:{'content-type':'applicati
 if(r.ok){location.reload()}else{var d=await r.json().catch(function(){return{}});e.textContent=d.error||'\u0110\u0103ng nh\u1EADp th\u1EA5t b\u1EA1i'}});
 </script></body></html>`;
 
+// server/dataset.ts
+import { existsSync as existsSync2, readdirSync, readFileSync as readFileSync2 } from "node:fs";
+import { createHash as createHash2, randomUUID as randomUUID2 } from "node:crypto";
+import { dirname as dirname3, join as join2, resolve as resolve2 } from "node:path";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
+var root2 = resolve2(dirname3(fileURLToPath2(import.meta.url)), "..");
+var dir = () => process.env.DATASET_DIR ?? join2(root2, "dataset");
+var REVIEWERS = 10;
+var CRITERIA = [
+  { key: "requirement", label: "\u0110\xFAng y\xEAu c\u1EA7u nghi\u1EC7p v\u1EE5 v\xE0 quy\u1EC1n ng\u01B0\u1EDDi d\xF9ng" },
+  { key: "complete", label: "\u0110\u1EA7y \u0111\u1EE7: kh\xF4ng thi\u1EBFu th\xE0nh ph\u1EA7n c\u1EA7n thi\u1EBFt" },
+  { key: "noExtra", label: "Kh\xF4ng th\u1EEBa, kh\xF4ng tr\xF9ng, kh\xF4ng th\xEAm ch\u1EE9c n\u0103ng ngo\xE0i y\xEAu c\u1EA7u" },
+  { key: "layout", label: "V\u1ECB tr\xED v\xE0 b\u1ED1 c\u1EE5c h\u1EE3p l\xFD" },
+  { key: "components", label: "D\xF9ng \u0111\xFAng component v\xE0 thu\u1ED9c t\xEDnh (required, ki\u1EC3u \xF4 nh\u1EADp\u2026)" },
+  { key: "wording", label: "Nh\xE3n ti\u1EBFng Vi\u1EC7t r\xF5 r\xE0ng, \u0111\xFAng mi\u1EC1n nghi\u1EC7p v\u1EE5" }
+];
+function loadRoots() {
+  const d = dir();
+  if (!existsSync2(join2(d, "matrix.json"))) return { items: [], version: "" };
+  const matrix = new Map(JSON.parse(readFileSync2(join2(d, "matrix.json"), "utf8")).map((m) => [m.id, m]));
+  const items = [];
+  const hash = createHash2("sha1");
+  const rd = join2(d, "roots");
+  for (const f of existsSync2(rd) ? readdirSync(rd).filter((x) => x.endsWith(".json")).sort() : []) {
+    const text = readFileSync2(join2(rd, f), "utf8");
+    hash.update(text);
+    for (const r of JSON.parse(text)) {
+      const m = matrix.get(r.id);
+      if (m) items.push({ ...m, ...r, file: f });
+    }
+  }
+  items.sort((a, b) => a.id.localeCompare(b.id));
+  return { items, version: hash.digest("hex").slice(0, 10) };
+}
+function assigned(items, reviewerNo, batch) {
+  const list = items.filter((x) => x.batch === batch);
+  return list.filter((_, i) => i % REVIEWERS === reviewerNo - 1 || batch === "pilot" && i % REVIEWERS === reviewerNo % REVIEWERS);
+}
+function listForReviewer(reviewer, reviewerNo, batch) {
+  const { items, version } = loadRoots();
+  const rows = getDb().prepare("SELECT root_id, decision, created_at FROM dataset_reviews WHERE reviewer = ? ORDER BY created_at").all(reviewer);
+  const last = new Map(rows.map((r) => [r.root_id, r.decision]));
+  return {
+    version,
+    criteria: CRITERIA,
+    total: items.length,
+    items: assigned(items, reviewerNo, batch).map((x) => ({ id: x.id, title: x.requirement.title, group: x.group, screenKind: x.screenKind, domain: x.domain, decision: last.get(x.id) ?? null }))
+  };
+}
+function getRoot(id, reviewer) {
+  const { items, version } = loadRoots();
+  const item = items.find((x) => x.id === id);
+  if (!item) throw new BizError("Kh\xF4ng t\xECm th\u1EA5y m\xE0n", 404);
+  const review = getDb().prepare("SELECT decision, criteria, comment, fixed_tree FROM dataset_reviews WHERE root_id = ? AND reviewer = ? ORDER BY created_at DESC LIMIT 1").get(id, reviewer);
+  return { item, version, review: review ? { decision: review.decision, criteria: JSON.parse(review.criteria), comment: review.comment, fixedTree: review.fixed_tree ? JSON.parse(review.fixed_tree) : null } : null };
+}
+function saveReview(input) {
+  const { items, version } = loadRoots();
+  if (!items.some((x) => x.id === input.rootId)) throw new BizError("Kh\xF4ng t\xECm th\u1EA5y m\xE0n", 404);
+  if (!input.reviewer.trim()) throw new BizError("Nh\u1EADp t\xEAn ng\u01B0\u1EDDi duy\u1EC7t");
+  if (!["accept", "fix", "reject"].includes(input.decision)) throw new BizError("Quy\u1EBFt \u0111\u1ECBnh kh\xF4ng h\u1EE3p l\u1EC7");
+  const failed = CRITERIA.filter((c) => input.criteria[c.key] === false);
+  if (input.decision === "accept" && failed.length) throw new BizError(`Kh\xF4ng th\u1EC3 ch\u1EA5p nh\u1EADn khi ch\u01B0a \u0111\u1EA1t: ${failed.map((c) => c.label).join("; ")}`);
+  if (input.decision !== "accept" && !input.comment.trim()) throw new BizError("Ghi l\xFD do khi ch\u1ECDn C\u1EA7n s\u1EEDa ho\u1EB7c Lo\u1EA1i");
+  let fixed = null;
+  if (input.fixedTree) {
+    const t = normalizeTree(input.fixedTree);
+    const v = validateTree(t);
+    if (!v.ok) throw new BizError(`C\xE2y \u0111\xE3 s\u1EEDa kh\xF4ng h\u1EE3p l\u1EC7: ${v.errors.slice(0, 5).join("; ")}`);
+    fixed = JSON.stringify(t);
+  }
+  getDb().prepare("INSERT INTO dataset_reviews (id, root_id, reviewer, decision, criteria, comment, fixed_tree, data_version, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(randomUUID2(), input.rootId, input.reviewer.trim(), input.decision, JSON.stringify(input.criteria), input.comment.trim(), fixed, version, (/* @__PURE__ */ new Date()).toISOString());
+  return { ok: true };
+}
+function exportReviews(reviewer) {
+  const rows = getDb().prepare("SELECT * FROM dataset_reviews ORDER BY created_at").all();
+  const latest = /* @__PURE__ */ new Map();
+  for (const r of rows) {
+    if (reviewer && r.reviewer !== reviewer) continue;
+    latest.set(`${r.root_id}|${r.reviewer}`, {
+      rootId: r.root_id,
+      reviewer: r.reviewer,
+      decision: r.decision,
+      criteria: JSON.parse(r.criteria),
+      comment: r.comment,
+      fixedTree: r.fixed_tree ? JSON.parse(r.fixed_tree) : null,
+      dataVersion: r.data_version,
+      reviewedAt: r.created_at
+    });
+  }
+  return [...latest.values()];
+}
+
 // server/app.ts
 var routes = [];
 function route(method, path, handler) {
@@ -34602,6 +34701,18 @@ route("POST", "/api/login", ({ req, res, body }) => {
   return { ok: true };
 });
 route("POST", "/api/logout", ({ req, res }) => (logout(req, res), { ok: true }));
+route("GET", "/api/dataset/assigned", ({ query }) => listForReviewer(query.get("reviewer") ?? "", Number(query.get("no")) || 1, query.get("batch") ?? "pilot"));
+route("GET", "/api/dataset/roots/:id", ({ params, query }) => getRoot(params.id, query.get("reviewer") ?? ""));
+route(
+  "POST",
+  "/api/dataset/reviews",
+  ({ body }) => saveReview({ rootId: str(body.rootId, 20), reviewer: str(body.reviewer, 80), decision: str(body.decision, 10), criteria: body.criteria && typeof body.criteria === "object" ? body.criteria : {}, comment: str(body.comment, 4e3), fixedTree: body.fixedTree })
+);
+route("GET", "/api/dataset/reviews/export", ({ query }) => {
+  const who = query.get("reviewer") ?? "";
+  const data = JSON.stringify({ exportedAt: (/* @__PURE__ */ new Date()).toISOString(), version: loadRoots().version, reviews: exportReviews(who || void 0) }, null, 1);
+  return new FileResponse(Buffer.from(data), `duyet-${(who || "tat-ca").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d").replace(/[^A-Za-z0-9]+/g, "_")}.json`, "application/json");
+});
 route("GET", "/api/projects", () => listProjects());
 route("POST", "/api/projects", ({ body }) => {
   const name = str(body.name, 200).trim();
@@ -34732,7 +34843,7 @@ function createApp(opts) {
   const require2 = createRequire(import.meta.url);
   let mermaidPath = "";
   try {
-    mermaidPath = join2(resolve2(require2.resolve("mermaid/package.json"), ".."), "dist", "mermaid.min.js");
+    mermaidPath = join3(resolve3(require2.resolve("mermaid/package.json"), ".."), "dist", "mermaid.min.js");
   } catch {
   }
   return createServer(async (req, res) => {
@@ -34763,11 +34874,11 @@ function createApp(opts) {
       }
       if (url.pathname === "/vendor/mermaid.min.js" && mermaidPath) return serveFile(res, mermaidPath);
       const safePath = url.pathname === "/" ? "/index.html" : url.pathname;
-      const file = resolve2(opts.publicDir, "." + safePath);
-      if (!file.startsWith(resolve2(opts.publicDir))) return send(res, 403, { error: "Forbidden" });
+      const file = resolve3(opts.publicDir, "." + safePath);
+      if (!file.startsWith(resolve3(opts.publicDir))) return send(res, 403, { error: "Forbidden" });
       const st = await stat(file).catch(() => null);
       if (st?.isFile()) return serveFile(res, file);
-      return serveFile(res, join2(opts.publicDir, "index.html"));
+      return serveFile(res, join3(opts.publicDir, "index.html"));
     } catch (e) {
       if (e instanceof BizError) return send(res, e.status, { error: e.message });
       if (e instanceof AIError) return send(res, 502, { error: e.message, details: e.details });
@@ -34783,17 +34894,17 @@ async function serveFile(res, file) {
 }
 
 // server/index.ts
-var root2 = resolve3(dirname3(fileURLToPath2(import.meta.url)), "..");
-var envFile = join3(root2, ".env");
-if (existsSync2(envFile)) {
-  for (const line of readFileSync2(envFile, "utf8").split(/\r?\n/)) {
+var root3 = resolve4(dirname4(fileURLToPath3(import.meta.url)), "..");
+var envFile = join4(root3, ".env");
+if (existsSync3(envFile)) {
+  for (const line of readFileSync3(envFile, "utf8").split(/\r?\n/)) {
     const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
     if (m && process.env[m[1]] === void 0) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
   }
 }
 var port = Number(process.env.PORT ?? 3e3);
-openDb(process.env.DB_FILE ?? join3(root2, "data", "ba-copilot.db"));
-var server = createApp({ publicDir: join3(root2, "public") });
+openDb(process.env.DB_FILE ?? join4(root3, "data", "ba-copilot.db"));
+var server = createApp({ publicDir: join4(root3, "public") });
 server.listen(port, () => {
   const c = aiConfig();
   console.log(`

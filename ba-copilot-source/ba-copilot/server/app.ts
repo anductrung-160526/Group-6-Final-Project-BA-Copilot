@@ -12,6 +12,7 @@ import { buildDocx } from "./export/docx.ts";
 import { testWorkbook } from "./export/xlsx.ts";
 import { authEnabled, isAuthenticated, login, logout, LOGIN_HTML } from "./auth.ts";
 import { buildTrace } from "../shared/trace.ts";
+import * as dataset from "./dataset.ts";
 
 type Handler = (ctx: { req: IncomingMessage; res: ServerResponse; params: Record<string, string>; body: any; query: URLSearchParams }) => Promise<unknown> | unknown;
 interface Route {
@@ -46,6 +47,18 @@ route("POST", "/api/login", ({ req, res, body }) => {
   return { ok: true };
 });
 route("POST", "/api/logout", ({ req, res }) => (logout(req, res), { ok: true }));
+
+// ---------------------------------------------------------------- Duyệt bộ dữ liệu (BA)
+route("GET", "/api/dataset/assigned", ({ query }) => dataset.listForReviewer(query.get("reviewer") ?? "", Number(query.get("no")) || 1, query.get("batch") ?? "pilot"));
+route("GET", "/api/dataset/roots/:id", ({ params, query }) => dataset.getRoot(params.id, query.get("reviewer") ?? ""));
+route("POST", "/api/dataset/reviews", ({ body }) =>
+  dataset.saveReview({ rootId: str(body.rootId, 20), reviewer: str(body.reviewer, 80), decision: str(body.decision, 10), criteria: body.criteria && typeof body.criteria === "object" ? body.criteria : {}, comment: str(body.comment, 4000), fixedTree: body.fixedTree }),
+);
+route("GET", "/api/dataset/reviews/export", ({ query }) => {
+  const who = query.get("reviewer") ?? "";
+  const data = JSON.stringify({ exportedAt: new Date().toISOString(), version: dataset.loadRoots().version, reviews: dataset.exportReviews(who || undefined) }, null, 1);
+  return new FileResponse(Buffer.from(data), `duyet-${(who || "tat-ca").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d").replace(/[^A-Za-z0-9]+/g, "_")}.json`, "application/json");
+});
 
 route("GET", "/api/projects", () => repo.listProjects());
 route("POST", "/api/projects", ({ body }) => {

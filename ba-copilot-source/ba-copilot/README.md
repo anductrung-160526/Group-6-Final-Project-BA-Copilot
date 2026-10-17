@@ -188,6 +188,15 @@ Báo động giả (cây hoàn chỉnh vẫn bị gợi ý thêm, ngưỡng 0,3 
 `npm run build-model` / `npm run eval-next`: Top-1/Top-3 ở mức 50% đạt 66,4% / 88,9% trên holdout 2.503 cây. Bảng trên huấn luyện lại n-gram trên cùng dữ liệu với Transformer nên số khác.
 </details>
 
+### Bộ dữ liệu "bổ sung UI" (đang xây dựng)
+
+Thay cho WebSight và dữ liệu tổng hợp từ Mock. Đặc tả chi tiết ở `dataset/AUTHORING.md`.
+
+- **Màn gốc:** do Claude soạn theo ma trận phủ `dataset/matrix.json`, gồm 500 màn = 5 nhóm × 12 miền × quyền × bố cục. Đợt thử là 50 màn trong `dataset/roots/`.
+- **Duyệt:** BA duyệt tại trang **Duyệt dữ liệu** (`#/review`) theo 6 tiêu chí, rồi bấm "Xuất kết quả" và gửi file JSON cho nhóm. Ở đợt thử, mỗi màn có 2 BA duyệt độc lập để đo độ đồng thuận.
+- **Sinh mẫu:** `npm run dataset:samples -- --reviews kq1.json,kq2.json,...` tạo mẫu từ các màn được chấp nhận. Mỗi mẫu gồm `requirement`, `partialTree`, `targetContainerId`, `acceptedPatch`, `completedTree`, `review`. Có 4 kiểu: thiếu 1 phần tử, thiếu 1 cụm, thiếu 1 cặp, và màn đủ (đáp án rỗng; với màn giới hạn quyền thì là mẫu bẫy). Tập train/val/test được chia theo màn gốc.
+- **Huấn luyện:** `npm run dataset:export && python3 scripts/train_transformer.py --samples data/dataset/tf --epochs 30`.
+
 ## 4. Kiểm thử
 
 ```bash

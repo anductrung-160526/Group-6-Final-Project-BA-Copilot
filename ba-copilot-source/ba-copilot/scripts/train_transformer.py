@@ -72,6 +72,54 @@ def all_nodes_bfs(tree):
     return out
 
 
+def preorder(tree):
+    out = [tree]
+    for c in kids(tree) or []:
+        out.extend(preorder(c))
+    return out
+
+
+def fixed_keep(tree, drop):
+    """keep = mọi node trừ các node trong `drop` (chỉ số tiền tự) và cây con của chúng – đúng partialTree của mẫu."""
+    nodes = preorder(tree)
+    gone = set()
+    for i in drop:
+        for m in all_nodes_bfs(nodes[i]):
+            gone.add(id(m))
+    return {id(n) for n in nodes} - gone
+
+
+@torch.no_grad()
+def eval_samples(model, items, max_len, max_depth):
+    """Trên bộ mẫu: với mẫu thiếu, token của ô bị bỏ (đầu tiên) phải đoán đúng loại (Top-1/Top-3);
+    với mẫu đủ, không ô nào có P(thiếu) ≥ 0,5 (báo động giả)."""
+    model.eval()
+    r = {"missing": 0, "top1": 0, "top3": 0, "complete": 0, "alarm": 0}
+    for it in items:
+        tree, drop = it["tree"], it["drop"]
+        tt, ts, td, gt, gs = linearize(tree, fixed_keep(tree, drop), max_depth)
+        if len(tt) > max_len:
+            continue
+        T, S, D, _, _, P = batchify([(tt, ts, td, gt, gs)], max_len)
+        _, lg = model(T, S, D, P)
+        pr = lg[0].softmax(-1)
+        if not drop:
+            r["complete"] += 1
+            r["alarm"] += int((1 - pr[:, 0]).max().item() >= 0.5)
+            continue
+        target_type = preorder(tree)[min(drop)][0]
+        idx = [i for i, g in enumerate(gt) if g == 1 + target_type]
+        if not idx:
+            continue
+        top = lg[0, idx[0], 1:].topk(3).indices.tolist()
+        r["missing"] += 1
+        r["top1"] += int(top[0] == target_type)
+        r["top3"] += int(target_type in top)
+    model.train()
+    m = max(r["missing"], 1)
+    return {"n_missing": r["missing"], "top1": r["top1"] / m, "top3": r["top3"] / m, "n_complete": r["complete"], "alarm": r["alarm"] / max(r["complete"], 1)}
+
+
 def corrupt(tree, rnd):
     nodes = all_nodes_bfs(tree)
     keep = {id(n) for n in nodes}
@@ -230,17 +278,25 @@ def main():
     ap.add_argument("--threads", type=int, default=os.cpu_count() or 4)
     ap.add_argument("--limit", type=int, default=0, help="chỉ dùng N cây đầu (chạy thử)")
     ap.add_argument("--parity-out", default="model/next-transformer.parity.json")
+    ap.add_argument("--samples", default="", help="thư mục bộ mẫu bổ sung UI (data/dataset/tf): học từ cặp màn thiếu → phần bổ sung")
+    ap.add_argument("--augment", type=float, default=0.5, help="(--samples) xác suất làm hỏng ngẫu nhiên cây đầy đủ của mẫu thay cho mẫu cố định")
     a = ap.parse_args()
     torch.manual_seed(a.seed)
     torch.set_num_threads(a.threads)
     rnd = random.Random(a.seed)
 
-    train = load(f"{a.data}/train.jsonl")
-    if a.limit:
-        random.Random(1).shuffle(train)
-        train = train[:a.limit]
-    tests = {k: [r["tree"] for r in load(f"{a.data}/{k}.jsonl")] for k in ("wi", "synth")}
-    pool = [r["tree"] for r in train for _ in range(int(r.get("w", 1)))]
+    if a.samples:
+        train = load(f"{a.samples}/train.jsonl")
+        val = load(f"{a.samples}/val.jsonl")
+        tests = {}
+        pool = [(r["tree"], r["drop"]) for r in train]
+    else:
+        train = load(f"{a.data}/train.jsonl")
+        if a.limit:
+            random.Random(1).shuffle(train)
+            train = train[:a.limit]
+        tests = {k: [r["tree"] for r in load(f"{a.data}/{k}.jsonl")] for k in ("wi", "synth")}
+        pool = [(r["tree"], None) for r in train for _ in range(int(r.get("w", 1)))]
     cfg = {"d": a.d, "heads": a.heads, "layers": a.layers, "ff": a.ff, "maxLen": a.max_len, "maxDepth": a.max_depth}
     model = TreeTransformer(a.d, a.heads, a.layers, a.ff, a.max_len, a.max_depth)
     n_params = sum(p.numel() for p in model.parameters())
@@ -256,7 +312,7 @@ def main():
         chunks = [pool[i:i + a.batch * 50] for i in range(0, len(pool), a.batch * 50)]
         tot, cnt = 0.0, 0
         for ch in chunks:
-            seqs = [linearize(t, corrupt(t, rnd), a.max_depth) for t in ch]
+            seqs = [linearize(t, fixed_keep(t, d) if d is not None and rnd.random() >= a.augment else corrupt(t, rnd), a.max_depth) for t, d in ch]
             seqs.sort(key=lambda s: len(s[0]))
             batches = [seqs[i:i + a.batch] for i in range(0, len(seqs), a.batch)]
             rnd.shuffle(batches)
@@ -274,14 +330,26 @@ def main():
                 opt.step()
                 sched.step()
                 tot += loss.item(); cnt += 1
-        res = {k: eval_masked(model, v[:800], 0.5, a.max_len, a.max_depth) for k, v in tests.items() if v}
-        history.append({"epoch": ep + 1, "loss": tot / cnt, **{k: round(r["top3"], 4) for k, r in res.items()}})
-        print(f"epoch {ep + 1}/{a.epochs} loss {tot / cnt:.4f} · top-3@50% " + " ".join(f"{k} {r['top3']:.3f}" for k, r in res.items()) + f" · {time.time() - t0:.0f}s", flush=True)
+        if a.samples:
+            v = eval_samples(model, val, a.max_len, a.max_depth)
+            history.append({"epoch": ep + 1, "loss": tot / cnt, **v})
+            print(f"epoch {ep + 1}/{a.epochs} loss {tot / cnt:.4f} · val: Top-1 {v['top1']:.3f} Top-3 {v['top3']:.3f} (n={v['n_missing']}) · báo động giả {v['alarm']:.3f} (n={v['n_complete']}) · {time.time() - t0:.0f}s", flush=True)
+        else:
+            res = {k: eval_masked(model, v[:800], 0.5, a.max_len, a.max_depth) for k, v in tests.items() if v}
+            history.append({"epoch": ep + 1, "loss": tot / cnt, **{k: round(r["top3"], 4) for k, r in res.items()}})
+            print(f"epoch {ep + 1}/{a.epochs} loss {tot / cnt:.4f} · top-3@50% " + " ".join(f"{k} {r['top3']:.3f}" for k, r in res.items()) + f" · {time.time() - t0:.0f}s", flush=True)
 
     model.eval()
-    final = {k: [eval_masked(model, v, f, a.max_len, a.max_depth) for f in (0.1, 0.5, 0.8)] for k, v in tests.items() if v}
-    meta = {"builtAt": time.strftime("%Y-%m-%dT%H:%M:%S"), "trees": len(train), "params": n_params, "epochs": a.epochs,
-            "sources": {s: sum(1 for r in train if r["src"] == s) for s in sorted({r["src"] for r in train})}}
+    if a.samples:
+        final = {"val": eval_samples(model, val, a.max_len, a.max_depth)}
+        meta = {"builtAt": time.strftime("%Y-%m-%dT%H:%M:%S"), "trees": len({r["rootId"] for r in train}), "samples": len(train), "params": n_params, "epochs": a.epochs,
+                "sources": {"ui-completion-dataset": len(train)}, "augment": a.augment}
+        parity_trees = [r["tree"] for r in val[:3]]
+    else:
+        final = {k: [eval_masked(model, v, f, a.max_len, a.max_depth) for f in (0.1, 0.5, 0.8)] for k, v in tests.items() if v}
+        meta = {"builtAt": time.strftime("%Y-%m-%dT%H:%M:%S"), "trees": len(train), "params": n_params, "epochs": a.epochs,
+                "sources": {s: sum(1 for r in train if r["src"] == s) for s in sorted({r["src"] for r in train})}}
+        parity_trees = (tests.get("synth") or tests.get("wi"))[:3]
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     export(model, cfg, meta, a.out)
     os.makedirs("analysis", exist_ok=True)
@@ -290,7 +358,7 @@ def main():
     parity = []
     model.eval()
     with torch.no_grad():
-        for tree in (tests.get("synth") or tests.get("wi"))[:3]:
+        for tree in parity_trees:
             tt, ts, td, gt, gs = linearize(tree, {id(n) for n in all_nodes_bfs(tree)}, a.max_depth)
             T, S, D, _, _, P = batchify([(tt, ts, td, gt, gs)], a.max_len)
             _, lg = model(T, S, D, P)

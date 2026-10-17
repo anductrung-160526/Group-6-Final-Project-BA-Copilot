@@ -64,6 +64,12 @@ CREATE TABLE IF NOT EXISTS suggestion_events (
 CREATE TABLE IF NOT EXISTS model_learned_trees (
   version_id TEXT PRIMARY KEY, screen_id TEXT NOT NULL, tree TEXT NOT NULL, created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS dataset_reviews (
+  id TEXT PRIMARY KEY, root_id TEXT NOT NULL, reviewer TEXT NOT NULL,
+  decision TEXT NOT NULL CHECK(decision IN ('accept','fix','reject')),
+  criteria TEXT NOT NULL, comment TEXT NOT NULL, fixed_tree TEXT, data_version TEXT NOT NULL, created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_dsrev_root ON dataset_reviews(root_id, reviewer);
 CREATE INDEX IF NOT EXISTS idx_sugg_screen ON suggestion_events(screen_id);
 CREATE INDEX IF NOT EXISTS idx_modules_project ON modules(project_id);
 CREATE INDEX IF NOT EXISTS idx_screens_module ON screens(module_id);
