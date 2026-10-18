@@ -6,8 +6,10 @@ rời rạc, cross-entropy thường (không làm mềm nhãn); huấn luyện t
 chọn cấu hình theo tập val; giải mã tham lam, không ràng buộc.
 Khác bài báo (ghi rõ): lưới tọa độ khổ web 128 ô ngang × ô dọc 20 px (bài báo 72×128 cho điện thoại); dò hidden {128, 256} ×
 số lớp {2, 4, 6} (bài báo thêm 512 – bỏ vì CPU); dừng sớm theo val loss; "canvas" là vector học được làm trạng thái tổ tiên của gốc.
-Dữ liệu: data/paper-w7c20 (200 màn gốc web, 7 độ rộng; chia theo màn gốc). Chỉ dữ liệu của nhóm, không WebSight.
-Dùng: python3 scripts/paper/train_faithful.py → model/recursive-layout.pt + dataset/export/eval/recursive-faithful.json
+Dữ liệu: data/paper-w7c20-r300 (300 màn gốc web, 7 độ rộng; chia theo màn gốc) – bản 200 màn: data/paper-w7c20.
+Chỉ dữ liệu của nhóm, không WebSight.
+Dùng: python3 scripts/paper/train_faithful.py [--data=data/paper-w7c20-r300]
+      → model/recursive-layout.pt + dataset/export/eval/recursive-faithful.json
 """
 import json, os, sys, time
 import torch
@@ -15,7 +17,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import tree_decoders as T  # noqa: E402
 import coords_experiment as C  # noqa: E402
 
-D = "data/paper-w7c20"
+D = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--data=")), "data/paper-w7c20-r300")
 torch.set_num_threads(os.cpu_count() or 4)
 train, val, test = (C.load(f"{D}/{s}.jsonl") for s in ("train", "val", "test"))
 val1280 = [r for r in val if r["width"] == 1280]
@@ -33,9 +35,12 @@ m, vl, d, L = best
 print(f"chọn d={d} L={L}", flush=True)
 os.makedirs("model", exist_ok=True)
 torch.save(m.state_dict(), "model/recursive-layout.pt")
+old_test = [r for r in test if int(r["rootId"][1:]) <= 200]  # cùng 22 cây test của bản 200 màn – so sánh trước/sau
 res = {"val": {"next": C.next_metrics(m, val1280, False), "insert": C.insertion_metrics(m, val1280, False)},
        "test": {"next": C.next_metrics(m, test, False), "insert": C.insertion_metrics(m, test, False)},
-       "paper_metrics_test": T.evaluate(lambda t, part, k, order: T.recursive_complete(m, part), [r["tree"] for r in test])}
-json.dump({"data": D, "chosen": {"d": d, "layers": L, "val_loss": round(vl, 4)}, "search": search, **res},
+       "paper_metrics_test": T.evaluate(lambda t, part, k, order: T.recursive_complete(m, part), [r["tree"] for r in test]),
+       "test_old_roots": {"n": len(old_test), "next": C.next_metrics(m, old_test, False), "insert": C.insertion_metrics(m, old_test, False),
+                          "paper_metrics": T.evaluate(lambda t, part, k, order: T.recursive_complete(m, part), [r["tree"] for r in old_test])}}
+json.dump({"data": D, "train_trees": len(train), "val_trees": len(val), "test_trees": len(test), "chosen": {"d": d, "layers": L, "val_loss": round(vl, 4)}, "search": search, **res},
           open("dataset/export/eval/recursive-faithful.json", "w"), ensure_ascii=False, indent=1)
 print(json.dumps({k: res[k] for k in ("val", "test")}, ensure_ascii=False))

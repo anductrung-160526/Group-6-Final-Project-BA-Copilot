@@ -1798,5 +1798,905 @@
   "domain": "Dự án & công việc",
   "permission": "Chỉ được tạo mới, không sửa/xóa",
   "layout": "Hai cột"
+ },
+ {
+  "id": "R201",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Chi tiết sản phẩm",
+  "domain": "Thời trang",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R202",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Danh mục sản phẩm (lưới + bộ lọc)",
+  "domain": "Điện tử & điện máy",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R203",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Thanh toán nhiều bước",
+  "domain": "Phần mềm SaaS",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R204",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Theo dõi đơn hàng",
+  "domain": "Sự kiện & bán vé",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R205",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Danh sách yêu thích",
+  "domain": "Du lịch & khách sạn",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R206",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Trang khuyến mãi",
+  "domain": "Nhà hàng & giao đồ ăn",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R207",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Đánh giá sản phẩm",
+  "domain": "Thể thao & phòng tập",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R208",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Trang đích giới thiệu sản phẩm",
+  "domain": "Giáo dục trực tuyến",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R209",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Giới thiệu công ty",
+  "domain": "Nội thất & nhà cửa",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R210",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Trang liên hệ",
+  "domain": "Báo chí & xuất bản",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R211",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Đăng ký nhận bản tin",
+  "domain": "Phòng khám & sức khỏe",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R212",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Danh sách việc làm",
+  "domain": "Ngân hàng & ví điện tử",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R213",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Chi tiết tin tuyển dụng và ứng tuyển",
+  "domain": "Nội thất & nhà cửa",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R214",
+  "batch": "ext",
+  "group": "content",
+  "screenKind": "Danh sách bài viết / blog",
+  "domain": "Thời trang",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R215",
+  "batch": "ext",
+  "group": "content",
+  "screenKind": "Chi tiết bài viết và bình luận",
+  "domain": "Điện tử & điện máy",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R216",
+  "batch": "ext",
+  "group": "content",
+  "screenKind": "Trang sự kiện và đăng ký tham dự",
+  "domain": "Giáo dục trực tuyến",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R217",
+  "batch": "ext",
+  "group": "content",
+  "screenKind": "Trang khóa học công khai",
+  "domain": "Báo chí & xuất bản",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R218",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Đặt lịch hẹn trực tuyến",
+  "domain": "Ngân hàng & ví điện tử",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R219",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Đặt phòng / đặt chỗ",
+  "domain": "Phòng khám & sức khỏe",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R220",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Trang cửa hàng / người bán",
+  "domain": "Nhà hàng & giao đồ ăn",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R221",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Tài khoản của tôi (người dùng cuối)",
+  "domain": "Sự kiện & bán vé",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R222",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Trang trạng thái hệ thống",
+  "domain": "Du lịch & khách sạn",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R223",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Trang 404 / bảo trì",
+  "domain": "Thể thao & phòng tập",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R224",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Màn chào mừng và hướng dẫn bắt đầu",
+  "domain": "Phần mềm SaaS",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R225",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Hồ sơ công khai",
+  "domain": "Nội thất & nhà cửa",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R226",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Chi tiết sản phẩm",
+  "domain": "Sự kiện & bán vé",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R227",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Danh mục sản phẩm (lưới + bộ lọc)",
+  "domain": "Ngân hàng & ví điện tử",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R228",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Thanh toán nhiều bước",
+  "domain": "Phần mềm SaaS",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R229",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Theo dõi đơn hàng",
+  "domain": "Nhà hàng & giao đồ ăn",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R230",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Danh sách yêu thích",
+  "domain": "Điện tử & điện máy",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R231",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Trang khuyến mãi",
+  "domain": "Giáo dục trực tuyến",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R232",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Đánh giá sản phẩm",
+  "domain": "Báo chí & xuất bản",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R233",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Trang đích giới thiệu sản phẩm",
+  "domain": "Du lịch & khách sạn",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R234",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Giới thiệu công ty",
+  "domain": "Thể thao & phòng tập",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R235",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Trang liên hệ",
+  "domain": "Thời trang",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R236",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Đăng ký nhận bản tin",
+  "domain": "Phòng khám & sức khỏe",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R237",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Danh sách việc làm",
+  "domain": "Du lịch & khách sạn",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R238",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Chi tiết tin tuyển dụng và ứng tuyển",
+  "domain": "Phòng khám & sức khỏe",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R239",
+  "batch": "ext",
+  "group": "content",
+  "screenKind": "Danh sách bài viết / blog",
+  "domain": "Báo chí & xuất bản",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R240",
+  "batch": "ext",
+  "group": "content",
+  "screenKind": "Chi tiết bài viết và bình luận",
+  "domain": "Sự kiện & bán vé",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R241",
+  "batch": "ext",
+  "group": "content",
+  "screenKind": "Trang sự kiện và đăng ký tham dự",
+  "domain": "Thể thao & phòng tập",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R242",
+  "batch": "ext",
+  "group": "content",
+  "screenKind": "Trang khóa học công khai",
+  "domain": "Giáo dục trực tuyến",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R243",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Đặt lịch hẹn trực tuyến",
+  "domain": "Điện tử & điện máy",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R244",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Đặt phòng / đặt chỗ",
+  "domain": "Phần mềm SaaS",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R245",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Trang cửa hàng / người bán",
+  "domain": "Nội thất & nhà cửa",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R246",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Tài khoản của tôi (người dùng cuối)",
+  "domain": "Nhà hàng & giao đồ ăn",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R247",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Trang trạng thái hệ thống",
+  "domain": "Ngân hàng & ví điện tử",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R248",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Trang 404 / bảo trì",
+  "domain": "Thời trang",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R249",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Màn chào mừng và hướng dẫn bắt đầu",
+  "domain": "Nhà hàng & giao đồ ăn",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R250",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Hồ sơ công khai",
+  "domain": "Báo chí & xuất bản",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R251",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Chi tiết sản phẩm",
+  "domain": "Ngân hàng & ví điện tử",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R252",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Danh mục sản phẩm (lưới + bộ lọc)",
+  "domain": "Giáo dục trực tuyến",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R253",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Thanh toán nhiều bước",
+  "domain": "Du lịch & khách sạn",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R254",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Theo dõi đơn hàng",
+  "domain": "Thể thao & phòng tập",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R255",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Danh sách yêu thích",
+  "domain": "Phòng khám & sức khỏe",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R256",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Trang khuyến mãi",
+  "domain": "Sự kiện & bán vé",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R257",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Đánh giá sản phẩm",
+  "domain": "Điện tử & điện máy",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R258",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Trang đích giới thiệu sản phẩm",
+  "domain": "Thời trang",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R259",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Giới thiệu công ty",
+  "domain": "Phần mềm SaaS",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R260",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Trang liên hệ",
+  "domain": "Nội thất & nhà cửa",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R261",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Đăng ký nhận bản tin",
+  "domain": "Nội thất & nhà cửa",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R262",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Danh sách việc làm",
+  "domain": "Nhà hàng & giao đồ ăn",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R263",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Chi tiết tin tuyển dụng và ứng tuyển",
+  "domain": "Ngân hàng & ví điện tử",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R264",
+  "batch": "ext",
+  "group": "content",
+  "screenKind": "Danh sách bài viết / blog",
+  "domain": "Du lịch & khách sạn",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R265",
+  "batch": "ext",
+  "group": "content",
+  "screenKind": "Chi tiết bài viết và bình luận",
+  "domain": "Điện tử & điện máy",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R266",
+  "batch": "ext",
+  "group": "content",
+  "screenKind": "Trang sự kiện và đăng ký tham dự",
+  "domain": "Báo chí & xuất bản",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R267",
+  "batch": "ext",
+  "group": "content",
+  "screenKind": "Trang khóa học công khai",
+  "domain": "Sự kiện & bán vé",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R268",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Đặt lịch hẹn trực tuyến",
+  "domain": "Thời trang",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R269",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Đặt phòng / đặt chỗ",
+  "domain": "Thể thao & phòng tập",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R270",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Trang cửa hàng / người bán",
+  "domain": "Phần mềm SaaS",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R271",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Tài khoản của tôi (người dùng cuối)",
+  "domain": "Phòng khám & sức khỏe",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R272",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Trang trạng thái hệ thống",
+  "domain": "Giáo dục trực tuyến",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R273",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Trang 404 / bảo trì",
+  "domain": "Phần mềm SaaS",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R274",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Màn chào mừng và hướng dẫn bắt đầu",
+  "domain": "Thể thao & phòng tập",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R275",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Hồ sơ công khai",
+  "domain": "Thời trang",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R276",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Chi tiết sản phẩm",
+  "domain": "Nội thất & nhà cửa",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R277",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Danh mục sản phẩm (lưới + bộ lọc)",
+  "domain": "Giáo dục trực tuyến",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R278",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Thanh toán nhiều bước",
+  "domain": "Nhà hàng & giao đồ ăn",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R279",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Theo dõi đơn hàng",
+  "domain": "Ngân hàng & ví điện tử",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R280",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Danh sách yêu thích",
+  "domain": "Điện tử & điện máy",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R281",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Trang khuyến mãi",
+  "domain": "Báo chí & xuất bản",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R282",
+  "batch": "ext",
+  "group": "commerce",
+  "screenKind": "Đánh giá sản phẩm",
+  "domain": "Du lịch & khách sạn",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R283",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Trang đích giới thiệu sản phẩm",
+  "domain": "Phòng khám & sức khỏe",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R284",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Giới thiệu công ty",
+  "domain": "Sự kiện & bán vé",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R285",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Trang liên hệ",
+  "domain": "Phần mềm SaaS",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R286",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Đăng ký nhận bản tin",
+  "domain": "Nội thất & nhà cửa",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R287",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Danh sách việc làm",
+  "domain": "Nhà hàng & giao đồ ăn",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R288",
+  "batch": "ext",
+  "group": "marketing",
+  "screenKind": "Chi tiết tin tuyển dụng và ứng tuyển",
+  "domain": "Phòng khám & sức khỏe",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R289",
+  "batch": "ext",
+  "group": "content",
+  "screenKind": "Danh sách bài viết / blog",
+  "domain": "Giáo dục trực tuyến",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R290",
+  "batch": "ext",
+  "group": "content",
+  "screenKind": "Chi tiết bài viết và bình luận",
+  "domain": "Du lịch & khách sạn",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R291",
+  "batch": "ext",
+  "group": "content",
+  "screenKind": "Trang sự kiện và đăng ký tham dự",
+  "domain": "Ngân hàng & ví điện tử",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R292",
+  "batch": "ext",
+  "group": "content",
+  "screenKind": "Trang khóa học công khai",
+  "domain": "Thể thao & phòng tập",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R293",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Đặt lịch hẹn trực tuyến",
+  "domain": "Sự kiện & bán vé",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R294",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Đặt phòng / đặt chỗ",
+  "domain": "Thời trang",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R295",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Trang cửa hàng / người bán",
+  "domain": "Điện tử & điện máy",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R296",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Tài khoản của tôi (người dùng cuối)",
+  "domain": "Báo chí & xuất bản",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R297",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Trang trạng thái hệ thống",
+  "domain": "Sự kiện & bán vé",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R298",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Trang 404 / bảo trì",
+  "domain": "Nhà hàng & giao đồ ăn",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R299",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Màn chào mừng và hướng dẫn bắt đầu",
+  "domain": "Du lịch & khách sạn",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R300",
+  "batch": "ext",
+  "group": "service",
+  "screenKind": "Hồ sơ công khai",
+  "domain": "Phần mềm SaaS",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Banner lớn + các khối nội dung"
  }
 ]

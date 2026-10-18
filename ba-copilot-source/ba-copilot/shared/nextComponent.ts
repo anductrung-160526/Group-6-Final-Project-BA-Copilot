@@ -445,21 +445,51 @@ function transformerAdds(m: TransformerModel, tree: UINode, inScope: (id: string
 }
 
 /**
+ * Bộ lọc của ỨNG DỤNG cho gợi ý Recursive (phương án A) – không thuộc phương pháp Li et al. 2020, không đổi mô hình,
+ * chỉ ẩn những gợi ý mô hình đưa ra nhưng vô lý khi hiển thị cho BA:
+ *  F1 ngưỡng tin cậy: bỏ phần tử có xác suất loại < minP (chọn trên tập val, scripts/paper/eval-filter.ts);
+ *  F2 trùng loại "một lần mỗi container": Heading, Pagination, Table, Avatar, Alert đã có trong container → bỏ;
+ *     Heading trong Card/Section/Form/Modal đã có tiêu đề (props.title), hoặc Header đã có Heading ở bất kỳ cấp nào → bỏ;
+ *  F3 mỗi container một gợi ý: chỉ giữ phần tử đầu tiên còn lại sau F1–F2 (các phần tử sau phụ thuộc vào phần tử trước chưa chèn).
+ */
+export interface RecursiveFilter { minP: number; minPRegion: number; unique: boolean; onePerContainer: boolean }
+export const RECURSIVE_FILTER: RecursiveFilter = { minP: 0.5, minPRegion: 0.3, unique: true, onePerContainer: true };
+export const NO_FILTER: RecursiveFilter = { minP: TF_ADD_MIN, minPRegion: TF_ADD_MIN_REGION, unique: false, onePerContainer: false };
+const ONCE_PER_CONTAINER = new Set(["Heading", "Pagination", "Table", "Avatar", "Alert"]);
+
+function duplicateType(container: UINode, type: string): boolean {
+  const kids = container.children ?? [];
+  if (ONCE_PER_CONTAINER.has(type) && kids.some((k) => k.type === type)) return true;
+  if (type !== "Heading") return false;
+  if (["Card", "Section", "Form", "Modal"].includes(container.type) && String(container.props.title ?? "").trim()) return true;
+  if (container.type === "Header") {
+    let found = false;
+    walk(container, (d) => { if (d !== container && d.type === "Heading") found = true; });
+    return found;
+  }
+  return false;
+}
+
+/**
  * Gợi ý "Thêm" từ Recursive Transformer Tree Decoder (Li et al. 2020 §4.4, shared/recursive.ts): với mỗi container, các con mô hình
  * sinh tiếp sau những con đã có; vị trí chèn suy từ khung bao dự đoán (thứ tự đọc). Độ tin cậy = xác suất softmax của loại tại bước sinh.
+ * `filter` là lớp lọc của ứng dụng (RECURSIVE_FILTER mặc định; NO_FILTER = đầu ra mô hình gần như nguyên bản).
  */
-export function recursiveAdds(preds: ContainerPrediction[], tree: UINode, selectedIds: string[] = []): Suggestion[] {
+export function recursiveAdds(preds: ContainerPrediction[], tree: UINode, selectedIds: string[] = [], filter: RecursiveFilter = RECURSIVE_FILTER): Suggestion[] {
   const scope = selectedIds.length ? regionIds(tree, selectedIds) : null;
-  const min = scope ? TF_ADD_MIN_REGION : TF_ADD_MIN;
+  const min = scope ? filter.minPRegion : filter.minP;
   const out: Suggestion[] = [];
   for (const pr of preds) {
     const container = findNode(tree, pr.parentId);
     if (!container || (scope && !scope.has(container.id)) || container.type === "Table") continue;
+    const seen = new Set<string>();
     for (const g of pr.children) {
       if (g.p < min || LAYOUT_TYPES.has(g.type)) continue;
+      if (filter.unique && (duplicateType(container, g.type) || seen.has(g.type))) continue;
       const prompt = typedAddPrompt(tree, container, g.type, "-" as Subtype, g.index);
       if (!prompt) continue;
       const pos = positionPhrase(container, g.index);
+      seen.add(g.type);
       out.push({
         id: `add:${container.id}:${g.index}:${g.type}`,
         kind: "add",
@@ -469,6 +499,7 @@ export function recursiveAdds(preds: ContainerPrediction[], tree: UINode, select
         confidence: Math.min(1, g.p),
         fixPrompt: prompt,
       });
+      if (filter.onePerContainer) break;
     }
   }
   return out;

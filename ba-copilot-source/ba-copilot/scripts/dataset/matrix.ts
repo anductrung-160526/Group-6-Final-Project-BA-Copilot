@@ -2,6 +2,8 @@
 // quyền người dùng × kiểu bố cục, cân bằng và lặp lại được (seed cố định). 200 màn × ~50 mẫu ≈ 10 nghìn mẫu.
 // 50 màn đầu (cân bằng 10/nhóm) là đợt thử; thêm màn không làm đổi các màn trước (vòng xoay độc lập với tổng số).
 // 50 màn được đổi sang 25 loại màn web mới (nhóm workspace, data) qua dataset/matrix-overrides.json.
+// Mở rộng (phương án C): thêm 100 màn R201–R300 thuộc 25 loại màn web hướng người dùng cuối (thương mại, nội dung,
+// đặt chỗ, trang giới thiệu), miền và bố cục khác 200 màn đầu – buildExtension(), không đổi 200 màn cũ.
 // Dùng: npx tsx scripts/dataset/matrix.ts → dataset/matrix.json
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -18,9 +20,19 @@ export const DOMAINS = ["Bán hàng (sản phẩm, đơn hàng)", "Khách hàng 
 export const PERMISSIONS = ["Toàn quyền (xem, thêm, sửa, xóa)", "Chỉ xem", "Chỉ được tạo mới, không sửa/xóa", "Chỉ được duyệt/từ chối", "Chỉ thao tác trên bản ghi của chính mình"];
 export const LAYOUTS = ["Trang đơn", "Sidebar điều hướng + nội dung", "Thẻ (Card) ở giữa", "Hộp thoại (Modal) trên trang", "Hai cột", "Thanh tiêu đề có nút + nội dung"];
 
+export const EXT_GROUPS: Record<string, string[]> = {
+  commerce: ["Chi tiết sản phẩm", "Danh mục sản phẩm (lưới + bộ lọc)", "Thanh toán nhiều bước", "Theo dõi đơn hàng", "Danh sách yêu thích", "Trang khuyến mãi", "Đánh giá sản phẩm"],
+  marketing: ["Trang đích giới thiệu sản phẩm", "Giới thiệu công ty", "Trang liên hệ", "Đăng ký nhận bản tin", "Danh sách việc làm", "Chi tiết tin tuyển dụng và ứng tuyển"],
+  content: ["Danh sách bài viết / blog", "Chi tiết bài viết và bình luận", "Trang sự kiện và đăng ký tham dự", "Trang khóa học công khai"],
+  service: ["Đặt lịch hẹn trực tuyến", "Đặt phòng / đặt chỗ", "Trang cửa hàng / người bán", "Tài khoản của tôi (người dùng cuối)", "Trang trạng thái hệ thống", "Trang 404 / bảo trì", "Màn chào mừng và hướng dẫn bắt đầu", "Hồ sơ công khai"],
+};
+export const EXT_DOMAINS = ["Thời trang", "Điện tử & điện máy", "Du lịch & khách sạn", "Nhà hàng & giao đồ ăn", "Giáo dục trực tuyến", "Phòng khám & sức khỏe", "Phần mềm SaaS", "Sự kiện & bán vé", "Ngân hàng & ví điện tử", "Thể thao & phòng tập", "Báo chí & xuất bản", "Nội thất & nhà cửa"];
+export const EXT_PERMISSIONS = ["Khách vãng lai (chưa đăng nhập)", "Khách hàng đã đăng nhập", "Quản trị nội dung (sửa trang công khai)"];
+export const EXT_LAYOUTS = ["Thanh điều hướng trên + nội dung + chân trang", "Lưới thẻ", "Hai cột", "Trang đơn", "Banner lớn + các khối nội dung", "Sidebar điều hướng + nội dung"];
+
 export interface Assignment {
   id: string;
-  batch: "pilot" | "main";
+  batch: "pilot" | "main" | "ext";
   group: string;
   screenKind: string;
   domain: string;
@@ -53,6 +65,24 @@ export function buildMatrix(total = 200, pilot = 50, seed = 20261018): Assignmen
   return out;
 }
 
+/** 100 màn mở rộng R201–R300 (25 loại × 4), xoay vòng miền/quyền/bố cục với seed riêng. */
+export function buildExtension(total = 100, start = 201, seed = 20261118): Assignment[] {
+  const r = rng(seed);
+  const cyc = <T,>(arr: T[]) => {
+    let pool: T[] = [];
+    return () => {
+      if (!pool.length) pool = [...arr].sort(() => r() - 0.5);
+      return pool.pop()!;
+    };
+  };
+  const kinds = Object.entries(EXT_GROUPS).flatMap(([g, ks]) => ks.map((k) => [g, k] as const));
+  const nextDomain = cyc(EXT_DOMAINS), nextLayout = cyc(EXT_LAYOUTS), nextPerm = cyc(EXT_PERMISSIONS);
+  return Array.from({ length: total }, (_, i) => {
+    const [group, screenKind] = kinds[i % kinds.length];
+    return { id: `R${start + i}`, batch: "ext" as const, group, screenKind, domain: nextDomain(), permission: nextPerm(), layout: nextLayout() };
+  });
+}
+
 /** Thay loại màn của một số màn gốc (dataset/matrix-overrides.json) để đa dạng hơn mà không xáo trộn các màn còn lại. */
 export function applyOverrides(m: Assignment[], file = join(import.meta.dirname, "..", "..", "dataset", "matrix-overrides.json")): Assignment[] {
   if (!existsSync(file)) return m;
@@ -61,7 +91,7 @@ export function applyOverrides(m: Assignment[], file = join(import.meta.dirname,
 }
 
 if (process.argv[1]?.endsWith("matrix.ts")) {
-  const m = applyOverrides(buildMatrix());
+  const m = [...applyOverrides(buildMatrix()), ...buildExtension()];
   writeFileSync(join(import.meta.dirname, "..", "..", "dataset", "matrix.json"), JSON.stringify(m, null, 1));
   const count = (k: keyof Assignment) => Object.entries(m.reduce((a, x) => ((a[x[k]] = (a[x[k]] ?? 0) + 1), a), {} as Record<string, number>));
   console.log(`${m.length} màn gốc (${m.filter((x) => x.batch === "pilot").length} đợt thử)`);
