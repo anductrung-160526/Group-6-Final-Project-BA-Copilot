@@ -4,7 +4,8 @@
 // đo khung bao toàn trang, rời rạc hóa: x → 128 ô theo tỷ lệ độ rộng, y → ô 10 px, tối đa 256 ô (2560 px, phần dài hơn kẹp).
 // Lọc như bài báo: node không hiển thị hoặc ra ngoài khung cha (dung sai 2 px) → bỏ cây; > 100 node hoặc cha > 30 con → bỏ cây.
 // Chia theo màn gốc (splitOf), mọi biến thể của một màn cùng tập.
-// Dùng: CHROME=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npx tsx scripts/paper/build-dataset.ts → data/paper/{train,val,test}.jsonl + stats.json
+// Dùng: CHROME=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npx tsx scripts/paper/build-dataset.ts [--widths 1024,1280,1440] [--cell-y 10] [--out data/paper]
+//   → <out>/{train,val,test}.jsonl + stats.json
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import * as esbuild from "esbuild";
@@ -14,7 +15,14 @@ import { loadRoots } from "../dataset/roots.ts";
 import { splitOf } from "../dataset/build-samples.ts";
 
 const root = join(import.meta.dirname, "..", "..");
-const GX = 128, GY = 256, CELL_Y = 10, WIDTHS = [1024, 1280, 1440], TOL = 2;
+const arg = (name: string, def: string) => {
+  const i = process.argv.indexOf(name);
+  return i > -1 ? process.argv[i + 1] : def;
+};
+const GX = 128, GY = 256, TOL = 2;
+const CELL_Y = Number(arg("--cell-y", "10"));
+const WIDTHS = arg("--widths", "1024,1280,1440").split(",").map(Number);
+const OUT = join(root, arg("--out", "data/paper"));
 type PNode = { c: number; t: number; b: number[]; k?: PNode[] };
 
 const js = await esbuild.build({ entryPoints: [join(import.meta.dirname, "measure-entry.tsx")], bundle: true, write: false, format: "iife", jsx: "automatic", define: { "process.env.NODE_ENV": '"production"' } });
@@ -52,7 +60,7 @@ for (const w of WIDTHS) {
       (droppedRoots[bad] ??= []).push(`${r.id}@${w}`);
       continue;
     }
-    out[split].push(JSON.stringify({ id: `${r.id}@${w}`, rootId: r.id, width: w, group: r.group, tree }));
+    out[split].push(JSON.stringify({ id: `${r.id}@${w}`, rootId: r.id, width: w, cellY: CELL_Y, group: r.group, tree }));
   }
   await page.close();
 }
@@ -69,13 +77,13 @@ const walkP = (n: PNode, d: number, acc: { n: number; d: number }) => {
 };
 for (const t of trees) { const a = { n: 0, d: 0 }; walkP(t, 1, a); sizes.push(a.n); depths.push(a.d); }
 const mean = (v: number[]) => +(v.reduce((a, b) => a + b, 0) / Math.max(v.length, 1)).toFixed(2);
-mkdirSync(join(root, "data", "paper"), { recursive: true });
-for (const [k, v] of Object.entries(out)) writeFileSync(join(root, "data", "paper", `${k}.jsonl`), v.join("\n") + "\n");
+mkdirSync(OUT, { recursive: true });
+for (const [k, v] of Object.entries(out)) writeFileSync(join(OUT, `${k}.jsonl`), v.join("\n") + "\n");
 const stats = {
   source: "dataset/roots (UI web nghiệp vụ do nhóm tạo, không WebSight)", grid: { x: `${GX} ô theo tỷ lệ độ rộng`, y: `ô ${CELL_Y} px, tối đa ${GY}` }, widths: WIDTHS,
   trees: Object.fromEntries(Object.entries(out).map(([k, v]) => [k, v.length])), roots: Object.fromEntries(Object.entries(out).map(([k, v]) => [k, new Set(v.map((l) => JSON.parse(l).rootId)).size])),
   nodes: { mean: mean(sizes), min: Math.min(...sizes), max: Math.max(...sizes) }, depth: { mean: mean(depths), min: Math.min(...depths), max: Math.max(...depths) },
   types, dropped, droppedRoots,
 };
-writeFileSync(join(root, "data", "paper", "stats.json"), JSON.stringify(stats, null, 1));
+writeFileSync(join(OUT, "stats.json"), JSON.stringify(stats, null, 1));
 console.log(JSON.stringify({ ...stats, types: undefined, droppedRoots: undefined }, null, 1));

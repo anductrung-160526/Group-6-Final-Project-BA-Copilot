@@ -90,13 +90,25 @@ BOS_TOK = (N_TYPES + 1, 2, GX, GY, GX, GY)
 PAD_TOK = (EOS, 2, GX, GY, GX, GY)
 
 
-def node_loss(out, tgt, valid):
+def soft_ce(logits, target, sigma):
+    """Cross-entropy với nhãn làm mềm sang ô lân cận (Gauss, độ lệch chuẩn sigma ô) – tọa độ vẫn là lớp rời rạc như bài báo,
+    nhưng đoán lệch 1 ô bị phạt nhẹ hơn đoán lệch xa."""
+    if sigma <= 0:
+        return F.cross_entropy(logits, target)
+    idx = torch.arange(logits.shape[-1]).unsqueeze(0)
+    w = torch.exp(-((idx - target.unsqueeze(1)) ** 2) / (2 * sigma ** 2))
+    w = w / w.sum(-1, keepdim=True)
+    return -(w * F.log_softmax(logits, -1)).sum(-1).mean()
+
+
+def node_loss(out, tgt, valid, sigma=0.0):
     """tgt: (B, L, 6); valid: (B, L). Token EOS chỉ tính loss của c."""
     loss = F.cross_entropy(out["c"][valid], tgt[..., 0][valid])
     is_node = valid & (tgt[..., 0] < N_TYPES)
     if is_node.any():
-        for i, k in enumerate(["t", "x", "y", "x2", "y2"], 1):
-            loss = loss + F.cross_entropy(out[k][is_node], tgt[..., i][is_node]) / 5
+        loss = loss + F.cross_entropy(out["t"][is_node], tgt[..., 1][is_node]) / 5
+        for i, k in enumerate(["x", "y", "x2", "y2"], 2):
+            loss = loss + soft_ce(out[k][is_node], tgt[..., i][is_node], sigma) / 5
     return loss
 
 
@@ -220,8 +232,9 @@ class RecLayer(nn.Module):
 
 
 class Recursive(nn.Module):
-    def __init__(self, d, layers, heads_=4, drop=0.1, max_len=40):
+    def __init__(self, d, layers, heads_=4, drop=0.1, max_len=40, sigma=0.0):
         super().__init__()
+        self.sigma = sigma  # làm mềm nhãn tọa độ khi huấn luyện (0 = đúng bài báo)
         self.emb = NodeEmb(d, max_len)
         self.layers = nn.ModuleList([RecLayer(d, heads_, drop) for _ in range(layers)])
         self.ln = nn.LayerNorm(d)
@@ -265,7 +278,7 @@ def recursive_loss(model, trees):
         mems = [torch.stack(anc + ([hn] if hn is not None else [])) for _, anc, hn in jobs]
         mem, mp = pad_mem(mems, d)
         h, out = model.run(tok, pad, mem, mp)
-        total = total + node_loss(out, tgt, ~pad)
+        total = total + node_loss(out, tgt, ~pad, model.sigma)
         count += 1
         nxt = []
         for b, (n, anc, hn) in enumerate(jobs):
@@ -277,8 +290,30 @@ def recursive_loss(model, trees):
     return total / max(count, 1)
 
 
+def constrained_box(out, i, parent, prev=None):
+    """Chọn tọa độ có ràng buộc (chỉ chặn lựa chọn vô lý, không đổi mô hình): khung con nằm trong khung cha theo chiều ngang
+    và không bắt đầu phía trên cha; x2 ≥ x, y2 ≥ y. Không ràng buộc thứ tự với anh em – để phần tử mới vẫn có thể nằm GIỮA."""
+    px, py, px2, _ = parent["b"]
+
+    def best(logits, lo, hi):
+        l = logits.clone()
+        n = l.shape[0]
+        lo, hi = max(0, min(lo, n - 1)), max(0, min(hi, n - 1))
+        lo = min(lo, hi)
+        mask = torch.ones(n, dtype=torch.bool)
+        mask[lo: hi + 1] = False
+        l[mask] = -1e9
+        return int(l.argmax())
+
+    x = best(out["x"][0, i], px, px2)
+    x2 = best(out["x2"][0, i], x, px2)
+    y = best(out["y"][0, i], py, GY - 1)
+    y2 = best(out["y2"][0, i], y, GY - 1)
+    return [x, y, x2, y2]
+
+
 @torch.no_grad()
-def recursive_complete(model, partial, max_nodes=100):
+def recursive_complete(model, partial, max_nodes=100, constrain=False):
     root = json.loads(json.dumps(partial))
     count = [len(V.preorder(root))]
 
@@ -296,6 +331,8 @@ def recursive_complete(model, partial, max_nodes=100):
             node, top3 = pick(out, 0, len(seq) - 1)
             if node is None:
                 break
+            box = constrained_box(out, len(seq) - 1, n) if constrain else list(node[2:])
+            node = (node[0], node[1], *box)
             c = {"c": node[0], "t": node[1], "b": list(node[2:]), "_new": True, "_top3": top3}
             ch.append(c)
             seq.append(node)
@@ -369,10 +406,10 @@ def evaluate(complete, trees, orders=("bfs", "dfs"), fracs=(0.1, 0.5, 0.8)):
 
 
 # ------------------------------------------------------------------ huấn luyện
-def train_model(kind, train, val, d, layers, epochs, patience, lr, seed, batch=32):
+def train_model(kind, train, val, d, layers, epochs, patience, lr, seed, batch=32, sigma=0.0):
     torch.manual_seed(seed)
     rnd = random.Random(seed)
-    model = Pointer(d, layers) if kind == "pointer" else Recursive(d, layers)
+    model = Pointer(d, layers) if kind == "pointer" else Recursive(d, layers, sigma=sigma)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
     if kind == "pointer":
         tr = [pointer_seq(r["tree"], o) for r in train for o in ("bfs", "dfs")]
