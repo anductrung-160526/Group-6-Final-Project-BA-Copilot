@@ -65,5 +65,5 @@ npm run dataset:export                            # data/dataset/tf/{train,val,t
 npx tsx scripts/dataset/export-view.ts            # dataset/export/: samples.csv, roots.csv, preview.html, samples.jsonl.gz
 ```
 
-> Mô hình đang dùng trong app và các báo cáo ở `export/eval/` được huấn luyện và đánh giá trên phiên bản dữ liệu trước (`80d9c12d5a`, 10.012 mẫu).
-> Chưa huấn luyện lại trên phiên bản này.
+> Mô hình của app đã được huấn luyện lại từ đầu trên phiên bản này, không dùng WebSight. Kết quả và lý do chọn mô hình ở `export/eval/MODEL-SELECTION.md`.
+> Các báo cáo cũ `REPORT.md` và `PAPER-METRICS.md` thuộc phiên bản trước (`80d9c12d5a`) và mô hình có tiền huấn luyện WebSight.
