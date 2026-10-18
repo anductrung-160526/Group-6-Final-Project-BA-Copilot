@@ -1,8 +1,10 @@
-// Bộ dữ liệu kiểu Rico cho tái lập Li et al. 2020 (mục 5.1): mỗi màn gốc của dataset/roots được render trong Chromium
-// ở 3 độ rộng màn hình (1024/1280/1440 px) để lấy khung bao thật của từng node, rồi rời rạc hóa tọa độ thành lưới 10 px
-// (x, y ∈ [0, 127]; phần dưới 1280 px bị kẹp). Lọc như bài báo: node ra ngoài khung cha/màn → bỏ cây; >100 node hoặc cha >30 con → bỏ.
-// Chia theo màn gốc (splitOf), mọi biến thể của một màn cùng tập. Test chỉ dùng độ rộng 1280 px.
-// Dùng: CHROME=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npx tsx scripts/paper/build-dataset.ts → data/paper/*.jsonl
+// Bộ dữ liệu cây UI web có tọa độ để tái lập Vanilla Transformer Tree Decoder (Li et al. 2020, mục 4.2, 5.1).
+// Chỉ dùng dataset/roots/*.json (màn web nghiệp vụ do nhóm tạo) – không WebSight, không Rico.
+// Mỗi màn được render bằng Renderer của app trong Chromium ở độ rộng desktop (test: 1280 px; train/val thêm 1024, 1440 px),
+// đo khung bao toàn trang, rời rạc hóa: x → 128 ô theo tỷ lệ độ rộng, y → ô 10 px, tối đa 256 ô (2560 px, phần dài hơn kẹp).
+// Lọc như bài báo: node không hiển thị hoặc ra ngoài khung cha (dung sai 2 px) → bỏ cây; > 100 node hoặc cha > 30 con → bỏ cây.
+// Chia theo màn gốc (splitOf), mọi biến thể của một màn cùng tập.
+// Dùng: CHROME=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npx tsx scripts/paper/build-dataset.ts → data/paper/{train,val,test}.jsonl + stats.json
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import * as esbuild from "esbuild";
@@ -12,46 +14,68 @@ import { loadRoots } from "../dataset/roots.ts";
 import { splitOf } from "../dataset/build-samples.ts";
 
 const root = join(import.meta.dirname, "..", "..");
-const CELL = 10, GRID = 128, WIDTHS = [1024, 1280, 1440];
+const GX = 128, GY = 256, CELL_Y = 10, WIDTHS = [1024, 1280, 1440], TOL = 2;
 type PNode = { c: number; t: number; b: number[]; k?: PNode[] };
 
 const js = await esbuild.build({ entryPoints: [join(import.meta.dirname, "measure-entry.tsx")], bundle: true, write: false, format: "iife", jsx: "automatic", define: { "process.env.NODE_ENV": '"production"' } });
 const css = readFileSync(join(root, "client", "styles.css"), "utf8");
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>${css} body{margin:0;background:#fff}</style></head><body><div id="root"></div><script>${js.outputFiles[0].text}</script></body></html>`;
 const browser = await chromium.launch(process.env.CHROME ? { executablePath: process.env.CHROME } : {});
-const q = (v: number) => Math.max(0, Math.min(GRID - 1, Math.round(v / CELL)));
 
 const out: Record<string, string[]> = { train: [], val: [], test: [] };
-const drop: Record<string, number> = {};
+const dropped: Record<string, number> = {};
+const droppedRoots: Record<string, string[]> = {};
 for (const w of WIDTHS) {
   const page = await browser.newPage({ viewport: { width: w, height: 800 } });
   await page.setContent(html);
+  const qx = (v: number) => Math.max(0, Math.min(GX - 1, Math.floor((v / w) * GX)));
+  const qy = (v: number) => Math.max(0, Math.min(GY - 1, Math.floor(v / CELL_Y)));
   for (const r of loadRoots().items) {
     const split = splitOf(r.id);
     if (split === "test" && w !== 1280) continue;
-    const box = await page.evaluate((t) => (window as any).measure(t), r.tree as any);
-    let bad = "";
-    let n = 0;
+    const box: Record<string, number[]> = await page.evaluate((t) => (window as any).measure(t), r.tree as any);
+    let bad = "", n = 0;
     const conv = (x: UINode, parent: number[] | null): PNode => {
       n++;
       const b = box[x.id];
-      if (!b || b[2] - b[0] <= 0 || b[3] - b[1] <= 0) bad ||= "không hiển thị";
-      else if (parent && (b[0] < parent[0] - 2 || b[1] < parent[1] - 2 || b[2] > parent[2] + 2 || b[3] > parent[3] + 2)) bad ||= "ra ngoài khung cha";
+      if (!b || b[2] - b[0] <= 0 || b[3] - b[1] <= 0) bad ||= `không hiển thị (${x.type})`;
+      else if (parent && (b[0] < parent[0] - TOL || b[1] < parent[1] - TOL || b[2] > parent[2] + TOL || b[3] > parent[3] + TOL)) bad ||= `ra ngoài khung cha (${x.type})`;
       if ((x.children?.length ?? 0) > 30) bad ||= "cha > 30 con";
-      const node: PNode = { c: ALL_TYPES.indexOf(x.type), t: x.children?.length ? 0 : 1, b: b ? b.map(q) : [0, 0, 0, 0] };
+      const node: PNode = { c: ALL_TYPES.indexOf(x.type), t: x.children?.length ? 0 : 1, b: b ? [qx(b[0]), qy(b[1]), qx(b[2]), qy(b[3])] : [0, 0, 0, 0] };
       if (x.children?.length) node.k = x.children.map((c) => conv(c, b ?? parent));
       return node;
     };
     const tree = conv(r.tree, null);
     if (n > 100) bad ||= "> 100 node";
-    if (bad) { drop[bad] = (drop[bad] ?? 0) + 1; continue; }
-    out[split].push(JSON.stringify({ id: `${r.id}@${w}`, rootId: r.id, width: w, tree }));
+    if (bad) {
+      dropped[bad] = (dropped[bad] ?? 0) + 1;
+      (droppedRoots[bad] ??= []).push(`${r.id}@${w}`);
+      continue;
+    }
+    out[split].push(JSON.stringify({ id: `${r.id}@${w}`, rootId: r.id, width: w, group: r.group, tree }));
   }
   await page.close();
 }
 await browser.close();
+
+// thống kê như mục 5.1
+const trees = Object.values(out).flat().map((l) => JSON.parse(l).tree as PNode);
+const sizes: number[] = [], depths: number[] = [];
+const types: Record<string, number> = {};
+const walkP = (n: PNode, d: number, acc: { n: number; d: number }) => {
+  acc.n++; acc.d = Math.max(acc.d, d);
+  types[ALL_TYPES[n.c]] = (types[ALL_TYPES[n.c]] ?? 0) + 1;
+  (n.k ?? []).forEach((c) => walkP(c, d + 1, acc));
+};
+for (const t of trees) { const a = { n: 0, d: 0 }; walkP(t, 1, a); sizes.push(a.n); depths.push(a.d); }
+const mean = (v: number[]) => +(v.reduce((a, b) => a + b, 0) / Math.max(v.length, 1)).toFixed(2);
 mkdirSync(join(root, "data", "paper"), { recursive: true });
 for (const [k, v] of Object.entries(out)) writeFileSync(join(root, "data", "paper", `${k}.jsonl`), v.join("\n") + "\n");
-const stats = { cell: CELL, grid: GRID, widths: WIDTHS, trees: Object.fromEntries(Object.entries(out).map(([k, v]) => [k, v.length])), dropped: drop };
+const stats = {
+  source: "dataset/roots (UI web nghiệp vụ do nhóm tạo, không WebSight)", grid: { x: `${GX} ô theo tỷ lệ độ rộng`, y: `ô ${CELL_Y} px, tối đa ${GY}` }, widths: WIDTHS,
+  trees: Object.fromEntries(Object.entries(out).map(([k, v]) => [k, v.length])), roots: Object.fromEntries(Object.entries(out).map(([k, v]) => [k, new Set(v.map((l) => JSON.parse(l).rootId)).size])),
+  nodes: { mean: mean(sizes), min: Math.min(...sizes), max: Math.max(...sizes) }, depth: { mean: mean(depths), min: Math.min(...depths), max: Math.max(...depths) },
+  types, dropped, droppedRoots,
+};
 writeFileSync(join(root, "data", "paper", "stats.json"), JSON.stringify(stats, null, 1));
-console.log(JSON.stringify(stats));
+console.log(JSON.stringify({ ...stats, types: undefined, droppedRoots: undefined }, null, 1));
