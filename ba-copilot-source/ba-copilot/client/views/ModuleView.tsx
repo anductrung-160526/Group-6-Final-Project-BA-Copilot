@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { get, patch } from "../api.ts";
 import type { ModuleDetail } from "../../shared/types.ts";
 import { Btn, Modal, StatusBadge, useUI } from "../components/ui.tsx";
+import { QusPanel } from "../components/QusPanel.tsx";
 import { DesignTab } from "./DesignTab.tsx";
 import { DocsTab } from "./DocsTab.tsx";
 import { TestsTab } from "./TestsTab.tsx";
@@ -100,6 +101,7 @@ export function ModuleView({ id, tab }: { id: string; tab: string }) {
         >
           <p className="muted small">AI dùng nội dung này làm bối cảnh khi sinh màn hình, Use Case và SRS. Có thể dán user story, function list hoặc mô tả tự do.</p>
           <textarea rows={14} value={reqText} onChange={(e) => setReqText(e.target.value)} />
+          <QusPanel text={reqText} />
         </Modal>
       )}
     </div>
