@@ -2,6 +2,7 @@
  "V0": {
   "data": "data/paper",
   "sigma": 0.0,
+  "shuffle": false,
   "train_trees": 459,
   "val_loss": null,
   "epochs": null,
@@ -16,6 +17,15 @@
      "iou50": 16.0,
      "f1_strict": 45.7,
      "edit_strict": 36.82
+    },
+    "next_spatial": {
+     "n": 144,
+     "type": 38.9,
+     "strict": 2.8,
+     "tol1": 9.0,
+     "iou50": 14.6,
+     "f1_strict": 45.7,
+     "edit_strict": 37.99
     },
     "insert": {
      "n": 348,
@@ -38,6 +48,15 @@
      "iou50": 12.1,
      "f1_strict": 45.6,
      "edit_strict": 35.54
+    },
+    "next_spatial": {
+     "n": 132,
+     "type": 30.3,
+     "strict": 3.8,
+     "tol1": 6.8,
+     "iou50": 10.6,
+     "f1_strict": 45.6,
+     "edit_strict": 36.14
     },
     "insert": {
      "n": 308,
@@ -63,6 +82,15 @@
      "f1_strict": 46.0,
      "edit_strict": 36.81
     },
+    "next_spatial": {
+     "n": 144,
+     "type": 38.9,
+     "strict": 2.8,
+     "tol1": 9.7,
+     "iou50": 15.3,
+     "f1_strict": 46.0,
+     "edit_strict": 37.91
+    },
     "insert": {
      "n": 348,
      "mid_n": 226,
@@ -84,6 +112,15 @@
      "iou50": 12.9,
      "f1_strict": 45.5,
      "edit_strict": 35.52
+    },
+    "next_spatial": {
+     "n": 132,
+     "type": 30.3,
+     "strict": 3.8,
+     "tol1": 6.8,
+     "iou50": 11.4,
+     "f1_strict": 45.5,
+     "edit_strict": 36.1
     },
     "insert": {
      "n": 308,
@@ -302,6 +339,7 @@
  "V3": {
   "data": "data/paper-w7c20",
   "sigma": 1.0,
+  "shuffle": false,
   "train_trees": 1071,
   "val_loss": 3.617544378553118,
   "epochs": 15,
@@ -316,6 +354,15 @@
      "iou50": 19.4,
      "f1_strict": 45.1,
      "edit_strict": 35.94
+    },
+    "next_spatial": {
+     "n": 144,
+     "type": 34.0,
+     "strict": 3.5,
+     "tol1": 15.3,
+     "iou50": 18.8,
+     "f1_strict": 45.1,
+     "edit_strict": 36.83
     },
     "insert": {
      "n": 348,
@@ -338,6 +385,15 @@
      "iou50": 22.7,
      "f1_strict": 45.0,
      "edit_strict": 33.77
+    },
+    "next_spatial": {
+     "n": 132,
+     "type": 32.6,
+     "strict": 6.1,
+     "tol1": 15.2,
+     "iou50": 22.7,
+     "f1_strict": 45.0,
+     "edit_strict": 33.88
     },
     "insert": {
      "n": 308,
@@ -363,6 +419,15 @@
      "f1_strict": 45.4,
      "edit_strict": 35.98
     },
+    "next_spatial": {
+     "n": 144,
+     "type": 34.0,
+     "strict": 3.5,
+     "tol1": 15.3,
+     "iou50": 19.4,
+     "f1_strict": 45.4,
+     "edit_strict": 36.82
+    },
     "insert": {
      "n": 348,
      "mid_n": 226,
@@ -385,6 +450,15 @@
      "f1_strict": 45.3,
      "edit_strict": 33.79
     },
+    "next_spatial": {
+     "n": 132,
+     "type": 32.6,
+     "strict": 6.1,
+     "tol1": 15.2,
+     "iou50": 23.5,
+     "f1_strict": 45.3,
+     "edit_strict": 33.89
+    },
     "insert": {
      "n": 308,
      "mid_n": 200,
@@ -395,6 +469,143 @@
      "mid_pos": 6.0,
      "mid_type": 21.0,
      "mid_both": 4.0
+    }
+   }
+  }
+ },
+ "V4": {
+  "data": "data/paper-w7c20",
+  "sigma": 1.0,
+  "shuffle": true,
+  "train_trees": 1071,
+  "val_loss": 3.81815835407802,
+  "epochs": 16,
+  "train_seconds": 0.0,
+  "free": {
+   "val": {
+    "next": {
+     "n": 144,
+     "type": 40.3,
+     "strict": 0.7,
+     "tol1": 5.6,
+     "iou50": 11.8,
+     "f1_strict": 43.8,
+     "edit_strict": 37.35
+    },
+    "next_spatial": {
+     "n": 144,
+     "type": 34.7,
+     "strict": 0.7,
+     "tol1": 5.6,
+     "iou50": 11.1,
+     "f1_strict": 43.8,
+     "edit_strict": 38.66
+    },
+    "insert": {
+     "n": 348,
+     "mid_n": 226,
+     "pos": 38.5,
+     "type": 35.6,
+     "both": 23.6,
+     "no_pred": 38.2,
+     "mid_pos": 35.0,
+     "mid_type": 31.9,
+     "mid_both": 23.0
+    }
+   },
+   "test": {
+    "next": {
+     "n": 132,
+     "type": 33.3,
+     "strict": 2.3,
+     "tol1": 6.8,
+     "iou50": 6.1,
+     "f1_strict": 45.5,
+     "edit_strict": 36.37
+    },
+    "next_spatial": {
+     "n": 132,
+     "type": 30.3,
+     "strict": 2.3,
+     "tol1": 6.8,
+     "iou50": 6.8,
+     "f1_strict": 45.5,
+     "edit_strict": 36.68
+    },
+    "insert": {
+     "n": 308,
+     "mid_n": 200,
+     "pos": 38.6,
+     "type": 32.8,
+     "both": 24.4,
+     "no_pred": 42.5,
+     "mid_pos": 30.5,
+     "mid_type": 29.5,
+     "mid_both": 20.5
+    }
+   }
+  },
+  "constrained": {
+   "val": {
+    "next": {
+     "n": 144,
+     "type": 40.3,
+     "strict": 0.7,
+     "tol1": 5.6,
+     "iou50": 13.2,
+     "f1_strict": 43.7,
+     "edit_strict": 37.33
+    },
+    "next_spatial": {
+     "n": 144,
+     "type": 35.4,
+     "strict": 0.7,
+     "tol1": 5.6,
+     "iou50": 13.2,
+     "f1_strict": 43.7,
+     "edit_strict": 38.56
+    },
+    "insert": {
+     "n": 348,
+     "mid_n": 226,
+     "pos": 41.1,
+     "type": 35.6,
+     "both": 25.3,
+     "no_pred": 38.2,
+     "mid_pos": 34.1,
+     "mid_type": 31.9,
+     "mid_both": 22.6
+    }
+   },
+   "test": {
+    "next": {
+     "n": 132,
+     "type": 33.3,
+     "strict": 2.3,
+     "tol1": 7.6,
+     "iou50": 7.6,
+     "f1_strict": 45.5,
+     "edit_strict": 36.35
+    },
+    "next_spatial": {
+     "n": 132,
+     "type": 31.8,
+     "strict": 2.3,
+     "tol1": 6.8,
+     "iou50": 6.8,
+     "f1_strict": 45.5,
+     "edit_strict": 36.65
+    },
+    "insert": {
+     "n": 308,
+     "mid_n": 200,
+     "pos": 39.0,
+     "type": 32.8,
+     "both": 24.4,
+     "no_pred": 42.5,
+     "mid_pos": 30.0,
+     "mid_type": 29.5,
+     "mid_both": 20.0
     }
    }
   }

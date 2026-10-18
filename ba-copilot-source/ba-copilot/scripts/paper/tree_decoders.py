@@ -232,9 +232,13 @@ class RecLayer(nn.Module):
 
 
 class Recursive(nn.Module):
-    def __init__(self, d, layers, heads_=4, drop=0.1, max_len=40, sigma=0.0):
+    def __init__(self, d, layers, heads_=4, drop=0.1, max_len=40, sigma=0.0, shuffle=False):
         super().__init__()
         self.sigma = sigma  # làm mềm nhãn tọa độ khi huấn luyện (0 = đúng bài báo)
+        # xáo trộn thứ tự anh em khi huấn luyện ("random spatial ordering", Table 3 của bài báo): vị trí do khung bao quyết định,
+        # mô hình học "nhóm con còn thiếu gì" thay vì "sau phần tử cuối theo thứ tự đọc là hết"
+        self.shuffle = shuffle
+        self.rnd = random.Random(0)
         self.emb = NodeEmb(d, max_len)
         self.layers = nn.ModuleList([RecLayer(d, heads_, drop) for _ in range(layers)])
         self.ln = nn.LayerNorm(d)
@@ -270,7 +274,13 @@ def recursive_loss(model, trees):
         jobs = [(n, anc, hn) for n, anc, hn in level if n["t"] == 0 and kids(n)]
         if not jobs:
             break
-        seqs = [[tok_of(n)] + [tok_of(c) for c in kids(n)][: model.max_len - 1] for n, _, _ in jobs]
+        order = {}
+        for n, _, _ in jobs:
+            ch = list(kids(n))
+            if model.shuffle and model.training:
+                model.rnd.shuffle(ch)
+            order[id(n)] = ch[: model.max_len - 1]
+        seqs = [[tok_of(n)] + [tok_of(c) for c in order[id(n)]] for n, _, _ in jobs]
         L = max(len(s) for s in seqs)
         tok = torch.tensor([s + [PAD_TOK] * (L - len(s)) for s in seqs])
         pad = torch.tensor([[False] * len(s) + [True] * (L - len(s)) for s in seqs])
@@ -284,7 +294,7 @@ def recursive_loss(model, trees):
         for b, (n, anc, hn) in enumerate(jobs):
             own = hn if hn is not None else h[b, 0]
             new_anc = anc + [own]
-            for j, c in enumerate(kids(n)[: model.max_len - 1]):
+            for j, c in enumerate(order[id(n)]):
                 nxt.append((c, new_anc, h[b, j + 1]))
         level = nxt
     return total / max(count, 1)
@@ -406,10 +416,10 @@ def evaluate(complete, trees, orders=("bfs", "dfs"), fracs=(0.1, 0.5, 0.8)):
 
 
 # ------------------------------------------------------------------ huấn luyện
-def train_model(kind, train, val, d, layers, epochs, patience, lr, seed, batch=32, sigma=0.0):
+def train_model(kind, train, val, d, layers, epochs, patience, lr, seed, batch=32, sigma=0.0, shuffle=False):
     torch.manual_seed(seed)
     rnd = random.Random(seed)
-    model = Pointer(d, layers) if kind == "pointer" else Recursive(d, layers, sigma=sigma)
+    model = Pointer(d, layers) if kind == "pointer" else Recursive(d, layers, sigma=sigma, shuffle=shuffle)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
     if kind == "pointer":
         tr = [pointer_seq(r["tree"], o) for r in train for o in ("bfs", "dfs")]

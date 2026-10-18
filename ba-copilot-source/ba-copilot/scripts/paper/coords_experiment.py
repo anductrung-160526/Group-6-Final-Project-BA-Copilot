@@ -5,6 +5,7 @@ Biến thể (đều là Recursive d=128, 2 lớp; chỉ dữ liệu UI web củ
   V1  7 độ rộng (768–1920 px), ô dọc 10 px, không làm mềm  (tác dụng của thêm dữ liệu)
   V2  7 độ rộng, ô dọc 10 px, làm mềm nhãn tọa độ σ = 1 ô
   V3  7 độ rộng, ô dọc 20 px, làm mềm nhãn tọa độ σ = 1 ô
+  V4  như V3 + xáo trộn thứ tự anh em khi huấn luyện (Table 3 của bài báo: "random spatial ordering")
 Mỗi biến thể chấm 2 cách giải mã: tự do (đúng bài báo) và có ràng buộc tọa độ (constrained_box).
 
 Thước đo (val và test chỉ dùng độ rộng 1280 px):
@@ -14,8 +15,9 @@ Thước đo (val và test chỉ dùng độ rộng 1280 px):
   - Pair F1 chặt và Edit chặt (bài báo).
   - Chèn đúng chỗ: bỏ 1 node có anh em, chạy Recursive, lấy phần tử mới đầu tiên trong đúng container đó, xếp các con theo thứ tự đọc
     (y rồi x) để suy ra khe chèn → % đúng khe, % đúng loại, % đúng cả hai; tách riêng trường hợp thiếu ở GIỮA.
+Bản "spatial": sắp con của cây dự đoán theo khung bao trước khi chấm Next/F1/Edit (cần cho V4 vì thứ tự sinh là tùy ý).
 Chọn biến thể theo val (trung bình "đúng cả hai" khi chèn và IoU ≥ 0,5 của Next), báo cáo test.
-Dùng: python3 scripts/paper/coords_experiment.py [--eval-only]   (--eval-only: chấm lại từ trọng số đã lưu)
+Dùng: python3 scripts/paper/coords_experiment.py [--eval-only] [--only=V4]   (--eval-only: chấm lại từ trọng số đã lưu)
 """
 import json
 import os
@@ -44,7 +46,14 @@ def iou(a, b, cx, cy):
     return inter / union if union else 0.0
 
 
-def next_metrics(model, recs, constrain, fracs=(0.1, 0.5, 0.8)):
+def spatial_sort(t):
+    """Sắp các con theo thứ tự đọc của khung bao (y rồi x) – vị trí do tọa độ quyết định như bài báo."""
+    if kids(t):
+        t["k"] = sorted([spatial_sort(c) for c in kids(t)], key=lambda c: (c["b"][1], c["b"][0]))
+    return t
+
+
+def next_metrics(model, recs, constrain, fracs=(0.1, 0.5, 0.8), spatial=False):
     acc = {k: 0.0 for k in ["n", "type", "strict", "tol1", "iou50", "f1_strict", "edit_strict"]}
     for r in recs:
         t, cx, cy = r["tree"], r["width"] / GX, r["cellY"]
@@ -55,6 +64,8 @@ def next_metrics(model, recs, constrain, fracs=(0.1, 0.5, 0.8)):
                 target = nodes[k]
                 part = T.prefix_tree(t, k, order)
                 pred = T.recursive_complete(model, part, constrain=constrain)
+                if spatial:
+                    pred = spatial_sort(pred)
                 new = [n for n in T.order_nodes(pred, order) if n.get("_new")]
                 acc["n"] += 1
                 if new:
@@ -132,31 +143,39 @@ def main():
         ("V1", "data/paper-w7c10", 0.0, None),
         ("V2", "data/paper-w7c10", 1.0, None),
         ("V3", "data/paper-w7c20", 1.0, None),
+        ("V4", "data/paper-w7c20", 1.0, None),
     ]
+    only = next((a.split("=")[1].split(",") for a in sys.argv if a.startswith("--only=")), None)
     report = {}
     old = "dataset/export/eval/coords-experiment.json"
     report_old = json.load(open(old)) if os.path.exists(old) else {}
     for name, d, sigma, weights in variants:
+        shuffle = name == "V4"
+        if only and name not in only:
+            if name in report_old:
+                report[name] = report_old[name]
+            continue
         train, val, test = (load(f"{d}/{s}.jsonl") for s in ("train", "val", "test"))
         val1280 = [r for r in val if r["width"] == 1280]
         for r in train + val + test:
             r.setdefault("cellY", 10)
         t0 = time.time()
         if not weights and "--eval-only" in sys.argv:
-            weights = f"{d}/recursive-s{sigma:g}.pt"
+            weights = f"{d}/recursive-s{sigma:g}{'-shuffle' if shuffle else ''}.pt"
         if weights:
             m = T.Recursive(128, 2)
             m.load_state_dict(torch.load(weights))
             m.eval()
             vl, epochs = report_old.get(name, {}).get("val_loss"), report_old.get(name, {}).get("epochs")
         else:
-            m, vl, hist = T.train_model("recursive", train, val, 128, 2, 80, 8, 1e-3, 42, sigma=sigma)
+            m, vl, hist = T.train_model("recursive", train, val, 128, 2, 80, 8, 1e-3, 42, sigma=sigma, shuffle=shuffle)
             epochs = len(hist)
-            torch.save(m.state_dict(), f"{d}/recursive-s{sigma:g}.pt")
-        rep = {"data": d, "sigma": sigma, "train_trees": len(train), "val_loss": vl, "epochs": epochs, "train_seconds": round(time.time() - t0, 1)}
+            torch.save(m.state_dict(), f"{d}/recursive-s{sigma:g}{'-shuffle' if shuffle else ''}.pt")
+        rep = {"data": d, "sigma": sigma, "shuffle": shuffle, "train_trees": len(train), "val_loss": vl, "epochs": epochs, "train_seconds": round(time.time() - t0, 1)}
         for constrain in (False, True):
             tag = "constrained" if constrain else "free"
-            rep[tag] = {s: {"next": next_metrics(m, recs, constrain), "insert": insertion_metrics(m, recs, constrain)} for s, recs in (("val", val1280), ("test", test))}
+            rep[tag] = {s: {"next": next_metrics(m, recs, constrain), "next_spatial": next_metrics(m, recs, constrain, spatial=True),
+                            "insert": insertion_metrics(m, recs, constrain)} for s, recs in (("val", val1280), ("test", test))}
             v = rep[tag]["val"]
             print(f"{name} {tag}: val insert both {v['insert']['both']} · next IoU50 {v['next']['iou50']} · strict {v['next']['strict']}", flush=True)
         report[name] = rep
