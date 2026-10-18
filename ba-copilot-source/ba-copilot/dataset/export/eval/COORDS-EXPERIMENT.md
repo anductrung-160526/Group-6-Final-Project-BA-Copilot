@@ -39,8 +39,13 @@ Mô hình app được chấm trên 309 trường hợp, vì cách đếm hơi k
 
 ## Nhận xét
 1. **Tọa độ đã tốt lên rõ:** IoU ≥ 0,5 tăng từ 12,1% lên 23,5%; ±1 ô tăng từ 6,8% lên 15,2%. Hai yếu tố có tác dụng nhất là **lưới dọc 20 px** và **nhiều độ rộng hơn**. Ràng buộc khi giải mã giúp thêm một chút.
-2. **Recursive gần như không xử lý được chỗ thiếu ở giữa:** chỉ 4–5% đúng, so với 23% của mô hình app. Gần một nửa số lần, Recursive **không sinh gì** trong container bị thiếu. Lý do: theo đúng phương pháp của bài báo, mô hình học từ cây đầy đủ, nên luôn coi danh sách con hiện có là phần đầu của danh sách đúng và chỉ viết tiếp vào cuối. Đây là giới hạn của phương pháp, không phải lỗi cài đặt.
-3. **Hệ quả cho phương án B:** tab Gợi ý sẽ bám sát bài báo, nhưng **gần như không phát hiện được phần tử bị quên ở giữa form**. Nó vẫn làm tốt trường hợp màn còn thiếu phần cuối, tức gợi ý phần tiếp theo và vẽ tiếp.
+2. **Recursive (và Pointer) trong cách cài đặt hiện tại gần như không xử lý được chỗ thiếu ở giữa:**
+   - Recursive chỉ đúng 4–5%, so với 23% của mô hình app; gần một nửa số lần nó không sinh gì trong container bị thiếu.
+   - Pointer (BFS/DFS) chỉ đúng 1–2% ở giữa và không sinh gì trong 78–80% trường hợp.
+   - **Đính chính:** bài báo **không** nêu hạn chế này. Định nghĩa cây dở (mục 3.1) cho phép thiếu bất kỳ node nào miễn cha còn có mặt. Mục 5.3 khẳng định mô hình "không đòi hỏi thiết kế theo thứ tự nào". Chỉ Vanilla có hạn chế được nêu rõ: cây dở phải là tiền tố DFS (mục 4.2). Bài báo cũng chỉ đánh giá trên cây dở dạng tiền tố BFS/DFS, nên chưa từng đo trường hợp thiếu ở giữa.
+   - Thất bại quan sát được ở đây nhiều khả năng đến từ **cách huấn luyện** (cây đầy đủ, anh em luôn theo thứ tự đọc cố định, nên mô hình học "hết danh sách là dừng") và từ **biểu diễn của app** (vị trí là thứ tự trong container). Đây không phải hạn chế đã được bài báo chứng minh.
+   - Bài báo có thí nghiệm "thứ tự không gian ngẫu nhiên" (Table 3): huấn luyện với thứ tự anh em xáo trộn, còn vị trí do khung bao quyết định. Đây là hướng khắc phục nằm ngay trong phương pháp của bài báo, nên thử nghiệm.
+3. **Hệ quả cho phương án B:** với cách huấn luyện hiện tại, tab Gợi ý sẽ gần như không phát hiện được phần tử bị quên ở giữa form. Cần thử huấn luyện với thứ tự anh em xáo trộn (theo Table 3) trước khi kết luận.
 
 ## Chạy lại
 ```bash
