@@ -4,6 +4,8 @@
 // 50 màn được đổi sang 25 loại màn web mới (nhóm workspace, data) qua dataset/matrix-overrides.json.
 // Mở rộng (phương án C): thêm 100 màn R201–R300 thuộc 25 loại màn web hướng người dùng cuối (thương mại, nội dung,
 // đặt chỗ, trang giới thiệu), miền và bố cục khác 200 màn đầu – buildExtension(), không đổi 200 màn cũ.
+// Mở rộng 2: thêm 100 màn R301–R400 thuộc 25 loại màn mà các component hiếm (Checkbox, Radio, DatePicker, Textarea, Image,
+// Alert, Divider, Pagination, Avatar) xuất hiện tự nhiên theo nghiệp vụ – buildExtension2(); không đổi 300 màn trước.
 // Dùng: npx tsx scripts/dataset/matrix.ts → dataset/matrix.json
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -30,9 +32,17 @@ export const EXT_DOMAINS = ["Thời trang", "Điện tử & điện máy", "Du l
 export const EXT_PERMISSIONS = ["Khách vãng lai (chưa đăng nhập)", "Khách hàng đã đăng nhập", "Quản trị nội dung (sửa trang công khai)"];
 export const EXT_LAYOUTS = ["Thanh điều hướng trên + nội dung + chân trang", "Lưới thẻ", "Hai cột", "Trang đơn", "Banner lớn + các khối nội dung", "Sidebar điều hướng + nội dung"];
 
+export const EXT2_GROUPS: Record<string, string[]> = {
+  richform: ["Khảo sát nhiều câu hỏi", "Đơn đăng ký dịch vụ có điều khoản", "Đặt chỗ có ngày đi và ngày về", "Hồ sơ ứng tuyển", "Cài đặt thông báo (danh sách tùy chọn)", "Bộ lọc nâng cao (khoảng ngày, nhiều lựa chọn)", "Phiếu đánh giá có thang điểm", "Biểu mẫu khiếu nại / góp ý"],
+  media: ["Thư viện ảnh / album", "Bài viết có ảnh minh họa", "Giới thiệu đội ngũ (ảnh, avatar)", "Hồ sơ địa điểm có ảnh"],
+  feedback: ["Màn lỗi có cảnh báo và hướng khắc phục", "Màn thành công có tóm tắt", "Cảnh báo hệ thống / bảo trì", "Xác nhận trước khi gửi"],
+  records: ["Bảng dữ liệu nhiều trang", "Lịch sử giao dịch (lọc ngày, phân trang)", "Danh bạ thành viên có phân trang", "Báo cáo theo khoảng ngày"],
+  preferences: ["Cài đặt quyền riêng tư", "Tùy chọn hiển thị", "Đăng ký nhận tin theo chủ đề", "Cấu hình lịch làm việc", "Thiết lập thanh toán định kỳ"],
+};
+
 export interface Assignment {
   id: string;
-  batch: "pilot" | "main" | "ext";
+  batch: "pilot" | "main" | "ext" | "ext2";
   group: string;
   screenKind: string;
   domain: string;
@@ -83,6 +93,24 @@ export function buildExtension(total = 100, start = 201, seed = 20261118): Assig
   });
 }
 
+/** 100 màn mở rộng 2 R301–R400: loại màn giàu component hiếm; miền, quyền, bố cục lấy từ cả hai bộ trước. */
+export function buildExtension2(total = 100, start = 301, seed = 20261218): Assignment[] {
+  const r = rng(seed);
+  const cyc = <T,>(arr: T[]) => {
+    let pool: T[] = [];
+    return () => {
+      if (!pool.length) pool = [...arr].sort(() => r() - 0.5);
+      return pool.pop()!;
+    };
+  };
+  const kinds = Object.entries(EXT2_GROUPS).flatMap(([g, ks]) => ks.map((k) => [g, k] as const));
+  const nextDomain = cyc([...DOMAINS, ...EXT_DOMAINS]), nextLayout = cyc([...new Set([...LAYOUTS, ...EXT_LAYOUTS])]), nextPerm = cyc([...PERMISSIONS, ...EXT_PERMISSIONS]);
+  return Array.from({ length: total }, (_, i) => {
+    const [group, screenKind] = kinds[i % kinds.length];
+    return { id: `R${start + i}`, batch: "ext2" as const, group, screenKind, domain: nextDomain(), permission: nextPerm(), layout: nextLayout() };
+  });
+}
+
 /** Thay loại màn của một số màn gốc (dataset/matrix-overrides.json) để đa dạng hơn mà không xáo trộn các màn còn lại. */
 export function applyOverrides(m: Assignment[], file = join(import.meta.dirname, "..", "..", "dataset", "matrix-overrides.json")): Assignment[] {
   if (!existsSync(file)) return m;
@@ -91,7 +119,7 @@ export function applyOverrides(m: Assignment[], file = join(import.meta.dirname,
 }
 
 if (process.argv[1]?.endsWith("matrix.ts")) {
-  const m = [...applyOverrides(buildMatrix()), ...buildExtension()];
+  const m = [...applyOverrides(buildMatrix()), ...buildExtension(), ...buildExtension2()];
   writeFileSync(join(import.meta.dirname, "..", "..", "dataset", "matrix.json"), JSON.stringify(m, null, 1));
   const count = (k: keyof Assignment) => Object.entries(m.reduce((a, x) => ((a[x[k]] = (a[x[k]] ?? 0) + 1), a), {} as Record<string, number>));
   console.log(`${m.length} màn gốc (${m.filter((x) => x.batch === "pilot").length} đợt thử)`);

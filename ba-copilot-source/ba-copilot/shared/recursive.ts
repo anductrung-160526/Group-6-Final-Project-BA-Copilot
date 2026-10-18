@@ -210,3 +210,171 @@ export function predictChildren(m: RecursiveModel, tree: UINode, boxes: Record<s
   visit(tree, [canvas], null, boxes[tree.id] ?? [0, 0, m.config.gx - 1, m.config.gy - 1]);
   return out;
 }
+
+// ------------------------------------------------------------------ dùng cho tính năng gợi ý bố cục (layout auto-completion)
+export interface Candidate { type: string; p: number }
+export interface NextElement {
+  parentId: string;
+  /** vị trí chèn giữa các con đã có, theo thứ tự đọc của khung bao dự đoán */
+  index: number;
+  box: Box;
+  leaf: boolean;
+  /** top-k loại (không gồm EOS) theo softmax của đầu ra loại tại bước sinh */
+  candidates: Candidate[];
+  pEos: number;
+  /** true nếu loại có xác suất cao nhất là EOS – mô hình cho rằng container đã đủ */
+  eos: boolean;
+}
+
+interface Ctx { seq: Tok[]; mem: Mat; given: UINode[]; box: Box; anc: Float32Array[]; own: Float32Array | null }
+
+/** Ngữ cảnh giải mã của một container: chuỗi [cha, các con đã có] và bộ nhớ trạng thái ẩn của tổ tiên (Eq.10). */
+function contextOf(m: RecursiveModel, tree: UINode, boxes: Record<string, Box>, containerId: string): Ctx | null {
+  const { d, maxLen } = m.config;
+  const canvas = m.w["canvas"].data.subarray(0, d);
+  const path: UINode[] = [];
+  const find = (n: UINode): boolean => {
+    path.push(n);
+    if (n.id === containerId) return true;
+    for (const c of n.children ?? []) if (find(c)) return true;
+    path.pop();
+    return false;
+  };
+  if (!find(tree) || !isContainer(path[path.length - 1].type)) return null;
+  const tok = (n: UINode, fallback: Box): Tok => {
+    const b = boxes[n.id] ?? fallback;
+    return [ALL_TYPES.indexOf(n.type), isContainer(n.type) ? 0 : 1, b[0], b[1], b[2], b[3]];
+  };
+  let anc: Float32Array[] = [canvas];
+  let own: Float32Array | null = null;
+  let box: Box = boxes[tree.id] ?? [0, 0, m.config.gx - 1, m.config.gy - 1];
+  for (let i = 0; ; i++) {
+    const n = path[i];
+    box = boxes[n.id] ?? box;
+    const given = (n.children ?? []).slice(0, maxLen - 1);
+    const seq: Tok[] = [tok(n, box), ...given.map((c) => tok(c, box))];
+    const mem: Mat = own ? [...anc, own] : [...anc];
+    if (i === path.length - 1) return { seq, mem, given, box, anc, own };
+    const h = run(m, seq, mem).h;
+    const j = given.indexOf(path[i + 1]);
+    if (j < 0) return null; // con nằm ngoài maxLen
+    anc = [...anc, own ?? h[0]];
+    own = h[j + 1];
+  }
+}
+
+function readingIndex(given: UINode[], boxes: Record<string, Box>, b: Box) {
+  return given.filter((c) => {
+    const cb = boxes[c.id];
+    return cb && (cb[1] < b[1] || (cb[1] === b[1] && cb[0] <= b[0]));
+  }).length;
+}
+
+function step(m: RecursiveModel, ctx: Ctx, boxes: Record<string, Box>, parentId: string, k: number): NextElement {
+  const { nTypes } = m.config;
+  const r = run(m, ctx.seq, ctx.mem);
+  const lc = Float32Array.from(r.heads.c);
+  lc[nTypes + 1] = -1e9; // BOS không bao giờ là đầu ra
+  const pr = softmax(lc);
+  const order = [...Array(nTypes).keys()].sort((a, b) => pr[b] - pr[a]);
+  const box: Box = [argmax(r.heads.x), argmax(r.heads.y), argmax(r.heads.x2), argmax(r.heads.y2)];
+  return {
+    parentId,
+    index: readingIndex(ctx.given, boxes, box),
+    box,
+    leaf: argmax(r.heads.t) === 1,
+    candidates: order.slice(0, k).map((c) => ({ type: ALL_TYPES[c], p: pr[c] })),
+    pEos: pr[nTypes],
+    eos: argmax(lc) === nTypes,
+  };
+}
+
+/** Phần tử tiếp theo cho một container đã có (một bước giải mã, top-k loại). */
+export function nextInContainer(m: RecursiveModel, tree: UINode, boxes: Record<string, Box>, containerId: string, k = 3): NextElement | null {
+  const ctx = contextOf(m, tree, boxes, containerId);
+  if (!ctx || ctx.seq.length >= m.config.maxLen) return null;
+  return step(m, ctx, boxes, containerId, k);
+}
+
+/**
+ * Phần tử tiếp theo cho cả cây: một bước giải mã ở MỌI container đã có (cùng một lượt duyệt từ gốc xuống),
+ * trả các container mà mô hình KHÔNG đoán EOS, xếp theo xác suất loại cao nhất giảm dần.
+ */
+export function nextElements(m: RecursiveModel, tree: UINode, boxes: Record<string, Box>, k = 3): NextElement[] {
+  const { d, maxLen } = m.config;
+  const canvas = m.w["canvas"].data.subarray(0, d);
+  const out: NextElement[] = [];
+  const tok = (n: UINode, fallback: Box): Tok => {
+    const b = boxes[n.id] ?? fallback;
+    return [ALL_TYPES.indexOf(n.type), isContainer(n.type) ? 0 : 1, b[0], b[1], b[2], b[3]];
+  };
+  const visit = (n: UINode, anc: Float32Array[], own: Float32Array | null, box: Box) => {
+    if (!isContainer(n.type)) return;
+    box = boxes[n.id] ?? box;
+    const given = (n.children ?? []).slice(0, maxLen - 1);
+    const ctx: Ctx = { seq: [tok(n, box), ...given.map((c) => tok(c, box))], mem: own ? [...anc, own] : [...anc], given, box, anc, own };
+    if (ctx.seq.length < maxLen) {
+      const e = step(m, ctx, boxes, n.id, k);
+      if (!e.eos) out.push(e);
+    }
+    const h = run(m, ctx.seq, ctx.mem).h;
+    given.forEach((c, j) => visit(c, [...anc, own ?? h[0]], h[j + 1], box));
+  };
+  visit(tree, [canvas], null, boxes[tree.id] ?? [0, 0, m.config.gx - 1, m.config.gy - 1]);
+  return out.sort((a, b) => b.candidates[0].p - a.candidates[0].p);
+}
+
+export interface GeneratedNode { tempId: string; parentId: string; index: number; type: string; leaf: boolean; box: Box; p: number }
+
+/**
+ * "Hoàn thành bố cục": giải mã tham lam từ container `rootId` (mặc định gốc) xuống, sinh con còn thiếu cho mọi container –
+ * kể cả container vừa sinh – tới EOS, đúng như recursive_complete (scripts/paper/tree_decoders.py), giới hạn maxNodes node cả cây.
+ * Node sinh ra có tempId g1, g2…; parentId là id node đã có hoặc tempId của node vừa sinh.
+ */
+export function completeLayout(m: RecursiveModel, tree: UINode, boxes: Record<string, Box>, rootId = tree.id, maxNodes = 100): GeneratedNode[] {
+  const { nTypes, maxLen } = m.config;
+  const start = contextOf(m, tree, boxes, rootId);
+  if (!start) return [];
+  let count = 0;
+  walkCount(tree, () => count++);
+  const out: GeneratedNode[] = [];
+  // mỗi node trong lúc giải mã: id (thật hoặc tạm), token, và các con đã có (chỉ node thật)
+  type DNode = { id: string; tok: Tok; given: UINode[] };
+  const expand = (n: DNode, anc: Float32Array[], own: Float32Array | null) => {
+    if (n.tok[1] !== 0) return; // phần tử lá
+    const box: Box = [n.tok[2], n.tok[3], n.tok[4], n.tok[5]];
+    const kids: DNode[] = n.given.map((c) => ({ id: c.id, tok: tokOf(c, boxes, box), given: (c.children ?? []).slice(0, maxLen - 1) }));
+    const seq: Tok[] = [n.tok, ...kids.map((k) => k.tok)];
+    const mem: Mat = own ? [...anc, own] : [...anc];
+    let gen = 0;
+    while (seq.length < maxLen && count < maxNodes) {
+      const r = run(m, seq, mem);
+      const lc = Float32Array.from(r.heads.c);
+      lc[nTypes + 1] = -1e9;
+      const c = argmax(lc);
+      if (c === nTypes) break; // EOS
+      const t = argmax(r.heads.t);
+      const b: Box = [argmax(r.heads.x), argmax(r.heads.y), argmax(r.heads.x2), argmax(r.heads.y2)];
+      const g: DNode = { id: `g${out.length + 1}`, tok: [c, t, ...b], given: [] };
+      out.push({ tempId: g.id, parentId: n.id, index: n.given.length ? readingIndex(n.given, boxes, b) : gen, type: ALL_TYPES[c], leaf: t === 1, box: b, p: softmax(lc)[c] });
+      kids.push(g);
+      seq.push(g.tok);
+      gen++;
+      count++;
+    }
+    const h = run(m, seq, mem).h;
+    const ownH = own ?? h[0];
+    kids.forEach((k, j) => expand(k, [...anc, ownH], h[j + 1]));
+  };
+  expand({ id: rootId, tok: start.seq[0], given: start.given }, start.anc, start.own);
+  return out;
+}
+
+function tokOf(n: UINode, boxes: Record<string, Box>, fallback: Box): Tok {
+  const b = boxes[n.id] ?? fallback;
+  return [ALL_TYPES.indexOf(n.type), isContainer(n.type) ? 0 : 1, b[0], b[1], b[2], b[3]];
+}
+function walkCount(n: UINode, f: () => void) {
+  f();
+  (n.children ?? []).forEach((c) => walkCount(c, f));
+}

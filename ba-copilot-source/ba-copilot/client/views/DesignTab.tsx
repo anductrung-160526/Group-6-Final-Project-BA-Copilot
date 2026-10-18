@@ -1,10 +1,10 @@
 // Design Studio: prompt sinh màn hình, khoanh vùng (click / kéo khung), bình luận theo vùng,
-// gửi bình luận vào prompt, prompt sửa theo vùng, lịch sử phiên bản, xem thử prototype.
+// gửi bình luận vào prompt, prompt sửa theo vùng, lịch sử phiên bản, xem thử prototype,
+// gợi ý bố cục (Recursive Transformer, Li et al. 2020): khung mờ phần tử tiếp theo trên canvas + "Hoàn thành bố cục".
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { get, post, patch, del, download } from "../api.ts";
 import type { Annotation, ModuleDetail, ScreenVersion } from "../../shared/types.ts";
-import type { Suggestion } from "../../shared/nextComponent.ts";
 import { findNode, nodeLabel, topMostIds, UINode } from "../../shared/design.ts";
 import { Renderer } from "../components/Renderer.tsx";
 import { Badge, Btn, Empty, Field, Modal, StatusBadge, fmtTime, useUI } from "../components/ui.tsx";
@@ -39,12 +39,20 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
   const [prompt, setPrompt] = useState("");
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [panel, setPanel] = useState<"edit" | "versions" | "layers" | "suggest">("edit");
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [suggMeta, setSuggMeta] = useState<{ versionId: string; kind: string; trees: number; learned: number } | null>(null);
+  // gợi ý bố cục
+  const [layoutOn, setLayoutOn] = useState(() => {
+    try {
+      return localStorage.getItem("ba.layoutSuggest") !== "off";
+    } catch {
+      return true;
+    }
+  });
+  const [next, setNext] = useState<{ versionId: string; items: NextItem[]; model: ModelInfo } | null>(null);
+  const [which, setWhich] = useState(0); // vị trí đang hiển thị (khi không chọn gì, tối đa 3 container)
+  const [pick, setPick] = useState(0); // loại ứng viên đang chọn trong top-3
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-  const [suggHover, setSuggHover] = useState<string | null>(null);
+  const [complete, setComplete] = useState<{ versionId: string; items: GenItem[]; on: Set<string> } | null>(null);
   const shownRef = useRef<Set<string>>(new Set());
-  const fromSuggestion = useRef(false);
   const [newScreen, setNewScreen] = useState<{ name: string; prompt: string } | null>(null);
   const [drag, setDrag] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
   const [rects, setRects] = useState<Record<string, Rect>>({});
@@ -85,14 +93,14 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
   }, []);
 
   const measure = useCallback(() => {
-    const ids = new Set<string>([...selected, ...changedIds, ...(hover ? [hover] : []), ...(suggHover ? [suggHover] : []), ...openAnns.flatMap((a) => a.nodeIds.slice(0, 1))]);
+    const ids = new Set<string>([...selected, ...changedIds, ...(hover ? [hover] : []), ...(tree ? [tree.id] : []), ...openAnns.flatMap((a) => a.nodeIds.slice(0, 1))]);
     const next: Record<string, Rect> = {};
     for (const id of ids) {
       const r = rectOf(id);
       if (r) next[id] = r;
     }
     setRects(next);
-  }, [selected, changedIds, hover, suggHover, openAnns.map((a) => a.id + a.nodeIds[0]).join(), rectOf]);
+  }, [selected, changedIds, hover, tree?.id, openAnns.map((a) => a.id + a.nodeIds[0]).join(), rectOf]);
 
   useLayoutEffect(() => {
     measure();
@@ -122,57 +130,142 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
     return { pageWidth: page.offsetWidth, boxes };
   };
 
-  // ------------------------------------------------ gợi ý thành phần tiếp theo (debounce 300 ms)
+  // ------------------------------------------------ gợi ý bố cục: phần tử tiếp theo sau mỗi thay đổi (debounce 500 ms)
   const selKey = selected.join(",");
+  const canSuggest = layoutOn && !!screen?.currentVersionId && !previewing && mode !== "prototype";
   useEffect(() => {
-    if (!screen?.currentVersionId) return setSuggestions([]);
+    setNext(null);
+    setWhich(0);
+    setPick(0);
+    if (!canSuggest || complete) return;
     const t = setTimeout(() => {
-      post<{ suggestions: Suggestion[]; versionId: string; model: { kind: string; trees: number; learned: number } }>(`/api/screens/${screen.id}/suggestions`, { nodeIds: selected, layout: measureLayout() })
-        .then((r) => {
-          setSuggestions(r.suggestions);
-          setSuggMeta({ versionId: r.versionId, ...r.model });
-        })
-        .catch(() => setSuggestions([]));
-    }, 300);
+      const layout = measureLayout();
+      if (!layout) return;
+      post<{ versionId: string; items: NextItem[]; model: ModelInfo }>(`/api/screens/${screen!.id}/suggestions`, { mode: "next", nodeIds: selected, layout })
+        .then((r) => setNext(r))
+        .catch(() => setNext(null));
+    }, 500);
     return () => clearTimeout(t);
-  }, [screen?.id, screen?.currentVersionId, screen?.status, selKey, m.annotations.length]);
+  }, [canSuggest, screen?.id, screen?.currentVersionId, selKey, !!complete]);
 
-  const visibleSuggestions = suggestions.filter((s) => !dismissed.has(s.id));
-  const logSugg = (s: Suggestion, action: "shown" | "applied" | "dismissed") =>
-    screen && post("/api/suggestions/events", { screenId: screen.id, versionId: suggMeta?.versionId, kind: s.kind, targetNodeId: s.targetNodeId, title: s.title, confidence: s.confidence, action }).catch(() => {});
+  const items = (next?.items ?? []).filter((e) => !dismissed.has(`${next!.versionId}:${e.parentId}`));
+  const cur: NextItem | null = items[Math.min(which, items.length - 1)] ?? null;
+  const curType = cur ? cur.candidates[Math.min(pick, cur.candidates.length - 1)]?.type : null;
+  const logSugg = (e: { parentId: string }, title: string, p: number, action: "shown" | "applied" | "dismissed") =>
+    screen && post("/api/suggestions/events", { screenId: screen.id, versionId: next?.versionId ?? complete?.versionId, kind: "layout", targetNodeId: e.parentId, title, confidence: p, action }).catch(() => {});
 
-  // ghi "shown" một lần cho mỗi gợi ý của mỗi phiên bản khi tab Gợi ý đang mở
+  // ghi "shown" một lần cho mỗi gợi ý hiển thị trên canvas
   useEffect(() => {
-    if (panel !== "suggest") return;
-    for (const s of visibleSuggestions) {
-      const key = `${suggMeta?.versionId}:${s.id}`;
-      if (shownRef.current.has(key)) continue;
-      shownRef.current.add(key);
-      logSugg(s, "shown");
-    }
-  }, [panel, visibleSuggestions.map((s) => s.id).join()]);
+    if (!cur || !next || cur.eos) return;
+    const key = `${next.versionId}:${cur.parentId}`;
+    if (shownRef.current.has(key)) return;
+    shownRef.current.add(key);
+    logSugg(cur, cur.candidates[0].type, cur.candidates[0].p, "shown");
+  }, [cur?.parentId, next?.versionId]);
 
-  const applySuggestion = (s: Suggestion) => {
-    logSugg(s, "applied");
-    setSelected([s.targetNodeId]);
-    setPrompt(s.fixPrompt);
-    fromSuggestion.current = true;
-    setPanel("edit");
-    setSuggHover(null);
-    toast("Đã khoanh vùng và điền sẵn prompt – kiểm tra rồi bấm “Sửa vùng đã khoanh”", "info");
+  const acceptItems = async (versionId: string, list: { ref: string; parentId: string; index: number; type: string }[]) => {
+    if (!screen) return false;
+    const r = await run("Đang chèn phần tử", () => post(`/api/screens/${screen.id}/layout/accept`, { versionId, items: list }));
+    if (!r) return false;
+    setShowChanges(true);
+    await reload();
+    await loadVersions();
+    return true;
   };
-  const dismissSuggestion = (s: Suggestion) => {
-    setDismissed((d) => new Set([...d, s.id]));
-    logSugg(s, "dismissed");
+  const acceptNext = async () => {
+    if (!cur || !next || !curType) return;
+    const c = cur.candidates.find((x) => x.type === curType)!;
+    if (await acceptItems(next.versionId, [{ ref: "a", parentId: cur.parentId, index: cur.index, type: curType }])) {
+      logSugg(cur, curType, c.p, "applied");
+      toast(`Đã thêm ${curType} vào ${cur.parentLabel} – đổi nội dung bằng Prompt sửa thiết kế`, "ok");
+    }
+  };
+  const dismissNext = () => {
+    if (!cur || !next) return;
+    setDismissed((d) => new Set([...d, `${next.versionId}:${cur.parentId}`]));
+    logSugg(cur, curType ?? "", cur.candidates[0].p, "dismissed");
+    setPick(0);
+  };
+
+  // "Hoàn thành bố cục" trong vùng đang chọn hoặc cả màn
+  const runComplete = async () => {
+    if (!screen) return;
+    const layout = measureLayout();
+    if (!layout) return;
+    const r = await run("Mô hình đang hoàn thành bố cục…", () => post<{ versionId: string; items: GenItem[] }>(`/api/screens/${screen.id}/suggestions`, { mode: "complete", nodeIds: selected, layout }));
+    if (!r) return;
+    if (!r.items.length) return toast("Mô hình cho rằng bố cục đã đủ (EOS ở mọi container)", "info");
+    setComplete({ versionId: r.versionId, items: r.items, on: new Set(r.items.map((g) => g.tempId)) });
+    setPanel("suggest");
+  };
+  // bỏ chọn một phần tử thì bỏ luôn các phần tử con sinh trong nó
+  const toggleGen = (id: string) =>
+    setComplete((c) => {
+      if (!c) return c;
+      const on = new Set(c.on);
+      const drop = (x: string) => {
+        on.delete(x);
+        c.items.filter((g) => g.parentId === x).forEach((g) => drop(g.tempId));
+      };
+      if (on.has(id)) drop(id);
+      else {
+        let g: GenItem | undefined = c.items.find((x) => x.tempId === id);
+        while (g) {
+          on.add(g.tempId);
+          g = c.items.find((x) => x.tempId === g!.parentId);
+        }
+      }
+      return { ...c, on };
+    });
+  const acceptComplete = async () => {
+    if (!complete) return;
+    const list = complete.items.filter((g) => complete.on.has(g.tempId)).map((g) => ({ ref: g.tempId, parentId: g.parentId, index: g.index, type: g.type }));
+    if (!list.length) return setComplete(null);
+    if (await acceptItems(complete.versionId, list)) {
+      for (const g of complete.items) logSugg(g, g.type, g.p, complete.on.has(g.tempId) ? "applied" : "dismissed");
+      toast(`Đã thêm ${list.length} phần tử theo gợi ý bố cục`, "ok");
+      setComplete(null);
+    }
+  };
+
+  // sửa tay: xóa / đổi thứ tự trong container
+  const manual = async (op: "remove" | "up" | "down", id: string) => {
+    if (!screen) return;
+    const r = await run("Đang cập nhật", () => post(`/api/screens/${screen.id}/manual`, { op, id }));
+    if (!r) return;
+    if (op === "remove") setSelected([]);
+    await reload();
+    await loadVersions();
+  };
+
+  // khung bao (pixel trên trang) → tọa độ khung canvas, theo vị trí và tỷ lệ hiển thị của Page
+  const pageEl = () => contentRef.current?.querySelector('[data-node-type="Page"]') as HTMLElement | null;
+  const ghostRect = (b: number[]): Rect | null => {
+    const page = pageEl();
+    const pr = tree ? rects[tree.id] : null;
+    if (!page || !pr || !page.offsetWidth) return null;
+    const k = pr.w / page.offsetWidth;
+    return { x: pr.x + b[0] * k, y: pr.y + b[1] * k, w: Math.max(8, (b[2] - b[0]) * k), h: Math.max(8, (b[3] - b[1]) * k) };
   };
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !(e.target instanceof HTMLTextAreaElement) && !(e.target instanceof HTMLInputElement)) setSelected([]);
+      if (e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
+      if (e.key === "Escape") {
+        if (complete) setComplete(null);
+        else if (cur && !cur.eos) dismissNext();
+        else setSelected([]);
+      } else if (e.key === "Tab" && !e.shiftKey && (complete || (cur && !cur.eos)) && !previewing) {
+        e.preventDefault();
+        complete ? acceptComplete() : acceptNext();
+      } else if ((e.key === "Delete" || e.key === "Backspace") && selected.length === 1 && tree && selected[0] !== tree.id && !previewing) {
+        e.preventDefault();
+        manual("remove", selected[0]);
+      }
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, []);
+  });
 
   // ------------------------------------------------ tương tác canvas
   const nodeFromEvent = (e: React.MouseEvent) => (e.target as HTMLElement).closest("[data-node-id]")?.getAttribute("data-node-id") ?? null;
@@ -277,12 +370,6 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
     setPrompt("");
     setChecked(new Set());
     setShowChanges(true);
-    // sửa xong theo gợi ý → bỏ vùng chọn và mở lại tab Gợi ý để thấy phần tử tiếp theo cần sửa
-    if (fromSuggestion.current && r.version) {
-      fromSuggestion.current = false;
-      setSelected([]);
-      setPanel("suggest");
-    }
     await reload();
     await loadVersions();
   };
@@ -437,7 +524,23 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
                     </div>
                   )}
                   {selected.map((id) => rects[id] && <div key={`s-${id}`} className="ov ov-selected" style={box(rects[id])} />)}
-                  {suggHover && rects[suggHover] && <div className="ov ov-suggest" style={box(rects[suggHover])} />}
+                  {mode !== "prototype" && !complete && cur && !cur.eos && curType && (() => {
+                    const r = ghostRect(cur.boxPx);
+                    return (
+                      r && (
+                        <button className="ov ov-ghost" style={box(r)} title="Tab: chấp nhận · Esc: bỏ qua" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); acceptNext(); }} data-testid="ghost">
+                          <span className="ghost-tag">
+                            {curType} {Math.round((cur.candidates.find((c) => c.type === curType)?.p ?? 0) * 100)}% · Tab
+                          </span>
+                        </button>
+                      )
+                    );
+                  })()}
+                  {mode !== "prototype" &&
+                    complete?.items.map((g) => {
+                      const r = ghostRect(g.boxPx);
+                      return r && <button key={g.tempId} className={`ov ov-ghost ${complete.on.has(g.tempId) ? "" : "off"}`} style={box(r)} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); toggleGen(g.tempId); }} title="Bấm để bỏ/chọn"><span className="ghost-tag">{g.type}</span></button>;
+                    })}
                   {mode !== "prototype" &&
                     openAnns.map((a, i) => {
                       const r = rects[a.nodeIds[0]] ?? a.bbox;
@@ -464,7 +567,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
               </div>
             </div>
             <div className="hint muted small">
-              {mode === "select" && "Click để chọn phần tử · Shift+click chọn nhiều · Esc bỏ chọn"}
+              {mode === "select" && "Click để chọn phần tử · Shift+click chọn nhiều · Esc bỏ chọn · Delete xóa phần tử · Tab chấp nhận khung mờ gợi ý"}
               {mode === "region" && "Kéo chuột để khoanh vùng – các phần tử nằm trọn trong khung sẽ được chọn"}
               {mode === "prototype" && "Bấm nút/liên kết có điều hướng để chuyển màn hình như prototype"}
             </div>
@@ -486,38 +589,127 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
               Phiên bản ({versions.length})
             </button>
             <button className={panel === "suggest" ? "on" : ""} onClick={() => setPanel("suggest")} data-testid="suggest-tab">
-              Gợi ý {visibleSuggestions.length ? `(${visibleSuggestions.length})` : ""}
+              Gợi ý {complete ? `(${complete.on.size})` : cur && !cur.eos ? "•" : ""}
             </button>
           </div>
 
           {panel === "suggest" && (
             <div className="panel-body" data-testid="suggest-panel">
-              <div className="muted small">
-                {selected.length ? `Gợi ý cho vùng đang chọn (${selected.length} phần tử)` : "Gợi ý cho toàn màn hình – khoanh vùng để thu hẹp"}
-              </div>
-              {visibleSuggestions.map((s) => (
-                <div key={s.id} className={`sugg sugg-${s.kind}`} onMouseEnter={() => setSuggHover(s.targetNodeId)} onMouseLeave={() => setSuggHover(null)} data-testid="suggestion">
-                  <div className="sugg-head">
-                    <Badge tone={s.kind === "add" ? "blue" : s.kind === "fix" ? "amber" : "violet"}>{s.kind === "add" ? "Thêm" : s.kind === "fix" ? "Sửa" : "Xem lại"}</Badge>
-                    <span className="sugg-title">{s.title}</span>
-                  </div>
-                  <div className="muted small">{s.reason}</div>
-                  <div className="sugg-conf" title={`Độ tin cậy ${Math.round(s.confidence * 100)}%`}>
-                    <span style={{ width: `${Math.round(s.confidence * 100)}%` }} />
+              <label className="check-inline">
+                <input
+                  type="checkbox"
+                  checked={layoutOn}
+                  onChange={(e) => {
+                    setLayoutOn(e.target.checked);
+                    try {
+                      localStorage.setItem("ba.layoutSuggest", e.target.checked ? "on" : "off");
+                    } catch {
+                      /* trình duyệt chặn lưu trữ */
+                    }
+                  }}
+                  data-testid="layout-toggle"
+                />{" "}
+                Hiện khung mờ phần tử tiếp theo trên canvas
+              </label>
+
+              {complete ? (
+                <div className="box box-accent">
+                  <div className="box-title">Hoàn thành bố cục – {complete.items.length} phần tử</div>
+                  <div className="gen-list">
+                    {complete.items.map((g) => {
+                      const depth = (() => {
+                        let d = 0;
+                        let p = complete.items.find((x) => x.tempId === g.parentId);
+                        while (p) {
+                          d++;
+                          p = complete.items.find((x) => x.tempId === p!.parentId);
+                        }
+                        return d;
+                      })();
+                      const parent = tree ? findNode(tree, g.parentId) : null;
+                      const genParent = complete.items.find((x) => x.tempId === g.parentId);
+                      return (
+                        <label key={g.tempId} className="gen-item" style={{ paddingLeft: 4 + depth * 14 }}>
+                          <input type="checkbox" checked={complete.on.has(g.tempId)} onChange={() => toggleGen(g.tempId)} /> <strong>{g.type}</strong>{" "}
+                          <span className="muted small">trong {parent ? nodeLabel(parent) : `${genParent?.type ?? ""} (mới)`} · {Math.round(g.p * 100)}%</span>
+                        </label>
+                      );
+                    })}
                   </div>
                   <div className="sugg-actions">
-                    <Btn size="sm" kind="primary" disabled={!!previewing} onClick={() => applySuggestion(s)} data-testid="apply-suggestion">
-                      Áp dụng
+                    <Btn size="sm" kind="primary" disabled={!complete.on.size || !!previewing} onClick={acceptComplete} data-testid="accept-complete">
+                      Chấp nhận {complete.on.size} phần tử (Tab)
                     </Btn>
-                    <Btn size="sm" kind="ghost" onClick={() => dismissSuggestion(s)}>
-                      Bỏ qua
+                    <Btn size="sm" kind="ghost" onClick={() => setComplete(null)}>
+                      Hủy (Esc)
                     </Btn>
-                    <span className="muted small right">{Math.round(s.confidence * 100)}%</span>
                   </div>
                 </div>
-              ))}
-              {!visibleSuggestions.length && <div className="muted small pad">Chưa có gợi ý cho vùng này.</div>}
-              {suggMeta && <div className="muted small sugg-foot">{suggMeta.kind === "recursive" ? "Recursive Transformer (Li et al. 2020)" : suggMeta.kind === "transformer" ? "Transformer" : "N-gram"} · học từ {suggMeta.trees.toLocaleString("vi-VN")} {suggMeta.kind === "recursive" ? "cây giao diện" : "màn hình"}{suggMeta.learned ? ` + ${suggMeta.learned} màn đã duyệt` : ""}</div>}
+              ) : (
+                <>
+                  <div className="muted small">{selected.length ? "Phần tử tiếp theo trong container đang chọn" : "Phần tử tiếp theo – chọn một container để hỏi riêng vị trí đó"}</div>
+                  {!layoutOn ? (
+                    <div className="muted small pad">Đang tắt gợi ý.</div>
+                  ) : !next ? (
+                    <div className="muted small pad">Đang tính…</div>
+                  ) : !cur ? (
+                    <div className="muted small pad">Mô hình cho rằng bố cục đã đủ (dự đoán EOS ở mọi container). Chọn một container để xem các loại phần tử có thể thêm.</div>
+                  ) : (
+                    <div className="sugg" data-testid="suggestion">
+                      <div className="sugg-head">
+                        <Badge tone="blue">Tiếp theo</Badge>
+                        <span className="sugg-title">trong {cur.parentLabel}</span>
+                      </div>
+                      {cur.eos && <div className="muted small">Mô hình cho rằng container này đã đủ (EOS {Math.round(cur.pEos * 100)}%). Có thể vẫn chọn một loại bên dưới.</div>}
+                      <div className="cand-list">
+                        {cur.candidates.map((c, i) => (
+                          <button key={c.type} className={`cand ${curType === c.type ? "on" : ""}`} onClick={() => setPick(i)} data-testid="candidate">
+                            <span>{c.type}</span>
+                            <span className="cand-bar">
+                              <span style={{ width: `${Math.round(c.p * 100)}%` }} />
+                            </span>
+                            <span className="muted small">{Math.round(c.p * 100)}%</span>
+                          </button>
+                        ))}
+                        {!cur.eos && <div className="muted small">Kết thúc (EOS): {Math.round(cur.pEos * 100)}%</div>}
+                      </div>
+                      <div className="sugg-actions">
+                        <Btn size="sm" kind="primary" disabled={!!previewing} onClick={acceptNext} data-testid="accept-next">
+                          Thêm {curType} {cur.eos ? "" : "(Tab)"}
+                        </Btn>
+                        {!cur.eos && (
+                          <Btn size="sm" kind="ghost" onClick={dismissNext}>
+                            Bỏ qua (Esc)
+                          </Btn>
+                        )}
+                      </div>
+                      {items.length > 1 && (
+                        <div className="muted small">
+                          Vị trí khác:{" "}
+                          {items.map((e, i) => (
+                            <React.Fragment key={e.parentId}>
+                              {i > 0 && " · "}
+                              <button className={`link small ${i === which ? "strong" : ""}`} onClick={() => { setWhich(i); setPick(0); }}>
+                                {e.candidates[0].type} trong {e.parentLabel}
+                              </button>
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div className="box">
+                    <div className="box-title">Hoàn thành bố cục</div>
+                    <div className="muted small">Mô hình sinh tiếp toàn bộ phần còn thiếu {selected.length ? "trong vùng đang chọn" : "của cả màn"}, hiện thành khung mờ để chấp nhận từng phần.</div>
+                    <Btn size="sm" disabled={!!previewing || !layoutOn} onClick={runComplete} data-testid="run-complete">
+                      ✦ Hoàn thành bố cục
+                    </Btn>
+                  </div>
+                </>
+              )}
+              <div className="muted small sugg-foot">
+                Recursive Transformer Tree Decoder (Li et al. 2020){next?.model ? ` · học từ ${next.model.trees.toLocaleString("vi-VN")} cây giao diện (${next.model.roots} màn gốc)` : ""}. Gợi ý gồm loại, vị trí và kích thước phần tử – không gồm nội dung; đổi chữ bằng Prompt sửa thiết kế.
+              </div>
             </div>
           )}
 
@@ -617,6 +809,19 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
               <div className="layers">
                 <LayerTree node={tree} selected={selected} onPick={(id, multi) => setSelected((s) => (multi ? (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]) : [id]))} />
               </div>
+              {selectedNodes.length === 1 && selectedNodes[0].id !== tree.id && (
+                <div className="sugg-actions">
+                  <Btn size="sm" disabled={!!previewing} onClick={() => manual("up", selectedNodes[0].id)} data-testid="move-up">
+                    ↑ Lên
+                  </Btn>
+                  <Btn size="sm" disabled={!!previewing} onClick={() => manual("down", selectedNodes[0].id)}>
+                    ↓ Xuống
+                  </Btn>
+                  <Btn size="sm" kind="danger" disabled={!!previewing} onClick={() => manual("remove", selectedNodes[0].id)} data-testid="remove-node">
+                    Xóa phần tử
+                  </Btn>
+                </div>
+              )}
               {selectedNodes.length === 1 && (
                 <div className="box">
                   <div className="box-title">Thuộc tính – {selectedNodes[0].id}</div>
@@ -632,7 +837,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
                 <div key={v.id} className={`ver ${v.id === screen.currentVersionId ? "ver-current" : ""} ${viewVersion === v.id ? "ver-view" : ""}`}>
                   <div className="ver-head">
                     <strong>v{v.number}</strong>
-                    <Badge tone={v.kind === "generate" ? "blue" : v.kind === "revert" ? "amber" : "violet"}>{v.kind === "generate" ? "Sinh mới" : v.kind === "revert" ? "Khôi phục" : v.scope === "region" ? "Sửa theo vùng" : "Sửa toàn màn hình"}</Badge>
+                    <Badge tone={v.kind === "generate" ? "blue" : v.kind === "revert" ? "amber" : v.kind === "layout" ? "green" : "violet"}>{v.kind === "generate" ? "Sinh mới" : v.kind === "revert" ? "Khôi phục" : v.kind === "layout" ? "Gợi ý bố cục" : v.kind === "manual" ? "Sửa tay" : v.scope === "region" ? "Sửa theo vùng" : "Sửa toàn màn hình"}</Badge>
                     {v.id === screen.currentVersionId && <Badge tone="green">Hiện tại</Badge>}
                     <span className="muted small right">{fmtTime(v.createdAt)}</span>
                   </div>
@@ -693,6 +898,10 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
 }
 
 const box = (r: Rect): React.CSSProperties => ({ left: r.x, top: r.y, width: r.w, height: r.h });
+
+interface ModelInfo { kind: string; trees: number; roots: number }
+interface NextItem { parentId: string; parentLabel: string; index: number; boxPx: number[]; leaf: boolean; candidates: { type: string; p: number }[]; pEos: number; eos: boolean }
+interface GenItem { tempId: string; parentId: string; index: number; type: string; leaf: boolean; boxPx: number[]; p: number }
 
 function LayerTree({ node, selected, onPick, depth = 0 }: { node: UINode; selected: string[]; onPick: (id: string, multi: boolean) => void; depth?: number }) {
   return (

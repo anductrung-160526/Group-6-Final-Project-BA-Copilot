@@ -33,7 +33,7 @@ export interface ScreenVersion {
   id: string;
   screenId: string;
   number: number;
-  kind: "generate" | "edit" | "revert";
+  kind: "generate" | "edit" | "revert" | "layout" | "manual";
   prompt: string;
   scope: "global" | "region" | "";
   selectedIds: string[];

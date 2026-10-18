@@ -1576,9 +1576,24 @@ select:focus {
 }
 
 /* ---------- Gợi ý thành phần tiếp theo ---------- */
-.ov-suggest { border: 2px dashed #f59e0b; background: rgba(245, 158, 11, 0.08); }
+/* gợi ý bố cục: khung mờ phần tử tiếp theo (Recursive, Li et al. 2020) */
+.ov-ghost { border: 2px dashed #7c5cff; background: rgba(124, 92, 255, 0.10); pointer-events: auto; cursor: pointer; padding: 0; animation: ghost-in .25s ease-out; }
+.ov-ghost:hover { background: rgba(124, 92, 255, 0.18); }
+.ov-ghost.off { border-color: #c4c8d0; background: rgba(196, 200, 208, 0.08); }
+.ghost-tag { position: absolute; top: -20px; left: 0; font-size: 11px; background: #7c5cff; color: #fff; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+.ov-ghost.off .ghost-tag { background: #9aa0aa; text-decoration: line-through; }
+@keyframes ghost-in { from { opacity: 0; } to { opacity: 1; } }
+.cand-list { display: flex; flex-direction: column; gap: 4px; }
+.cand { display: grid; grid-template-columns: 90px 1fr 40px; gap: 8px; align-items: center; text-align: left; border: 1px solid var(--line, #e5e7eb); border-radius: 6px; padding: 4px 8px; background: var(--card, #fff); cursor: pointer; font: inherit; color: inherit; }
+.cand.on { border-color: #7c5cff; background: rgba(124, 92, 255, 0.08); font-weight: 600; }
+.cand-bar { height: 4px; background: #eef0f3; border-radius: 2px; overflow: hidden; }
+.cand-bar span { display: block; height: 100%; background: #7c5cff; }
+.gen-list { display: flex; flex-direction: column; gap: 2px; max-height: 320px; overflow: auto; margin: 6px 0; }
+.gen-item { display: flex; gap: 6px; align-items: baseline; justify-content: flex-start; text-align: left; font-size: 13px; cursor: pointer; }
+.gen-item input { width: auto; flex: none; }
+.link.strong { font-weight: 700; }
 .sugg { border: 1px solid var(--line, #e5e7eb); border-radius: 8px; padding: 10px; margin: 8px 0; display: flex; flex-direction: column; gap: 6px; background: var(--card, #fff); }
-.sugg:hover { border-color: #f59e0b; }
+.sugg:hover { border-color: #7c5cff; }
 .sugg-head { display: flex; gap: 8px; align-items: flex-start; }
 .sugg-title { font-weight: 600; line-height: 1.3; }
 .sugg-conf { height: 4px; background: #eef0f3; border-radius: 2px; overflow: hidden; }
@@ -1587,3 +1602,10 @@ select:focus {
 .sugg-actions .right { margin-left: auto; }
 .sugg-foot { margin-top: 10px; border-top: 1px dashed var(--line, #e5e7eb); padding-top: 8px; }
 
+/* container mới chèn từ gợi ý bố cục chưa có con: vẫn thấy và chọn được trên canvas */
+.canvas-content :is([data-node-type="Row"], [data-node-type="Column"], [data-node-type="Card"], [data-node-type="Section"], [data-node-type="Form"], [data-node-type="List"], [data-node-type="Header"], [data-node-type="Sidebar"]):empty {
+  min-height: 36px;
+  min-width: 60px;
+  outline: 1px dashed #c4c8d0;
+  outline-offset: -1px;
+}

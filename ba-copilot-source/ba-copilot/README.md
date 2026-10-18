@@ -29,6 +29,8 @@ Mở trình duyệt tại **http://localhost:3000**.
    - **Gửi bình luận vào prompt**: tick các bình luận cần xử lý, nhập thêm yêu cầu nếu muốn, rồi bấm *Sửa vùng đã khoanh*. AI chỉ được sửa trong vùng; thao tác ra ngoài vùng sẽ bị server chặn.
    - Mỗi lần sửa tạo ra một **phiên bản** mới. Có thể xem lại, khôi phục, và phần thay đổi được tô xanh.
    - Chế độ *Xem thử* dùng để bấm nút hoặc link chuyển màn hình như một prototype.
+   - **Gợi ý bố cục** (tab *Gợi ý*): sau mỗi thay đổi, khung mờ tím trên canvas cho biết phần tử nên đặt tiếp theo (loại, vị trí, kích thước). **Tab** để chấp nhận, **Esc** để bỏ qua, hoặc chọn loại khác trong top-3. Chọn một container để hỏi riêng chỗ đó. Nút **Hoàn thành bố cục** sinh toàn bộ phần còn thiếu (trong vùng chọn hoặc cả màn) thành khung mờ để chấp nhận từng phần.
+   - **Sửa tay**: chọn phần tử rồi nhấn **Delete** để xóa; tab *Thành phần* có nút ↑/↓ để đổi thứ tự. Nội dung chữ vẫn đổi bằng *Prompt sửa thiết kế*.
    - Bấm **Duyệt thiết kế** khi hoàn tất.
 3. **Tài liệu**: bấm *Sinh tài liệu* để tạo Use Case, SRS (ISO/IEC/IEEE 29148), Sequence diagram (Mermaid) và danh sách yêu cầu FR/NFR. Mỗi mục có thể chỉnh lại bằng prompt. Sau đó **Duyệt tài liệu** và xuất ra **Word**.
 4. **Test case**: sinh test theo kịch bản (luồng chính, luồng thay thế, ngoại lệ) và giá trị biên. Xuất ra **Excel** gồm 2 sheet: Test case và Truy vết.
@@ -229,7 +231,7 @@ npm run e2e                       # chạy trình duyệt qua toàn luồng, ả
 | `AI_MODE=mock` | Ép chạy rule-based dù đã có key. |
 | `PORT` | Cổng server, mặc định 3000. |
 | `DB_FILE` | Đường dẫn file SQLite, mặc định `data/ba-copilot.db`. |
-| `NEXT_MODEL=ngram` | Dùng n-gram thay cho Transformer trong tab "Gợi ý". |
+| `RECURSIVE_FILE` | Đường dẫn mô hình gợi ý bố cục, mặc định `model/recursive-layout.json`. |
 
 ## 6. Chưa làm trong bản MVP (theo lộ trình)
 

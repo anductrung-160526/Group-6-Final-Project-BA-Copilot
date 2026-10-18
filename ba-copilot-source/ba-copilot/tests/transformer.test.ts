@@ -4,7 +4,6 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { normalizeTree, ALL_TYPES } from "../shared/design.ts";
 import { encodeTree, encTokens, forward, linearize, loadTransformer, predictSlots, SUBTYPES, subtypeOf, TOKEN_TYPES, TransformerModel } from "../shared/transformer.ts";
-import { suggest } from "../shared/nextComponent.ts";
 
 const T = (x: unknown) => normalizeTree(x);
 const root = join(import.meta.dirname, "..");
@@ -59,7 +58,6 @@ test("suy luận: xác suất hợp lệ, cây dài hơn maxLen chia cửa sổ 
   const many = predictSlots(m, big);
   assert.equal(many.length, 20 * 3 + 1);
   assert.ok(many.every((s) => Number.isFinite(s.pMissing)));
-  assert.ok(Array.isArray(suggest(m, login(), { k: 10 })));
 });
 
 const MODEL = join(root, "model", "next-transformer.json");
@@ -72,11 +70,12 @@ test("mô hình đã huấn luyện: khớp số học với PyTorch và gợi �
       const diff = Math.max(...p.logits.map((x, i) => Math.abs(x - type[i])));
       assert.ok(diff < 2e-3, `lệch ${diff}`);
     }
-  // form đăng nhập thiếu nút → gợi ý nút "Đăng nhập" ở cuối form
-  const s = suggest(m, login(), { k: 10 });
-  assert.ok(s.some((x) => /"Đăng nhập"/.test(x.fixPrompt)), JSON.stringify(s.map((x) => x.title)));
+  // form đăng nhập thiếu nút → ô thiếu có xác suất cao nhất là ô cuối form, loại hàng nút (Row) hoặc Button trong top-3
+  const slots = predictSlots(m, login(), 3).filter((s) => s.parentId === "f").sort((a, b) => b.pMissing - a.pMissing);
+  assert.equal(slots[0].index, 2);
+  assert.ok(slots[0].types.slice(0, 3).some((t) => t.type === "Row" || t.type === "Button"), JSON.stringify(slots[0].types.slice(0, 3)));
   const t0 = performance.now();
   const kids = Array.from({ length: 40 }, (_, i) => ({ id: `c${i}`, type: "Card", props: {}, children: [{ id: `i${i}`, type: "Input", props: { label: `T${i}` } }, { id: `t${i}`, type: "Text", props: { text: "x" } }] }));
-  suggest(m, T({ id: "page", type: "Page", props: { title: "x" }, children: kids }));
+  predictSlots(m, T({ id: "page", type: "Page", props: { title: "x" }, children: kids }), 3);
   assert.ok(performance.now() - t0 < 400, "suy luận cây 120 node < 400 ms");
 });

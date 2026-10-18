@@ -2698,5 +2698,905 @@
   "domain": "Phần mềm SaaS",
   "permission": "Quản trị nội dung (sửa trang công khai)",
   "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R301",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Khảo sát nhiều câu hỏi",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R302",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Đơn đăng ký dịch vụ có điều khoản",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R303",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Đặt chỗ có ngày đi và ngày về",
+  "domain": "Giáo dục trực tuyến",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R304",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Hồ sơ ứng tuyển",
+  "domain": "Nhân sự",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R305",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Cài đặt thông báo (danh sách tùy chọn)",
+  "domain": "Phần mềm SaaS",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R306",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Bộ lọc nâng cao (khoảng ngày, nhiều lựa chọn)",
+  "domain": "Ngân hàng & ví điện tử",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R307",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Phiếu đánh giá có thang điểm",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R308",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Biểu mẫu khiếu nại / góp ý",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Chỉ xem",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R309",
+  "batch": "ext2",
+  "group": "media",
+  "screenKind": "Thư viện ảnh / album",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R310",
+  "batch": "ext2",
+  "group": "media",
+  "screenKind": "Bài viết có ảnh minh họa",
+  "domain": "Nhà hàng & giao đồ ăn",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R311",
+  "batch": "ext2",
+  "group": "media",
+  "screenKind": "Giới thiệu đội ngũ (ảnh, avatar)",
+  "domain": "Thời trang",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R312",
+  "batch": "ext2",
+  "group": "media",
+  "screenKind": "Hồ sơ địa điểm có ảnh",
+  "domain": "Nội thất & nhà cửa",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R313",
+  "batch": "ext2",
+  "group": "feedback",
+  "screenKind": "Màn lỗi có cảnh báo và hướng khắc phục",
+  "domain": "Điện tử & điện máy",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R314",
+  "batch": "ext2",
+  "group": "feedback",
+  "screenKind": "Màn thành công có tóm tắt",
+  "domain": "Phòng khám & sức khỏe",
+  "permission": "Chỉ xem",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R315",
+  "batch": "ext2",
+  "group": "feedback",
+  "screenKind": "Cảnh báo hệ thống / bảo trì",
+  "domain": "Du lịch & khách sạn",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R316",
+  "batch": "ext2",
+  "group": "feedback",
+  "screenKind": "Xác nhận trước khi gửi",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R317",
+  "batch": "ext2",
+  "group": "records",
+  "screenKind": "Bảng dữ liệu nhiều trang",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R318",
+  "batch": "ext2",
+  "group": "records",
+  "screenKind": "Lịch sử giao dịch (lọc ngày, phân trang)",
+  "domain": "Kho hàng",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R319",
+  "batch": "ext2",
+  "group": "records",
+  "screenKind": "Danh bạ thành viên có phân trang",
+  "domain": "Báo chí & xuất bản",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R320",
+  "batch": "ext2",
+  "group": "records",
+  "screenKind": "Báo cáo theo khoảng ngày",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Chỉ xem",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R321",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Cài đặt quyền riêng tư",
+  "domain": "Dự án & công việc",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R322",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Tùy chọn hiển thị",
+  "domain": "Thể thao & phòng tập",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R323",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Đăng ký nhận tin theo chủ đề",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R324",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Cấu hình lịch làm việc",
+  "domain": "Sự kiện & bán vé",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R325",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Thiết lập thanh toán định kỳ",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R326",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Khảo sát nhiều câu hỏi",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R327",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Đơn đăng ký dịch vụ có điều khoản",
+  "domain": "Nhân sự",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R328",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Đặt chỗ có ngày đi và ngày về",
+  "domain": "Phòng khám & sức khỏe",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R329",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Hồ sơ ứng tuyển",
+  "domain": "Phần mềm SaaS",
+  "permission": "Chỉ xem",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R330",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Cài đặt thông báo (danh sách tùy chọn)",
+  "domain": "Ngân hàng & ví điện tử",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R331",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Bộ lọc nâng cao (khoảng ngày, nhiều lựa chọn)",
+  "domain": "Thời trang",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R332",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Phiếu đánh giá có thang điểm",
+  "domain": "Điện tử & điện máy",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R333",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Biểu mẫu khiếu nại / góp ý",
+  "domain": "Báo chí & xuất bản",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R334",
+  "batch": "ext2",
+  "group": "media",
+  "screenKind": "Thư viện ảnh / album",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R335",
+  "batch": "ext2",
+  "group": "media",
+  "screenKind": "Bài viết có ảnh minh họa",
+  "domain": "Thể thao & phòng tập",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R336",
+  "batch": "ext2",
+  "group": "media",
+  "screenKind": "Giới thiệu đội ngũ (ảnh, avatar)",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R337",
+  "batch": "ext2",
+  "group": "media",
+  "screenKind": "Hồ sơ địa điểm có ảnh",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R338",
+  "batch": "ext2",
+  "group": "feedback",
+  "screenKind": "Màn lỗi có cảnh báo và hướng khắc phục",
+  "domain": "Nhà hàng & giao đồ ăn",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R339",
+  "batch": "ext2",
+  "group": "feedback",
+  "screenKind": "Màn thành công có tóm tắt",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Chỉ xem",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R340",
+  "batch": "ext2",
+  "group": "feedback",
+  "screenKind": "Cảnh báo hệ thống / bảo trì",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R341",
+  "batch": "ext2",
+  "group": "feedback",
+  "screenKind": "Xác nhận trước khi gửi",
+  "domain": "Dự án & công việc",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R342",
+  "batch": "ext2",
+  "group": "records",
+  "screenKind": "Bảng dữ liệu nhiều trang",
+  "domain": "Nội thất & nhà cửa",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R343",
+  "batch": "ext2",
+  "group": "records",
+  "screenKind": "Lịch sử giao dịch (lọc ngày, phân trang)",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R344",
+  "batch": "ext2",
+  "group": "records",
+  "screenKind": "Danh bạ thành viên có phân trang",
+  "domain": "Giáo dục trực tuyến",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R345",
+  "batch": "ext2",
+  "group": "records",
+  "screenKind": "Báo cáo theo khoảng ngày",
+  "domain": "Du lịch & khách sạn",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R346",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Cài đặt quyền riêng tư",
+  "domain": "Sự kiện & bán vé",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R347",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Tùy chọn hiển thị",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R348",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Đăng ký nhận tin theo chủ đề",
+  "domain": "Kho hàng",
+  "permission": "Chỉ xem",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R349",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Cấu hình lịch làm việc",
+  "domain": "Kho hàng",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R350",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Thiết lập thanh toán định kỳ",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R351",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Khảo sát nhiều câu hỏi",
+  "domain": "Thể thao & phòng tập",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R352",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Đơn đăng ký dịch vụ có điều khoản",
+  "domain": "Ngân hàng & ví điện tử",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R353",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Đặt chỗ có ngày đi và ngày về",
+  "domain": "Du lịch & khách sạn",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R354",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Hồ sơ ứng tuyển",
+  "domain": "Phần mềm SaaS",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R355",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Cài đặt thông báo (danh sách tùy chọn)",
+  "domain": "Dự án & công việc",
+  "permission": "Chỉ xem",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R356",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Bộ lọc nâng cao (khoảng ngày, nhiều lựa chọn)",
+  "domain": "Giáo dục trực tuyến",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R357",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Phiếu đánh giá có thang điểm",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Chỉ xem",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R358",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Biểu mẫu khiếu nại / góp ý",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R359",
+  "batch": "ext2",
+  "group": "media",
+  "screenKind": "Thư viện ảnh / album",
+  "domain": "Nhân sự",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R360",
+  "batch": "ext2",
+  "group": "media",
+  "screenKind": "Bài viết có ảnh minh họa",
+  "domain": "Báo chí & xuất bản",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R361",
+  "batch": "ext2",
+  "group": "media",
+  "screenKind": "Giới thiệu đội ngũ (ảnh, avatar)",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R362",
+  "batch": "ext2",
+  "group": "media",
+  "screenKind": "Hồ sơ địa điểm có ảnh",
+  "domain": "Thời trang",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R363",
+  "batch": "ext2",
+  "group": "feedback",
+  "screenKind": "Màn lỗi có cảnh báo và hướng khắc phục",
+  "domain": "Phòng khám & sức khỏe",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R364",
+  "batch": "ext2",
+  "group": "feedback",
+  "screenKind": "Màn thành công có tóm tắt",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R365",
+  "batch": "ext2",
+  "group": "feedback",
+  "screenKind": "Cảnh báo hệ thống / bảo trì",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R366",
+  "batch": "ext2",
+  "group": "feedback",
+  "screenKind": "Xác nhận trước khi gửi",
+  "domain": "Điện tử & điện máy",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R367",
+  "batch": "ext2",
+  "group": "records",
+  "screenKind": "Bảng dữ liệu nhiều trang",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R368",
+  "batch": "ext2",
+  "group": "records",
+  "screenKind": "Lịch sử giao dịch (lọc ngày, phân trang)",
+  "domain": "Nhà hàng & giao đồ ăn",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R369",
+  "batch": "ext2",
+  "group": "records",
+  "screenKind": "Danh bạ thành viên có phân trang",
+  "domain": "Nội thất & nhà cửa",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R370",
+  "batch": "ext2",
+  "group": "records",
+  "screenKind": "Báo cáo theo khoảng ngày",
+  "domain": "Sự kiện & bán vé",
+  "permission": "Chỉ xem",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R371",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Cài đặt quyền riêng tư",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R372",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Tùy chọn hiển thị",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R373",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Đăng ký nhận tin theo chủ đề",
+  "domain": "Y tế & lịch hẹn",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R374",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Cấu hình lịch làm việc",
+  "domain": "Kho hàng",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R375",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Thiết lập thanh toán định kỳ",
+  "domain": "Quản trị hệ thống & người dùng",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R376",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Khảo sát nhiều câu hỏi",
+  "domain": "Nhân sự",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R377",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Đơn đăng ký dịch vụ có điều khoản",
+  "domain": "Báo chí & xuất bản",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R378",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Đặt chỗ có ngày đi và ngày về",
+  "domain": "Dự án & công việc",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R379",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Hồ sơ ứng tuyển",
+  "domain": "Nghỉ phép & chấm công",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R380",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Cài đặt thông báo (danh sách tùy chọn)",
+  "domain": "Phần mềm SaaS",
+  "permission": "Chỉ xem",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R381",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Bộ lọc nâng cao (khoảng ngày, nhiều lựa chọn)",
+  "domain": "Nội thất & nhà cửa",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R382",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Phiếu đánh giá có thang điểm",
+  "domain": "Du lịch & khách sạn",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R383",
+  "batch": "ext2",
+  "group": "richform",
+  "screenKind": "Biểu mẫu khiếu nại / góp ý",
+  "domain": "Nhà hàng & giao đồ ăn",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R384",
+  "batch": "ext2",
+  "group": "media",
+  "screenKind": "Thư viện ảnh / album",
+  "domain": "Điện tử & điện máy",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R385",
+  "batch": "ext2",
+  "group": "media",
+  "screenKind": "Bài viết có ảnh minh họa",
+  "domain": "Bất động sản & hợp đồng thuê",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R386",
+  "batch": "ext2",
+  "group": "media",
+  "screenKind": "Giới thiệu đội ngũ (ảnh, avatar)",
+  "domain": "Khách hàng (CRM)",
+  "permission": "Chỉ xem",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R387",
+  "batch": "ext2",
+  "group": "media",
+  "screenKind": "Hồ sơ địa điểm có ảnh",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R388",
+  "batch": "ext2",
+  "group": "feedback",
+  "screenKind": "Màn lỗi có cảnh báo và hướng khắc phục",
+  "domain": "Giáo dục trực tuyến",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R389",
+  "batch": "ext2",
+  "group": "feedback",
+  "screenKind": "Màn thành công có tóm tắt",
+  "domain": "Ngân hàng & ví điện tử",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R390",
+  "batch": "ext2",
+  "group": "feedback",
+  "screenKind": "Cảnh báo hệ thống / bảo trì",
+  "domain": "Thể thao & phòng tập",
+  "permission": "Chỉ xem",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R391",
+  "batch": "ext2",
+  "group": "feedback",
+  "screenKind": "Xác nhận trước khi gửi",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Trang đơn"
+ },
+ {
+  "id": "R392",
+  "batch": "ext2",
+  "group": "records",
+  "screenKind": "Bảng dữ liệu nhiều trang",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Thanh tiêu đề có nút + nội dung"
+ },
+ {
+  "id": "R393",
+  "batch": "ext2",
+  "group": "records",
+  "screenKind": "Lịch sử giao dịch (lọc ngày, phân trang)",
+  "domain": "Đào tạo & khóa học",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Thẻ (Card) ở giữa"
+ },
+ {
+  "id": "R394",
+  "batch": "ext2",
+  "group": "records",
+  "screenKind": "Danh bạ thành viên có phân trang",
+  "domain": "Sự kiện & bán vé",
+  "permission": "Khách vãng lai (chưa đăng nhập)",
+  "layout": "Sidebar điều hướng + nội dung"
+ },
+ {
+  "id": "R395",
+  "batch": "ext2",
+  "group": "records",
+  "screenKind": "Báo cáo theo khoảng ngày",
+  "domain": "Thời trang",
+  "permission": "Khách hàng đã đăng nhập",
+  "layout": "Hộp thoại (Modal) trên trang"
+ },
+ {
+  "id": "R396",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Cài đặt quyền riêng tư",
+  "domain": "Phòng khám & sức khỏe",
+  "permission": "Quản trị nội dung (sửa trang công khai)",
+  "layout": "Banner lớn + các khối nội dung"
+ },
+ {
+  "id": "R397",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Tùy chọn hiển thị",
+  "domain": "Dự án & công việc",
+  "permission": "Chỉ được tạo mới, không sửa/xóa",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
+ },
+ {
+  "id": "R398",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Đăng ký nhận tin theo chủ đề",
+  "domain": "Tài chính & hóa đơn",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình",
+  "layout": "Hai cột"
+ },
+ {
+  "id": "R399",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Cấu hình lịch làm việc",
+  "domain": "Bán hàng (sản phẩm, đơn hàng)",
+  "permission": "Chỉ được duyệt/từ chối",
+  "layout": "Lưới thẻ"
+ },
+ {
+  "id": "R400",
+  "batch": "ext2",
+  "group": "preferences",
+  "screenKind": "Thiết lập thanh toán định kỳ",
+  "domain": "Hỗ trợ khách hàng (ticket)",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)",
+  "layout": "Thanh điều hướng trên + nội dung + chân trang"
  }
 ]

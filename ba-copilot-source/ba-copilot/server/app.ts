@@ -107,14 +107,20 @@ route("PATCH", "/api/annotations/:id", ({ params, body }) => {
 });
 route("DELETE", "/api/annotations/:id", ({ params }) => (repo.deleteAnnotation(params.id), { ok: true }));
 
-// Gợi ý thành phần tiếp theo
-route("GET", "/api/screens/:id/suggestions", ({ params, query }) => svc.screenSuggestions(params.id, (query.get("nodeIds") ?? "").split(",").filter(Boolean)));
-// Phương án B: client gửi khung bao đo trên canvas → gợi ý "Thêm" bằng Recursive Transformer (Li et al. 2020)
+// Gợi ý bố cục (Recursive Transformer Tree Decoder, Li et al. 2020): client gửi khung bao đo trên canvas
 route("POST", "/api/screens/:id/suggestions", ({ params, body }) => {
   const layout = body.layout && typeof body.layout === "object" ? (body.layout as svc.LayoutBoxes) : undefined;
   const boxes: svc.LayoutBoxes["boxes"] = {};
   for (const [k, v] of Object.entries(layout?.boxes ?? {})) if (Array.isArray(v) && v.length === 4 && v.every((x) => Number.isFinite(x))) boxes[String(k).slice(0, 120)] = v.map(Number) as [number, number, number, number];
-  return svc.screenSuggestions(params.id, arr(body.nodeIds), layout ? { pageWidth: Number(layout.pageWidth) || 0, boxes } : undefined);
+  return svc.layoutSuggestions(params.id, { layout: layout ? { pageWidth: Number(layout.pageWidth) || 0, boxes } : undefined, nodeIds: arr(body.nodeIds), mode: body.mode === "complete" ? "complete" : "next" });
+});
+route("POST", "/api/screens/:id/layout/accept", ({ params, body }) => {
+  const items = (Array.isArray(body.items) ? body.items : []).slice(0, 100).map((x: Record<string, unknown>) => ({ ref: str(x?.ref, 60), parentId: str(x?.parentId, 120), index: Math.max(0, Math.floor(Number(x?.index) || 0)), type: str(x?.type, 30) }));
+  return svc.acceptLayout(params.id, { versionId: str(body.versionId, 100), items });
+});
+route("POST", "/api/screens/:id/manual", ({ params, body }) => {
+  if (!["remove", "up", "down"].includes(body.op)) throw new svc.BizError("Thao tác không hợp lệ");
+  return svc.manualEdit(params.id, { op: body.op, id: str(body.id, 120) });
 });
 route("POST", "/api/suggestions/events", ({ body }) => {
   const action = body.action;

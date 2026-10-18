@@ -52,11 +52,51 @@ def predict_children(tree, max_per=6):
     return out
 
 
+@torch.no_grad()
+def first_steps(tree, k=3):
+    """Một bước giải mã ở mọi container (đúng nextInContainer / nextElements): top-k loại (không gồm EOS), xác suất, EOS."""
+    out = []
+    def visit(n, anc, own, path):
+        if n["t"] != 0:
+            return
+        given = T.kids(n)[: m.max_len - 1]
+        seq = [T.tok_of(n)] + [T.tok_of(c) for c in given]
+        mem = torch.stack(anc + ([own] if own is not None else [])).unsqueeze(0)
+        mp = torch.zeros(1, mem.shape[1], dtype=torch.bool)
+        h, o = m.run(torch.tensor([seq]), torch.zeros(1, len(seq), dtype=torch.bool), mem, mp)
+        lc = o["c"][0, -1].clone(); lc[T.N_TYPES + 1] = -1e9
+        pr = lc.softmax(-1)
+        top = pr[: T.N_TYPES].topk(k)
+        out.append({"path": path, "eos": int(lc.argmax()) == T.EOS, "pEos": round(float(pr[T.EOS]), 5),
+                    "top": [[int(i), round(float(v), 5)] for v, i in zip(top.values, top.indices)],
+                    "box": [int(o[q][0, -1].argmax()) for q in ("x", "y", "x2", "y2")]})
+        own_h = own if own is not None else h[0, 0]
+        for j, c in enumerate(given):
+            visit(c, anc + [own_h], h[0, j + 1], path + [j])
+    visit(tree, [m.canvas[0, 0]], None, [])
+    return out
+
+
+def complete_order(pred, part):
+    """Node mới của recursive_complete theo đúng thứ tự giải mã (sinh con của một node, rồi đệ quy từng con), kèm tham chiếu cha."""
+    out = []
+    def rec(n, ref):
+        for c in T.kids(n):
+            if c.get("_new"):
+                c["_ref"] = f"g{len(out) + 1}"
+                out.append({"parent": ref, "c": c["c"], "t": c["t"], "box": c["b"]})
+        for j, c in enumerate(T.kids(n)):
+            rec(c, c.get("_ref") or f"{ref}_{j}")
+    rec(pred, "n")
+    return out
+
+
 test = [json.loads(l) for l in open(f"{info['data']}/test.jsonl")][:3]
 parity = []
 for r in test:
     t = r["tree"]
     part = T.prefix_tree(t, V.partial_size(len(V.preorder(t)), 0.5), "dfs")
-    parity.append({"tree": part, "expected": predict_children(part)})
+    parity.append({"tree": part, "expected": predict_children(part), "first": first_steps(part),
+                   "complete": complete_order(T.recursive_complete(m, part), part)})
 json.dump(parity, open("model/recursive-layout.parity.json", "w"))
 print(f"→ model/recursive-layout.json ({os.path.getsize('model/recursive-layout.json') / 1e6:.1f} MB), parity {sum(len(p['expected']) for p in parity)} container")
