@@ -6,3 +6,4 @@ e2e/screenshots/
 e2e/demo-*/
 data/corpus/
 analysis/
+__pycache__/
