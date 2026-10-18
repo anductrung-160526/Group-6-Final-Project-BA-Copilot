@@ -229,7 +229,8 @@ const tfFile = arg("--tf", join(root, "model", "next-transformer.json"));
 const tf = existsSync(tfFile) ? loadTransformer(JSON.parse(readFileSync(tfFile, "utf8"))) : null;
 const sets: Record<string, UINode[]> = Object.fromEntries(["wi", "synth"].map((k) => [k, readRaw(join(dir, `${k}.raw.jsonl`)).map((r) => r.tree).slice(0, limit)]));
 // màn gốc tập test của bộ dữ liệu "bổ sung UI" (không dùng khi huấn luyện) và 30 màn tham chiếu thiết kế thủ công
-sets.dstest = loadRoots().items.filter((r) => splitOf(r.id) === "test").map((r) => r.tree);
+const exclude = new Set(arg("--exclude", "").split(",").filter(Boolean));
+sets.dstest = loadRoots().items.filter((r) => splitOf(r.id) === "test" && !exclude.has(r.id)).map((r) => r.tree);
 sets.ref = REFERENCE_SCREENS.map((r: { tree: UINode }) => r.tree);
 const pct = (x: number, n: number) => `${((100 * x) / Math.max(n, 1)).toFixed(1)}%`;
 const NAMES: Record<string, string> = { wi: "WebSight + nội bộ", synth: "Nghiệp vụ tổng hợp", dstest: "Bộ dữ liệu bổ sung UI – màn gốc tập test", ref: "30 màn tham chiếu" };
