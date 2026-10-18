@@ -81,3 +81,14 @@ npx tsx scripts/dataset/export-view.ts            # dataset/export/: samples.csv
 
 > Mô hình của app đã được huấn luyện lại từ đầu trên phiên bản này, không dùng WebSight. Kết quả và lý do chọn mô hình ở `export/eval/MODEL-SELECTION.md`.
 > Các báo cáo cũ `REPORT.md` và `PAPER-METRICS.md` thuộc phiên bản trước (`80d9c12d5a`) và mô hình có tiền huấn luyện WebSight.
+
+## Rà soát chia tập (18/10/2026)
+Kiểm tra tự động trên phiên bản `a2e83358b8`:
+- Chia theo màn gốc bằng `splitOf` (hash SHA-1 của id): 153 / 24 / 23 màn.
+- 11.240 mẫu: 0 mẫu sai tập, 0 màn nằm ở hơn một tập.
+- `data/dataset/tf` và `data/paper` (mọi biến thể độ rộng) khớp đúng tập theo hash; giao giữa train và test bằng 0.
+- Không có cặp màn trùng cấu trúc giữa các tập. Không có cặp gần trùng ≥ 70% dính tới tập test. Không tên màn nào trùng nhau.
+- 30 màn tham chiếu không nằm trong bộ dữ liệu.
+- Mọi lựa chọn mô hình (số epoch, kích thước, cấu hình) đều dựa trên val; tập test chỉ dùng để báo cáo.
+
+**Lỗi tìm thấy và đã sửa:** hai script đánh giá cắt cây dở 10/50/80% theo hai quy tắc khác nhau, một bên có tính gốc và một bên không, nên so sánh giữa mô hình app và ba bộ giải mã của bài báo bị lệch. Đã thống nhất và chấm lại (xem `export/eval/MODEL-SELECTION.md`).

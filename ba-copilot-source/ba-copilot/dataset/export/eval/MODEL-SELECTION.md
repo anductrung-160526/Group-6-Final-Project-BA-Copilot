@@ -2,8 +2,7 @@
 
 **Dữ liệu:** chỉ bộ dữ liệu UI web của nhóm, phiên bản `a2e83358b8`. Không dùng dữ liệu hay trọng số WebSight ở bất kỳ mô hình nào.
 - Tập test là các màn gốc thuộc tập test, chưa dùng khi huấn luyện.
-  - 22 cây có tọa độ cho Pointer, Recursive và Vanilla.
-  - 23 cây cho mô hình của app, vì không có bước lọc tọa độ.
+- Cả 4 mô hình được so sánh trên **cùng 22 cây**. R168 bị loại ở bước đo tọa độ, nên cũng bị bỏ khỏi phần chấm mô hình app (`--exclude R168`).
 - Mỗi mô hình chọn cấu hình theo val: hidden ∈ {64, 128}, số lớp ∈ {2, 4}, early stopping.
 
 ## Các mô hình
@@ -14,54 +13,44 @@
 | Recursive (mục 4.4) | d 128, 2 lớp | 667 nghìn | Có | BFS và DFS |
 | **App: Transformer phát hiện chỗ thiếu** (hai chiều, huấn luyện từ đầu, 10 epoch) | d 96, 4 lớp | 479 nghìn | Không | Bất kỳ, kể cả chỗ thiếu ở giữa |
 
-## Kết quả bản nới lỏng (chỉ so loại) – thước đo chung được cho cả 4 mô hình
-Mỗi ô ghi F1 / Next / Next Top-3 / Edit (giây KLM). Chữ in đậm là kết quả tốt nhất trong cột.
+## Kết quả bản nới lỏng (chỉ so loại) – cùng 22 cây test, cùng quy tắc cắt cây dở
+> **Sửa lỗi ngày 18/10 (rà soát lần cuối):** bản trước dùng hai quy tắc cắt cây dở khác nhau.
+> - `eval-transformer.ts` của app không tính gốc, lấy floor(f × (N−1)) node.
+> - `tree_decoders.py` tính cả gốc và làm tròn thông thường.
+>
+> Ở mức 10%, cây dở của hai bên lệch nhau 1 node, nên so sánh không công bằng. Đã thống nhất theo quy tắc của app (`partial_size` trong `vanilla.py`).
+> Chấm lại ba bộ giải mã từ trọng số đã lưu, và chấm mô hình app trên cùng 22 cây (bỏ R168).
+> Cột "Không gợi ý" của hai script giờ khớp nhau: F1 13,9 so với 13,7. Chênh ≤ 1 s ở Edit do hai bản cài Zhang–Shasha (TS và Python).
 
-| Mô hình | BFS 10% | BFS 50% | BFS 80% |
-|---|---|---|---|
-| Pointer | 19,4 / 18,2 / 54,5 / 48,3 | 60,1 / 31,8 / 50,0 / 30,8 | 83,8 / 22,7 / 40,9 / 13,9 |
-| Recursive | 25,5 / 31,8 / 50,0 / 46,6 | 62,8 / 13,6 / 36,4 / **24,8** | **86,3** / 27,3 / 40,9 / **8,1** |
-| **App** | **27,0 / 47,8 / 73,9 / 46,2** | **65,1 / 39,1 / 47,8** / 26,9 | 83,3 / **30,4 / 69,6** / 12,3 |
-| Không gợi ý | 6,9 / – / – / 71,2 | 62,7 / – / – / 40,2 | 87,5 / – / – / 16,3 |
+Mỗi ô ghi F1 / Next / Next Top-3 / Edit (giây KLM).
 
-| Mô hình | DFS 10% | DFS 50% | DFS 80% |
-|---|---|---|---|
-| Vanilla | 26,1 / 40,9 / 59,1* / **43,1** | 59,4 / 31,8 / 54,5* / **27,7** | 81,3 / 31,8 / 59,1* / 10,1 |
-| Pointer | 19,4 / 31,8 / 63,6 / 48,3 | 57,5 / 36,4 / 45,5 / 30,1 | **86,3 / 36,4** / 50,0 / 10,7 |
-| Recursive | 25,5 / **40,9** / 63,6 / 46,6 | 60,0 / 22,7 / **72,7** / 28,3 | 85,3 / 31,8 / 45,5 / **9,7** |
-| **App** | **26,5** / 39,1 / **69,6** / 45,9 | **63,6 / 39,1** / 56,5 / 32,2 | 84,0 / 13,0 / 52,2 / 13,9 |
-| Không gợi ý | 6,9 / – / – / 71,2 | 62,7 / – / – / 40,2 | 87,5 / – / – / 16,3 |
+| Thiết lập | Vanilla | Pointer | Recursive | **App** | Không gợi ý (F1 / Edit) |
+|---|---|---|---|---|---|
+| BFS 10% | – | 22,7 / 18,2 / 63,6 / 45,6 | **30,6** / 40,9 / 63,6 / **44,7** | 27,3 / **50,0 / 77,3** / 46,6 | 13,9 / 68,6 |
+| BFS 50% | – | 61,8 / 13,6 / 36,4 / 30,3 | 65,0 / 13,6 / **54,5 / 23,7** | **65,4 / 40,9** / 50,0 / 27,6 | 65,4 / 38,1 |
+| BFS 80% | – | 83,7 / 18,2 / 40,9 / 14,2 | **85,5** / 22,7 / 40,9 / **8,7** | 83,4 / **27,3 / 68,2** / 12,5 | 86,9 / 17,0 |
+| DFS 10% | 30,4 / **54,5** / 59,1 / **41,5** | 22,6 / 31,8 / 68,2 / 45,6 | **31,0 / 54,5 / 72,7** / 44,8 | 26,8 / 40,9 / **72,7** / 46,3 | 13,9 / 68,6 |
+| DFS 50% | 60,7 / 40,9 / 63,6 / **25,9** | 61,3 / **45,5** / 63,6 / 28,7 | 63,5 / 31,8 / **77,3** / 26,8 | **63,9** / 40,9 / 59,1 / 33,0 | 65,4 / 38,1 |
+| DFS 80% | 80,0 / 27,3 / **54,5** / 11,1 | **85,0 / 36,4** / 50,0 / 10,9 | 84,2 / 27,3 / 50,0 / **10,3** | 83,9 / 13,6 / **54,5** / 14,5 | 86,9 / 17,0 |
 
-\* Top-3 của Vanilla lấy từ lần đánh giá riêng (`paper-vanilla.json`), vì bản chấm lại không lưu xác suất từng bước.
-Cột "Không gợi ý" của mô hình app tính trên 23 cây (BFS/DFS 10%: 13,8 / 68,7 s), nên chênh nhẹ so với dòng trên.
+**So riêng Recursive với mô hình app (24 ô):** Recursive hơn ở 14 ô, app hơn ở 9 ô, hòa 1 ô.
+- Recursive tốt hơn rõ ở **Edit (6/6)** và F1 (4/6).
+- App tốt hơn ở **Next** khi duyệt BFS (3/3) và ở Top-3 (4/6).
+- Phần lớn chênh lệch ≤ 4,5 điểm, tức chỉ bằng 1 cây trên tập test 22 cây. Chưa đủ để khẳng định chắc chắn.
 
 **Bản chặt** (khớp cả tọa độ; chỉ có cho 3 bộ giải mã của bài báo):
-- Cả ba gần như ngang nhau: F1 khoảng 5–7 / 48 / 75–80.
-- Next đúng tuyệt đối tọa độ gần như bằng 0 ở mức 50–80%.
+- F1 khoảng 8–10 / 49–52 / 75–78; Next đúng tuyệt đối tọa độ ≤ 13,6%.
 - Chi tiết ở `paper-decoders.json`.
 
-## Kết luận: giữ **Transformer phát hiện chỗ thiếu của app** (huấn luyện lại, không WebSight) làm mô hình cho tính năng Gợi ý
+## Kết luận (đã sửa): vẫn dùng **Transformer phát hiện chỗ thiếu của app** cho tính năng Gợi ý; Recursive là ứng viên tốt cho tính năng "hoàn thiện bố cục"
 
-1. **Chất lượng ngang hoặc tốt hơn:**
-   - Mô hình app dẫn đầu Next và Top-3 ở 6/12 ô, và F1 ở 4/6 mức 10–50%.
-   - Recursive chỉ hơn rõ ở Edit và F1 khi cây đã gần đủ (BFS 80%).
-2. **Đúng nhiệm vụ của tính năng:**
-   - Gợi ý cần tìm phần tử thiếu **ở bất kỳ đâu**, kể cả giữa form.
-   - Ba bộ giải mã của bài báo chỉ sinh **tiếp sau** tiền tố (Vanilla, Pointer) hoặc **nối thêm vào cuối** danh sách con (Recursive). Không mô hình nào trong ba mô hình này chèn được vào giữa.
-3. **Không cần tọa độ:**
-   - Cây trong app không lưu khung bao. Muốn dùng bộ giải mã của bài báo, mỗi lần gợi ý phải render màn để đo tọa độ.
-   - Bản chặt cũng cho thấy phần tọa độ chưa học được với 459 cây huấn luyện.
-4. **Đã chạy được trong app:**
-   - Suy luận thuần TypeScript, khoảng 22 ms mỗi màn.
-   - Có kiểm thử khớp số học với PyTorch.
-   - Có đo báo động giả và mẫu bẫy.
-
-**Trong ba bộ giải mã của bài báo, Recursive tốt nhất:**
-- val loss thấp nhất (3,41, so với 3,62 của Vanilla và 5,05 của Pointer);
-- Edit tốt nhất ở 3/6 thiết lập, F1 cao nhất ở BFS 80%;
-- khớp nhận định của bài báo.
-
-Recursive phù hợp làm tính năng khác: **"hoàn thiện bố cục"**, tức gợi ý cả nhóm phần tử còn lại khi màn đã có khung. Nếu muốn, có thể port sang TypeScript sau.
+1. **Thước đo của bài báo** đo việc *hoàn thiện cây từ một tiền tố*. Trên thước đo này, Recursive **nhỉnh hơn** mô hình app, nhất là về công sửa (Edit). Bản trước kết luận app "ngang hoặc tốt hơn"; kết luận đó sai do lỗi lệch quy tắc cắt cây.
+2. **Tính năng Gợi ý cần tìm chỗ thiếu ở bất kỳ đâu**, kể cả giữa form. Ba bộ giải mã của bài báo chỉ sinh tiếp sau tiền tố hoặc nối vào cuối danh sách con, nên không làm được việc này. Thước đo của bài báo cũng không đo việc này.
+   - Mô hình app được đo riêng trên nhiệm vụ này: Top-1 52,4%, Top-3 74,7% trên 1.365 mẫu thiếu của tập test.
+3. **Không cần tọa độ và đã chạy được trong app.** Mô hình app suy luận bằng TypeScript, khoảng 22 ms mỗi màn. Ba bộ giải mã của bài báo cần khung bao, nên mỗi lần gợi ý phải render màn để đo, và phải port mô hình sang TypeScript.
+4. **Đề xuất:**
+   - Giữ mô hình app cho tab Gợi ý (thêm phần tử thiếu, sửa).
+   - Nếu muốn có tính năng "hoàn thiện phần còn lại của màn", dùng **Recursive**. Mô hình này tốt nhất trong ba bộ giải mã và cho Edit thấp nhất.
 
 ## Mô hình app sau khi huấn luyện lại (đánh giá trên các mẫu của bộ dữ liệu, `train-app-scratch-v2.json`)
 | | Top-1 | Top-3 | Báo động giả màn đủ | Báo động giả mẫu bẫy |

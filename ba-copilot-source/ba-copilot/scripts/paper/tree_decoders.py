@@ -316,12 +316,14 @@ def recursive_complete(model, partial, max_nodes=100):
 @torch.no_grad()
 def vanilla_complete(model, tree, k):
     prefix = V.prefix_tokens(tree, k)
-    seq, _, _ = V.decode(model, prefix)
+    seq, _, top3 = V.decode(model, prefix)
     pred = V.parse(seq)
     nodes = V.preorder(pred) if pred else []
     for i, n in enumerate(nodes):
         if i >= k:
             n["_new"] = True
+            if i == k and top3:
+                n["_top3"] = top3  # node mới đầu tiên theo DFS chính là node Vanilla sinh đầu tiên
     return pred or V.prefix_tree(tree, k)
 
 
@@ -342,7 +344,7 @@ def evaluate(complete, trees, orders=("bfs", "dfs"), fracs=(0.1, 0.5, 0.8)):
             for t in trees:
                 nodes = order_nodes(t, order)
                 N = len(nodes)
-                k = min(N - 1, max(1, round(f * N)))
+                k = V.partial_size(N, f)
                 target = nodes[k]
                 part = prefix_tree(t, k, order)
                 s = time.time()
@@ -423,6 +425,7 @@ def main():
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--threads", type=int, default=os.cpu_count() or 4)
     ap.add_argument("--out", default="dataset/export/eval/paper-decoders")
+    ap.add_argument("--eval-only", action="store_true", help="chấm lại từ trọng số đã lưu (data/paper/<model>.pt), cấu hình lấy từ báo cáo --out")
     a = ap.parse_args()
     torch.set_num_threads(a.threads)
     train, val, test = (load(f"{a.data}/{s}.jsonl") for s in ("train", "val", "test"))
@@ -441,6 +444,15 @@ def main():
             res = evaluate(lambda t, part, k, order: vanilla_complete(m, t, k), tests, orders=("dfs",))
             report["models"]["vanilla"] = {"chosen": info, "test": res, "note": "chấm lại bằng hàm chung; chỉ DFS"}
             print("vanilla", json.dumps(res), flush=True)
+            continue
+        if a.eval_only:
+            ch = report["models"][kind]["chosen"]
+            m = (Pointer if kind == "pointer" else Recursive)(ch["d"], ch["layers"])
+            m.load_state_dict(torch.load(os.path.join(a.data, f"{kind}.pt")))
+            m.eval()
+            fn = (lambda t, part, k, order, m=m: pointer_complete(m, part, order)) if kind == "pointer" else (lambda t, part, k, order, m=m: recursive_complete(m, part))
+            report["models"][kind]["test"] = evaluate(fn, tests)
+            print(kind, "chấm lại xong", flush=True)
             continue
         search, best = [], None
         for d in map(int, ds.split(",")):

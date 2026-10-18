@@ -1,5 +1,8 @@
 # Tái lập Vanilla Transformer Tree Decoder (Li et al. 2020) trên UI web của nhóm
 
+> **Lưu ý:** các bảng dưới đây dùng quy tắc cắt cây dở cũ (tính cả gốc, làm tròn thông thường).
+> Kết quả chấm lại theo quy tắc thống nhất với mô hình app nằm trong `MODEL-SELECTION.md` và `paper-decoders.json`.
+
 ## Dữ liệu (chỉ `dataset/roots`, không WebSight, không Rico)
 - **Nguồn:** 200 màn web nghiệp vụ, phiên bản dữ liệu `a2e83358b8`.
 - **Tọa độ:** render bằng Renderer của app trong Chromium ở khổ desktop.

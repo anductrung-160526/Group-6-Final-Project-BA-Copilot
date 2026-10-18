@@ -135,6 +135,13 @@ def prefix_tree(tree, k):
     return rec(tree)
 
 
+def partial_size(N, f):
+    """Số node của cây dở (kể cả gốc), cùng quy tắc với scripts/eval-transformer.ts: luôn giữ gốc, lấy thêm
+    floor(f × số node không phải gốc), tối thiểu 1, và luôn thiếu ít nhất 1 node."""
+    rest = N - 1
+    return 1 + min(rest - 1, max(1, math.floor(rest * f)))
+
+
 # ------------------------------------------------------------------ mô hình
 class Vanilla(nn.Module):
     def __init__(self, d, layers, heads=4, max_len=256, drop=0.1):
@@ -284,7 +291,7 @@ def evaluate(model, trees, fracs=(0.1, 0.5, 0.8)):
         for t in trees:
             nodes = preorder(t)
             N = len(nodes)
-            k = min(N - 1, max(1, round(f * N)))
+            k = partial_size(N, f)
             target = nodes[k]
             seq, first, top3 = decode(model, prefix_tokens(t, k))
             pred = parse(seq) or prefix_tree(t, k)
