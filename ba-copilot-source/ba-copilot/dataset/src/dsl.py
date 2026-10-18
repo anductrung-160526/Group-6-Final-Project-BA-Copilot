@@ -46,7 +46,13 @@ def R(id, title, actor, desc, perms, rules, tree, notes=None):
     if notes: r["notes"] = notes
     return r
 
-def dump(roots, name):
+_OV = os.path.join(os.path.dirname(__file__), "..", "matrix-overrides.json")
+REPLACED = set(json.load(open(_OV, encoding="utf-8"))) if os.path.exists(_OV) else set()
+
+def dump(roots, name, replacement=False):
+    # màn đã đổi loại trong matrix-overrides.json chỉ lấy từ lô thay thế (replacement=True)
+    if not replacement:
+        roots = [r for r in roots if r["id"] not in REPLACED]
     out = os.path.join(os.path.dirname(__file__), "..", "roots", name)
     with open(out, "w", encoding="utf-8") as f:
         json.dump(roots, f, ensure_ascii=False, indent=1)

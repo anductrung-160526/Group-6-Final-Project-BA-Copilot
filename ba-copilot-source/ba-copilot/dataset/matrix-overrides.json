@@ -1,0 +1,252 @@
+{
+ "R066": {
+  "group": "workspace",
+  "screenKind": "Bảng Kanban",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)"
+ },
+ "R071": {
+  "group": "workspace",
+  "screenKind": "Lịch tháng/tuần",
+  "permission": "Chỉ xem"
+ },
+ "R072": {
+  "group": "workspace",
+  "screenKind": "Hộp thư nội bộ",
+  "permission": "Chỉ được tạo mới, không sửa/xóa"
+ },
+ "R076": {
+  "group": "workspace",
+  "screenKind": "Trò chuyện / hội thoại",
+  "permission": "Chỉ được duyệt/từ chối"
+ },
+ "R081": {
+  "group": "workspace",
+  "screenKind": "Trung tâm thông báo",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình"
+ },
+ "R085": {
+  "group": "workspace",
+  "screenKind": "Timeline hoạt động",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình"
+ },
+ "R086": {
+  "group": "workspace",
+  "screenKind": "Trang chủ cổng thông tin",
+  "permission": "Chỉ xem"
+ },
+ "R089": {
+  "group": "workspace",
+  "screenKind": "Tìm kiếm toàn cục",
+  "permission": "Chỉ xem"
+ },
+ "R091": {
+  "group": "workspace",
+  "screenKind": "Thư viện tài liệu (cây thư mục)",
+  "permission": "Chỉ được duyệt/từ chối"
+ },
+ "R095": {
+  "group": "workspace",
+  "screenKind": "Trung tâm cài đặt nhiều nhóm",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)"
+ },
+ "R096": {
+  "group": "workspace",
+  "screenKind": "Hồ sơ 360°",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)"
+ },
+ "R102": {
+  "group": "workspace",
+  "screenKind": "Bảng phân công / lịch trực",
+  "permission": "Chỉ được duyệt/từ chối"
+ },
+ "R104": {
+  "group": "workspace",
+  "screenKind": "Trang trợ giúp / FAQ",
+  "permission": "Chỉ xem"
+ },
+ "R111": {
+  "group": "data",
+  "screenKind": "Nhập dữ liệu từ Excel (ánh xạ cột)",
+  "permission": "Chỉ được duyệt/từ chối"
+ },
+ "R112": {
+  "group": "data",
+  "screenKind": "Tải lên và quản lý tệp đính kèm",
+  "permission": "Chỉ được tạo mới, không sửa/xóa"
+ },
+ "R114": {
+  "group": "data",
+  "screenKind": "So sánh phương án",
+  "permission": "Chỉ xem"
+ },
+ "R116": {
+  "group": "data",
+  "screenKind": "Xem trước bản in",
+  "permission": "Chỉ xem"
+ },
+ "R119": {
+  "group": "data",
+  "screenKind": "Xuất báo cáo tùy chọn",
+  "permission": "Chỉ được duyệt/từ chối"
+ },
+ "R120": {
+  "group": "data",
+  "screenKind": "Giỏ hàng và thanh toán",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)"
+ },
+ "R121": {
+  "group": "data",
+  "screenKind": "Bảng giá / gói dịch vụ",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình"
+ },
+ "R124": {
+  "group": "data",
+  "screenKind": "Khảo sát / đánh giá",
+  "permission": "Chỉ được duyệt/từ chối"
+ },
+ "R131": {
+  "group": "data",
+  "screenKind": "Cấu hình quy tắc tự động",
+  "permission": "Chỉ xem"
+ },
+ "R135": {
+  "group": "data",
+  "screenKind": "Nhật ký kiểm toán",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)"
+ },
+ "R136": {
+  "group": "data",
+  "screenKind": "Bảng KPI so sánh kỳ",
+  "permission": "Chỉ được duyệt/từ chối"
+ },
+ "R139": {
+  "group": "data",
+  "screenKind": "Ma trận phân quyền",
+  "permission": "Chỉ được duyệt/từ chối"
+ },
+ "R140": {
+  "group": "workspace",
+  "screenKind": "Bảng Kanban",
+  "permission": "Chỉ được tạo mới, không sửa/xóa"
+ },
+ "R142": {
+  "group": "workspace",
+  "screenKind": "Lịch tháng/tuần",
+  "permission": "Chỉ được tạo mới, không sửa/xóa"
+ },
+ "R145": {
+  "group": "workspace",
+  "screenKind": "Hộp thư nội bộ",
+  "permission": "Chỉ xem"
+ },
+ "R146": {
+  "group": "workspace",
+  "screenKind": "Trò chuyện / hội thoại",
+  "permission": "Chỉ được duyệt/từ chối"
+ },
+ "R147": {
+  "group": "workspace",
+  "screenKind": "Trung tâm thông báo",
+  "permission": "Chỉ xem"
+ },
+ "R152": {
+  "group": "workspace",
+  "screenKind": "Timeline hoạt động",
+  "permission": "Chỉ xem"
+ },
+ "R154": {
+  "group": "workspace",
+  "screenKind": "Trang chủ cổng thông tin",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình"
+ },
+ "R156": {
+  "group": "workspace",
+  "screenKind": "Tìm kiếm toàn cục",
+  "permission": "Chỉ được tạo mới, không sửa/xóa"
+ },
+ "R158": {
+  "group": "workspace",
+  "screenKind": "Thư viện tài liệu (cây thư mục)",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình"
+ },
+ "R159": {
+  "group": "workspace",
+  "screenKind": "Trung tâm cài đặt nhiều nhóm",
+  "permission": "Chỉ được duyệt/từ chối"
+ },
+ "R162": {
+  "group": "workspace",
+  "screenKind": "Hồ sơ 360°",
+  "permission": "Chỉ được duyệt/từ chối"
+ },
+ "R165": {
+  "group": "workspace",
+  "screenKind": "Bảng phân công / lịch trực",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình"
+ },
+ "R166": {
+  "group": "workspace",
+  "screenKind": "Trang trợ giúp / FAQ",
+  "permission": "Chỉ được tạo mới, không sửa/xóa"
+ },
+ "R167": {
+  "group": "data",
+  "screenKind": "Nhập dữ liệu từ Excel (ánh xạ cột)",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình"
+ },
+ "R169": {
+  "group": "data",
+  "screenKind": "Tải lên và quản lý tệp đính kèm",
+  "permission": "Chỉ xem"
+ },
+ "R171": {
+  "group": "data",
+  "screenKind": "So sánh phương án",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)"
+ },
+ "R176": {
+  "group": "data",
+  "screenKind": "Xem trước bản in",
+  "permission": "Chỉ xem"
+ },
+ "R180": {
+  "group": "data",
+  "screenKind": "Xuất báo cáo tùy chọn",
+  "permission": "Chỉ được duyệt/từ chối"
+ },
+ "R186": {
+  "group": "data",
+  "screenKind": "Giỏ hàng và thanh toán",
+  "permission": "Chỉ được duyệt/từ chối"
+ },
+ "R189": {
+  "group": "data",
+  "screenKind": "Bảng giá / gói dịch vụ",
+  "permission": "Chỉ được duyệt/từ chối"
+ },
+ "R191": {
+  "group": "data",
+  "screenKind": "Khảo sát / đánh giá",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)"
+ },
+ "R192": {
+  "group": "data",
+  "screenKind": "Cấu hình quy tắc tự động",
+  "permission": "Toàn quyền (xem, thêm, sửa, xóa)"
+ },
+ "R196": {
+  "group": "data",
+  "screenKind": "Nhật ký kiểm toán",
+  "permission": "Chỉ được tạo mới, không sửa/xóa"
+ },
+ "R197": {
+  "group": "data",
+  "screenKind": "Bảng KPI so sánh kỳ",
+  "permission": "Chỉ được duyệt/từ chối"
+ },
+ "R199": {
+  "group": "data",
+  "screenKind": "Ma trận phân quyền",
+  "permission": "Chỉ thao tác trên bản ghi của chính mình"
+ }
+}

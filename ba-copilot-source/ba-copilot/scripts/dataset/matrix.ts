@@ -1,8 +1,9 @@
 // Ma trận phủ cho bộ dữ liệu "bổ sung UI": phân bổ 670 màn gốc theo nhóm màn × loại màn × miền nghiệp vụ ×
 // quyền người dùng × kiểu bố cục, cân bằng và lặp lại được (seed cố định). 200 màn × ~50 mẫu ≈ 10 nghìn mẫu.
 // 50 màn đầu (cân bằng 10/nhóm) là đợt thử; thêm màn không làm đổi các màn trước (vòng xoay độc lập với tổng số).
+// 50 màn được đổi sang 25 loại màn web mới (nhóm workspace, data) qua dataset/matrix-overrides.json.
 // Dùng: npx tsx scripts/dataset/matrix.ts → dataset/matrix.json
-import { writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { rng } from "../build-next-model.ts";
 
@@ -52,8 +53,15 @@ export function buildMatrix(total = 200, pilot = 50, seed = 20261018): Assignmen
   return out;
 }
 
+/** Thay loại màn của một số màn gốc (dataset/matrix-overrides.json) để đa dạng hơn mà không xáo trộn các màn còn lại. */
+export function applyOverrides(m: Assignment[], file = join(import.meta.dirname, "..", "..", "dataset", "matrix-overrides.json")): Assignment[] {
+  if (!existsSync(file)) return m;
+  const ov = JSON.parse(readFileSync(file, "utf8")) as Record<string, Partial<Assignment>>;
+  return m.map((a) => (ov[a.id] ? { ...a, ...ov[a.id] } : a));
+}
+
 if (process.argv[1]?.endsWith("matrix.ts")) {
-  const m = buildMatrix();
+  const m = applyOverrides(buildMatrix());
   writeFileSync(join(import.meta.dirname, "..", "..", "dataset", "matrix.json"), JSON.stringify(m, null, 1));
   const count = (k: keyof Assignment) => Object.entries(m.reduce((a, x) => ((a[x[k]] = (a[x[k]] ?? 0) + 1), a), {} as Record<string, number>));
   console.log(`${m.length} màn gốc (${m.filter((x) => x.batch === "pilot").length} đợt thử)`);
