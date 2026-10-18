@@ -1,4 +1,5 @@
-> **Cập nhật (phương án A + C):** mô hình trong app nay huấn luyện trên **300 màn gốc** (thêm 100 màn web cho người dùng cuối), cấu hình chọn theo val là **hidden 256, 2 lớp**, và gợi ý đi qua một bộ lọc của ứng dụng. Số liệu bên dưới là của bản 200 màn; so sánh trước/sau xem `IMPROVE-A-C.md`.
+> **Cập nhật (tính năng gợi ý bố cục):** tính năng nay chỉ dùng Recursive Transformer, không còn luật hay bộ lọc. Có khung mờ phần tử tiếp theo (top-3) và nút Hoàn thành bố cục. Mô hình học trên **400 màn gốc** (2.219 cây), cấu hình chọn theo val là hidden 256 × 2 lớp. Kết quả mới nhất xem `LAYOUT-SUGGEST.md`. Số liệu bên dưới là của bản 200 màn.
+
 
 # Phương pháp chính của tính năng Gợi ý: Recursive Transformer Tree Decoder (Li et al. 2020)
 

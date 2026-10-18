@@ -78,7 +78,46 @@ e2e/               Kiểm thử trình duyệt toàn luồng (Playwright)
 - **Sinh tài liệu 2 bước.** Bước (a) trích mô hình trung gian một cách tất định từ thiết kế; bước (b) LLM sinh UC/SRS/Sequence/Test dựa trên mô hình đó. Cách này giảm việc AI "bịa" chi tiết không có trong thiết kế.
 - **Structured output.** Mọi lời gọi Claude dùng `tool_choice` bắt buộc và JSON schema, kết quả được validate. Khi kết quả sai, hệ thống gửi lỗi về để AI tự sửa đúng 1 lần.
 
-## Gợi ý thành phần tiếp theo (tab "Gợi ý" trong Design Studio)
+## Gợi ý bố cục (tab "Gợi ý" trong Design Studio)
+
+Tính năng **chỉ dùng phương pháp của Li et al. (2020)**, *Auto Completion of User Interface Layout Design Using Transformer-Based Tree Decoders* (arXiv:2001.05308): **Recursive Transformer Tree Decoder** (§4.4). Bài toán là **hoàn thành bố cục** (layout auto-completion), không phải kiểm tra lỗi. Không có luật hay bộ lọc nào khác.
+
+- **Phần tử tiếp theo:**
+  - Sau mỗi thay đổi, mô hình giải mã một bước và hiện **khung mờ** trên canvas: loại, vị trí và kích thước theo khung bao dự đoán.
+  - **Tab** chấp nhận, **Esc** bỏ qua. Panel có **top-3 loại** kèm xác suất và xác suất EOS ("mô hình cho rằng đã đủ").
+  - Chọn một container để hỏi riêng container đó; không chọn gì thì xét mọi container.
+- **Hoàn thành bố cục:** giải mã tham lam tới EOS (kể cả container vừa sinh) trong vùng chọn hoặc cả màn, rồi chấp nhận từng phần.
+- **Đầu vào:** cây đang thiết kế và khung bao từng phần tử đo trên canvas, rời rạc hóa theo lưới 128 ô ngang × ô dọc 20 px.
+- **Đầu ra:** loại, cờ lá, khung bao. Phần tử chèn vào có props trung tính; nội dung chữ đổi bằng Prompt sửa thiết kế.
+- **Mô hình:** `model/recursive-layout.json`, hidden 256, 2 lớp, 2,4 triệu tham số, chọn theo val. Huấn luyện trên **400 màn gốc = 2.219 cây**, chỉ dữ liệu web của nhóm, không WebSight.
+  - Suy luận thuần TypeScript (`shared/recursive.ts`), khớp PyTorch (`tests/recursive.test.ts`).
+  - Độ trễ trên CPU (42 màn test): hỏi một container khoảng 20–60 ms; xét cả màn trung vị 0,3 s (tối đa 0,9 s); Hoàn thành bố cục trung vị 0,4 s (tối đa khoảng 6 s với màn lớn).
+- **Kết quả:** `dataset/export/eval/LAYOUT-SUGGEST.md`.
+  - Mô phỏng KLM cho thấy gợi ý từng bước tiết kiệm khoảng 39–48% thời gian thao tác so với tự làm tay; Hoàn thành bố cục tiết kiệm 16–43%.
+  - Có bảng độ chính xác theo từng loại phần tử.
+  - Đối chiếu từng điểm với bài báo: `dataset/export/eval/PAPER-METHOD.md`.
+- **Giới hạn:**
+  - không gợi ý nội dung;
+  - còn yếu với Radio, Form, List;
+  - không chuyên tìm phần tử bị quên ở giữa (bài báo không đặt bài toán này);
+  - dữ liệu ít hơn bài báo khoảng 25 lần và do Claude soạn.
+- Mỗi lần hiện, chấp nhận hoặc bỏ qua được ghi vào `suggestion_events`.
+
+Mã nguồn:
+- `shared/recursive.ts`: suy luận (`nextInContainer`, `nextElements`, `completeLayout`).
+- `shared/layoutDefaults.ts`: props mặc định khi chèn.
+- `server/service.ts`: `layoutSuggestions`, `acceptLayout`, `manualEdit`.
+- `client/views/DesignTab.tsx`: khung mờ, panel.
+- `scripts/paper/train_faithful.py`, `export_recursive.py`, `klm_sim.py`: huấn luyện, xuất, đánh giá.
+
+```bash
+python3 scripts/paper/train_faithful.py --data=data/paper-w7c20-r400 && python3 scripts/paper/export_recursive.py
+python3 scripts/paper/klm_sim.py
+```
+
+<details><summary>Lịch sử: mô hình đối chứng không thuộc bài báo (encoder hai chiều, n-gram) và bộ luật R1–R9 – đã gỡ khỏi app</summary>
+
+Các phần dưới đây mô tả phiên bản trước. Mã mô hình đối chứng (`shared/transformer.ts`, n-gram trong `shared/nextComponent.ts`) chỉ còn dùng trong các script đánh giá. Bộ luật R1–R9, bộ lọc ứng dụng và hàm `suggest` đã bị xóa.
 
 Khi BA đang thiết kế, hệ thống tìm **phần tử còn thiếu** (ở cuối *hoặc giữa* một container) và **thiếu sót cần sửa** trong vùng đang khoanh (hoặc cả màn).
 
@@ -110,21 +149,6 @@ Mã nguồn:
 - `server/nextModel.ts`: nạp mô hình.
 - `scripts/train_transformer.py`: huấn luyện.
 - `scripts/eval-transformer.ts`: so sánh.
-
-### Mô hình hiện tại của tab Gợi ý: Recursive Transformer Tree Decoder (Li et al. 2020)
-
-Tab Gợi ý dùng **Recursive Transformer** đúng phương pháp của Li et al. (2020, §4.4).
-- Đầu vào: cây giao diện đang thiết kế, cùng khung bao của từng phần tử đo trên canvas.
-- Mô hình sinh các phần tử con còn thiếu cho từng container. Vị trí chèn suy từ khung bao dự đoán.
-- Mô hình: `model/recursive-layout.json` (hidden 256, 2 lớp, 2,4 triệu tham số, chọn theo val; huấn luyện trên 300 màn gốc = 1.617 cây). Suy luận TypeScript nằm ở `shared/recursive.ts`.
-- Gợi ý hiển thị đi qua **bộ lọc của ứng dụng** (`RECURSIVE_FILTER`, không thuộc bài báo): ngưỡng tin cậy 0,7, bỏ loại trùng (vd Heading thứ hai trong Header), một gợi ý mỗi container. Kết quả trước/sau: `dataset/export/eval/IMPROVE-A-C.md`.
-- Đối chiếu với bài báo, kết quả và giới hạn: xem `dataset/export/eval/PAPER-METHOD.md`. Ví dụ: chỉ đúng 3,5% khi phần tử bị quên nằm ở giữa.
-
-Mô hình encoder hai chiều cũ (`model/next-transformer.json`) không thuộc bài báo. Nó chỉ còn được dùng làm đối chứng trong thí nghiệm và cho API `GET` cũ.
-
-```bash
-python3 scripts/paper/train_faithful.py && python3 scripts/paper/export_recursive.py
-```
 
 ### Huấn luyện lại và đánh giá
 
@@ -205,6 +229,8 @@ Báo động giả (cây hoàn chỉnh vẫn bị gợi ý thêm, ngưỡng 0,3 
 `npm run build-model` / `npm run eval-next`: Top-1/Top-3 ở mức 50% đạt 66,4% / 88,9% trên holdout 2.503 cây. Bảng trên huấn luyện lại n-gram trên cùng dữ liệu với Transformer nên số khác.
 </details>
 
+</details>
+
 ### Bộ dữ liệu "bổ sung UI" (đang xây dựng)
 
 Thay cho WebSight và dữ liệu tổng hợp từ Mock. Đặc tả chi tiết ở `dataset/AUTHORING.md`.
@@ -217,7 +243,7 @@ Thay cho WebSight và dữ liệu tổng hợp từ Mock. Đặc tả chi tiết
 ## 4. Kiểm thử
 
 ```bash
-npm test                          # 37 test unit + tích hợp (gồm cả giả lập Claude API, đối chiếu Transformer TS ↔ PyTorch)
+npm test                          # 30 test unit + tích hợp (gồm giả lập Claude API, đối chiếu Recursive TS ↔ PyTorch)
 npx playwright install chromium   # chỉ cần chạy lần đầu
 npm run e2e                       # chạy trình duyệt qua toàn luồng, ảnh chụp lưu ở e2e/screenshots/
 ```

@@ -1,3 +1,5 @@
+> **Đã thay thế:** bộ lọc ứng dụng (A) đã bị gỡ khi tính năng chuyển hẳn sang phương pháp của bài báo. Xem `LAYOUT-SUGGEST.md`. Báo cáo này chỉ giữ để tham khảo.
+
 # Cải thiện gợi ý: A (bộ lọc ứng dụng) + C (thêm dữ liệu) – kết quả trước/sau
 
 **Trước:** Recursive (Li et al. 2020) học trên 200 màn gốc (1.071 cây), hidden 256 × 6 lớp, không lọc.
