@@ -73,10 +73,13 @@
   - BFS: Recursive 95,3%, Pointer 92,9%;
   - DFS: Recursive 93,4%, Pointer 88,4%, Vanilla 76,6%.
 
-### So với BA Copilot hiện tại
-- BA Copilot dùng một Transformer **hai chiều** để phát hiện chỗ thiếu (không tự hồi quy).
-- Không có tọa độ; thay bằng loại con có nghĩa và độ sâu.
-- Mới tái lập các thước đo ở **bản nới lỏng**.
+### Khác biệt về dữ liệu khi tái lập
+- Bài báo dùng Rico: màn **điện thoại Android**, khổ dọc, lưới 72×128.
+- Dữ liệu của nhóm là **giao diện web nghiệp vụ** (màn desktop khổ ngang, trang có thể cuộn dài):
+  - 200 màn gốc do Claude soạn theo `dataset/AUTHORING.md`;
+  - 28 loại component của BA Copilot.
+- Lưới tọa độ vì vậy phải đổi cho khổ web (xem phần B).
+- **Không dùng WebSight** và **không dùng mô hình cũ tiền huấn luyện WebSight** (`model/next-transformer.websight.json`, cũng như `model/next-transformer.json` hiện tại vì nó được tinh chỉnh từ mô hình đó).
 
 ---
 
@@ -84,39 +87,53 @@
 
 ```
 Bối cảnh: repo BA Copilot (ba-copilot-source/ba-copilot). Đọc dataset/PAPER-REPLICATION-PROMPT.md phần A (tóm tắt Li et al. 2020).
-Mục tiêu: tái lập bài báo trên dữ liệu nghiệp vụ của nhóm, so sánh 3 bộ giải mã của bài báo với mô hình hiện tại của app.
-KHÔNG thay model/next-transformer.json của app trừ khi tôi đồng ý sau khi xem kết quả.
+Mục tiêu: tái lập phương pháp nhẹ nhất của bài báo – Vanilla Transformer Tree Decoder (mục 4.2) – trên dữ liệu UI WEB do nhóm tạo,
+đánh giá đúng 3 thước đo của bài báo (mục 5.2) với luồng thiết kế DFS (mục 5.3).
 
-1. Bộ dữ liệu "kiểu Rico" (scripts/paper/build-dataset.ts → data/paper/{train,val,test}.jsonl + stats.json):
-   - Nguồn: cây đầy đủ trong dataset/roots/*.json (200 màn gốc). Thêm WebSight nếu data/corpus có sẵn, ghi rõ nguồn từng cây.
-   - Tọa độ: render từng cây bằng client/components/Renderer.tsx trong Chromium (/opt/pw-browsers, viewport 1280×800),
-     đo getBoundingClientRect theo data-node-id; chuẩn hóa về lưới 72×128 như bài báo (ghi lại tỷ lệ gốc).
-   - Mỗi node: {c: loại (28 loại của app), d: độ sâu, t: lá?, p: chỉ số cha theo tiền thứ tự, b: [x,y,x2,y2]}.
-   - Lọc như bài báo: node ra ngoài màn hoặc ngoài khung cha → bỏ cây; >100 node hoặc cha >30 con → bỏ.
-   - Tăng cỡ dữ liệu nếu cần: biến thể bố cục (đổi viewport 1024/1440, đổi thứ tự anh em có thể hoán đổi), KHÔNG sinh từ bộ Mock.
-   - Chia theo màn gốc (splitOf trong scripts/dataset/build-samples.ts) 80/10/10, mọi biến thể của một màn cùng tập.
-   - Báo cáo: số cây, số node TB/min/max, độ sâu TB/min/max, phân bố loại, số cách hoàn thiện TB cho cây dở BFS/DFS 10/50/80%.
+RÀNG BUỘC
+- CHỈ dùng dữ liệu trong dataset/roots/*.json (200 màn gốc web nghiệp vụ, Claude soạn). Không tải, không đọc WebSight, Rico hay data/corpus.
+- Không dùng, không khởi tạo từ model/next-transformer.json hay model/next-transformer.websight.json (đều dính WebSight).
+- Không dùng dữ liệu từ bộ sinh Mock. Không thay mô hình của app.
+- Chạy được trên CPU 4 nhân (PyTorch đã cài).
 
-2. Ba mô hình của bài báo (scripts/paper/train.py, PyTorch CPU; đã cài torch):
-   - Embedding Eq.1–5: loại + lá + 4 tọa độ rời rạc (mỗi cái |E|/4, ghép làm positional embedding).
-   - Vanilla: duỗi DFS có "(" ")", tự hồi quy, softmax riêng cho c, t, x, y, x2, y2 (Eq.7).
-   - Pointer: thêm đầu ra cha bằng softmax tích vô hướng với trạng thái ẩn trước (Eq.8); huấn luyện cả thứ tự BFS và DFS.
-   - Recursive: giải mã con của từng cha, self-attention trên cha+anh em (Eq.9) rồi chú ý tổ tiên (Eq.10).
-   - Dò hidden ∈ {128,256} và số lớp ∈ {2,4} trên tập val (rút gọn cho CPU), early stopping theo val, seed cố định.
-   - Giải mã: greedy cho tới EOS; giới hạn 100 node.
+1. Bộ dữ liệu cây web có tọa độ (scripts/paper/build-dataset.ts → data/paper/{train,val,test}.jsonl + stats.json)
+   - Render từng màn gốc bằng client/components/Renderer.tsx trong Chromium (executablePath /opt/pw-browsers/chromium-1194/chrome-linux/chrome),
+     khung nhìn desktop: độ rộng 1280 px (train/val thêm 1024 và 1440 px làm biến thể bố cục), đo getBoundingClientRect theo data-node-id,
+     tọa độ tính theo toàn trang (kể cả phần cuộn).
+   - Rời rạc hóa cho khổ WEB: ô lưới 10 px; x ∈ [0, W/10) (128 ô với 1280 px; chuẩn hóa mọi độ rộng về 128 ô theo tỷ lệ),
+     y ∈ [0, 256) (tối đa 2560 px, phần dài hơn kẹp vào ô cuối). Ghi rõ lưới trong stats.json.
+   - Mỗi node: {c: loại (28 loại của app), t: lá?, b: [x, y, x2, y2], k: [con]}; độ sâu và cha suy từ cấu trúc.
+   - Lọc như bài báo: node không hiển thị hoặc ra ngoài khung cha (dung sai 2 px) → bỏ cây; > 100 node hoặc cha > 30 con → bỏ cây.
+   - Chia theo màn gốc bằng splitOf trong scripts/dataset/build-samples.ts (≈ 80/10/10 theo hash); mọi biến thể của một màn cùng tập;
+     test chỉ dùng độ rộng 1280 px. Chốt tập test trước khi huấn luyện.
+   - Thống kê như mục 5.1: số cây, số node TB/min/max, độ sâu TB/min/max, phân bố loại, số cây bị lọc theo lý do,
+     số cách hoàn thiện TB của cây dở DFS 10/50/80% (đếm cây trong tập cùng tiền tố).
 
-3. Đánh giá (scripts/paper/eval.py) trên tập test, cây dở BFS và DFS 10/50/80%:
-   - Next-element accuracy (Top-1, kèm Top-3).
-   - Parent-child pair P/R/F1, bản CHẶT (loại + tọa độ khớp tuyệt đối trên lưới 72×128) và bản NỚI LỎNG (chỉ loại).
-   - Layout Tree Edit Distance Zhang–Shasha, chi phí KLM như scripts/tree-metrics.ts (chèn 5,05 s, đổi 3,95 s, xóa 0,1 s);
-     bản chặt tính thêm phép Change khi sai vị trí/kích thước.
-   - Mốc: "không gợi ý" (giữ cây dở) và mô hình hiện tại của app (model/next-transformer.json, chỉ có bản nới lỏng vì không đoán tọa độ;
-     tái dùng scripts/eval-transformer.ts).
-   - Xuất bảng giống Table 1–2 của bài báo: dataset/export/eval/paper-replication.md (+ .json).
+2. Vanilla Transformer Tree Decoder (scripts/paper/vanilla.py)
+   - Duỗi cây theo DFS tiền thứ tự; thêm token "(" và ")" quanh các con của mỗi cha (bỏ ngoặc khi cha chỉ có 1 con, đúng bài báo,
+     và kiểm tra khôi phục được cây), thêm EOS.
+   - Embedding Eq.1–5: e = e_b + e_c + e_t, với e_b = ghép 4 embedding tọa độ (mỗi cái |E|/4); token ngoặc/EOS chỉ có e_c.
+   - Bộ giải mã Transformer nhân quả (Eq.6); đầu ra softmax riêng cho c, t, x, y, x2, y2 (Eq.7); với token ngoặc chỉ tính loss của c.
+   - Cấu hình rút gọn cho CPU: dò hidden ∈ {64, 128}, số lớp ∈ {2, 4}, 4 head, dropout 0,1, AdamW; early stopping theo loss val;
+     seed cố định. Ghi lịch sử loss và thời gian huấn luyện.
+   - Giải mã tham lam (greedy) tới EOS hoặc khi ngoặc gốc đóng; tối đa 100 node; khôi phục cây từ ngoặc.
 
-4. Kiểm chứng: viết test nhỏ cho Zhang–Shasha, pair F1, chuyển cây ↔ chuỗi Vanilla (khôi phục đúng cây), thứ tự BFS/DFS.
+3. Đánh giá (scripts/paper/eval_vanilla.py) trên tập test, cây dở = tiền tố DFS gồm 10%, 50%, 80% số node
+   (Vanilla chỉ hỗ trợ DFS – ghi rõ không có BFS):
+   - Next-element accuracy: node đầu tiên mô hình sinh sau tiền tố so với node kế tiếp thật; báo cáo bản CHẶT (loại + 4 tọa độ khớp)
+     và bản NỚI LỎNG (chỉ loại); kèm Top-3 theo loại.
+   - Parent-child pair Precision/Recall/F1 giữa cây mô hình hoàn thiện và cây thật: bản CHẶT (loại + tọa độ cha và con khớp tuyệt đối)
+     và bản NỚI LỎNG (chỉ loại); đếm theo đa tập.
+   - Layout Tree Edit Distance Zhang–Shasha, chi phí KLM như scripts/tree-metrics.ts (chèn 5,05 s, đổi 3,95 s, xóa 0,10 s);
+     bản chặt coi sai tọa độ là một phép Change.
+   - Mốc so sánh: "Không gợi ý" (giữ nguyên cây dở). Có thể thêm Transformer phát hiện chỗ thiếu của app huấn luyện TỪ ĐẦU trên
+     dataset (scripts/train_transformer.py --samples, KHÔNG --init) – chỉ bản nới lỏng vì không đoán tọa độ.
+   - Xuất bảng kiểu Table 2 của bài báo (DFS 10/50/80% × F1/Next/Edit, chặt và nới lỏng):
+     dataset/export/eval/paper-vanilla.md + .json, kèm thống kê dữ liệu.
+
+4. Kiểm chứng: test cho chuyển cây ↔ chuỗi Vanilla (khôi phục đúng cây, kể cả cha 1 con), tiền tố DFS, Zhang–Shasha, pair F1.
    Chạy npm test. Commit và push lên nhánh trung_ba.
 
-5. Báo cáo cuối: bảng so sánh, nhận xét mô hình nào hợp với tính năng gợi ý của app, và giới hạn
-   (dữ liệu do Claude soạn, chưa qua BA kiểm nghiệm; tập test nhỏ; tọa độ lấy từ một kích thước màn hình).
+5. Báo cáo cuối: bảng kết quả, so sánh định tính với Table 2 (lưu ý khác dữ liệu: web vs Android, 200 màn vs 55 nghìn, lưới khác),
+   thời gian CPU, và giới hạn (dữ liệu do Claude soạn, chưa qua BA kiểm nghiệm; tập test ~23 màn; tọa độ từ một độ rộng màn hình).
 ```
