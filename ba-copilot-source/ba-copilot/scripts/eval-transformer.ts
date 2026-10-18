@@ -16,6 +16,9 @@ import { countTree, emptyModel, END, NGramModel, prob, rankTypes, ROOT, START, T
 import { loadTransformer, predictSlots, propsForSubtype, subtypeOf, TransformerModel } from "../shared/transformer.ts";
 import { rng } from "./build-next-model.ts";
 import { EDIT_COST, pairPRF, treeEditDistance } from "./tree-metrics.ts";
+import { REFERENCE_SCREENS } from "./reference-screens.ts";
+import { loadRoots } from "./dataset/roots.ts";
+import { splitOf } from "./dataset/build-samples.ts";
 
 const root = join(import.meta.dirname, "..");
 const arg = (name: string, def: string) => {
@@ -224,9 +227,12 @@ for (const r of readRaw(join(dir, "train.raw.jsonl"))) countTree(ng, r.tree, W[r
 if (process.argv.includes("--write-ngram")) writeFileSync(join(root, "model", "next-component.json"), JSON.stringify(ng));
 const tfFile = arg("--tf", join(root, "model", "next-transformer.json"));
 const tf = existsSync(tfFile) ? loadTransformer(JSON.parse(readFileSync(tfFile, "utf8"))) : null;
-const sets = Object.fromEntries(["wi", "synth"].map((k) => [k, readRaw(join(dir, `${k}.raw.jsonl`)).map((r) => r.tree).slice(0, limit)]));
+const sets: Record<string, UINode[]> = Object.fromEntries(["wi", "synth"].map((k) => [k, readRaw(join(dir, `${k}.raw.jsonl`)).map((r) => r.tree).slice(0, limit)]));
+// màn gốc tập test của bộ dữ liệu "bổ sung UI" (không dùng khi huấn luyện) và 30 màn tham chiếu thiết kế thủ công
+sets.dstest = loadRoots().items.filter((r) => splitOf(r.id) === "test").map((r) => r.tree);
+sets.ref = REFERENCE_SCREENS.map((r: { tree: UINode }) => r.tree);
 const pct = (x: number, n: number) => `${((100 * x) / Math.max(n, 1)).toFixed(1)}%`;
-const NAMES: Record<string, string> = { wi: "WebSight + nội bộ", synth: "Nghiệp vụ tổng hợp" };
+const NAMES: Record<string, string> = { wi: "WebSight + nội bộ", synth: "Nghiệp vụ tổng hợp", dstest: "Bộ dữ liệu bổ sung UI – màn gốc tập test", ref: "30 màn tham chiếu" };
 const csv = ["experiment,set,setting,n,ngram_top1,ngram_top3,tf_top1,tf_top3,extra"];
 const report: Record<string, unknown> = { ngramTrees: ng.meta.trees, transformer: tf?.meta ?? null };
 
@@ -276,6 +282,7 @@ if (tf) {
   }
 }
 mkdirSync(join(root, "analysis"), { recursive: true });
-writeFileSync(join(root, "analysis", "eval-transformer.csv"), csv.join("\n") + "\n");
-writeFileSync(join(root, "analysis", "eval-transformer.json"), JSON.stringify(report, null, 1));
+const outName = arg("--out", "eval-transformer");
+writeFileSync(join(root, "analysis", `${outName}.csv`), csv.join("\n") + "\n");
+writeFileSync(join(root, "analysis", `${outName}.json`), JSON.stringify(report, null, 1));
 console.log("\n→ analysis/eval-transformer.csv, analysis/eval-transformer.json");
