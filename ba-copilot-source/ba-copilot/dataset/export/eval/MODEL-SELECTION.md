@@ -45,7 +45,10 @@ Mỗi ô ghi F1 / Next / Next Top-3 / Edit (giây KLM).
 ## Kết luận (đã sửa): vẫn dùng **Transformer phát hiện chỗ thiếu của app** cho tính năng Gợi ý; Recursive là ứng viên tốt cho tính năng "hoàn thiện bố cục"
 
 1. **Thước đo của bài báo** đo việc *hoàn thiện cây từ một tiền tố*. Trên thước đo này, Recursive **nhỉnh hơn** mô hình app, nhất là về công sửa (Edit). Bản trước kết luận app "ngang hoặc tốt hơn"; kết luận đó sai do lỗi lệch quy tắc cắt cây.
-2. **Tính năng Gợi ý cần tìm chỗ thiếu ở bất kỳ đâu**, kể cả giữa form. Ba bộ giải mã của bài báo chỉ sinh tiếp sau tiền tố hoặc nối vào cuối danh sách con, nên không làm được việc này. Thước đo của bài báo cũng không đo việc này.
+2. **Tính năng Gợi ý cần tìm chỗ thiếu ở bất kỳ đâu**, kể cả giữa form.
+   - Trong bài báo, vị trí của phần tử được xác định bằng **khung bao** (tọa độ). Một phần tử sinh thêm có thể nằm giữa các phần tử cũ về mặt không gian, dù trong cây nó được nối vào cuối danh sách con.
+   - Cây của BA Copilot không có tọa độ; vị trí chính là **thứ tự trong container**. Với biểu diễn này, ba bộ giải mã của bài báo chỉ nối được vào cuối danh sách con.
+   - Thước đo của bài báo dùng cây dở là tiền tố BFS/DFS, nên không đo trường hợp thiếu ở giữa.
    - Mô hình app được đo riêng trên nhiệm vụ này: Top-1 52,4%, Top-3 74,7% trên 1.365 mẫu thiếu của tập test.
 3. **Không cần tọa độ và đã chạy được trong app.** Mô hình app suy luận bằng TypeScript, khoảng 22 ms mỗi màn. Ba bộ giải mã của bài báo cần khung bao, nên mỗi lần gợi ý phải render màn để đo, và phải port mô hình sang TypeScript.
 4. **Đề xuất:**
