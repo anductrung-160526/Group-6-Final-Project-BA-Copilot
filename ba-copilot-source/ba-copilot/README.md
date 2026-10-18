@@ -109,6 +109,17 @@ Mã nguồn:
 - `scripts/train_transformer.py`: huấn luyện.
 - `scripts/eval-transformer.ts`: so sánh.
 
+### Mô hình hiện tại: tinh chỉnh trên bộ dữ liệu "bổ sung UI"
+
+`model/next-transformer.json` là mô hình WebSight cũ (lưu ở `model/next-transformer.websight.json`) được tinh chỉnh 6 epoch
+trên bộ dữ liệu `dataset/` (200 màn gốc, 10.012 mẫu). Trên tập test, Top-3 tăng từ 55,0% lên 82,3%.
+Chi tiết ở `dataset/README.md` và `dataset/export/eval/REPORT.md`.
+
+```bash
+npm run dataset:samples && npm run dataset:export
+python3 scripts/train_transformer.py --samples data/dataset/tf --init model/next-transformer.websight.json --epochs 6 --lr 5e-4
+```
+
 ### Huấn luyện lại và đánh giá
 
 ```bash

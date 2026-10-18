@@ -4,13 +4,16 @@
 //   - missing_one   : bỏ 1 phần tử chức năng (nút, ô nhập, bộ lọc, bảng, phân trang, thông báo...)
 //   - missing_group : bỏ 1 cụm (Row nút, thanh lọc, Form, Section, Modal...) → patch chèn cả cụm
 //   - missing_pair  : bỏ 2 phần tử anh em (vd nút Lưu + Hủy)
+//   - missing_multi : bỏ 2–4 phần tử/cụm rải rác (không lồng nhau, không liền kề trong cùng cha) – màn làm dở nhiều chỗ
 //   - complete      : màn đủ, đáp án rỗng; nếu màn bị giới hạn quyền (chỉ xem / chỉ tạo / chỉ duyệt) thì là mẫu "bẫy"
 // Không xóa Text/Image/Divider/Avatar/Heading đơn lẻ (khó đoán, ít giá trị cho BA).
 // Chia tập theo MÀN GỐC trước khi sinh biến thể: mọi biến thể của một màn nằm cùng train/val/test.
 // Kiểm nghiệm màn do nhóm làm theo cách riêng; kết quả (nếu có) đưa vào bằng --reviews: file JSON dạng
 //   { "reviews": [{ "rootId": "R001", "decision": "accept" | "fix" | "reject", "reviewer": "...", "fixedTree": {...}? }] }
 //   màn bị "reject" hoặc "fix" không kèm cây sửa sẽ bị loại; "fix" có cây sửa thì dùng cây sửa.
-// Dùng: npx tsx scripts/dataset/build-samples.ts [--reviews kq.json,...] [--only-reviewed] [--per-root 15]
+// Mỗi biến thể là một tập id bị bỏ khác nhau (khử trùng), nên số mẫu/màn ≤ --per-root.
+// Mặc định 67: 200 màn gốc → ~10 nghìn mẫu (màn nhỏ có ít tổ hợp nên ít mẫu hơn).
+// Dùng: npx tsx scripts/dataset/build-samples.ts [--reviews kq.json,...] [--only-reviewed] [--per-root 67]
 //        → data/dataset/samples.jsonl + data/dataset/stats.json
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
@@ -35,7 +38,7 @@ export interface Sample {
   id: string;
   rootId: string;
   split: "train" | "val" | "test";
-  kind: "missing_one" | "missing_group" | "missing_pair" | "complete";
+  kind: "missing_one" | "missing_group" | "missing_pair" | "missing_multi" | "complete";
   trap: boolean;
   meta: { group: string; screenKind: string; domain: string; permission: string; layout: string };
   requirement: RootItem["requirement"];
@@ -105,11 +108,46 @@ export function samplesForRoot(r: RootItem, tree: UINode, review: Sample["review
   });
   const restricted = RESTRICTED.test(`${r.permission} ${r.requirement.permissions.join(" ")}`);
   const plan: { kind: Sample["kind"]; ids: string[] }[] = [{ kind: "complete", ids: [] }];
-  const nGroup = Math.min(groups.length, Math.round(perRoot * 0.25));
+  const seen = new Set<string>([""]);
+  const add = (kind: Sample["kind"], ids: string[]) => {
+    const key = [...ids].sort().join(",");
+    if (plan.length >= perRoot || seen.has(key)) return;
+    seen.add(key);
+    plan.push({ kind, ids });
+  };
+  const nGroup = Math.min(groups.length, Math.round(perRoot * 0.2));
   const nPair = Math.min(pairs.length, Math.round(perRoot * 0.1));
-  for (const g of shuffle(groups).slice(0, nGroup)) plan.push({ kind: "missing_group", ids: [g] });
-  for (const p of shuffle(pairs).slice(0, nPair)) plan.push({ kind: "missing_pair", ids: p });
-  for (const s of shuffle(singles).slice(0, Math.max(0, perRoot - plan.length))) plan.push({ kind: "missing_one", ids: [s] });
+  const nOne = Math.min(singles.length, Math.round(perRoot * 0.4));
+  for (const g of shuffle(groups).slice(0, nGroup)) add("missing_group", [g]);
+  for (const p of shuffle(pairs).slice(0, nPair)) add("missing_pair", p);
+  for (const s of shuffle(singles).slice(0, nOne)) add("missing_one", [s]);
+  // nhiều chỗ thiếu: 2–4 phần tử rải rác, không phần tử nào là tổ tiên của phần tử khác, không liền kề trong cùng cha
+  const parentOf = new Map<string, string>(), indexOf = new Map<string, number>();
+  walk(tree, (n, parent) => {
+    if (!parent) return;
+    parentOf.set(n.id, parent.id);
+    indexOf.set(n.id, parent.children!.indexOf(n));
+  });
+  const adjacent = (a: string, b: string) => parentOf.get(a) === parentOf.get(b) && Math.abs(indexOf.get(a)! - indexOf.get(b)!) <= 1;
+  const ancestors = (id: string) => {
+    const a = new Set<string>();
+    for (let p = parentOf.get(id); p; p = parentOf.get(p)) a.add(p);
+    return a;
+  };
+  const pool = [...singles, ...groups];
+  for (let tries = 0; plan.length < perRoot && tries < perRoot * 40 && pool.length >= 2; tries++) {
+    const u = rand();
+    const k = u < 0.5 ? 2 : u < 0.85 ? 3 : 4;
+    const pick: string[] = [];
+    for (const id of shuffle(pool)) {
+      if (pick.length === k) break;
+      if (pick.some((x) => adjacent(x, id) || ancestors(id).has(x) || ancestors(x).has(id))) continue;
+      pick.push(id);
+    }
+    if (pick.length >= 2) add("missing_multi", pick);
+  }
+  // màn ít ứng viên: bù bằng phần tử đơn còn lại
+  for (const s of shuffle(singles)) add("missing_one", [s]);
 
   const meta = { group: r.group, screenKind: r.screenKind, domain: r.domain, permission: r.permission, layout: r.layout };
   return plan.map((p, i) => {
@@ -131,7 +169,7 @@ export function mergeReviews(files: string[]) {
 }
 
 if (process.argv[1]?.endsWith("build-samples.ts")) {
-  const perRoot = Number(arg("--per-root", "15"));
+  const perRoot = Number(arg("--per-root", "67"));
   const allowUnreviewed = !process.argv.includes("--only-reviewed");
   const reviews = mergeReviews(arg("--reviews", "").split(",").filter(Boolean));
   const { items, version } = loadRoots();

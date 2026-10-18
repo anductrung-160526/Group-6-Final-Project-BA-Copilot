@@ -1,0 +1,26 @@
+{
+ "roots": 200,
+ "samples": 10012,
+ "skipped": {},
+ "bySplit": {
+  "train": 7595,
+  "val": 1172,
+  "test": 1245
+ },
+ "byKind": {
+  "complete": 200,
+  "missing_group": 609,
+  "missing_pair": 417,
+  "missing_one": 1407,
+  "missing_multi": 7379
+ },
+ "traps": 140,
+ "byGroup": {
+  "auth": 1727,
+  "list": 2330,
+  "form": 2123,
+  "approval": 2095,
+  "state": 1737
+ },
+ "dataVersion": "80d9c12d5a"
+}

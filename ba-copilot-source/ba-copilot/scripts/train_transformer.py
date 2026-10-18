@@ -94,7 +94,7 @@ def eval_samples(model, items, max_len, max_depth):
     """Trên bộ mẫu: với mẫu thiếu, token của ô bị bỏ (đầu tiên) phải đoán đúng loại (Top-1/Top-3);
     với mẫu đủ, không ô nào có P(thiếu) ≥ 0,5 (báo động giả)."""
     model.eval()
-    r = {"missing": 0, "top1": 0, "top3": 0, "complete": 0, "alarm": 0}
+    r = {"missing": 0, "top1": 0, "top3": 0, "complete": 0, "alarm": 0, "trap": 0, "trap_alarm": 0}
     for it in items:
         tree, drop = it["tree"], it["drop"]
         tt, ts, td, gt, gs = linearize(tree, fixed_keep(tree, drop), max_depth)
@@ -105,7 +105,11 @@ def eval_samples(model, items, max_len, max_depth):
         pr = lg[0].softmax(-1)
         if not drop:
             r["complete"] += 1
-            r["alarm"] += int((1 - pr[:, 0]).max().item() >= 0.5)
+            alarm = int((1 - pr[:, 0]).max().item() >= 0.5)
+            r["alarm"] += alarm
+            if it.get("trap"):
+                r["trap"] += 1
+                r["trap_alarm"] += alarm
             continue
         target_type = preorder(tree)[min(drop)][0]
         idx = [i for i, g in enumerate(gt) if g == 1 + target_type]
@@ -117,7 +121,8 @@ def eval_samples(model, items, max_len, max_depth):
         r["top3"] += int(target_type in top)
     model.train()
     m = max(r["missing"], 1)
-    return {"n_missing": r["missing"], "top1": r["top1"] / m, "top3": r["top3"] / m, "n_complete": r["complete"], "alarm": r["alarm"] / max(r["complete"], 1)}
+    return {"n_missing": r["missing"], "top1": r["top1"] / m, "top3": r["top3"] / m, "n_complete": r["complete"], "alarm": r["alarm"] / max(r["complete"], 1),
+            "n_trap": r["trap"], "trap_alarm": r["trap_alarm"] / max(r["trap"], 1)}
 
 
 def corrupt(tree, rnd):
@@ -280,6 +285,9 @@ def main():
     ap.add_argument("--parity-out", default="model/next-transformer.parity.json")
     ap.add_argument("--samples", default="", help="thư mục bộ mẫu bổ sung UI (data/dataset/tf): học từ cặp màn thiếu → phần bổ sung")
     ap.add_argument("--augment", type=float, default=0.5, help="(--samples) xác suất làm hỏng ngẫu nhiên cây đầy đủ của mẫu thay cho mẫu cố định")
+    ap.add_argument("--init", default="", help="khởi tạo trọng số từ mô hình đã huấn luyện (vd model/next-transformer.json tiền huấn luyện WebSight)")
+    ap.add_argument("--eval-only", action="store_true", help="(--samples --init) chỉ đánh giá mô hình --init trên val/test, không huấn luyện")
+    ap.add_argument("--report", default="analysis/train-transformer.json")
     a = ap.parse_args()
     torch.manual_seed(a.seed)
     torch.set_num_threads(a.threads)
@@ -298,7 +306,25 @@ def main():
         tests = {k: [r["tree"] for r in load(f"{a.data}/{k}.jsonl")] for k in ("wi", "synth")}
         pool = [(r["tree"], None) for r in train for _ in range(int(r.get("w", 1)))]
     cfg = {"d": a.d, "heads": a.heads, "layers": a.layers, "ff": a.ff, "maxLen": a.max_len, "maxDepth": a.max_depth}
+    if a.init:
+        src = json.load(open(a.init))
+        c = src["config"]
+        a.d, a.heads, a.layers, a.ff, a.max_len, a.max_depth = c["d"], c["heads"], c["layers"], c["ff"], c["maxLen"], c["maxDepth"]
+        cfg = {"d": a.d, "heads": a.heads, "layers": a.layers, "ff": a.ff, "maxLen": a.max_len, "maxDepth": a.max_depth}
     model = TreeTransformer(a.d, a.heads, a.layers, a.ff, a.max_len, a.max_depth)
+    if a.init:
+        sd = {k: torch.frombuffer(bytearray(base64.b64decode(v["b64"])), dtype=torch.float32).reshape(v["shape"]) for k, v in src["tensors"].items()}
+        model.load_state_dict(sd)
+        print(f"khởi tạo từ {a.init} ({src['meta'].get('trees')} cây tiền huấn luyện)")
+    if a.samples:
+        test = load(f"{a.samples}/test.jsonl")
+    if a.eval_only:
+        model.eval()
+        res = {"val": eval_samples(model, val, a.max_len, a.max_depth), "test": eval_samples(model, test, a.max_len, a.max_depth)}
+        os.makedirs(os.path.dirname(a.report) or ".", exist_ok=True)
+        json.dump({"init": a.init, "evalOnly": True, "final": res}, open(a.report, "w"), indent=1)
+        print(json.dumps(res, indent=1))
+        return
     n_params = sum(p.numel() for p in model.parameters())
     print(f"{len(train)} cây ({len(pool)} sau trọng số) · {n_params:,} tham số · cfg {cfg}")
     opt = torch.optim.AdamW(model.parameters(), lr=a.lr, weight_decay=0.01)
@@ -341,9 +367,9 @@ def main():
 
     model.eval()
     if a.samples:
-        final = {"val": eval_samples(model, val, a.max_len, a.max_depth)}
+        final = {"val": eval_samples(model, val, a.max_len, a.max_depth), "test": eval_samples(model, test, a.max_len, a.max_depth)}
         meta = {"builtAt": time.strftime("%Y-%m-%dT%H:%M:%S"), "trees": len({r["rootId"] for r in train}), "samples": len(train), "params": n_params, "epochs": a.epochs,
-                "sources": {"ui-completion-dataset": len(train)}, "augment": a.augment}
+                "sources": {"ui-completion-dataset": len(train)}, "augment": a.augment, "init": a.init or None}
         parity_trees = [r["tree"] for r in val[:3]]
     else:
         final = {k: [eval_masked(model, v, f, a.max_len, a.max_depth) for f in (0.1, 0.5, 0.8)] for k, v in tests.items() if v}
@@ -352,8 +378,8 @@ def main():
         parity_trees = (tests.get("synth") or tests.get("wi"))[:3]
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     export(model, cfg, meta, a.out)
-    os.makedirs("analysis", exist_ok=True)
-    json.dump({"meta": meta, "config": cfg, "history": history, "final": final}, open("analysis/train-transformer.json", "w"), indent=1)
+    os.makedirs(os.path.dirname(a.report) or ".", exist_ok=True)
+    json.dump({"meta": meta, "config": cfg, "history": history, "final": final}, open(a.report, "w"), indent=1)
     # mẫu đối chiếu số học Python ↔ TypeScript (tests/transformer.test.ts)
     parity = []
     model.eval()

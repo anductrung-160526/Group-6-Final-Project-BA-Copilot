@@ -12,7 +12,7 @@ interface S {
   acceptedPatch: { parentId: string; index: number; node: UINode }[];
 }
 declare const SAMPLES: S[];
-const KIND: Record<string, string> = { missing_one: "Thiếu 1 phần tử", missing_group: "Thiếu 1 cụm", missing_pair: "Thiếu 1 cặp", complete: "Màn đủ (đáp án rỗng)" };
+const KIND: Record<string, string> = { missing_one: "Thiếu 1 phần tử", missing_group: "Thiếu 1 cụm", missing_pair: "Thiếu 1 cặp", missing_multi: "Thiếu nhiều chỗ", complete: "Màn đủ (đáp án rỗng)" };
 const label = (n: UINode) => `${n.type}${n.props.label ?? n.props.text ?? n.props.title ? ` "${String(n.props.label ?? n.props.text ?? n.props.title).slice(0, 40)}"` : ""}`;
 
 function App() {

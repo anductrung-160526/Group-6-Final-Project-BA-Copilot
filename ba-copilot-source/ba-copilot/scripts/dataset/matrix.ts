@@ -1,5 +1,5 @@
 // Ma trận phủ cho bộ dữ liệu "bổ sung UI": phân bổ 670 màn gốc theo nhóm màn × loại màn × miền nghiệp vụ ×
-// quyền người dùng × kiểu bố cục, cân bằng và lặp lại được (seed cố định). 670 màn × ~15 mẫu ≈ 10 nghìn mẫu.
+// quyền người dùng × kiểu bố cục, cân bằng và lặp lại được (seed cố định). 200 màn × ~50 mẫu ≈ 10 nghìn mẫu.
 // 50 màn đầu (cân bằng 10/nhóm) là đợt thử; thêm màn không làm đổi các màn trước (vòng xoay độc lập với tổng số).
 // Dùng: npx tsx scripts/dataset/matrix.ts → dataset/matrix.json
 import { writeFileSync } from "node:fs";
@@ -27,7 +27,7 @@ export interface Assignment {
   layout: string;
 }
 
-export function buildMatrix(total = 670, pilot = 50, seed = 20261018): Assignment[] {
+export function buildMatrix(total = 200, pilot = 50, seed = 20261018): Assignment[] {
   const r = rng(seed);
   const groups = Object.keys(GROUPS);
   const out: Assignment[] = [];

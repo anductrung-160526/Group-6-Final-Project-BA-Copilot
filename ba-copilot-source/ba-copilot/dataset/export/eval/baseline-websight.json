@@ -1,0 +1,24 @@
+{
+ "init": "model/next-transformer.json",
+ "evalOnly": true,
+ "final": {
+  "val": {
+   "n_missing": 1148,
+   "top1": 0.34581881533101044,
+   "top3": 0.617595818815331,
+   "n_complete": 24,
+   "alarm": 0.5416666666666666,
+   "n_trap": 19,
+   "trap_alarm": 0.5789473684210527
+  },
+  "test": {
+   "n_missing": 1222,
+   "top1": 0.30360065466448444,
+   "top3": 0.5499181669394435,
+   "n_complete": 23,
+   "alarm": 0.4782608695652174,
+   "n_trap": 15,
+   "trap_alarm": 0.4666666666666667
+  }
+ }
+}
