@@ -114,7 +114,8 @@ Mã nguồn:
 Tab Gợi ý dùng **Recursive Transformer** đúng phương pháp của Li et al. (2020, §4.4).
 - Đầu vào: cây giao diện đang thiết kế, cùng khung bao của từng phần tử đo trên canvas.
 - Mô hình sinh các phần tử con còn thiếu cho từng container. Vị trí chèn suy từ khung bao dự đoán.
-- Mô hình: `model/recursive-layout.json` (hidden 256, 6 lớp, 6,6 triệu tham số, chọn theo val). Suy luận TypeScript nằm ở `shared/recursive.ts`.
+- Mô hình: `model/recursive-layout.json` (hidden 256, 2 lớp, 2,4 triệu tham số, chọn theo val; huấn luyện trên 300 màn gốc = 1.617 cây). Suy luận TypeScript nằm ở `shared/recursive.ts`.
+- Gợi ý hiển thị đi qua **bộ lọc của ứng dụng** (`RECURSIVE_FILTER`, không thuộc bài báo): ngưỡng tin cậy 0,7, bỏ loại trùng (vd Heading thứ hai trong Header), một gợi ý mỗi container. Kết quả trước/sau: `dataset/export/eval/IMPROVE-A-C.md`.
 - Đối chiếu với bài báo, kết quả và giới hạn: xem `dataset/export/eval/PAPER-METHOD.md`. Ví dụ: chỉ đúng 3,5% khi phần tử bị quên nằm ở giữa.
 
 Mô hình encoder hai chiều cũ (`model/next-transformer.json`) không thuộc bài báo. Nó chỉ còn được dùng làm đối chứng trong thí nghiệm và cho API `GET` cũ.

@@ -447,13 +447,13 @@ function transformerAdds(m: TransformerModel, tree: UINode, inScope: (id: string
 /**
  * Bộ lọc của ỨNG DỤNG cho gợi ý Recursive (phương án A) – không thuộc phương pháp Li et al. 2020, không đổi mô hình,
  * chỉ ẩn những gợi ý mô hình đưa ra nhưng vô lý khi hiển thị cho BA:
- *  F1 ngưỡng tin cậy: bỏ phần tử có xác suất loại < minP (chọn trên tập val, scripts/paper/eval-filter.ts);
+ *  F1 ngưỡng tin cậy: bỏ phần tử có xác suất loại < minP (0,7 – chọn trên tập val của dữ liệu 300 màn, scripts/paper/eval-filter.ts);
  *  F2 trùng loại "một lần mỗi container": Heading, Pagination, Table, Avatar, Alert đã có trong container → bỏ;
  *     Heading trong Card/Section/Form/Modal đã có tiêu đề (props.title), hoặc Header đã có Heading ở bất kỳ cấp nào → bỏ;
  *  F3 mỗi container một gợi ý: chỉ giữ phần tử đầu tiên còn lại sau F1–F2 (các phần tử sau phụ thuộc vào phần tử trước chưa chèn).
  */
 export interface RecursiveFilter { minP: number; minPRegion: number; unique: boolean; onePerContainer: boolean }
-export const RECURSIVE_FILTER: RecursiveFilter = { minP: 0.5, minPRegion: 0.3, unique: true, onePerContainer: true };
+export const RECURSIVE_FILTER: RecursiveFilter = { minP: 0.7, minPRegion: 0.3, unique: true, onePerContainer: true };
 export const NO_FILTER: RecursiveFilter = { minP: TF_ADD_MIN, minPRegion: TF_ADD_MIN_REGION, unique: false, onePerContainer: false };
 const ONCE_PER_CONTAINER = new Set(["Heading", "Pagination", "Table", "Avatar", "Alert"]);
 

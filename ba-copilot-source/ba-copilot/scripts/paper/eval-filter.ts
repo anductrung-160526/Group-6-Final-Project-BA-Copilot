@@ -1,11 +1,11 @@
 // Đánh giá gợi ý "Thêm" của tab Gợi ý đúng như BA nhìn thấy: Recursive (Li et al. 2020) + recursiveAdds, có / không có bộ lọc ứng dụng.
 // Trường hợp: ở màn gốc tập val/test (độ rộng 1280 px), bỏ 1 phần tử lá có anh em → chạy predictChildren trên cây thiếu với khung bao
-// đo sẵn (data/paper-w7c20, cùng thứ tự node với màn gốc) → lấy tối đa 5 gợi ý "Thêm" có độ tin cậy cao nhất (như tab Gợi ý, k = 5).
+// đo sẵn (data/paper-w7c20-r300, cùng thứ tự node với màn gốc) → lấy tối đa 5 gợi ý "Thêm" có độ tin cậy cao nhất (như tab Gợi ý, k = 5).
 //   trúng  : có gợi ý đúng container + đúng loại của phần tử bị bỏ (trúng + khe: thêm đúng vị trí chèn)
 //   chính xác: số gợi ý trúng / số gợi ý hiển thị;  báo động giả: số gợi ý trên màn ĐẦY ĐỦ (không bỏ gì).
 // Ngưỡng của bộ lọc chọn trên val (F1 giữa tỷ lệ trúng và độ chính xác), báo cáo test.
 // Bộ lọc là lớp ứng dụng, không thuộc bài báo – xem RECURSIVE_FILTER trong shared/nextComponent.ts.
-// Dùng: npx tsx scripts/paper/eval-filter.ts [--data data/paper-w7c20] [--model model/recursive-layout.json] [--out eval-filter.json]
+// Dùng: npx tsx scripts/paper/eval-filter.ts [--data data/paper-w7c20-r300] [--model model/recursive-layout.json] [--out eval-filter-after-test35.json]
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { isContainer, UINode } from "../../shared/design.ts";
@@ -18,7 +18,7 @@ const arg = (name: string, def: string) => {
   const i = process.argv.indexOf(name);
   return i > -1 ? process.argv[i + 1] : def;
 };
-const DATA = join(root, arg("--data", "data/paper-w7c20"));
+const DATA = join(root, arg("--data", "data/paper-w7c20-r300"));
 const m = loadRecursive(JSON.parse(readFileSync(join(root, arg("--model", "model/recursive-layout.json")), "utf8")));
 type PNode = { b: number[]; k?: PNode[] };
 const roots = new Map(loadRoots().items.map((r) => [r.id, r]));
@@ -73,11 +73,11 @@ const valRows = grid.map((f) => ({ minP: f.minP, ...score(val, f) }));
 const best = grid[valRows.reduce((bi, r, i) => (r.f1 > valRows[bi].f1 ? i : bi), 0)];
 const old = (cs: Case[]) => cs.filter((c) => Number(c.rootId.slice(1)) <= 200);
 const res = {
-  model: arg("--model", "model/recursive-layout.json"), data: arg("--data", "data/paper-w7c20"),
+  model: arg("--model", "model/recursive-layout.json"), data: arg("--data", "data/paper-w7c20-r300"),
   val_threshold_search: valRows, chosen_minP: best.minP, default_minP: RECURSIVE_FILTER.minP,
   test: { no_filter: score(test, NO_FILTER), filter: score(test, best),
     rules_only: score(test, { ...NO_FILTER, unique: true }), one_per_container_only: score(test, { ...NO_FILTER, onePerContainer: true }) },
   test_old_roots: { no_filter: score(old(test), NO_FILTER), filter: score(old(test), best) },
 };
-writeFileSync(join(root, "dataset", "export", "eval", arg("--out", "eval-filter.json")), JSON.stringify(res, null, 1));
+writeFileSync(join(root, "dataset", "export", "eval", arg("--out", "eval-filter-after-test35.json")), JSON.stringify(res, null, 1));
 console.log(JSON.stringify({ val_threshold_search: valRows.map((r) => [r.minP, r.hit, r.precision, r.f1]), chosen: best.minP, test: res.test }, null, 1));

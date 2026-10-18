@@ -1,3 +1,5 @@
+> **Cập nhật (phương án A + C):** mô hình trong app nay huấn luyện trên **300 màn gốc** (thêm 100 màn web cho người dùng cuối), cấu hình chọn theo val là **hidden 256, 2 lớp**, và gợi ý đi qua một bộ lọc của ứng dụng. Số liệu bên dưới là của bản 200 màn; so sánh trước/sau xem `IMPROVE-A-C.md`.
+
 # Phương pháp chính của tính năng Gợi ý: Recursive Transformer Tree Decoder (Li et al. 2020)
 
 Tab Gợi ý của Design Studio dùng **Recursive Transformer Tree Decoder** của Li, Amelot, Zhou, Bengio, Si (2020).

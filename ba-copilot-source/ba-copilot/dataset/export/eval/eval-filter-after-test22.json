@@ -1,0 +1,138 @@
+{
+ "model": "model/recursive-layout.json",
+ "data": "data/paper-w7c20",
+ "val_threshold_search": [
+  {
+   "minP": 0.3,
+   "cases": 240,
+   "hit": 27.5,
+   "hit_pos": 20,
+   "top1": 25.8,
+   "precision": 33.5,
+   "shown_per_screen": 0.82,
+   "full_screens": 24,
+   "false_alarms_per_full_screen": 0.42,
+   "f1": 30.2
+  },
+  {
+   "minP": 0.4,
+   "cases": 240,
+   "hit": 25,
+   "hit_pos": 19.2,
+   "top1": 23.8,
+   "precision": 35.1,
+   "shown_per_screen": 0.71,
+   "full_screens": 24,
+   "false_alarms_per_full_screen": 0.33,
+   "f1": 29.2
+  },
+  {
+   "minP": 0.5,
+   "cases": 240,
+   "hit": 24.2,
+   "hit_pos": 18.3,
+   "top1": 23.3,
+   "precision": 39.5,
+   "shown_per_screen": 0.61,
+   "full_screens": 24,
+   "false_alarms_per_full_screen": 0.29,
+   "f1": 30
+  },
+  {
+   "minP": 0.6,
+   "cases": 240,
+   "hit": 22.9,
+   "hit_pos": 17.1,
+   "top1": 22.5,
+   "precision": 39,
+   "shown_per_screen": 0.59,
+   "full_screens": 24,
+   "false_alarms_per_full_screen": 0.29,
+   "f1": 28.9
+  },
+  {
+   "minP": 0.7,
+   "cases": 240,
+   "hit": 20.4,
+   "hit_pos": 15,
+   "top1": 20,
+   "precision": 51,
+   "shown_per_screen": 0.4,
+   "full_screens": 24,
+   "false_alarms_per_full_screen": 0.13,
+   "f1": 29.2
+  }
+ ],
+ "chosen_minP": 0.3,
+ "default_minP": 0.5,
+ "test": {
+  "no_filter": {
+   "cases": 217,
+   "hit": 25.8,
+   "hit_pos": 17.5,
+   "top1": 23,
+   "precision": 24.9,
+   "shown_per_screen": 1.52,
+   "full_screens": 22,
+   "false_alarms_per_full_screen": 0.91,
+   "f1": 25.4
+  },
+  "filter": {
+   "cases": 217,
+   "hit": 26.3,
+   "hit_pos": 17.1,
+   "top1": 23,
+   "precision": 27.7,
+   "shown_per_screen": 0.95,
+   "full_screens": 22,
+   "false_alarms_per_full_screen": 0.55,
+   "f1": 27
+  },
+  "rules_only": {
+   "cases": 217,
+   "hit": 27.2,
+   "hit_pos": 18,
+   "top1": 23,
+   "precision": 25.1,
+   "shown_per_screen": 1.08,
+   "full_screens": 22,
+   "false_alarms_per_full_screen": 0.64,
+   "f1": 26.1
+  },
+  "one_per_container_only": {
+   "cases": 217,
+   "hit": 26.3,
+   "hit_pos": 17.1,
+   "top1": 23,
+   "precision": 27.7,
+   "shown_per_screen": 0.95,
+   "full_screens": 22,
+   "false_alarms_per_full_screen": 0.55,
+   "f1": 27
+  }
+ },
+ "test_old_roots": {
+  "no_filter": {
+   "cases": 217,
+   "hit": 25.8,
+   "hit_pos": 17.5,
+   "top1": 23,
+   "precision": 24.9,
+   "shown_per_screen": 1.52,
+   "full_screens": 22,
+   "false_alarms_per_full_screen": 0.91,
+   "f1": 25.4
+  },
+  "filter": {
+   "cases": 217,
+   "hit": 26.3,
+   "hit_pos": 17.1,
+   "top1": 23,
+   "precision": 27.7,
+   "shown_per_screen": 0.95,
+   "full_screens": 22,
+   "false_alarms_per_full_screen": 0.55,
+   "f1": 27
+  }
+ }
+}
