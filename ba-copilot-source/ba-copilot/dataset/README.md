@@ -38,6 +38,20 @@ Các màn bị thay gồm: một nửa số màn auth, các màn thuộc cặp g
 - Patch chèn lại được kiểm tra tự động: áp patch vào `partialTree` phải ra đúng `completedTree`.
 - Màn nhỏ có ít tổ hợp nên có ít mẫu hơn (`--per-root 67` là mức trần).
 
+## Xem dữ liệu có ảnh (định dạng giống WebSight) – `export/websight/`
+
+- **Xem ngay:** mở `export/websight/index.html` bằng trình duyệt. Trang gồm lưới 200 màn có ảnh, ô tìm kiếm và bộ lọc theo nhóm. Bấm một màn để xem ảnh lớn, mô tả và mã HTML.
+- **File riêng từng màn:**
+  - `images/<id>.png`: ảnh chụp toàn trang khổ 1280 px;
+  - `html/<id>.html`: HTML tĩnh render từ cây bằng Renderer của app, dùng chung `styles.css`;
+  - `metadata.jsonl`: mô tả và cây JSON.
+- **Parquet giống WebSight:** `{train,val,test}.parquet`.
+  - Cột giống WebSight: `image` (PNG), `text` (HTML), `llm_generated_idea` (tiêu đề và mô tả nghiệp vụ).
+  - Cột thêm: `id, group, screenKind, domain, permission, layout, actor, tree`.
+  - Đọc bằng: `datasets.load_dataset("parquet", data_files={"train": "train.parquet", …})`.
+- **Tạo lại:**
+  `CHROME=<chromium> npx tsx scripts/dataset/export-websight.tsx && python3 scripts/dataset/websight_parquet.py` (cần `pip install pyarrow`).
+
 ## Định dạng một mẫu (`data/dataset/samples.jsonl`, bản nén ở `export/samples.jsonl.gz`)
 
 `id, rootId, split, kind, trap, meta{group, screenKind, domain, permission, layout}, requirement{title, actor, description, permissions, rules},
