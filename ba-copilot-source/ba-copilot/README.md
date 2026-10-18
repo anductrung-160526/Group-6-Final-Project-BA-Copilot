@@ -109,16 +109,18 @@ Mã nguồn:
 - `scripts/train_transformer.py`: huấn luyện.
 - `scripts/eval-transformer.ts`: so sánh.
 
-### Mô hình hiện tại: huấn luyện từ đầu trên bộ dữ liệu "bổ sung UI" (không WebSight)
+### Mô hình hiện tại của tab Gợi ý: Recursive Transformer Tree Decoder (Li et al. 2020)
 
-`model/next-transformer.json` được huấn luyện 10 epoch chỉ trên bộ dữ liệu `dataset/` (200 màn gốc, 11.240 mẫu). Không dùng dữ liệu hay trọng số WebSight.
-- Trên tập test: Top-1 52,4%, Top-3 74,7%.
-- Mô hình được so sánh với 3 bộ giải mã Vanilla, Pointer và Recursive của Li et al. 2020 và được chọn giữ lại; lý do ở `dataset/export/eval/MODEL-SELECTION.md`.
-- Mô hình cũ có tiền huấn luyện WebSight vẫn lưu ở `model/next-transformer.websight.json`, chỉ để tham khảo.
+Tab Gợi ý dùng **Recursive Transformer** đúng phương pháp của Li et al. (2020, §4.4).
+- Đầu vào: cây giao diện đang thiết kế, cùng khung bao của từng phần tử đo trên canvas.
+- Mô hình sinh các phần tử con còn thiếu cho từng container. Vị trí chèn suy từ khung bao dự đoán.
+- Mô hình: `model/recursive-layout.json` (hidden 256, 6 lớp, 6,6 triệu tham số, chọn theo val). Suy luận TypeScript nằm ở `shared/recursive.ts`.
+- Đối chiếu với bài báo, kết quả và giới hạn: xem `dataset/export/eval/PAPER-METHOD.md`. Ví dụ: chỉ đúng 3,5% khi phần tử bị quên nằm ở giữa.
+
+Mô hình encoder hai chiều cũ (`model/next-transformer.json`) không thuộc bài báo. Nó chỉ còn được dùng làm đối chứng trong thí nghiệm và cho API `GET` cũ.
 
 ```bash
-npm run dataset:samples && npm run dataset:export
-python3 scripts/train_transformer.py --samples data/dataset/tf --epochs 10
+python3 scripts/paper/train_faithful.py && python3 scripts/paper/export_recursive.py
 ```
 
 ### Huấn luyện lại và đánh giá

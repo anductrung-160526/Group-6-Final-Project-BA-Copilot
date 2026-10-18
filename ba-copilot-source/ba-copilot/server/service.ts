@@ -7,8 +7,9 @@ import { collectIds, diffTrees, topMostIds, validateTree } from "../shared/desig
 import { extractModel, DesignModel } from "../shared/extract.ts";
 import { buildTrace } from "../shared/trace.ts";
 import type { Requirement, SequenceDiagram, UseCase } from "../shared/types.ts";
-import { suggest } from "../shared/nextComponent.ts";
-import { getPredictor, learnFromScreen } from "./nextModel.ts";
+import { recursiveAdds, suggest } from "../shared/nextComponent.ts";
+import { Box, predictChildren, toGrid } from "../shared/recursive.ts";
+import { getPredictor, getRecursive, learnFromScreen } from "./nextModel.ts";
 
 export class BizError extends Error {
   constructor(message: string, public status = 400) {
@@ -110,7 +111,12 @@ export function setScreenApproval(screenId: string, approved: boolean) {
 }
 
 // ------------------------------------------------------------- Gợi ý thành phần tiếp theo
-export function screenSuggestions(screenId: string, nodeIds: string[]) {
+export interface LayoutBoxes {
+  pageWidth: number;
+  boxes: Record<string, [number, number, number, number]>; // pixel so với góc trên trái của trang: x, y, x2, y2
+}
+
+export function screenSuggestions(screenId: string, nodeIds: string[], layout?: LayoutBoxes) {
   const screen = mustScreen(screenId);
   if (!screen.currentVersionId) throw new BizError("Màn hình chưa có phiên bản");
   const v = repo.getVersion(screen.currentVersionId)!;
@@ -118,6 +124,16 @@ export function screenSuggestions(screenId: string, nodeIds: string[]) {
     .listAnnotationsForModule(screen.moduleId)
     .filter((a) => a.screenId === screenId && a.status === "open")
     .flatMap((a) => a.nodeIds);
+  const rm = getRecursive();
+  // Phương án B: có khung bao từ canvas + mô hình Recursive → gợi ý "Thêm" theo Li et al. 2020; luật "Sửa" giữ nguyên.
+  if (rm && layout && layout.pageWidth > 0 && Object.keys(layout.boxes).length) {
+    const boxes: Record<string, Box> = {};
+    for (const [id, b] of Object.entries(layout.boxes)) boxes[id] = toGrid(rm, { x: b[0], y: b[1], x2: b[2], y2: b[3] }, layout.pageWidth);
+    const adds = recursiveAdds(predictChildren(rm, v.tree, boxes), v.tree, nodeIds);
+    const { model } = getPredictor();
+    const suggestions = suggest(model, v.tree, { selectedIds: nodeIds, openAnnotationNodeIds, k: 5, adds });
+    return { suggestions, versionId: v.id, model: { kind: "recursive", trees: Number(rm.meta.trees ?? 0), learned: 0 } };
+  }
   const { model, info } = getPredictor();
   const suggestions = suggest(model, v.tree, { selectedIds: nodeIds, openAnnotationNodeIds, k: 5 });
   return { suggestions, versionId: v.id, model: info };

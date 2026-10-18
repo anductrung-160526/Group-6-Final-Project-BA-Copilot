@@ -4,6 +4,7 @@
 
 import { ALL_TYPES, findNode, findParent, isContainer, nodeLabel, regionIds, UINode, walk } from "./design.ts";
 import { predictSlots, Subtype, TransformerModel } from "./transformer.ts";
+import type { ContainerPrediction } from "./recursive.ts";
 
 export const END = "<END>";
 export const START = "<START>";
@@ -252,6 +253,8 @@ export interface Suggestion {
 export interface SuggestOptions extends RuleCtx {
   selectedIds?: string[];
   k?: number;
+  /** Gợi ý "Thêm" tính sẵn bởi Recursive (recursiveAdds) – khi có, thay cho phần "Thêm" của mô hình truyền vào. */
+  adds?: Suggestion[];
 }
 
 // ------------------------------------------------------------------ Câu gợi ý theo ngữ cảnh
@@ -441,15 +444,45 @@ function transformerAdds(m: TransformerModel, tree: UINode, inScope: (id: string
   return out;
 }
 
+/**
+ * Gợi ý "Thêm" từ Recursive Transformer Tree Decoder (Li et al. 2020 §4.4, shared/recursive.ts): với mỗi container, các con mô hình
+ * sinh tiếp sau những con đã có; vị trí chèn suy từ khung bao dự đoán (thứ tự đọc). Độ tin cậy = xác suất softmax của loại tại bước sinh.
+ */
+export function recursiveAdds(preds: ContainerPrediction[], tree: UINode, selectedIds: string[] = []): Suggestion[] {
+  const scope = selectedIds.length ? regionIds(tree, selectedIds) : null;
+  const min = scope ? TF_ADD_MIN_REGION : TF_ADD_MIN;
+  const out: Suggestion[] = [];
+  for (const pr of preds) {
+    const container = findNode(tree, pr.parentId);
+    if (!container || (scope && !scope.has(container.id)) || container.type === "Table") continue;
+    for (const g of pr.children) {
+      if (g.p < min || LAYOUT_TYPES.has(g.type)) continue;
+      const prompt = typedAddPrompt(tree, container, g.type, "-" as Subtype, g.index);
+      if (!prompt) continue;
+      const pos = positionPhrase(container, g.index);
+      out.push({
+        id: `add:${container.id}:${g.index}:${g.type}`,
+        kind: "add",
+        targetNodeId: container.id,
+        title: `Thêm ${g.type} ${pos.short}`,
+        reason: `Recursive (Li et al. 2020): ${Math.round(g.p * 100)}% phần tử tiếp theo của ${nodeLabel(container)} là ${g.type}`,
+        confidence: Math.min(1, g.p),
+        fixPrompt: prompt,
+      });
+    }
+  }
+  return out;
+}
+
 const isTransformer = (m: NGramModel | TransformerModel): m is TransformerModel => "config" in m && "t" in m;
 
 export function suggest(model: NGramModel | TransformerModel, tree: UINode, opts: SuggestOptions = {}): Suggestion[] {
   const k = opts.k ?? 5;
   const scope = opts.selectedIds?.length ? regionIds(tree, opts.selectedIds) : null;
   const inScope = (id: string) => !scope || scope.has(id);
-  const out: Suggestion[] = isTransformer(model) ? transformerAdds(model, tree, inScope, scope ? TF_ADD_MIN_REGION : TF_ADD_MIN) : [];
+  const out: Suggestion[] = opts.adds ? [...opts.adds] : isTransformer(model) ? transformerAdds(model, tree, inScope, scope ? TF_ADD_MIN_REGION : TF_ADD_MIN) : [];
 
-  if (!isTransformer(model)) walk(tree, (n) => {
+  if (!opts.adds && !isTransformer(model)) walk(tree, (n) => {
     if (!inScope(n.id) || !isContainer(n.type)) return;
     const last = n.children?.at(-1)?.type;
     const where = nodeLabel(n);
@@ -480,7 +513,7 @@ export function suggest(model: NGramModel | TransformerModel, tree: UINode, opts
   }
 
   // "Xem lại" dựa trên độ lạ n-gram – Transformer chỉ dự đoán phần tử còn thiếu nên bỏ qua
-  if (!isTransformer(model)) walk(tree, (n, parent) => {
+  if (!opts.adds && !isTransformer(model)) walk(tree, (n, parent) => {
     if (!parent || !inScope(n.id) || LAYOUT_TYPES.has(n.type) || isContainer(n.type)) return;
     // ô nhập/bộ lọc/nút trong Row, Form là bố cục hợp lệ của BA (thanh công cụ, form) – dữ liệu web ít gặp nhưng không sai
     if (CONTROL_TYPES.has(n.type) && (parent.type === "Row" || parent.type === "Form")) return;

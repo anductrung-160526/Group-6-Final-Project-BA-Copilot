@@ -65,17 +65,23 @@ def prefix_tree(tree, k, order):
 
 
 class NodeEmb(nn.Module):
-    def __init__(self, d, max_len=128):
+    def __init__(self, d, max_len=128, use_pos=True):
         super().__init__()
+        # use_pos=False đúng bài báo (Eq.4–5): khung bao e_b chính là positional embedding, không cộng vị trí trong chuỗi
+        self.use_pos = use_pos
         self.c = nn.Embedding(N_C, d)
         self.t = nn.Embedding(3, d)
         self.x, self.y, self.x2, self.y2 = (nn.Embedding(g + 1, d // 4) for g in (GX, GY, GX, GY))
-        self.pos = nn.Embedding(max_len, d)
+        if use_pos:
+            self.pos = nn.Embedding(max_len, d)
 
     def forward(self, tok):
         c, t, x, y, x2, y2 = tok.unbind(-1)
         e_b = torch.cat([self.x(x), self.y(y), self.x2(x2), self.y2(y2)], -1)
-        return e_b + self.c(c) + self.t(t) + self.pos(torch.arange(tok.shape[1]).unsqueeze(0).clamp(max=self.pos.num_embeddings - 1))
+        e = e_b + self.c(c) + self.t(t)
+        if self.use_pos:
+            e = e + self.pos(torch.arange(tok.shape[1]).unsqueeze(0).clamp(max=self.pos.num_embeddings - 1))
+        return e
 
 
 def heads(d):
@@ -232,14 +238,14 @@ class RecLayer(nn.Module):
 
 
 class Recursive(nn.Module):
-    def __init__(self, d, layers, heads_=4, drop=0.1, max_len=40, sigma=0.0, shuffle=False):
+    def __init__(self, d, layers, heads_=4, drop=0.1, max_len=40, sigma=0.0, shuffle=False, use_pos=True):
         super().__init__()
         self.sigma = sigma  # làm mềm nhãn tọa độ khi huấn luyện (0 = đúng bài báo)
         # xáo trộn thứ tự anh em khi huấn luyện ("random spatial ordering", Table 3 của bài báo): vị trí do khung bao quyết định,
         # mô hình học "nhóm con còn thiếu gì" thay vì "sau phần tử cuối theo thứ tự đọc là hết"
         self.shuffle = shuffle
         self.rnd = random.Random(0)
-        self.emb = NodeEmb(d, max_len)
+        self.emb = NodeEmb(d, max_len, use_pos)
         self.layers = nn.ModuleList([RecLayer(d, heads_, drop) for _ in range(layers)])
         self.ln = nn.LayerNorm(d)
         self.out = heads(d)
@@ -416,10 +422,10 @@ def evaluate(complete, trees, orders=("bfs", "dfs"), fracs=(0.1, 0.5, 0.8)):
 
 
 # ------------------------------------------------------------------ huấn luyện
-def train_model(kind, train, val, d, layers, epochs, patience, lr, seed, batch=32, sigma=0.0, shuffle=False):
+def train_model(kind, train, val, d, layers, epochs, patience, lr, seed, batch=32, sigma=0.0, shuffle=False, use_pos=True):
     torch.manual_seed(seed)
     rnd = random.Random(seed)
-    model = Pointer(d, layers) if kind == "pointer" else Recursive(d, layers, sigma=sigma, shuffle=shuffle)
+    model = Pointer(d, layers) if kind == "pointer" else Recursive(d, layers, sigma=sigma, shuffle=shuffle, use_pos=use_pos)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
     if kind == "pointer":
         tr = [pointer_seq(r["tree"], o) for r in train for o in ("bfs", "dfs")]

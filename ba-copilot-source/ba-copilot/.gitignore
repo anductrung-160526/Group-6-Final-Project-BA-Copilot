@@ -7,3 +7,4 @@ e2e/demo-*/
 data/corpus/
 analysis/
 __pycache__/
+model/*.pt

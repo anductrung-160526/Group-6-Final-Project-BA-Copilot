@@ -5,6 +5,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { countTree, emptyModel, mergeModels, NGramModel } from "../shared/nextComponent.ts";
 import { loadTransformer, TransformerModel } from "../shared/transformer.ts";
+import { loadRecursive, RecursiveModel } from "../shared/recursive.ts";
 import type { UINode } from "../shared/design.ts";
 import { mockScreen } from "./ai/mock.ts";
 import { getDb } from "./db.ts";
@@ -66,6 +67,22 @@ export function getTransformer(): TransformerModel | null {
     }
   }
   return tf;
+}
+
+let rec: RecursiveModel | null | undefined;
+/** Recursive Transformer Tree Decoder (Li et al. 2020) – model/recursive-layout.json; null nếu chưa có file. Dùng cho tab Gợi ý. */
+export function getRecursive(): RecursiveModel | null {
+  if (rec !== undefined) return rec;
+  rec = null;
+  const file = process.env.RECURSIVE_FILE ?? join(root, "model", "recursive-layout.json");
+  if (existsSync(file)) {
+    try {
+      rec = loadRecursive(JSON.parse(readFileSync(file, "utf8")));
+    } catch (e) {
+      console.warn(`Không đọc được ${file}: ${(e as Error).message}`);
+    }
+  }
+  return rec;
 }
 
 /** Mô hình dùng để gợi ý: Transformer nếu có, ngược lại n-gram. */

@@ -1,3 +1,6 @@
+> **Cập nhật:** nhóm đã chọn **phương án B**. Tab Gợi ý dùng Recursive Transformer đúng phương pháp của bài báo (`PAPER-METHOD.md`).
+> Các nhận định "giữ mô hình app" dưới đây là đánh giá ở giai đoạn trước, chỉ giữ lại để tham khảo.
+
 # Chọn mô hình cho tính năng Gợi ý: so sánh 3 bộ giải mã của Li et al. 2020 với Transformer phát hiện chỗ thiếu của app
 
 **Dữ liệu:** chỉ bộ dữ liệu UI web của nhóm, phiên bản `a2e83358b8`. Không dùng dữ liệu hay trọng số WebSight ở bất kỳ mô hình nào.

@@ -107,12 +107,27 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
     };
   }, [measure]);
 
+  // Khung bao của từng phần tử trên canvas (pixel, so với góc trên trái của trang, bỏ qua phóng to/thu nhỏ của canvas) –
+  // đầu vào tọa độ cho Recursive Transformer (Li et al. 2020) ở server
+  const measureLayout = () => {
+    const page = contentRef.current?.querySelector('[data-node-type="Page"]') as HTMLElement | null;
+    if (!page || !page.offsetWidth) return undefined;
+    const pr = page.getBoundingClientRect();
+    const scale = pr.width / page.offsetWidth || 1;
+    const boxes: Record<string, number[]> = {};
+    contentRef.current!.querySelectorAll<HTMLElement>("[data-node-id]").forEach((el) => {
+      const r = el.getBoundingClientRect();
+      boxes[el.dataset.nodeId!] = [(r.left - pr.left) / scale, (r.top - pr.top) / scale, (r.right - pr.left) / scale, (r.bottom - pr.top) / scale].map((v) => Math.round(v));
+    });
+    return { pageWidth: page.offsetWidth, boxes };
+  };
+
   // ------------------------------------------------ gợi ý thành phần tiếp theo (debounce 300 ms)
   const selKey = selected.join(",");
   useEffect(() => {
     if (!screen?.currentVersionId) return setSuggestions([]);
     const t = setTimeout(() => {
-      get<{ suggestions: Suggestion[]; versionId: string; model: { kind: string; trees: number; learned: number } }>(`/api/screens/${screen.id}/suggestions?nodeIds=${encodeURIComponent(selKey)}`)
+      post<{ suggestions: Suggestion[]; versionId: string; model: { kind: string; trees: number; learned: number } }>(`/api/screens/${screen.id}/suggestions`, { nodeIds: selected, layout: measureLayout() })
         .then((r) => {
           setSuggestions(r.suggestions);
           setSuggMeta({ versionId: r.versionId, ...r.model });
@@ -502,7 +517,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
                 </div>
               ))}
               {!visibleSuggestions.length && <div className="muted small pad">Chưa có gợi ý cho vùng này.</div>}
-              {suggMeta && <div className="muted small sugg-foot">{suggMeta.kind === "transformer" ? "Transformer" : "N-gram"} · học từ {suggMeta.trees.toLocaleString("vi-VN")} màn hình{suggMeta.learned ? ` + ${suggMeta.learned} màn đã duyệt` : ""}</div>}
+              {suggMeta && <div className="muted small sugg-foot">{suggMeta.kind === "recursive" ? "Recursive Transformer (Li et al. 2020)" : suggMeta.kind === "transformer" ? "Transformer" : "N-gram"} · học từ {suggMeta.trees.toLocaleString("vi-VN")} {suggMeta.kind === "recursive" ? "cây giao diện" : "màn hình"}{suggMeta.learned ? ` + ${suggMeta.learned} màn đã duyệt` : ""}</div>}
             </div>
           )}
 

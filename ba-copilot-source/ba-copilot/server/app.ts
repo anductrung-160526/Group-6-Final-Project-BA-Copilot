@@ -109,6 +109,13 @@ route("DELETE", "/api/annotations/:id", ({ params }) => (repo.deleteAnnotation(p
 
 // Gợi ý thành phần tiếp theo
 route("GET", "/api/screens/:id/suggestions", ({ params, query }) => svc.screenSuggestions(params.id, (query.get("nodeIds") ?? "").split(",").filter(Boolean)));
+// Phương án B: client gửi khung bao đo trên canvas → gợi ý "Thêm" bằng Recursive Transformer (Li et al. 2020)
+route("POST", "/api/screens/:id/suggestions", ({ params, body }) => {
+  const layout = body.layout && typeof body.layout === "object" ? (body.layout as svc.LayoutBoxes) : undefined;
+  const boxes: svc.LayoutBoxes["boxes"] = {};
+  for (const [k, v] of Object.entries(layout?.boxes ?? {})) if (Array.isArray(v) && v.length === 4 && v.every((x) => Number.isFinite(x))) boxes[String(k).slice(0, 120)] = v.map(Number) as [number, number, number, number];
+  return svc.screenSuggestions(params.id, arr(body.nodeIds), layout ? { pageWidth: Number(layout.pageWidth) || 0, boxes } : undefined);
+});
 route("POST", "/api/suggestions/events", ({ body }) => {
   const action = body.action;
   if (!["shown", "applied", "dismissed"].includes(action)) throw new BizError("action không hợp lệ");
