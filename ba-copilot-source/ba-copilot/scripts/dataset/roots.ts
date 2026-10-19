@@ -43,7 +43,8 @@ export function splitOf(rootId: string): "train" | "val" | "test" {
     SPLIT = new Map();
     const h = (id: string) => createHash("sha1").update(id).digest("hex");
     const groups = new Map<string, string[]>();
-    for (const r of loadRoots().items) groups.set(r.group, [...(groups.get(r.group) ?? []), r.id]);
+    // Màn R401+ (mở rộng 3) chia riêng để 400 màn cũ giữ nguyên tập train/val/test; test của màn mới là "test-mới".
+    for (const r of loadRoots().items) { const k = `${Number(r.id.slice(1)) > 400 ? "new" : "old"}:${r.group}`; groups.set(k, [...(groups.get(k) ?? []), r.id]); }
     for (const ids of groups.values()) {
       ids.sort((a, b) => h(a).localeCompare(h(b)));
       const nTr = Math.round(ids.length * 0.7), nVa = Math.round(ids.length * 0.15);

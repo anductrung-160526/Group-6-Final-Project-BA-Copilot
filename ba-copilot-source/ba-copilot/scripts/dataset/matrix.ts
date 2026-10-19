@@ -6,6 +6,8 @@
 // đặt chỗ, trang giới thiệu), miền và bố cục khác 200 màn đầu – buildExtension(), không đổi 200 màn cũ.
 // Mở rộng 2: thêm 100 màn R301–R400 thuộc 25 loại màn mà các component hiếm (Checkbox, Radio, DatePicker, Textarea, Image,
 // Alert, Divider, Pagination, Avatar) xuất hiện tự nhiên theo nghiệp vụ – buildExtension2(); không đổi 300 màn trước.
+// Mở rộng 3: thêm 400 màn R401–R800 xoay vòng qua mọi loại màn của ba bộ trước (thí nghiệm đường cong học, STRICT-NEXT.md)
+// – buildExtension3(); không đổi 400 màn trước.
 // Dùng: npx tsx scripts/dataset/matrix.ts → dataset/matrix.json
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -42,7 +44,7 @@ export const EXT2_GROUPS: Record<string, string[]> = {
 
 export interface Assignment {
   id: string;
-  batch: "pilot" | "main" | "ext" | "ext2";
+  batch: "pilot" | "main" | "ext" | "ext2" | "ext3";
   group: string;
   screenKind: string;
   domain: string;
@@ -111,6 +113,28 @@ export function buildExtension2(total = 100, start = 301, seed = 20261218): Assi
   });
 }
 
+/** 400 màn mở rộng 3 R401–R800: mọi loại màn của ba bộ trước, miền/quyền/bố cục gộp, seed riêng. */
+export function buildExtension3(total = 400, start = 401, seed = 20261319): Assignment[] {
+  const r = rng(seed);
+  const cyc = <T,>(arr: T[]) => {
+    let pool: T[] = [];
+    return () => {
+      if (!pool.length) pool = [...arr].sort(() => r() - 0.5);
+      return pool.pop()!;
+    };
+  };
+  const kinds = [GROUPS, EXT_GROUPS, EXT2_GROUPS].flatMap((G) => Object.entries(G).flatMap(([g, ks]) => ks.map((k) => [g, k] as const)));
+  const nextKind = cyc(kinds), nextDomain = cyc([...DOMAINS, ...EXT_DOMAINS]), nextLayout = cyc([...new Set([...LAYOUTS, ...EXT_LAYOUTS])]);
+  const nextPerm = cyc(PERMISSIONS), nextExtPerm = cyc(EXT_PERMISSIONS);
+  return Array.from({ length: total }, (_, i) => {
+    const [group, screenKind] = nextKind();
+    let permission = group in GROUPS ? nextPerm() : nextExtPerm();
+    if (group === "auth") permission = "Người dùng thao tác trên tài khoản của chính mình";
+    if (group === "approval" && /Toàn quyền|Chỉ được tạo/.test(permission)) permission = "Chỉ được duyệt/từ chối";
+    return { id: `R${start + i}`, batch: "ext3" as const, group, screenKind, domain: nextDomain(), permission, layout: nextLayout() };
+  });
+}
+
 /** Thay loại màn của một số màn gốc (dataset/matrix-overrides.json) để đa dạng hơn mà không xáo trộn các màn còn lại. */
 export function applyOverrides(m: Assignment[], file = join(import.meta.dirname, "..", "..", "dataset", "matrix-overrides.json")): Assignment[] {
   if (!existsSync(file)) return m;
@@ -119,7 +143,7 @@ export function applyOverrides(m: Assignment[], file = join(import.meta.dirname,
 }
 
 if (process.argv[1]?.endsWith("matrix.ts")) {
-  const m = [...applyOverrides(buildMatrix()), ...buildExtension(), ...buildExtension2()];
+  const m = [...applyOverrides(buildMatrix()), ...buildExtension(), ...buildExtension2(), ...buildExtension3()];
   writeFileSync(join(import.meta.dirname, "..", "..", "dataset", "matrix.json"), JSON.stringify(m, null, 1));
   const count = (k: keyof Assignment) => Object.entries(m.reduce((a, x) => ((a[x[k]] = (a[x[k]] ?? 0) + 1), a), {} as Record<string, number>));
   console.log(`${m.length} màn gốc (${m.filter((x) => x.batch === "pilot").length} đợt thử)`);
