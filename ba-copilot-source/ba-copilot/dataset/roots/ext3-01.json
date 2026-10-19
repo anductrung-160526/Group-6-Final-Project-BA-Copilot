@@ -1191,6 +1191,14 @@
    },
    "children": [
     {
+     "id": "brand",
+     "type": "Text",
+     "props": {
+      "text": "VietStay",
+      "tone": "muted"
+     }
+    },
+    {
      "id": "otp_card",
      "type": "Card",
      "props": {
@@ -1198,10 +1206,35 @@
      },
      "children": [
       {
-       "id": "otp_icon",
-       "type": "Image",
+       "id": "otp_head",
+       "type": "Row",
        "props": {
-        "alt": "Điện thoại nhận tin nhắn"
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "otp_icon",
+         "type": "Image",
+         "props": {
+          "alt": "Điện thoại nhận tin nhắn"
+         }
+        },
+        {
+         "id": "otp_step",
+         "type": "Badge",
+         "props": {
+          "text": "Bước 2/2",
+          "tone": "info"
+         }
+        }
+       ]
+      },
+      {
+       "id": "otp_warn",
+       "type": "Alert",
+       "props": {
+        "text": "Không chia sẻ mã này với bất kỳ ai, kể cả nhân viên VietStay.",
+        "tone": "warning"
        }
       },
       {
@@ -2080,45 +2113,68 @@
      },
      "children": [
       {
-       "id": "kpis",
-       "type": "Row",
+       "id": "kpi_sec",
+       "type": "Section",
        "props": {
-        "gap": 8
+        "title": "Chỉ số ca"
        },
        "children": [
         {
-         "id": "k_orders",
-         "type": "Stat",
+         "id": "kpis",
+         "type": "Row",
          "props": {
-          "label": "Đơn",
-          "value": "146"
-         }
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "k_orders",
+           "type": "Stat",
+           "props": {
+            "label": "Đơn",
+            "value": "146"
+           }
+          },
+          {
+           "id": "k_rev",
+           "type": "Stat",
+           "props": {
+            "label": "Doanh thu",
+            "value": "28.450.000 ₫"
+           }
+          }
+         ]
         },
         {
-         "id": "k_rev",
-         "type": "Stat",
+         "id": "kpis2",
+         "type": "Row",
          "props": {
-          "label": "Doanh thu",
-          "value": "28.450.000 ₫"
-         }
-        },
-        {
-         "id": "k_eta",
-         "type": "Stat",
-         "props": {
-          "label": "Giao TB",
-          "value": "27 phút"
-         }
-        },
-        {
-         "id": "k_late",
-         "type": "Stat",
-         "props": {
-          "label": "Trễ",
-          "value": "6"
-         }
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "k_eta",
+           "type": "Stat",
+           "props": {
+            "label": "Giao TB",
+            "value": "27 phút"
+           }
+          },
+          {
+           "id": "k_late",
+           "type": "Stat",
+           "props": {
+            "label": "Trễ",
+            "value": "6"
+           }
+          }
+         ]
         }
        ]
+      },
+      {
+       "id": "dv_kpi",
+       "type": "Divider",
+       "props": {}
       },
       {
        "id": "tools",
@@ -2587,15 +2643,17 @@
      "children": [
       {
        "id": "benefit_col",
-       "type": "Column",
-       "props": {},
+       "type": "Card",
+       "props": {
+        "title": "HelpDesk – hỗ trợ 24/7"
+       },
        "children": [
         {
-         "id": "bf_title",
-         "type": "Heading",
+         "id": "bf_badge",
+         "type": "Badge",
          "props": {
-          "text": "HelpDesk – hỗ trợ 24/7",
-          "level": 2
+          "text": "Miễn phí cho khách hàng có hợp đồng",
+          "tone": "success"
          }
         },
         {
@@ -2925,28 +2983,35 @@
        }
       },
       {
-       "id": "n_pages",
-       "type": "Link",
-       "props": {
-        "text": "Trang công khai",
-        "navigateTo": "/trang"
-       }
-      },
-      {
-       "id": "n_hist",
-       "type": "Link",
-       "props": {
-        "text": "Lịch sử thay đổi",
-        "navigateTo": "/lich-su"
-       }
-      },
-      {
-       "id": "n_media",
-       "type": "Link",
-       "props": {
-        "text": "Thư viện ảnh",
-        "navigateTo": "/anh"
-       }
+       "id": "cms_links",
+       "type": "List",
+       "props": {},
+       "children": [
+        {
+         "id": "n_pages",
+         "type": "Link",
+         "props": {
+          "text": "Trang công khai",
+          "navigateTo": "/trang"
+         }
+        },
+        {
+         "id": "n_hist",
+         "type": "Link",
+         "props": {
+          "text": "Lịch sử thay đổi",
+          "navigateTo": "/lich-su"
+         }
+        },
+        {
+         "id": "n_media",
+         "type": "Link",
+         "props": {
+          "text": "Thư viện ảnh",
+          "navigateTo": "/anh"
+         }
+        }
+       ]
       }
      ]
     },
@@ -4230,12 +4295,28 @@
    },
    "children": [
     {
-     "id": "t",
-     "type": "Heading",
+     "id": "brand_row",
+     "type": "Row",
      "props": {
-      "text": "Đừng bỏ lỡ khóa học mới trên HọcNhanh",
-      "level": 1
-     }
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "logo_img",
+       "type": "Image",
+       "props": {
+        "alt": "Logo HọcNhanh"
+       }
+      },
+      {
+       "id": "t",
+       "type": "Heading",
+       "props": {
+        "text": "Đừng bỏ lỡ khóa học mới trên HọcNhanh",
+        "level": 1
+       }
+      }
+     ]
     },
     {
      "id": "sub",
@@ -4264,7 +4345,7 @@
       },
       {
        "id": "topics",
-       "type": "Section",
+       "type": "Card",
        "props": {
         "title": "Chủ đề quan tâm"
        },
@@ -6247,23 +6328,21 @@
         },
         {
          "id": "tags",
-         "type": "Row",
-         "props": {
-          "gap": 8
-         },
+         "type": "List",
+         "props": {},
          "children": [
           {
            "id": "t1",
-           "type": "Badge",
+           "type": "Text",
            "props": {
-            "text": "Tối 2-4-6"
+            "text": "Lịch dạy: tối 2-4-6"
            }
           },
           {
            "id": "t2",
-           "type": "Badge",
+           "type": "Text",
            "props": {
-            "text": "350.000 ₫/giờ"
+            "text": "Thù lao: 350.000 ₫/giờ"
            }
           },
           {
@@ -6312,7 +6391,7 @@
       },
       {
        "id": "apply",
-       "type": "Card",
+       "type": "Section",
        "props": {
         "title": "Ứng tuyển"
        },
@@ -6791,9 +6870,9 @@
     },
     {
      "id": "tools",
-     "type": "Row",
+     "type": "Form",
      "props": {
-      "gap": 8
+      "submitAction": "search_doctors"
      },
      "children": [
       {
@@ -6804,6 +6883,15 @@
         "name": "q",
         "placeholder": "Tên bác sĩ",
         "inputType": "text"
+       }
+      },
+      {
+       "id": "btn_find",
+       "type": "Button",
+       "props": {
+        "label": "Tìm",
+        "variant": "secondary",
+        "action": "search_doctors"
        }
       },
       {
@@ -6837,114 +6925,57 @@
      ]
     },
     {
-     "id": "doctors",
-     "type": "List",
-     "props": {},
+     "id": "result_card",
+     "type": "Card",
+     "props": {
+      "title": "Tìm thấy 86 bác sĩ trong gói của bạn"
+     },
      "children": [
       {
-       "id": "d1",
-       "type": "Row",
+       "id": "pkg_note",
+       "type": "Alert",
        "props": {
-        "gap": 8
-       },
-       "children": [
-        {
-         "id": "d1a",
-         "type": "Avatar",
-         "props": {
-          "name": "BS. Nguyễn Thị Lan"
-         }
-        },
-        {
-         "id": "d1t",
-         "type": "Text",
-         "props": {
-          "text": "BS. Nguyễn Thị Lan · Nhi · Thảo Điền"
-         }
-        },
-        {
-         "id": "btn_b1",
-         "type": "Button",
-         "props": {
-          "label": "Đặt lịch",
-          "variant": "secondary",
-          "action": "book"
-         }
-        }
-       ]
+        "text": "Gói Gia đình Vàng: miễn phí 6 lượt khám mỗi năm.",
+        "tone": "info"
+       }
       },
       {
-       "id": "d2",
-       "type": "Row",
+       "id": "tb_doctors",
+       "type": "Table",
        "props": {
-        "gap": 8
-       },
-       "children": [
-        {
-         "id": "d2a",
-         "type": "Avatar",
-         "props": {
-          "name": "BS. Lâm Văn Đức"
-         }
-        },
-        {
-         "id": "d2t",
-         "type": "Text",
-         "props": {
-          "text": "BS. Lâm Văn Đức · Tim mạch · Phú Nhuận"
-         }
-        },
-        {
-         "id": "btn_b2",
-         "type": "Button",
-         "props": {
-          "label": "Đặt lịch",
-          "variant": "secondary",
-          "action": "book"
-         }
-        }
-       ]
+        "columns": [
+         "Bác sĩ",
+         "Chuyên khoa",
+         "Cơ sở",
+         "Lịch trực"
+        ],
+        "rows": [
+         [
+          "BS. Nguyễn Thị Lan",
+          "Nhi",
+          "Thảo Điền",
+          "T2, T4, T6"
+         ],
+         [
+          "BS. Lâm Văn Đức",
+          "Tim mạch",
+          "Phú Nhuận",
+          "T3, T5"
+         ]
+        ],
+        "rowActions": [
+         "Đặt lịch"
+        ]
+       }
       },
       {
-       "id": "d3",
-       "type": "Row",
+       "id": "pg",
+       "type": "Pagination",
        "props": {
-        "gap": 8
-       },
-       "children": [
-        {
-         "id": "d3a",
-         "type": "Avatar",
-         "props": {
-          "name": "BS. Mai Phương"
-         }
-        },
-        {
-         "id": "d3t",
-         "type": "Text",
-         "props": {
-          "text": "BS. Mai Phương · Da liễu · Thảo Điền"
-         }
-        },
-        {
-         "id": "btn_b3",
-         "type": "Button",
-         "props": {
-          "label": "Đặt lịch",
-          "variant": "secondary",
-          "action": "book"
-         }
-        }
-       ]
+        "pages": 5
+       }
       }
      ]
-    },
-    {
-     "id": "pg",
-     "type": "Pagination",
-     "props": {
-      "pages": 5
-     }
     },
     {
      "id": "footer",
@@ -7429,20 +7460,36 @@
        }
       },
       {
-       "id": "slot_morning",
-       "type": "Checkbox",
+       "id": "slots",
+       "type": "Section",
        "props": {
-        "label": "Mở bán khung 05:00–08:00",
-        "name": "slot_morning"
-       }
-      },
-      {
-       "id": "slot_evening",
-       "type": "Checkbox",
-       "props": {
-        "label": "Mở bán khung 17:00–22:00",
-        "name": "slot_evening"
-       }
+        "title": "Khung giờ mở bán"
+       },
+       "children": [
+        {
+         "id": "slot_list",
+         "type": "List",
+         "props": {},
+         "children": [
+          {
+           "id": "slot_morning",
+           "type": "Checkbox",
+           "props": {
+            "label": "05:00–08:00",
+            "name": "slot_morning"
+           }
+          },
+          {
+           "id": "slot_evening",
+           "type": "Checkbox",
+           "props": {
+            "label": "17:00–22:00",
+            "name": "slot_evening"
+           }
+          }
+         ]
+        }
+       ]
       },
       {
        "id": "in_btn",

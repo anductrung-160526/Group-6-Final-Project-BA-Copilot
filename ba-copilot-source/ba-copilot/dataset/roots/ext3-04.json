@@ -6312,26 +6312,33 @@
           "text": "Bảng xếp hạng",
           "navigateTo": "/xep-hang"
          }
+        },
+        {
+         "id": "l_app",
+         "type": "Link",
+         "props": {
+          "text": "Tải ứng dụng",
+          "navigateTo": "/tai-app"
+         }
         }
        ]
       }
      ]
     },
     {
-     "id": "rp_title",
-     "type": "Heading",
+     "id": "intro",
+     "type": "Section",
      "props": {
-      "text": "Top món được đặt nhiều nhất",
-      "level": 1
-     }
-    },
-    {
-     "id": "rp_filter",
-     "type": "Form",
-     "props": {
-      "submitAction": "view_report"
+      "title": "Top món được đặt nhiều nhất"
      },
      "children": [
+      {
+       "id": "intro_t",
+       "type": "Text",
+       "props": {
+        "text": "Xếp hạng theo số lượt đặt thành công trên GiaoNhanh trong khoảng ngày bạn chọn."
+       }
+      },
       {
        "id": "rp_row",
        "type": "Row",
@@ -6370,14 +6377,93 @@
            "Bình Thạnh"
           ]
          }
+        }
+       ]
+      },
+      {
+       "id": "btn_view",
+       "type": "Button",
+       "props": {
+        "label": "Xem xếp hạng",
+        "variant": "primary",
+        "action": "view_report"
+       }
+      }
+     ]
+    },
+    {
+     "id": "podium",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "top1",
+       "type": "Card",
+       "props": {
+        "title": "Hạng 1"
+       },
+       "children": [
+        {
+         "id": "top1_dish",
+         "type": "Text",
+         "props": {
+          "text": "Cơm tấm sườn bì – Cơm Tấm Ba Ghiền"
+         }
         },
         {
-         "id": "btn_view",
-         "type": "Button",
+         "id": "top1_n",
+         "type": "Badge",
          "props": {
-          "label": "Xem",
-          "variant": "primary",
-          "action": "view_report"
+          "text": "18.204 lượt",
+          "tone": "success"
+         }
+        }
+       ]
+      },
+      {
+       "id": "top2",
+       "type": "Card",
+       "props": {
+        "title": "Hạng 2"
+       },
+       "children": [
+        {
+         "id": "top2_dish",
+         "type": "Text",
+         "props": {
+          "text": "Bún bò Huế – Bún Bò Gánh"
+         }
+        },
+        {
+         "id": "top2_n",
+         "type": "Badge",
+         "props": {
+          "text": "15.977 lượt"
+         }
+        }
+       ]
+      },
+      {
+       "id": "top3",
+       "type": "Card",
+       "props": {
+        "title": "Hạng 3"
+       },
+       "children": [
+        {
+         "id": "top3_dish",
+         "type": "Text",
+         "props": {
+          "text": "Trà sữa trân châu – Nhà Trà Mộc"
+         }
+        },
+        {
+         "id": "top3_n",
+         "type": "Badge",
+         "props": {
+          "text": "14.310 lượt"
          }
         }
        ]
@@ -6385,36 +6471,25 @@
      ]
     },
     {
-     "id": "tb_top",
-     "type": "Table",
-     "props": {
-      "columns": [
-       "Hạng",
-       "Món",
-       "Quán",
-       "Lượt đặt"
-      ],
-      "rows": [
-       [
-        "1",
-        "Cơm tấm sườn bì",
-        "Cơm Tấm Ba Ghiền",
-        "18.204"
-       ],
-       [
-        "2",
-        "Bún bò Huế",
-        "Bún Bò Gánh",
-        "15.977"
-       ],
-       [
-        "3",
-        "Trà sữa trân châu",
-        "Phúc Long",
-        "14.310"
-       ]
-      ]
-     }
+     "id": "rest_list",
+     "type": "List",
+     "props": {},
+     "children": [
+      {
+       "id": "r4",
+       "type": "Text",
+       "props": {
+        "text": "4. Phở bò tái nạm – Phở Lệ · 12.880 lượt"
+       }
+      },
+      {
+       "id": "r5",
+       "type": "Text",
+       "props": {
+        "text": "5. Bánh mì chảo – Hòa Mã · 11.402 lượt"
+       }
+      }
+     ]
     },
     {
      "id": "pg",

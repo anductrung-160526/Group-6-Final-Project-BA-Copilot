@@ -7063,47 +7063,25 @@
      ]
     },
     {
-     "id": "tools",
+     "id": "dir_h",
+     "type": "Heading",
+     "props": {
+      "text": "Đội ngũ 214 giảng viên",
+      "level": 1
+     }
+    },
+    {
+     "id": "teacher_grid",
      "type": "Row",
      "props": {
       "gap": 8
      },
      "children": [
       {
-       "id": "in_q",
-       "type": "Input",
-       "props": {
-        "label": "Tìm giảng viên",
-        "name": "q",
-        "inputType": "text"
-       }
-      },
-      {
-       "id": "sel_field",
-       "type": "Select",
-       "props": {
-        "label": "Lĩnh vực",
-        "name": "field",
-        "options": [
-         "Lập trình",
-         "Marketing",
-         "Ngoại ngữ",
-         "Tài chính"
-        ]
-       }
-      }
-     ]
-    },
-    {
-     "id": "people",
-     "type": "List",
-     "props": {},
-     "children": [
-      {
        "id": "t1",
-       "type": "Row",
+       "type": "Card",
        "props": {
-        "gap": 8
+        "title": "Nguyễn Đức Thịnh"
        },
        "children": [
         {
@@ -7114,19 +7092,27 @@
          }
         },
         {
+         "id": "t1b",
+         "type": "Badge",
+         "props": {
+          "text": "Lập trình Python",
+          "tone": "info"
+         }
+        },
+        {
          "id": "t1t",
          "type": "Text",
          "props": {
-          "text": "Nguyễn Đức Thịnh · Lập trình Python · 8 khóa · 12.400 học viên"
+          "text": "8 khóa · 12.400 học viên · 4,9★"
          }
         }
        ]
       },
       {
        "id": "t2",
-       "type": "Row",
+       "type": "Card",
        "props": {
-        "gap": 8
+        "title": "Hà Linh Chi"
        },
        "children": [
         {
@@ -7137,19 +7123,27 @@
          }
         },
         {
+         "id": "t2b",
+         "type": "Badge",
+         "props": {
+          "text": "IELTS Speaking",
+          "tone": "info"
+         }
+        },
+        {
          "id": "t2t",
          "type": "Text",
          "props": {
-          "text": "Hà Linh Chi · IELTS Speaking · 5 khóa · 9.800 học viên"
+          "text": "5 khóa · 9.800 học viên · 4,8★"
          }
         }
        ]
       },
       {
        "id": "t3",
-       "type": "Row",
+       "type": "Card",
        "props": {
-        "gap": 8
+        "title": "Trương Khải"
        },
        "children": [
         {
@@ -7160,15 +7154,46 @@
          }
         },
         {
+         "id": "t3b",
+         "type": "Badge",
+         "props": {
+          "text": "Digital Marketing",
+          "tone": "info"
+         }
+        },
+        {
          "id": "t3t",
          "type": "Text",
          "props": {
-          "text": "Trương Khải · Digital Marketing · 6 khóa · 7.150 học viên"
+          "text": "6 khóa · 7.150 học viên · 4,7★"
          }
         }
        ]
       }
      ]
+    },
+    {
+     "id": "sel_field",
+     "type": "Select",
+     "props": {
+      "label": "Lọc theo lĩnh vực",
+      "name": "field",
+      "options": [
+       "Tất cả",
+       "Lập trình",
+       "Marketing",
+       "Ngoại ngữ",
+       "Tài chính"
+      ]
+     }
+    },
+    {
+     "id": "msg_hint",
+     "type": "Text",
+     "props": {
+      "text": "Đăng nhập để nhắn tin cho giảng viên.",
+      "tone": "muted"
+     }
     },
     {
      "id": "pg",

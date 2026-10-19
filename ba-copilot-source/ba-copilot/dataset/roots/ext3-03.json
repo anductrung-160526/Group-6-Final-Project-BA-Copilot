@@ -23,91 +23,133 @@
    },
    "children": [
     {
-     "id": "brand",
-     "type": "Heading",
+     "id": "brand_row",
+     "type": "Row",
      "props": {
-      "text": "FitZone Gym",
-      "level": 2
-     }
-    },
-    {
-     "id": "title",
-     "type": "Heading",
-     "props": {
-      "text": "Tạo mật khẩu mới",
-      "level": 1
-     }
-    },
-    {
-     "id": "account_hint",
-     "type": "Text",
-     "props": {
-      "text": "Tài khoản hội viên: ng***@gmail.com · Mã hội viên FZ-20931",
-      "tone": "muted"
-     }
-    },
-    {
-     "id": "reset_form",
-     "type": "Form",
-     "props": {
-      "submitAction": "save_new_password"
+      "gap": 8,
+      "align": "between"
      },
      "children": [
       {
-       "id": "in_new_pw",
-       "type": "Input",
+       "id": "logo",
+       "type": "Image",
        "props": {
-        "label": "Mật khẩu mới",
-        "name": "new_password",
-        "inputType": "password",
-        "required": true,
-        "minLength": 8
+        "alt": "Logo FitZone Gym"
        }
       },
       {
-       "id": "in_confirm_pw",
-       "type": "Input",
+       "id": "link_ttl",
+       "type": "Badge",
        "props": {
-        "label": "Nhập lại mật khẩu mới",
-        "name": "confirm_password",
-        "inputType": "password",
-        "required": true,
-        "minLength": 8
-       }
-      },
-      {
-       "id": "pw_rule",
-       "type": "Text",
-       "props": {
-        "text": "Ít nhất 8 ký tự, gồm chữ và số, không trùng 3 mật khẩu gần nhất.",
-        "tone": "muted"
-       }
-      },
-      {
-       "id": "cb_logout_all",
-       "type": "Checkbox",
-       "props": {
-        "label": "Đăng xuất khỏi ứng dụng trên các thiết bị khác",
-        "name": "logout_other_devices"
-       }
-      },
-      {
-       "id": "btn_save",
-       "type": "Button",
-       "props": {
-        "label": "Lưu mật khẩu mới",
-        "variant": "primary",
-        "action": "save_new_password"
+        "text": "Liên kết còn hiệu lực 27 phút",
+        "tone": "info"
        }
       }
      ]
     },
     {
-     "id": "link_login",
-     "type": "Link",
+     "id": "reset_sec",
+     "type": "Section",
      "props": {
-      "text": "Quay lại đăng nhập",
-      "navigateTo": "/dang-nhap"
+      "title": "Tạo mật khẩu mới cho hội viên FZ-20931"
+     },
+     "children": [
+      {
+       "id": "sessions_note",
+       "type": "Alert",
+       "props": {
+        "text": "Sau khi đổi, ứng dụng trên các thiết bị khác của bạn sẽ được yêu cầu đăng nhập lại.",
+        "tone": "warning"
+       }
+      },
+      {
+       "id": "reset_form",
+       "type": "Form",
+       "props": {
+        "submitAction": "save_new_password"
+       },
+       "children": [
+        {
+         "id": "pw_pair",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "in_new_pw",
+           "type": "Input",
+           "props": {
+            "label": "Mật khẩu mới",
+            "name": "new_password",
+            "inputType": "password",
+            "required": true,
+            "minLength": 8
+           }
+          },
+          {
+           "id": "in_confirm_pw",
+           "type": "Input",
+           "props": {
+            "label": "Nhập lại",
+            "name": "confirm_password",
+            "inputType": "password",
+            "required": true,
+            "minLength": 8
+           }
+          }
+         ]
+        },
+        {
+         "id": "pw_checklist",
+         "type": "List",
+         "props": {},
+         "children": [
+          {
+           "id": "rule_len",
+           "type": "Text",
+           "props": {
+            "text": "Tối thiểu 8 ký tự",
+            "tone": "muted"
+           }
+          },
+          {
+           "id": "rule_mix",
+           "type": "Text",
+           "props": {
+            "text": "Có cả chữ và số",
+            "tone": "muted"
+           }
+          },
+          {
+           "id": "rule_old",
+           "type": "Text",
+           "props": {
+            "text": "Khác 3 mật khẩu gần nhất",
+            "tone": "muted"
+           }
+          }
+         ]
+        },
+        {
+         "id": "btn_save",
+         "type": "Button",
+         "props": {
+          "label": "Đổi mật khẩu",
+          "variant": "primary",
+          "action": "save_new_password"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "help",
+     "type": "Text",
+     "props": {
+      "text": "Không yêu cầu đổi mật khẩu? Liên hệ quầy lễ tân chi nhánh hoặc 1900 3636.",
+      "tone": "muted"
      }
     }
    ]
@@ -137,58 +179,81 @@
    },
    "children": [
     {
-     "id": "page_title",
-     "type": "Heading",
+     "id": "cover",
+     "type": "Image",
      "props": {
-      "text": "Chương trình hạ tầng số 2026",
-      "level": 1
+      "alt": "Bản đồ thành phố đánh dấu các công trình hạ tầng số"
      }
     },
     {
-     "id": "intro",
-     "type": "Text",
+     "id": "kpis",
+     "type": "Row",
      "props": {
-      "text": "Theo dõi tiến độ 48 dự án thuộc chương trình chuyển đổi số của thành phố.",
-      "tone": "muted"
-     }
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "k_total",
+       "type": "Stat",
+       "props": {
+        "label": "Tổng số dự án",
+        "value": "48"
+       }
+      },
+      {
+       "id": "k_done",
+       "type": "Stat",
+       "props": {
+        "label": "Đã nghiệm thu",
+        "value": "11"
+       }
+      },
+      {
+       "id": "k_budget",
+       "type": "Stat",
+       "props": {
+        "label": "Tổng vốn",
+        "value": "2.140 tỷ đồng"
+       }
+      }
+     ]
     },
     {
-     "id": "btn_open_table",
-     "type": "Button",
+     "id": "open_table",
+     "type": "Link",
      "props": {
-      "label": "Xem danh sách dự án",
-      "variant": "primary",
-      "action": "open_project_table"
+      "text": "Mở bảng tiến độ chi tiết",
+      "navigateTo": "#bang-tien-do"
      }
     },
     {
      "id": "project_modal",
      "type": "Modal",
      "props": {
-      "title": "Danh sách dự án đang triển khai",
+      "title": "Bảng tiến độ dự án – cập nhật 15/10/2026",
       "open": true
      },
      "children": [
       {
-       "id": "filter_bar",
-       "type": "Row",
+       "id": "filter_sec",
+       "type": "Section",
        "props": {
-        "gap": 8
+        "title": "Lọc dữ liệu"
        },
        "children": [
         {
          "id": "search_project",
          "type": "Input",
          "props": {
-          "label": "Tìm dự án",
+          "label": "Mã hoặc tên dự án",
           "name": "q",
-          "placeholder": "Nhập mã hoặc tên dự án",
+          "placeholder": "VD: DA-0112",
           "inputType": "text"
          }
         },
         {
          "id": "filter_status",
-         "type": "Select",
+         "type": "Radio",
          "props": {
           "label": "Trạng thái",
           "name": "status",
@@ -199,6 +264,20 @@
            "Đã nghiệm thu"
           ]
          }
+        },
+        {
+         "id": "filter_owner",
+         "type": "Select",
+         "props": {
+          "label": "Chủ đầu tư",
+          "name": "owner",
+          "options": [
+           "Tất cả",
+           "Sở Tư pháp",
+           "Sở GTVT",
+           "Sở Y tế"
+          ]
+         }
         }
        ]
       },
@@ -207,43 +286,64 @@
        "type": "Table",
        "props": {
         "columns": [
-         "Mã dự án",
+         "Mã",
          "Tên dự án",
-         "Đơn vị thực hiện",
-         "Tiến độ (%)",
-         "Trạng thái"
+         "Chủ đầu tư",
+         "Khởi công",
+         "Tiến độ",
+         "Tình trạng"
         ],
         "rows": [
          [
           "DA-0112",
           "Số hóa hồ sơ hộ tịch",
           "Sở Tư pháp",
-          "72",
+          "03/2025",
+          "72%",
           "Đúng tiến độ"
          ],
          [
           "DA-0127",
-          "Hệ thống camera giao thông",
+          "Camera giao thông nội đô",
           "Sở GTVT",
-          "45",
+          "06/2025",
+          "45%",
           "Chậm tiến độ"
          ]
         ]
        }
       },
       {
-       "id": "project_pages",
-       "type": "Pagination",
+       "id": "modal_foot",
+       "type": "Row",
        "props": {
-        "pages": 5
-       }
+        "gap": 8,
+        "align": "between"
+       },
+       "children": [
+        {
+         "id": "count",
+         "type": "Text",
+         "props": {
+          "text": "Hiển thị 1–10 / 48 dự án",
+          "tone": "muted"
+         }
+        },
+        {
+         "id": "project_pages",
+         "type": "Pagination",
+         "props": {
+          "pages": 5
+         }
+        }
+       ]
       },
       {
        "id": "btn_close",
        "type": "Button",
        "props": {
         "label": "Đóng",
-        "variant": "secondary",
+        "variant": "ghost",
         "action": "close_modal"
        }
       }

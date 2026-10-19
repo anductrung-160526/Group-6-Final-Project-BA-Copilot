@@ -438,8 +438,8 @@
          "id": "lnk_saved",
          "type": "Link",
          "props": {
-          "text": "Tin đã lưu (3)",
-          "navigateTo": "/tuyen-dung/da-luu"
+          "text": "Tin quan tâm (3)",
+          "navigateTo": "/tuyen-dung/quan-tam"
          }
         },
         {
@@ -551,9 +551,9 @@
            "id": "btn_save_1",
            "type": "Button",
            "props": {
-            "label": "Lưu tin",
+            "label": "Quan tâm",
             "variant": "ghost",
-            "action": "save_job"
+            "action": "follow_job"
            }
           },
           {
@@ -594,9 +594,9 @@
            "id": "btn_save_2",
            "type": "Button",
            "props": {
-            "label": "Lưu tin",
+            "label": "Quan tâm",
             "variant": "ghost",
-            "action": "save_job"
+            "action": "follow_job"
            }
           },
           {
@@ -4393,58 +4393,97 @@
      }
     },
     {
-     "id": "expire",
-     "type": "Alert",
+     "id": "acct_row",
+     "type": "Row",
      "props": {
-      "text": "Liên kết còn hiệu lực đến 10:45 hôm nay.",
-      "tone": "info"
-     }
-    },
-    {
-     "id": "reset_form",
-     "type": "Form",
-     "props": {
-      "submitAction": "reset_password"
+      "gap": 8
      },
      "children": [
       {
-       "id": "in_pass",
-       "type": "Input",
+       "id": "acct_av",
+       "type": "Avatar",
        "props": {
-        "label": "Mật khẩu mới",
-        "name": "new_password",
-        "inputType": "password",
-        "required": true,
-        "minLength": 10
+        "name": "Thu Trang"
        }
       },
       {
-       "id": "in_confirm",
-       "type": "Input",
+       "id": "acct_role",
+       "type": "Badge",
        "props": {
-        "label": "Nhập lại mật khẩu mới",
-        "name": "confirm_password",
-        "inputType": "password",
-        "required": true,
-        "minLength": 10
+        "text": "Phóng viên",
+        "tone": "info"
        }
       },
       {
-       "id": "pw_rule",
-       "type": "Text",
+       "id": "expire",
+       "type": "Alert",
        "props": {
-        "text": "Ít nhất 10 ký tự, gồm chữ hoa, chữ số và ký tự đặc biệt.",
-        "tone": "muted"
+        "text": "Liên kết còn hiệu lực đến 10:45 hôm nay.",
+        "tone": "info"
        }
-      },
+      }
+     ]
+    },
+    {
+     "id": "reset_card",
+     "type": "Card",
+     "props": {},
+     "children": [
       {
-       "id": "btn_reset",
-       "type": "Button",
+       "id": "reset_form",
+       "type": "Form",
        "props": {
-        "label": "Lưu mật khẩu mới",
-        "variant": "primary",
-        "action": "reset_password"
-       }
+        "submitAction": "reset_password"
+       },
+       "children": [
+        {
+         "id": "in_pass",
+         "type": "Input",
+         "props": {
+          "label": "Mật khẩu mới",
+          "name": "new_password",
+          "inputType": "password",
+          "required": true,
+          "minLength": 10
+         }
+        },
+        {
+         "id": "in_confirm",
+         "type": "Input",
+         "props": {
+          "label": "Nhập lại mật khẩu mới",
+          "name": "confirm_password",
+          "inputType": "password",
+          "required": true,
+          "minLength": 10
+         }
+        },
+        {
+         "id": "pw_rule",
+         "type": "Text",
+         "props": {
+          "text": "Ít nhất 10 ký tự, gồm chữ hoa, chữ số và ký tự đặc biệt.",
+          "tone": "muted"
+         }
+        },
+        {
+         "id": "cb_signout",
+         "type": "Checkbox",
+         "props": {
+          "label": "Đăng xuất khỏi các thiết bị khác",
+          "name": "signout_all"
+         }
+        },
+        {
+         "id": "btn_reset",
+         "type": "Button",
+         "props": {
+          "label": "Lưu mật khẩu mới",
+          "variant": "primary",
+          "action": "reset_password"
+         }
+        }
+       ]
       }
      ]
     },
@@ -5627,6 +5666,14 @@
        }
       },
       {
+       "id": "maint_help",
+       "type": "Text",
+       "props": {
+        "text": "Cần hỗ trợ gấp? Gửi email hotro@hocvien.vn",
+        "tone": "muted"
+       }
+      },
+      {
        "id": "actions",
        "type": "Row",
        "props": {
@@ -5902,9 +5949,34 @@
    },
    "children": [
     {
+     "id": "app_bar",
+     "type": "Header",
+     "props": {},
+     "children": [
+      {
+       "id": "brand",
+       "type": "Heading",
+       "props": {
+        "text": "HelpDesk Pro",
+        "level": 2
+       }
+      },
+      {
+       "id": "lnk_list",
+       "type": "Link",
+       "props": {
+        "text": "Danh sách ticket",
+        "navigateTo": "/ticket"
+       }
+      }
+     ]
+    },
+    {
      "id": "banner",
      "type": "Section",
-     "props": {},
+     "props": {
+      "title": "Lỗi tải dữ liệu"
+     },
      "children": [
       {
        "id": "err_img",
@@ -5928,22 +6000,45 @@
         "text": "Máy chủ dữ liệu ticket không phản hồi (mã lỗi HD-504).",
         "tone": "danger"
        }
+      },
+      {
+       "id": "err_meta",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "err_code",
+         "type": "Badge",
+         "props": {
+          "text": "HD-504",
+          "tone": "danger"
+         }
+        },
+        {
+         "id": "err_time",
+         "type": "Text",
+         "props": {
+          "text": "Lúc 10:42:15, 19/10/2026",
+          "tone": "muted"
+         }
+        }
+       ]
       }
      ]
     },
     {
-     "id": "blocks",
-     "type": "Row",
+     "id": "cause",
+     "type": "Section",
      "props": {
-      "gap": 8
+      "title": "Nguyên nhân có thể"
      },
      "children": [
       {
-       "id": "cause",
-       "type": "Card",
-       "props": {
-        "title": "Nguyên nhân có thể"
-       },
+       "id": "cause_list",
+       "type": "List",
+       "props": {},
        "children": [
         {
          "id": "c_1",
@@ -5960,40 +6055,38 @@
          }
         }
        ]
+      }
+     ]
+    },
+    {
+     "id": "div_act",
+     "type": "Divider",
+     "props": {}
+    },
+    {
+     "id": "next",
+     "type": "Row",
+     "props": {
+      "gap": 8,
+      "align": "center"
+     },
+     "children": [
+      {
+       "id": "btn_retry",
+       "type": "Button",
+       "props": {
+        "label": "Thử lại",
+        "variant": "primary",
+        "action": "retry"
+       }
       },
       {
-       "id": "next",
-       "type": "Card",
+       "id": "lnk_it",
+       "type": "Link",
        "props": {
-        "title": "Bạn có thể"
-       },
-       "children": [
-        {
-         "id": "btn_retry",
-         "type": "Button",
-         "props": {
-          "label": "Thử lại",
-          "variant": "primary",
-          "action": "retry"
-         }
-        },
-        {
-         "id": "lnk_list",
-         "type": "Link",
-         "props": {
-          "text": "Về danh sách ticket",
-          "navigateTo": "/ticket"
-         }
-        },
-        {
-         "id": "lnk_it",
-         "type": "Link",
-         "props": {
-          "text": "Báo lỗi cho IT (kèm mã HD-504)",
-          "navigateTo": "/it-helpdesk"
-         }
-        }
-       ]
+        "text": "Báo lỗi cho IT (kèm mã HD-504)",
+        "navigateTo": "/it-helpdesk"
+       }
       }
      ]
     }
@@ -6077,33 +6170,67 @@
      }
     },
     {
-     "id": "filters",
+     "id": "summary",
      "type": "Row",
      "props": {
       "gap": 8
      },
      "children": [
       {
-       "id": "f_from",
-       "type": "DatePicker",
+       "id": "s_spent",
+       "type": "Stat",
        "props": {
-        "label": "Từ ngày",
-        "name": "from_date"
+        "label": "Đã chi năm 2026",
+        "value": "8.450.000 ₫"
        }
       },
       {
-       "id": "f_to",
-       "type": "DatePicker",
+       "id": "s_refund",
+       "type": "Stat",
        "props": {
-        "label": "Đến ngày",
-        "name": "to_date"
+        "label": "Đã hoàn",
+        "value": "450.000 ₫"
        }
+      }
+     ]
+    },
+    {
+     "id": "filter_card",
+     "type": "Card",
+     "props": {
+      "title": "Bộ lọc"
+     },
+     "children": [
+      {
+       "id": "date_row",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "f_from",
+         "type": "DatePicker",
+         "props": {
+          "label": "Từ ngày",
+          "name": "from_date"
+         }
+        },
+        {
+         "id": "f_to",
+         "type": "DatePicker",
+         "props": {
+          "label": "Đến ngày",
+          "name": "to_date"
+         }
+        }
+       ]
       },
       {
        "id": "f_type",
-       "type": "Select",
+       "type": "Radio",
        "props": {
-        "label": "Loại",
+        "label": "Loại giao dịch",
         "name": "type",
         "options": [
          "Tất cả",
@@ -6116,7 +6243,7 @@
        "id": "btn_filter",
        "type": "Button",
        "props": {
-        "label": "Lọc",
+        "label": "Áp dụng",
         "variant": "secondary",
         "action": "filter"
        }

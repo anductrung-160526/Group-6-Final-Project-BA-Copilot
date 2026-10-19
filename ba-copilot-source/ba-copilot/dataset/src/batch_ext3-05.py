@@ -625,7 +625,7 @@ R("R635", "Ưu đãi nội thất dành riêng cho thành viên", "Khách hàng 
           AV("me_av", "Trương Mỹ Duyên"),
           ST("st_points", "Điểm tích lũy", "2.450"),
           T("voucher", "Voucher của tôi: VANG300 – giảm 300.000đ cho đơn từ 3 triệu"),
-          B("btn_copy", "Sao chép mã", "secondary", "copy_voucher"))))),
+          B("btn_copy", "Sao chép mã", "secondary", "copy_voucher")))))),
 
 # ---------------------------------------------------------------- R636
 R("R636", "Quên mật khẩu – hộp thoại trên trang học", "Học viên",
