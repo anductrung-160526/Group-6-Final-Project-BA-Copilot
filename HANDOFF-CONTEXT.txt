@@ -1,0 +1,128 @@
+BÀN GIAO NGỮ CẢNH CHO CLAUDE AGENT TIẾP THEO
+Repo: anductrung-160526/db_ba_final · nhánh làm việc: trung_ba · commit mới nhất: cd58ddb
+Ứng dụng: ba-copilot-source/ba-copilot  (BA Copilot – Node 22 + node:sqlite + React/esbuild; AI = Claude API, Mock khi không có key)
+Ngôn ngữ giao tiếp với người dùng: tiếng Việt.
+
+========================================================================
+1. NGƯỜI DÙNG MUỐN GÌ (nguyên tắc đã thống nhất – PHẢI giữ)
+========================================================================
+- Ưu tiên TRUNG THỰC VỚI BÀI BÁO: Li, Amelot, Zhou, Bengio, Si (2020), "Auto Completion of User Interface Layout Design Using
+  Transformer-Based Tree Decoders", arXiv:2001.05308. Tính năng gợi ý phải bám phương pháp luận của bài báo.
+- Đã BỎ HẲN khỏi tính năng gợi ý: bộ luật R1–R9, bộ lọc ứng dụng (ngưỡng/loại trùng/1 gợi ý mỗi container), mô hình đối chứng
+  (encoder hai chiều next-transformer, n-gram), học khi duyệt. KHÔNG thêm luật dưới bất kỳ tên nào.
+- Không dùng WebSight. Dữ liệu chỉ là UI WEB (không mobile) do nhóm/Claude soạn.
+- Không trình bày phần ngoài bài báo như là của bài báo; luôn ghi rõ "ngoài bài báo"/"thiết kế của nhóm" khi có.
+- Không tự suy diễn rồi gán cho bài báo (đã từng bị người dùng bắt lỗi: "không điền được phần tử giữa" là quan sát thực nghiệm,
+  bài báo KHÔNG nói vậy; "trộn hai cách huấn luyện" là đề xuất của mình, không có trong bài báo).
+- Báo cáo kết quả trung thực, kể cả khi xấu đi.
+- Git: làm và push trên nhánh trung_ba; KHÔNG tạo PR nếu không được yêu cầu. Không ghi API key/email vào repo hay chat.
+- Người dùng chạy app trên Windows (PowerShell): dùng npm.cmd (hoặc Set-ExecutionPolicy -Scope CurrentUser RemoteSigned);
+  app nằm ở ba-copilot-source\ba-copilot; key để trong .env (ANTHROPIC_API_KEY=...). Khi git pull bị chặn bởi public/app.js,
+  public/app-style.css (file build) → git checkout -- ba-copilot-source/ba-copilot/public/ ; file khác → git stash.
+
+========================================================================
+2. TÍNH NĂNG GỢI Ý HIỆN TẠI (layout auto-completion, Recursive Transformer §4.4)
+========================================================================
+- Khung mờ (ghost box) trên canvas = phần tử tiếp theo: loại + vị trí + kích thước (khung bao dự đoán). Tab chấp nhận, Esc bỏ qua,
+  panel có top-3 loại + xác suất EOS. Gợi ý lại sau mỗi thay đổi (chấp nhận, sửa prompt, xóa, đổi thứ tự, đổi vùng chọn).
+- Chọn container → hỏi riêng container đó; không chọn → tối đa 3 container không đoán EOS, xếp theo xác suất.
+- "Hoàn thành bố cục": giải mã tham lam tới EOS kể cả container mới sinh (đúng recursive_complete), trong vùng chọn hoặc cả màn;
+  bỏ chọn từng phần tử (bỏ cha thì bỏ con) rồi chấp nhận.
+- Sửa tay: Delete xóa; tab Thành phần có ↑/↓. Phiên bản kind "layout" (Gợi ý bố cục) / "manual" (Sửa tay).
+- Phần tử chèn có props trung tính (shared/layoutDefaults.ts); nội dung chữ đổi bằng "Prompt sửa thiết kế" (Claude).
+- Khuyến nghị đã đưa người dùng: mặc định gợi ý TỪNG PHẦN; "cả màn" là nút chủ động; Claude lo nội dung, Recursive lo bố cục.
+
+Mã chính:
+- shared/recursive.ts: loadRecursive, toGrid, predictChildren (parity cũ), nextInContainer, nextElements, completeLayout.
+- server/service.ts: layoutSuggestions(mode next|complete), acceptLayout, manualEdit. server/nextModel.ts: chỉ getRecursive().
+- server/app.ts: POST /api/screens/:id/suggestions {mode,nodeIds,layout}, POST /api/screens/:id/layout/accept {versionId,items},
+  POST /api/screens/:id/manual {op: remove|up|down, id}, POST /api/suggestions/events, GET /api/modules/:id/suggestion-stats.
+- client/views/DesignTab.tsx: measureLayout (khung bao theo Page), ghost, panel, phím tắt. CSS .ov-ghost, .cand… trong client/styles.css.
+- shared/nextComponent.ts: CHỈ còn n-gram đối chứng cho script đánh giá cũ (không dùng trong app).
+- Đã xóa: scripts/eval-reference.ts, scripts/paper/eval-filter.ts, scripts/dataset/demo-suggest.ts, e2e/demo-suggest-*.mjs.
+
+========================================================================
+3. DỮ LIỆU
+========================================================================
+- 400 màn gốc web (dataset/roots/*.json; nguồn Python DSL dataset/src/batch_*.py; quy tắc dataset/AUTHORING.md; ma trận
+  dataset/matrix.json do scripts/dataset/matrix.ts sinh):
+  R001–R200 màn nghiệp vụ (pilot, main-01..06, div-01/02; 50 màn đổi loại qua matrix-overrides.json);
+  R201–R300 màn web người dùng cuối (ext-01..04, buildExtension: commerce/marketing/content/service);
+  R301–R400 màn giàu component hiếm (ext2-01..04, buildExtension2) – Checkbox, Radio, DatePicker, Textarea, Image, Alert,
+  Divider, Pagination, Avatar xuất hiện tự nhiên.
+- 28 loại component (10 container + 18 lá). Bài báo dùng 25 loại của Rico (mobile) – khác bộ, không ánh xạ 1–1.
+- Chia train/val/test theo băm id màn gốc (splitOf). Dữ liệu tọa độ: render trong Chromium ở 7 độ rộng 768–1920 px (test chỉ 1280),
+  lưới 128 ô ngang × ô dọc 20 px (tối đa 256), lọc như bài báo (ra ngoài khung cha, >100 node, cha >30 con).
+  data/paper-w7c20-r400: 2.219 / 280 / 42 cây (317/40/42 màn gốc). (data/ bị gitignore; dựng lại bằng build-dataset.ts.)
+- Bộ mẫu "thiếu phần tử" cũ (11.240 mẫu, 200 màn) phục vụ mô hình app cũ – nay chỉ còn ý nghĩa lịch sử.
+
+========================================================================
+4. MÔ HÌNH VÀ KẾT QUẢ
+========================================================================
+- model/recursive-layout.json (+ .parity.json). Huấn luyện scripts/paper/train_faithful.py --data=data/paper-w7c20-r400:
+  e = e_b + e_c + e_t (không positional embedding chuỗi), Eq.9–10, softmax riêng c,t,x,y,x2,y2 + EOS, CE thường, cây đầy đủ,
+  không xáo trộn, dò hidden {128,256} × lớp {2,4,6} (bỏ 512 vì CPU), dừng sớm theo val. Chọn hidden 256 × 2 lớp (2,37 triệu tham số).
+  Xuất: scripts/paper/export_recursive.py. Parity TS↔PyTorch: tests/recursive.test.ts.
+- So mô hình 300 màn (commit ec2b698) vs 400 màn trên cùng val 400 màn: 3,293 vs 3,135 → giữ 400 màn.
+- Báo cáo chính: dataset/export/eval/LAYOUT-SUGGEST.md (KLM, theo loại, thang đo bài báo). Khác: PAPER-METHOD.md (bản 200 màn,
+  có banner cập nhật), IMPROVE-A-C.md (đã thay thế), COORDS-EXPERIMENT.md, LEARNING-CURVE.md, MODEL-SELECTION.md (lịch sử).
+- Mô phỏng KLM (scripts/paper/klm_sim.py; hằng số bài báo M=1,35 P=1,1 B=0,1; chi phí khi có gợi ý là thiết kế của nhóm):
+  42 màn test – gợi ý từng bước tiết kiệm ~39–48% so với làm tay; Hoàn thành bố cục 16–43%. Từng bước > hoàn thành ở mọi thiết lập.
+- Theo loại (từng bước, container đã biết), 300→400 màn: Checkbox top-1 15→45%, Textarea 18→44%, Avatar top-3 32→82%,
+  Divider top-3 30→74%, Alert top-3 14→43%; NHƯNG Button top-1 79→61%, Input 45→37%; Radio vẫn rất yếu (top-3 13%),
+  DatePicker yếu. Thang đo bài báo trên 22 màn test cũ giảm 2–4 điểm (Pair F1 nới lỏng 57,2→54,4).
+- Giới hạn đã báo: không gợi ý nội dung; không chuyên chỗ thiếu ở GIỮA (~3%); dữ liệu ít hơn bài báo ~25 lần, do Claude soạn;
+  test nhỏ (42 màn).
+- Độ trễ CPU: hỏi 1 container 20–60 ms; cả màn ~0,3 s (tối đa 0,9 s); Hoàn thành bố cục ~0,4 s (tối đa ~6 s).
+
+========================================================================
+5. KIỂM THỬ
+========================================================================
+- npm test: 30/30 (test đo thời gian <400 ms có thể trượt khi CPU bận huấn luyện).
+- e2e: CHROME_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node e2e/e2e.mjs → OK (đã sửa selector vì Mock sinh id
+  ngẫu nhiên; thêm bước gợi ý bố cục).
+- Thử 9 mẫu component hiếm (dựng cây thủ công + đo khung bao Chromium): đúng ngay 4/10 (Checkbox, Textarea, Alert, Pagination);
+  trượt Avatar/Image/Divider (hay đứng đầu/giữa), Radio, DatePicker.
+- Người dùng chạy thật (Claude API) mẫu "Lịch sử giao dịch": Pagination KHÔNG có trong top-3 (EOS 48%) vì màn Claude sinh có thêm
+  Header, Card có title, bảng 3 dòng → tọa độ khác → dự đoán khác.
+
+========================================================================
+6. VIỆC ĐANG MỞ (chờ người dùng quyết)
+========================================================================
+(a) LỖI ĐẦU VÀO PHÁT HIỆN QUA ẢNH NGƯỜI DÙNG: Header/Card/Section/Form/Modal có props.title được VẼ trên canvas nhưng KHÔNG là node
+    con → mô hình thấy container rỗng → gợi ý "Heading trong Header" 98% dù đã có tiêu đề.
+    Đề xuất (đã trình bày, CHƯA làm, chờ đồng ý): khi đưa vào mô hình, coi title hiển thị là một Heading ảo có khung bao đo trên
+    canvas (đúng tinh thần bài báo: mọi phần tử nhìn thấy). Phải kiểm tra build-dataset.ts / measure-entry xem dữ liệu huấn luyện
+    có tính title như phần tử không; nếu không → dựng lại dữ liệu theo cùng cách + huấn luyện lại (~1 giờ CPU) để train/serve khớp.
+(b) Có thể quay về mô hình 300 màn nếu người dùng ưu tiên Button/Input (cần xuất lại để khớp parity mới).
+(c) Người dùng có thể gửi ảnh chạy 8 mẫu còn lại để lập bảng "app thật vs thử nghiệm".
+(d) Phiên cloud này không có ANTHROPIC_API_KEY; muốn agent chạy app ở chế độ API thì người dùng thêm biến môi trường trong cài đặt
+    môi trường cloud (không dán key vào chat).
+
+========================================================================
+7. LỆNH THƯỜNG DÙNG
+========================================================================
+cd ba-copilot-source/ba-copilot
+npm start                     # build client + server :3000 (Windows: npm.cmd start)
+npm test
+npx tsx scripts/dataset/validate-roots.ts dataset/roots/*.json
+npx tsx scripts/dataset/matrix.ts
+CHROME=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npx tsx scripts/paper/build-dataset.ts --widths 768,1024,1280,1366,1440,1600,1920 --cell-y 20 --out data/paper-w7c20-r400
+python3 scripts/paper/train_faithful.py --data=data/paper-w7c20-r400 && python3 scripts/paper/export_recursive.py
+python3 scripts/paper/klm_sim.py --data=data/paper-w7c20-r400
+Lưu ý môi trường: torch cài từ PyPI (--break-system-packages); không dùng `pkill -f <chuỗi>` khi chuỗi có trong chính lệnh (tự giết
+shell) – kill theo PID; model/*.pt bị gitignore (bản 300 màn dựng lại được từ JSON ở commit ec2b698).
+
+========================================================================
+8. TÓM TẮT DIỄN TIẾN CUỘC TRÒ CHUYỆN
+========================================================================
+1. Tóm tắt repo → tạo bộ dữ liệu 200 màn gốc / ~10.000 mẫu, huấn luyện Transformer phát hiện chỗ thiếu (mô hình app), demo.
+2. Hướng dẫn chạy local, chế độ API, kiểm tra hạn mức.
+3. Đọc bài báo, đánh giá theo thang đo bài báo (Pair F1, Next, Tree Edit Distance KLM; cây dở BFS/DFS 10/50/80%).
+4. Viết prompt tái lập (bỏ WebSight, chỉ UI web), đa dạng hóa loại màn; chạy Vanilla, Pointer, Recursive; đường học; export WebSight-like.
+5. Rà train/val/test; làm rõ khác biệt "hoàn thiện màn" vs "phần tử tiếp theo"; người dùng chọn Phương án B (dùng đúng Recursive).
+6. Thí nghiệm nâng chất lượng tọa độ (V0–V4); sửa các tuyên bố quá mức về bài báo.
+7. Phương án A (bộ lọc ứng dụng) + C (thêm 100 màn R201–R300) → kết quả trước/sau (IMPROVE-A-C.md).
+8. Phân tích loại hiếm; thảo luận luật vs dữ liệu; người dùng quyết BỎ HẲN LUẬT, làm 4 đề xuất (khung mờ, gợi ý theo thao tác,
+   Hoàn thành bố cục, đo KLM) + giải quyết loại hiếm bằng dữ liệu → làm xong (commits ec2b698, cd58ddb).
+9. Mẫu test, thử 9 mẫu hiếm, người dùng chạy thật trên Windows, phát hiện lỗi title của container (việc mở 6a).
