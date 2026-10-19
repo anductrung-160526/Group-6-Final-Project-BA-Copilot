@@ -87,9 +87,9 @@ Tính năng **chỉ dùng phương pháp của Li et al. (2020)**, *Auto Complet
   - **Tab** chấp nhận, **Esc** bỏ qua. Panel có **top-3 loại** kèm xác suất và xác suất EOS ("mô hình cho rằng đã đủ").
   - Chọn một container để hỏi riêng container đó; không chọn gì thì xét mọi container.
 - **Hoàn thành bố cục:** giải mã tham lam tới EOS (kể cả container vừa sinh) trong vùng chọn hoặc cả màn, rồi chấp nhận từng phần.
-- **Đầu vào:** cây đang thiết kế và khung bao từng phần tử đo trên canvas, rời rạc hóa theo lưới 128 ô ngang × ô dọc 20 px.
+- **Đầu vào:** cây đang thiết kế và khung bao từng phần tử đo trên canvas, rời rạc hóa theo lưới 32 ô ngang × ô dọc 40 px (lưới đọc từ config của mô hình).
 - **Đầu ra:** loại, cờ lá, khung bao. Phần tử chèn vào có props trung tính; nội dung chữ đổi bằng Prompt sửa thiết kế.
-- **Mô hình:** `model/recursive-layout.json`, hidden 256, 2 lớp, 2,4 triệu tham số, chọn theo val. Huấn luyện trên **400 màn gốc = 2.219 cây**, chỉ dữ liệu web của nhóm, không WebSight.
+- **Mô hình:** `model/recursive-layout.json`, hidden 256, 4 lớp, 4,3 triệu tham số, lưới **32 ô ngang × ô dọc 40 px**, chọn theo val (`dataset/export/eval/STRICT-NEXT.md`). Huấn luyện trên **500 màn gốc (399 màn train) = 2.793 cây**, chia 80/10/10, chỉ dữ liệu web của nhóm, không WebSight. Test 38 màn: Next chặt 8,8%, IoU ≥ 0,5 22,8%.
   - Suy luận thuần TypeScript (`shared/recursive.ts`), khớp PyTorch (`tests/recursive.test.ts`).
   - Độ trễ trên CPU (42 màn test): hỏi một container khoảng 20–60 ms; xét cả màn trung vị 0,3 s (tối đa 0,9 s); Hoàn thành bố cục trung vị 0,4 s (tối đa khoảng 6 s với màn lớn).
 - **Kết quả:** `dataset/export/eval/LAYOUT-SUGGEST.md`.

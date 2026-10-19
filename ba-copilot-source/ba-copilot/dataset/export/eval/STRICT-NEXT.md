@@ -104,6 +104,10 @@ Next chặt trên test của 3 seed là 11,0 / 8,8 / 11,4. **Dao động khoản
 - **Recursive vẫn tốt nhất** trong ba bộ giải mã về IoU và F1 trên test. Vanilla có Next chặt trên test-mới 18,5%, nhưng test-mới chỉ có 9 màn (khoảng 54 lượt dự đoán), dao động rất lớn.
 
 ## 8. Ngoài bài báo (thiết kế của nhóm)
+- **Embedding vị trí trong chuỗi (phát hiện sau khi chấm test):**
+  - Mọi lần chạy ở Giai đoạn A/B dùng `use_pos=True` mặc định của script, tức **cộng thêm embedding vị trí trong chuỗi**. Điều này trái với bài báo: theo Eq.4–5, khung bao e_b chính là embedding vị trí.
+  - Các biến thể vẫn so được với nhau vì cùng điều kiện, nhưng **không phải đúng bài báo**.
+  - Đã huấn luyện lại tổ hợp được chọn **đúng bài báo** (`--no-pos`, mục 10).
 - **Lưới tọa độ:** bài báo dùng 72 × 128 cho màn điện thoại. Ở đây G0 = 128 ô ngang × ô dọc 20 px (khổ web); G1, G2 là lưới thô hơn để thí nghiệm.
 - **Thước đo thêm:** Next ±1 ô và Next IoU ≥ 0,5 (tính trên pixel). Bài báo chỉ có Next chặt và nới lỏng.
 - **W2:** embedding độ rộng cộng vào vector canvas (vector canvas là chi tiết cài đặt của nhóm).
@@ -117,15 +121,29 @@ Next chặt trên test của 3 seed là 11,0 / 8,8 / 11,4. **Dao động khoản
   - Trên test: Next chặt khoảng **10,4 ± 1,4%** (3 seed), IoU ≥ 0,5 khoảng 24,6 ± 3,2%.
 - **Hướng tăng tiếp hiệu quả nhất: thêm màn gốc.** Đường học chưa bão hòa. Có thể dùng 300 màn R501–R800 đã soạn sẵn trong `dataset/extra/`.
 - **Đánh đổi:** lưới 32 × 40 px cho vị trí thô hơn. Khung gợi ý trên canvas sẽ bị làm tròn theo ô 40 × 40 px (ở 1280 px). Điều này chấp nhận được với khung mờ gợi ý, nhưng cần nói rõ.
-- **Chưa đưa vào app** (`model/recursive-layout.json` giữ bản 400 màn, lưới G0). Muốn đưa vào cần:
-  - người dùng đồng ý;
-  - xuất lại mô hình (`export_recursive.py`, config gx = 32, cellY = 40, gy = 128);
-  - chạy lại test đối chiếu số học TypeScript ↔ PyTorch.
+- Đã đưa vào app **bản đúng bài báo** (mục 10), theo đồng ý của người dùng.
+
+## 10. Bản đúng bài báo đưa vào app (không embedding vị trí)
+Cùng G2 × W0, 500 màn, hidden 256 × 4 lớp, seed 42, chạy với `--no-pos`; chấm test một lần.
+
+| | Val loss 1280 | Test: Next chặt | Đúng loại | ±1 ô | IoU ≥ 0,5 | F1 chặt | F1 nới lỏng | Edit (s) |
+|---|---|---|---|---|---|---|---|---|
+| Có embedding vị trí (ngoài bài báo) | 2,080 | 11,0 | 37,3 | 24,6 | 27,2 | 48,8 | 62,9 | 40,8 |
+| **Đúng bài báo – trong app** | 2,212 | **8,8** | 37,7 | 20,6 | 22,8 | 48,2 | 60,3 | 40,4 |
+
+- Bản đúng bài báo **thấp hơn một chút**: Next chặt −2,2 điểm, IoU −4,4 điểm. Next chặt 8,8 vẫn nằm trong dải dao động theo seed của bản kia (8,8–11,4).
+- Test-mới (9 màn): Next chặt 9,3, IoU 22,2.
+- **Mốc G0 × W0 cũng dùng embedding vị trí**, nên mức tăng so với mốc (5,3 → 8,8) không hoàn toàn cùng điều kiện.
+- **Mô hình trong app:** `model/recursive-layout.json`, gx = 32, gy = 128, cellY = 40, 4,33 triệu tham số, 2.793 cây (399 màn gốc).
+  - Suy luận TypeScript khớp PyTorch (`tests/recursive.test.ts`); E2E qua.
+  - Khung mờ gợi ý được làm tròn theo ô 40 × 40 px (ở 1280 px).
 
 ## Tái lập
 ```bash
 CHROME=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npx tsx scripts/paper/build-dataset.ts --widths 768,1024,1280,1366,1440,1600,1920 --cell-x 32 --cell-y 40 --gy 128 --max-root 500 --out data/sn80-G2-w7-r500
 python3 scripts/paper/strict_next_experiment.py --only G0W0,G1W0,G2W0,G0W1,G1W1,G2W1,G0W2 --threads 4    # giai đoạn A (val)
 bash scripts/paper/strict_next_stageB.sh                                                                 # giai đoạn B, C
+python3 scripts/paper/strict_next_experiment.py --data data/sn80-G2-w7-r500 --grid 256:4 --no-pos --eval-test --test-new --out dataset/export/eval/strict-next/G2W0-recursive-r500-s42-nopos.json
+python3 scripts/paper/export_recursive.py --result dataset/export/eval/strict-next/G2W0-recursive-r500-s42-nopos.json   # → app
 ```
 JSON: `dataset/export/eval/strict-next/*.json` (mỗi file gồm cấu hình đã dò, val1280, test, test-mới).

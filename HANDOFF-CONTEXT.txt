@@ -142,3 +142,7 @@ shell) – kill theo PID; model/*.pt bị gitignore (bản 300 màn dựng lại
 - CHƯA đưa mô hình mới vào app (model/recursive-layout.json vẫn là bản 400 màn lưới G0) – cần người dùng đồng ý.
 - Nhánh thử nghiệm: manh/c1-qus đã chứa htrung-c4-kho-tai-lieu; đã tạo LOCAL thu-nghiem/merge-c4-qus (= manh/c1-qus, 59/59 test)
   trong worktree /home/user/db_ba_final/.wt-merge – CHƯA push, chờ người dùng.
+- ĐÃ ĐƯA VÀO APP (người dùng đồng ý): G2W0 500 màn, ĐÚNG BÀI BÁO (--no-pos), 256×4, lưới gx=32 gy=128 cellY=40. Test: Next chặt 8,8
+  · IoU 22,8 (bản có embedding vị trí 11,0 · 27,2). LƯU Ý: mọi lần chạy A/B trước đó vô tình dùng use_pos=True (ngoài bài báo) – đã ghi
+  trong STRICT-NEXT.md. Người dùng TỪ CHỐI: push nhánh thử nghiệm merge (đã xóa worktree/nhánh local) và dùng thêm 300 màn dataset/extra.
+- Đang bàn: làm auto-completion giống gợi ý code Colab (con trỏ, palette chèn tay, gợi ý nhiều phần tử, Alt+]/[) – chờ người dùng chọn.
