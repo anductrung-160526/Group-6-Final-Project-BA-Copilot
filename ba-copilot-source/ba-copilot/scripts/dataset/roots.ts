@@ -36,7 +36,7 @@ export function loadRoots(): { items: RootItem[]; version: string } {
 let SPLIT: Map<string, "train" | "val" | "test"> | null = null;
 /**
  * Chia theo màn gốc, phân tầng theo nhóm màn: trong mỗi nhóm, sắp các màn theo băm SHA-1 của id rồi cắt
- * 70% train / 15% val / 15% test (làm tròn). Cố định, tái lập được; mọi biến thể và độ rộng của một màn cùng tập.
+ * 80% train / 10% val / 10% test (làm tròn) – đúng tỷ lệ của bài báo (§5.3). Cố định, tái lập được; mọi biến thể và độ rộng của một màn cùng tập.
  */
 export function splitOf(rootId: string): "train" | "val" | "test" {
   if (!SPLIT) {
@@ -47,7 +47,7 @@ export function splitOf(rootId: string): "train" | "val" | "test" {
     for (const r of loadRoots().items) { const k = `${Number(r.id.slice(1)) > 400 ? "new" : "old"}:${r.group}`; groups.set(k, [...(groups.get(k) ?? []), r.id]); }
     for (const ids of groups.values()) {
       ids.sort((a, b) => h(a).localeCompare(h(b)));
-      const nTr = Math.round(ids.length * 0.7), nVa = Math.round(ids.length * 0.15);
+      const nTr = Math.round(ids.length * 0.8), nVa = Math.round(ids.length * 0.1);
       ids.forEach((id, i) => SPLIT!.set(id, i < nTr ? "train" : i < nTr + nVa ? "val" : "test"));
     }
   }

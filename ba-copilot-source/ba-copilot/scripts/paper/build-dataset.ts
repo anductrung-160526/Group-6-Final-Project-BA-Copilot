@@ -6,7 +6,7 @@
 // Chia theo màn gốc (splitOf), mọi biến thể của một màn cùng tập.
 // Dùng: CHROME=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npx tsx scripts/paper/build-dataset.ts [--widths 1024,1280,1440] [--cell-y 10] [--cell-x 128] [--gy 256] [--max-root 800] [--out data/paper]
 //   --cell-x: số ô theo chiều ngang (thí nghiệm lưới, STRICT-NEXT.md – ngoài bài báo); --max-root: chỉ lấy màn R001..R<n>.
-//   Màn R401+ có test riêng → test_new.jsonl ("test-mới"), 62 màn test cũ giữ nguyên.
+//   Màn R401+ có test riêng → test_new.jsonl ("test-mới"); test của 400 màn cũ (38 màn, chia 80/10/10) giữ nguyên.
 //   → <out>/{train,val,test}.jsonl + stats.json
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";

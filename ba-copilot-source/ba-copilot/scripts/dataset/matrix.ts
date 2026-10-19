@@ -6,7 +6,7 @@
 // đặt chỗ, trang giới thiệu), miền và bố cục khác 200 màn đầu – buildExtension(), không đổi 200 màn cũ.
 // Mở rộng 2: thêm 100 màn R301–R400 thuộc 25 loại màn mà các component hiếm (Checkbox, Radio, DatePicker, Textarea, Image,
 // Alert, Divider, Pagination, Avatar) xuất hiện tự nhiên theo nghiệp vụ – buildExtension2(); không đổi 300 màn trước.
-// Mở rộng 3: thêm 400 màn R401–R800 xoay vòng qua mọi loại màn của ba bộ trước (thí nghiệm đường cong học, STRICT-NEXT.md)
+// Mở rộng 3: thêm 100 màn R401–R500 (bản đầu soạn 400 màn R401–R800; chỉ giữ 100 theo yêu cầu, 300 màn còn lại để ở dataset/extra/) xoay vòng qua mọi loại màn của ba bộ trước (thí nghiệm đường cong học, STRICT-NEXT.md)
 // – buildExtension3(); không đổi 400 màn trước.
 // Dùng: npx tsx scripts/dataset/matrix.ts → dataset/matrix.json
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -113,8 +113,8 @@ export function buildExtension2(total = 100, start = 301, seed = 20261218): Assi
   });
 }
 
-/** 400 màn mở rộng 3 R401–R800: mọi loại màn của ba bộ trước, miền/quyền/bố cục gộp, seed riêng. */
-export function buildExtension3(total = 400, start = 401, seed = 20261319): Assignment[] {
+/** 100 màn mở rộng 3 R401–R500: mọi loại màn của ba bộ trước, miền/quyền/bố cục gộp, seed riêng. */
+export function buildExtension3(total = 100, start = 401, seed = 20261319): Assignment[] {
   const r = rng(seed);
   const cyc = <T,>(arr: T[]) => {
     let pool: T[] = [];
