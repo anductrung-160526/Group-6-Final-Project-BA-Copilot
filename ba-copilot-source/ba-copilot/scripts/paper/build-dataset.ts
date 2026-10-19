@@ -4,7 +4,9 @@
 // đo khung bao toàn trang, rời rạc hóa: x → 128 ô theo tỷ lệ độ rộng, y → ô 10 px, tối đa 256 ô (2560 px, phần dài hơn kẹp).
 // Lọc như bài báo: node không hiển thị hoặc ra ngoài khung cha (dung sai 2 px) → bỏ cây; > 100 node hoặc cha > 30 con → bỏ cây.
 // Chia theo màn gốc (splitOf), mọi biến thể của một màn cùng tập.
-// Dùng: CHROME=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npx tsx scripts/paper/build-dataset.ts [--widths 1024,1280,1440] [--cell-y 10] [--out data/paper]
+// Dùng: CHROME=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npx tsx scripts/paper/build-dataset.ts [--widths 1024,1280,1440] [--cell-y 10] [--cell-x 128] [--gy 256] [--max-root 800] [--out data/paper]
+//   --cell-x: số ô theo chiều ngang (thí nghiệm lưới, STRICT-NEXT.md – ngoài bài báo); --max-root: chỉ lấy màn R001..R<n>.
+//   Màn R401+ có test riêng → test_new.jsonl ("test-mới"), 62 màn test cũ giữ nguyên.
 //   → <out>/{train,val,test}.jsonl + stats.json
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -19,7 +21,8 @@ const arg = (name: string, def: string) => {
   const i = process.argv.indexOf(name);
   return i > -1 ? process.argv[i + 1] : def;
 };
-const GX = 128, GY = 256, TOL = 2;
+const GX = Number(arg("--cell-x", "128")), GY = Number(arg("--gy", "256")), TOL = 2;
+const MAX_ROOT = Number(arg("--max-root", "100000"));
 const CELL_Y = Number(arg("--cell-y", "10"));
 const WIDTHS = arg("--widths", "1024,1280,1440").split(",").map(Number);
 const OUT = join(root, arg("--out", "data/paper"));
@@ -30,7 +33,7 @@ const css = readFileSync(join(root, "client", "styles.css"), "utf8");
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>${css} body{margin:0;background:#fff}</style></head><body><div id="root"></div><script>${js.outputFiles[0].text}</script></body></html>`;
 const browser = await chromium.launch(process.env.CHROME ? { executablePath: process.env.CHROME } : {});
 
-const out: Record<string, string[]> = { train: [], val: [], test: [] };
+const out: Record<string, string[]> = { train: [], val: [], test: [], test_new: [] };
 const dropped: Record<string, number> = {};
 const droppedRoots: Record<string, string[]> = {};
 for (const w of WIDTHS) {
@@ -39,8 +42,10 @@ for (const w of WIDTHS) {
   const qx = (v: number) => Math.max(0, Math.min(GX - 1, Math.floor((v / w) * GX)));
   const qy = (v: number) => Math.max(0, Math.min(GY - 1, Math.floor(v / CELL_Y)));
   for (const r of loadRoots().items) {
-    const split = splitOf(r.id);
-    if (split === "test" && w !== 1280) continue;
+    const num = Number(r.id.slice(1));
+    if (num > MAX_ROOT) continue;
+    const split = splitOf(r.id) === "test" && num > 400 ? "test_new" : splitOf(r.id);
+    if (split.startsWith("test") && w !== 1280) continue;
     const box: Record<string, number[]> = await page.evaluate((t) => (window as any).measure(t), r.tree as any);
     let bad = "", n = 0;
     const conv = (x: UINode, parent: number[] | null): PNode => {
@@ -80,7 +85,7 @@ const mean = (v: number[]) => +(v.reduce((a, b) => a + b, 0) / Math.max(v.length
 mkdirSync(OUT, { recursive: true });
 for (const [k, v] of Object.entries(out)) writeFileSync(join(OUT, `${k}.jsonl`), v.join("\n") + "\n");
 const stats = {
-  source: "dataset/roots (UI web nghiệp vụ do nhóm tạo, không WebSight)", grid: { x: `${GX} ô theo tỷ lệ độ rộng`, y: `ô ${CELL_Y} px, tối đa ${GY}` }, widths: WIDTHS,
+  source: "dataset/roots (UI web nghiệp vụ do nhóm tạo, không WebSight)", grid: { x: `${GX} ô theo tỷ lệ độ rộng`, y: `ô ${CELL_Y} px, tối đa ${GY}` }, widths: WIDTHS, gx: GX, gy: GY, cellY: CELL_Y, maxRoot: MAX_ROOT,
   trees: Object.fromEntries(Object.entries(out).map(([k, v]) => [k, v.length])), roots: Object.fromEntries(Object.entries(out).map(([k, v]) => [k, new Set(v.map((l) => JSON.parse(l).rootId)).size])),
   nodes: { mean: mean(sizes), min: Math.min(...sizes), max: Math.max(...sizes) }, depth: { mean: mean(depths), min: Math.min(...depths), max: Math.max(...depths) },
   types, dropped, droppedRoots,

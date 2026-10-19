@@ -32,7 +32,8 @@ TYPES = ["Page", "Header", "Sidebar", "Section", "Card", "Row", "Column", "Form"
 N_TYPES = len(TYPES)
 OPEN, CLOSE, EOS, BOS = N_TYPES, N_TYPES + 1, N_TYPES + 2, N_TYPES + 3
 N_C = N_TYPES + 4
-GX, GY = 128, 256
+# Lưới đọc từ biến môi trường (thí nghiệm lưới STRICT-NEXT.md; mặc định như cũ 128 × 256). Đặt trước khi import.
+GX, GY = int(os.environ.get("PAPER_GX", 128)), int(os.environ.get("PAPER_GY", 256))
 KLM = {"insert": 1.35 + 3 * 1.1 + 4 * 0.1, "relabel": 1.35 + 2 * 1.1 + 4 * 0.1, "delete": 0.1}
 
 

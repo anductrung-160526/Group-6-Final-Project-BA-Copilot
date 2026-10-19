@@ -248,8 +248,11 @@ class RecLayer(nn.Module):
 
 
 class Recursive(nn.Module):
-    def __init__(self, d, layers, heads_=4, drop=0.1, max_len=40, sigma=0.0, shuffle=False, use_pos=True):
+    def __init__(self, d, layers, heads_=4, drop=0.1, max_len=40, sigma=0.0, shuffle=False, use_pos=True, n_widths=0):
         super().__init__()
+        # n_widths > 0: nhúng độ rộng màn cộng vào vector canvas (biến thể W2 – ngoài bài báo, thiết kế của nhóm, STRICT-NEXT.md)
+        self.wemb = nn.Embedding(n_widths, d) if n_widths else None
+        self.test_w = 0  # chỉ số độ rộng dùng khi cây không mang "_w" (lúc gợi ý)
         self.sigma = sigma  # làm mềm nhãn tọa độ khi huấn luyện (0 = đúng bài báo)
         # xáo trộn thứ tự anh em khi huấn luyện ("random spatial ordering", Table 3 của bài báo): vị trí do khung bao quyết định,
         # mô hình học "nhóm con còn thiếu gì" thay vì "sau phần tử cuối theo thứ tự đọc là hết"
@@ -261,6 +264,12 @@ class Recursive(nn.Module):
         self.out = heads(d)
         self.canvas = nn.Parameter(torch.zeros(1, 1, d))
         self.max_len = max_len
+
+    def canvas_for(self, t):
+        c = self.canvas[0, 0]
+        if self.wemb is None:
+            return c
+        return c + self.wemb(torch.tensor(t.get("_w", self.test_w)))
 
     def run(self, tok, pad, mem, mem_pad):
         x = self.emb(tok)
@@ -284,7 +293,7 @@ def recursive_loss(model, trees):
     """Giải mã từng tầng: mọi node cha cùng độ sâu trong batch được xử lý cùng lúc."""
     d = model.canvas.shape[-1]
     # (node, ancestors_hidden list, own hidden or None)
-    level = [(t, [model.canvas[0, 0]], None) for t in trees]
+    level = [(t, [model.canvas_for(t)], None) for t in trees]
     total, count = 0.0, 0
     while level:
         jobs = [(n, anc, hn) for n, anc, hn in level if n["t"] == 0 and kids(n)]
@@ -371,7 +380,7 @@ def recursive_complete(model, partial, max_nodes=100, constrain=False):
         for j, c in enumerate(ch):
             expand(c, anc + [own_h], h[0, j + 1])
 
-    expand(root, [model.canvas[0, 0]], None)
+    expand(root, [model.canvas_for(partial)], None)
     return root
 
 
@@ -398,16 +407,30 @@ def strip_meta(t):
     return m
 
 
-def evaluate(complete, trees, orders=("bfs", "dfs"), fracs=(0.1, 0.5, 0.8), shuffle_seed=None):
+def box_px(b, cell):
+    """Khung theo ô → pixel (ô cuối tính trọn): cell = (px mỗi ô ngang, px mỗi ô dọc)."""
+    return (b[0] * cell[0], b[1] * cell[1], (b[2] + 1) * cell[0], (b[3] + 1) * cell[1])
+
+
+def iou(a, b):
+    w = max(0.0, min(a[2], b[2]) - max(a[0], b[0]))
+    h = max(0.0, min(a[3], b[3]) - max(a[1], b[1]))
+    u = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - w * h
+    return w * h / u if u > 0 else 0.0
+
+
+def evaluate(complete, trees, orders=("bfs", "dfs"), fracs=(0.1, 0.5, 0.8), shuffle_seed=None, cell=None):
     """shuffle_seed: nếu có, mỗi cây test được xáo thứ tự anh em (cố định theo seed) trước khi lấy tiền tố – thiết lập Table 3.
-    Cây đúng để tính F1/Edit là chính cây đã xáo (thứ tự mà người thiết kế đã nhập)."""
+    Cây đúng để tính F1/Edit là chính cây đã xáo (thứ tự mà người thiết kế đã nhập).
+    cell: (px/ô ngang, px/ô dọc) → thêm Next ±1 ô và Next IoU ≥ 0.5 (pixel, so sánh được giữa các lưới – ngoài bài báo)."""
     if shuffle_seed is not None:
         trees = [shuffle_tree(t, random.Random(shuffle_seed + i)) for i, t in enumerate(trees)]
     res = {}
     for order in orders:
         for f in fracs:
             acc = {k: 0.0 for k in ["n", "next_strict", "next_relaxed", "next_top3", "f1_strict", "f1_relaxed", "edit_strict", "edit_relaxed",
-                                     "none_f1_strict", "none_f1_relaxed", "none_edit_strict", "none_edit_relaxed", "seconds"]}
+                                     "none_f1_strict", "none_f1_relaxed", "none_edit_strict", "none_edit_relaxed", "seconds"]
+                   + (["next_pm1", "next_iou50"] if cell else [])}
             for t in trees:
                 nodes = order_nodes(t, order)
                 N = len(nodes)
@@ -424,6 +447,9 @@ def evaluate(complete, trees, orders=("bfs", "dfs"), fracs=(0.1, 0.5, 0.8), shuf
                     acc["next_relaxed"] += x["c"] == target["c"]
                     acc["next_strict"] += (x["c"], *x["b"]) == (target["c"], *target["b"])
                     acc["next_top3"] += target["c"] in x.get("_top3", [x["c"]])
+                    if cell and x["c"] == target["c"]:
+                        acc["next_pm1"] += all(abs(u - v) <= 1 for u, v in zip(x["b"], target["b"]))
+                        acc["next_iou50"] += iou(box_px(x["b"], cell), box_px(target["b"], cell)) >= 0.5
                 p = strip_meta(pred)
                 for st, tag in ((True, "strict"), (False, "relaxed")):
                     acc[f"f1_{tag}"] += V.pair_prf(p, t, st)[2]
@@ -436,12 +462,12 @@ def evaluate(complete, trees, orders=("bfs", "dfs"), fracs=(0.1, 0.5, 0.8), shuf
 
 
 # ------------------------------------------------------------------ huấn luyện
-def train_model(kind, train, val, d, layers, epochs, patience, lr, seed, batch=32, sigma=0.0, shuffle=False, use_pos=True, orders=("bfs", "dfs")):
+def train_model(kind, train, val, d, layers, epochs, patience, lr, seed, batch=32, sigma=0.0, shuffle=False, use_pos=True, orders=("bfs", "dfs"), n_widths=0):
     """orders: thứ tự duyệt dùng để duỗi chuỗi cho Pointer. shuffle: thứ tự anh em ngẫu nhiên (Table 3) – Recursive xáo trong lúc
     tính loss; Pointer duỗi lại từ cây đã xáo ở mỗi epoch (val xáo cố định)."""
     torch.manual_seed(seed)
     rnd = random.Random(seed)
-    model = Pointer(d, layers, use_pos=use_pos) if kind == "pointer" else Recursive(d, layers, sigma=sigma, shuffle=shuffle, use_pos=use_pos)
+    model = Pointer(d, layers, use_pos=use_pos) if kind == "pointer" else Recursive(d, layers, sigma=sigma, shuffle=shuffle, use_pos=use_pos, n_widths=n_widths)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
     if kind == "pointer":
         vrnd = random.Random(seed + 1)
