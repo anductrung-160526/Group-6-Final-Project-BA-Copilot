@@ -462,12 +462,14 @@ def evaluate(complete, trees, orders=("bfs", "dfs"), fracs=(0.1, 0.5, 0.8), shuf
 
 
 # ------------------------------------------------------------------ huấn luyện
-def train_model(kind, train, val, d, layers, epochs, patience, lr, seed, batch=32, sigma=0.0, shuffle=False, use_pos=True, orders=("bfs", "dfs"), n_widths=0):
+def train_model(kind, train, val, d, layers, epochs, patience, lr, seed, batch=32, sigma=0.0, shuffle=False, use_pos=True, orders=("bfs", "dfs"), n_widths=0, drop=0.1, init_state=None):
     """orders: thứ tự duyệt dùng để duỗi chuỗi cho Pointer. shuffle: thứ tự anh em ngẫu nhiên (Table 3) – Recursive xáo trong lúc
     tính loss; Pointer duỗi lại từ cây đã xáo ở mỗi epoch (val xáo cố định)."""
     torch.manual_seed(seed)
     rnd = random.Random(seed)
-    model = Pointer(d, layers, use_pos=use_pos) if kind == "pointer" else Recursive(d, layers, sigma=sigma, shuffle=shuffle, use_pos=use_pos, n_widths=n_widths)
+    model = Pointer(d, layers, drop=drop, use_pos=use_pos) if kind == "pointer" else Recursive(d, layers, drop=drop, sigma=sigma, shuffle=shuffle, use_pos=use_pos, n_widths=n_widths)
+    if init_state is not None:  # tinh chỉnh từ mô hình đã tiền huấn luyện (ngoài bài báo, DATA-LIMITED.md)
+        model.load_state_dict(init_state)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
     if kind == "pointer":
         vrnd = random.Random(seed + 1)

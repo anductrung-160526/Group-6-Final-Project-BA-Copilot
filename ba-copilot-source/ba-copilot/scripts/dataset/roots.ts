@@ -18,6 +18,8 @@ export function loadRoots(): { items: RootItem[]; version: string } {
   const d = dir();
   if (!existsSync(join(d, "matrix.json"))) return { items: [], version: "" };
   const matrix = new Map((JSON.parse(readFileSync(join(d, "matrix.json"), "utf8")) as Matrix[]).map((m) => [m.id, m]));
+  // màn bị loại vì giống màn khác ≥ 70% hoặc trùng tên (dataset/excluded-roots.json, kèm lý do) – không nạp
+  const excluded = existsSync(join(d, "excluded-roots.json")) ? new Set(Object.keys(JSON.parse(readFileSync(join(d, "excluded-roots.json"), "utf8")))) : new Set<string>();
   const items: RootItem[] = [];
   const hash = createHash("sha1");
   const rd = join(d, "roots");
@@ -26,7 +28,7 @@ export function loadRoots(): { items: RootItem[]; version: string } {
     hash.update(text);
     for (const r of JSON.parse(text) as Omit<RootItem, "file">[]) {
       const m = matrix.get(r.id);
-      if (m) items.push({ ...m, ...r, file: f });
+      if (m && !excluded.has(r.id)) items.push({ ...m, ...r, file: f });
     }
   }
   items.sort((a, b) => a.id.localeCompare(b.id));

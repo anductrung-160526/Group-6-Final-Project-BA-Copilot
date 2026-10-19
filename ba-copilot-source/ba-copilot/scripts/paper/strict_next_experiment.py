@@ -37,6 +37,8 @@ ap.add_argument("--eval-test", action="store_true", help="chấm TEST (và test-
 ap.add_argument("--data")
 ap.add_argument("--kind", default="recursive", choices=["recursive", "pointer", "vanilla"])
 ap.add_argument("--w2", action="store_true", help="nhúng độ rộng (ngoài bài báo)")
+ap.add_argument("--init", help="trọng số khởi tạo (.pt của strict_next_experiment) – tinh chỉnh sau tiền huấn luyện, ngoài bài báo")
+ap.add_argument("--dropout", type=float, default=0.1, help="dropout của Recursive/Pointer (mặc định 0.1 như trước)")
 ap.add_argument("--no-pos", action="store_true", help="KHÔNG cộng embedding vị trí trong chuỗi – đúng bài báo (Eq.4–5); các lần chạy "
                 "Giai đoạn A/B trước đó dùng mặc định cũ (có cộng vị trí, ngoài bài báo)")
 ap.add_argument("--grid", default="128,256:2,4")
@@ -119,7 +121,7 @@ if a.eval_only:  # nạp trọng số và kết quả chọn cấu hình đã c�
     elif a.kind == "pointer":
         m = T.Pointer(d, L, use_pos=not a.no_pos)
     else:
-        m = T.Recursive(d, L, n_widths=n_w, use_pos=not a.no_pos)
+        m = T.Recursive(d, L, n_widths=n_w, use_pos=not a.no_pos, drop=a.dropout)
     m.load_state_dict(ck["state"])
     m.eval()
     if n_w:
@@ -133,7 +135,8 @@ for d in (map(int, ds.split(",")) if ds else []):
             m, vl, hist = V.train_one(train, val, d, L, a.epochs, a.patience, a.lr, a.seed)
             m.eval()
         else:
-            m, vl, hist = T.train_model(a.kind, train, val, d, L, a.epochs, a.patience, a.lr, a.seed, n_widths=n_w, use_pos=not a.no_pos)
+            m, vl, hist = T.train_model(a.kind, train, val, d, L, a.epochs, a.patience, a.lr, a.seed, n_widths=n_w, use_pos=not a.no_pos, drop=a.dropout,
+                                        init_state=torch.load(a.init)['state'] if a.init else None)
         if n_w:
             m.test_w = WIDTHS.index(1280)
         cands.append({"d": d, "layers": L, "val_loss": round(vl, 4), "val_loss_1280": round(val_loss(m, val1280), 4),
@@ -158,7 +161,7 @@ def completer(constrain):
 
 orders = ("dfs",) if a.kind == "vanilla" else ("bfs", "dfs")
 decodes = {"free": False, "constrained": True} if a.kind == "recursive" else {"free": False}
-res = {"data": a.data, "kind": a.kind, "w2": a.w2, "use_pos": not a.no_pos, "seed": a.seed, "train_frac": a.train_frac, "grid": {"gx": V.GX, "gy": V.GY, "cell_px": CELL},
+res = {"data": a.data, "kind": a.kind, "w2": a.w2, "use_pos": not a.no_pos, "dropout": a.dropout, "init": a.init, "lr": a.lr, "seed": a.seed, "train_frac": a.train_frac, "grid": {"gx": V.GX, "gy": V.GY, "cell_px": CELL},
        "sizes": {"train": len(train), "train_roots": len({r["rootId"] for r in train}), "val": len(val), "val1280": len(val1280), "test": len(test), "test_new": len(test_new)},
        "candidates": [{k: v for k, v in c.items() if k != "_m"} for c in cands], "chosen": {k: v for k, v in best.items() if k != "_m"}, "eval": {}}
 for name, con in decodes.items():
