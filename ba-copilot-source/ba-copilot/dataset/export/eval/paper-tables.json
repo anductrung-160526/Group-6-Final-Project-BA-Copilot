@@ -1,0 +1,105 @@
+{
+ "models": {
+  "vanilla": {
+   "chosen": {
+    "d": 256,
+    "layers": 4,
+    "val_loss": 3.343,
+    "params": 3489570
+   },
+   "search": [
+    {
+     "d": 128,
+     "layers": 2,
+     "val_loss": 3.4187,
+     "epochs": 13,
+     "params": 562210,
+     "seconds": 113.1
+    },
+    {
+     "d": 128,
+     "layers": 4,
+     "val_loss": 3.4632,
+     "epochs": 13,
+     "params": 958754,
+     "seconds": 199.6
+    },
+    {
+     "d": 256,
+     "layers": 2,
+     "val_loss": 3.3486,
+     "epochs": 11,
+     "params": 1910050,
+     "seconds": 162.3
+    },
+    {
+     "d": 256,
+     "layers": 4,
+     "val_loss": 3.343,
+     "epochs": 10,
+     "params": 3489570,
+     "seconds": 293.4
+    }
+   ],
+   "test": {
+    "DFS 10%": {
+     "n": 62,
+     "next_strict": 3.23,
+     "next_relaxed": 54.84,
+     "next_top3": 74.19,
+     "f1_strict": 9.01,
+     "f1_relaxed": 25.57,
+     "edit_strict": 96.14,
+     "edit_relaxed": 76.42,
+     "none_f1_strict": 15.02,
+     "none_f1_relaxed": 15.02,
+     "none_edit_strict": 109.96,
+     "none_edit_relaxed": 109.96,
+     "seconds": 0.204
+    },
+    "DFS 50%": {
+     "n": 62,
+     "next_strict": 4.84,
+     "next_relaxed": 33.87,
+     "next_top3": 56.45,
+     "f1_strict": 51.41,
+     "f1_relaxed": 59.34,
+     "edit_strict": 55.55,
+     "edit_relaxed": 45.1,
+     "none_f1_strict": 65.72,
+     "none_f1_relaxed": 65.72,
+     "none_edit_strict": 60.93,
+     "none_edit_relaxed": 60.93,
+     "seconds": 0.139
+    },
+    "DFS 80%": {
+     "n": 62,
+     "next_strict": 0.0,
+     "next_relaxed": 17.74,
+     "next_top3": 41.94,
+     "f1_strict": 78.38,
+     "f1_relaxed": 82.44,
+     "edit_strict": 23.67,
+     "edit_relaxed": 20.38,
+     "none_f1_strict": 87.77,
+     "none_f1_relaxed": 87.77,
+     "none_edit_strict": 25.66,
+     "none_edit_relaxed": 25.66,
+     "seconds": 0.11
+    }
+   },
+   "seconds": 798.0
+  }
+ },
+ "dataDir": "data/paper-s701515",
+ "data": {
+  "train": 1939,
+  "val": 420,
+  "test": 62,
+  "roots": {
+   "train": 277,
+   "val": 60,
+   "test": 62
+  }
+ }
+}
