@@ -1,18 +1,30 @@
 """Xuất Recursive (model/recursive-layout.pt) sang JSON cho suy luận TypeScript (shared/recursive.ts) + mẫu đối chiếu số học.
 Mẫu đối chiếu: 3 cây test, mỗi cây lấy tiền tố DFS 50%; với mọi container đã có, sinh tham lam tối đa 6 con (đúng predictChildren).
-Dùng: python3 scripts/paper/export_recursive.py"""
+Dùng: python3 scripts/paper/export_recursive.py
+      python3 scripts/paper/export_recursive.py --result dataset/export/eval/strict-next/G2W0-recursive-r500-s42.json
+        (mô hình của thí nghiệm Next chặt: trọng số ở <data>/models/, lưới gx/gy/cellY đọc từ <data>/stats.json)"""
 import base64, json, os, sys, time
+RESULT = next((sys.argv[i + 1] for i, a in enumerate(sys.argv) if a == "--result"), None)
+if RESULT:
+    _r = json.load(open(RESULT))
+    _st = json.load(open(os.path.join(_r["data"], "stats.json")))
+    os.environ["PAPER_GX"], os.environ["PAPER_GY"] = str(_st["gx"]), str(_st["gy"])  # trước khi import tree_decoders
 import torch
 sys.path.insert(0, os.path.dirname(__file__))
 import tree_decoders as T  # noqa: E402
 import vanilla as V  # noqa: E402
 
-info = json.load(open("dataset/export/eval/recursive-faithful.json"))
-d, L = info["chosen"]["d"], info["chosen"]["layers"]
+if RESULT:
+    info = {"chosen": _r["chosen"], "data": _r["data"]}
+    ck = torch.load(os.path.join(_r["data"], "models", os.path.basename(RESULT).replace(".json", ".pt")))
+    d, L, state, cell_y = ck["d"], ck["layers"], ck["state"], _st["cellY"]
+else:
+    info = json.load(open("dataset/export/eval/recursive-faithful.json"))
+    d, L, state, cell_y = info["chosen"]["d"], info["chosen"]["layers"], torch.load("model/recursive-layout.pt"), 20
 m = T.Recursive(d, L, use_pos=False)
-m.load_state_dict(torch.load("model/recursive-layout.pt"))
+m.load_state_dict(state)
 m.eval()
-cfg = {"d": d, "layers": L, "heads": 4, "gx": T.GX, "gy": T.GY, "cellY": 20, "nTypes": T.N_TYPES, "maxLen": m.max_len}
+cfg = {"d": d, "layers": L, "heads": 4, "gx": T.GX, "gy": T.GY, "cellY": cell_y, "nTypes": T.N_TYPES, "maxLen": m.max_len}
 tensors = {k: {"shape": list(v.shape), "b64": base64.b64encode(v.detach().float().contiguous().numpy().astype("<f4").tobytes()).decode()} for k, v in m.state_dict().items()}
 train = [json.loads(l) for l in open(f"{info['data']}/train.jsonl")]
 meta = {"builtAt": time.strftime("%Y-%m-%dT%H:%M:%S"), "method": "Recursive Transformer Tree Decoder (Li et al. 2020, §4.4)", "trees": len(train),
