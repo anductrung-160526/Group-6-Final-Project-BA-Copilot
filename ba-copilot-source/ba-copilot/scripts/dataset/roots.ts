@@ -32,3 +32,23 @@ export function loadRoots(): { items: RootItem[]; version: string } {
   items.sort((a, b) => a.id.localeCompare(b.id));
   return { items, version: hash.digest("hex").slice(0, 10) };
 }
+
+let SPLIT: Map<string, "train" | "val" | "test"> | null = null;
+/**
+ * Chia theo màn gốc, phân tầng theo nhóm màn: trong mỗi nhóm, sắp các màn theo băm SHA-1 của id rồi cắt
+ * 70% train / 15% val / 15% test (làm tròn). Cố định, tái lập được; mọi biến thể và độ rộng của một màn cùng tập.
+ */
+export function splitOf(rootId: string): "train" | "val" | "test" {
+  if (!SPLIT) {
+    SPLIT = new Map();
+    const h = (id: string) => createHash("sha1").update(id).digest("hex");
+    const groups = new Map<string, string[]>();
+    for (const r of loadRoots().items) groups.set(r.group, [...(groups.get(r.group) ?? []), r.id]);
+    for (const ids of groups.values()) {
+      ids.sort((a, b) => h(a).localeCompare(h(b)));
+      const nTr = Math.round(ids.length * 0.7), nVa = Math.round(ids.length * 0.15);
+      ids.forEach((id, i) => SPLIT!.set(id, i < nTr ? "train" : i < nTr + nVa ? "val" : "test"));
+    }
+  }
+  return SPLIT.get(rootId) ?? "train";
+}

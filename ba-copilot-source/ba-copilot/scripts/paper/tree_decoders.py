@@ -51,6 +51,16 @@ def order_nodes(tree, order):
     return out
 
 
+def shuffle_tree(tree, rnd):
+    """Bản sao cây với thứ tự anh em xáo trộn ở mọi tầng ("random spatial ordering", Table 3 của bài báo)."""
+    m = {"c": tree["c"], "t": tree["t"], "b": list(tree["b"])}
+    ch = [shuffle_tree(c, rnd) for c in kids(tree)]
+    rnd.shuffle(ch)
+    if ch:
+        m["k"] = ch
+    return m
+
+
 def prefix_tree(tree, k, order):
     keep = {id(n) for n in order_nodes(tree, order)[:k]}
 
@@ -132,9 +142,9 @@ def pick(out, b, i, banned=()):
 
 # ------------------------------------------------------------------ Pointer
 class Pointer(nn.Module):
-    def __init__(self, d, layers, heads_=4, drop=0.1, max_len=128):
+    def __init__(self, d, layers, heads_=4, drop=0.1, max_len=128, use_pos=True):
         super().__init__()
-        self.emb = NodeEmb(d, max_len)
+        self.emb = NodeEmb(d, max_len, use_pos)
         layer = nn.TransformerEncoderLayer(d, heads_, 4 * d, drop, batch_first=True, norm_first=True, activation="gelu")
         self.dec = nn.TransformerEncoder(layer, layers, enable_nested_tensor=False)
         self.ln = nn.LayerNorm(d)
@@ -388,7 +398,11 @@ def strip_meta(t):
     return m
 
 
-def evaluate(complete, trees, orders=("bfs", "dfs"), fracs=(0.1, 0.5, 0.8)):
+def evaluate(complete, trees, orders=("bfs", "dfs"), fracs=(0.1, 0.5, 0.8), shuffle_seed=None):
+    """shuffle_seed: nếu có, mỗi cây test được xáo thứ tự anh em (cố định theo seed) trước khi lấy tiền tố – thiết lập Table 3.
+    Cây đúng để tính F1/Edit là chính cây đã xáo (thứ tự mà người thiết kế đã nhập)."""
+    if shuffle_seed is not None:
+        trees = [shuffle_tree(t, random.Random(shuffle_seed + i)) for i, t in enumerate(trees)]
     res = {}
     for order in orders:
         for f in fracs:
@@ -422,14 +436,17 @@ def evaluate(complete, trees, orders=("bfs", "dfs"), fracs=(0.1, 0.5, 0.8)):
 
 
 # ------------------------------------------------------------------ huấn luyện
-def train_model(kind, train, val, d, layers, epochs, patience, lr, seed, batch=32, sigma=0.0, shuffle=False, use_pos=True):
+def train_model(kind, train, val, d, layers, epochs, patience, lr, seed, batch=32, sigma=0.0, shuffle=False, use_pos=True, orders=("bfs", "dfs")):
+    """orders: thứ tự duyệt dùng để duỗi chuỗi cho Pointer. shuffle: thứ tự anh em ngẫu nhiên (Table 3) – Recursive xáo trong lúc
+    tính loss; Pointer duỗi lại từ cây đã xáo ở mỗi epoch (val xáo cố định)."""
     torch.manual_seed(seed)
     rnd = random.Random(seed)
-    model = Pointer(d, layers) if kind == "pointer" else Recursive(d, layers, sigma=sigma, shuffle=shuffle, use_pos=use_pos)
+    model = Pointer(d, layers, use_pos=use_pos) if kind == "pointer" else Recursive(d, layers, sigma=sigma, shuffle=shuffle, use_pos=use_pos)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
     if kind == "pointer":
-        tr = [pointer_seq(r["tree"], o) for r in train for o in ("bfs", "dfs")]
-        va = [pointer_seq(r["tree"], o) for r in val for o in ("bfs", "dfs")]
+        vrnd = random.Random(seed + 1)
+        tr = [pointer_seq(r["tree"], o) for r in train for o in orders]
+        va = [pointer_seq(shuffle_tree(r["tree"], vrnd) if shuffle else r["tree"], o) for r in val for o in orders]
         lf = pointer_loss
     else:
         tr = [r["tree"] for r in train]
@@ -437,6 +454,8 @@ def train_model(kind, train, val, d, layers, epochs, patience, lr, seed, batch=3
         lf = recursive_loss
     best, best_state, bad, hist = 1e9, None, 0, []
     for ep in range(epochs):
+        if kind == "pointer" and shuffle:
+            tr = [pointer_seq(shuffle_tree(r["tree"], rnd), o) for r in train for o in orders]
         rnd.shuffle(tr)
         model.train()
         tot, nb = 0.0, 0

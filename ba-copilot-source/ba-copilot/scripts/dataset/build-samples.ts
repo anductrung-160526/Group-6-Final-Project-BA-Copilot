@@ -22,7 +22,7 @@ import { cloneTree, findParent, isContainer, UINode, walk } from "../../shared/d
 import { applyPatch } from "../../shared/patch.ts";
 import type { PatchOp } from "../../shared/patch.ts";
 import { rng } from "../build-next-model.ts";
-import { loadRoots, RootItem } from "./roots.ts";
+import { loadRoots, RootItem, splitOf } from "./roots.ts";
 
 const root = join(import.meta.dirname, "..", "..");
 const arg = (name: string, def: string) => {
@@ -58,10 +58,7 @@ const hasFunctional = (n: UINode) => {
   return f;
 };
 
-export function splitOf(rootId: string): Sample["split"] {
-  const h = parseInt(createHash("sha1").update(rootId).digest("hex").slice(0, 8), 16) % 10;
-  return h === 0 ? "test" : h === 1 ? "val" : "train";
-}
+export { splitOf } from "./roots.ts";
 
 /** Bỏ các node `ids` (kèm cây con) khỏi cây; trả cây thiếu và patch chèn lại đúng vị trí (thứ tự tăng dần theo index). */
 function removeWithPatch(tree: UINode, ids: string[]): { partial: UINode; patch: PatchOp[]; container: string } {
