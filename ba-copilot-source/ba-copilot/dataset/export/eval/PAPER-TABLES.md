@@ -96,3 +96,15 @@
 | recursive_rso | 256 | 4 | 4,477,984 | 3.5617 | 128×2: 3.5863, 128×4: 3.6729, 256×2: 3.6027, 256×4: 3.5617 |
 
 Tái lập: `python3 scripts/paper/reproduce_tables.py --data data/paper-s701515` (dữ liệu dựng bằng `scripts/paper/build-dataset.ts`, xem README).
+
+## Biến thể (thí nghiệm Next chặt, chia 80/10/10 – xem STRICT-NEXT.md)
+Các bảng trên dùng chia 70/15/15 nên **không so trực tiếp**. Recursive, test 38 màn cố định, giải mã tự do:
+
+| Biến thể (test 38 màn, 1280 px) | Next chặt | Đúng loại | ±1 ô | IoU ≥ 0,5 | F1 chặt | F1 nới lỏng | Edit (s) |
+|---|---|---|---|---|---|---|---|
+| G0 × W0, 400 màn (mốc) | 5,3 | 32,9 | 11,0 | 17,5 | 45,8 | 61,6 | 38,6 |
+| G2 × W0, 400 màn | 6,6 | 34,6 | 15,8 | 17,1 | 46,3 | 60,5 | 38,2 |
+| **G2 × W0, 500 màn (khuyến nghị)** | 11,0 | 37,3 | 24,6 | 27,2 | 48,8 | 62,9 | 40,8 |
+| Không gợi ý | – | – | – | – | 55,9 | 55,9 | 60,5 |
+
+Lưới G2 (32 × 40 px) dễ hơn G0 (128 × 20 px) nên Next chặt giữa hai lưới không cùng độ khó; so bằng IoU ≥ 0,5 (pixel).

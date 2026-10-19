@@ -126,3 +126,19 @@ shell) – kill theo PID; model/*.pt bị gitignore (bản 300 màn dựng lại
 8. Phân tích loại hiếm; thảo luận luật vs dữ liệu; người dùng quyết BỎ HẲN LUẬT, làm 4 đề xuất (khung mờ, gợi ý theo thao tác,
    Hoàn thành bố cục, đo KLM) + giải quyết loại hiếm bằng dữ liệu → làm xong (commits ec2b698, cd58ddb).
 9. Mẫu test, thử 9 mẫu hiếm, người dùng chạy thật trên Windows, phát hiện lỗi title của container (việc mở 6a).
+
+========================================================================
+9. CẬP NHẬT 19/10 – THÍ NGHIỆM NEXT CHẶT (dataset/export/eval/STRICT-NEXT.md)
+========================================================================
+- Một agent khác (phiên web session_014uriBs2aJLmCrJzZQSsRPM) đã làm dở nhiệm vụ với chia 70/15/15 và 400 màn R401–R800; người dùng
+  yêu cầu tiếp quản: đổi về CHIA 80/10/10 (splitOf phân tầng theo nhóm, màn R401+ chia riêng), CHỈ GIỮ 100 MÀN R401–R500;
+  300 màn R501–R800 chuyển sang dataset/extra/ (không nạp). PAPER-TABLES.md (70/15/15) của agent kia giữ nguyên, thêm mục "Biến thể".
+- Tập: 400 màn cũ 321/41/38 (test 38 cố định), màn mới 79/12/9 (test-mới 9). Script: scripts/paper/strict_next_experiment.py
+  (--only, --eval-only, --eval-test), scripts/paper/strict_next_stageB.sh; dữ liệu data/sn80-G{0,1,2}-w{7,1}[-r500].
+- Giai đoạn A dừng ở 7/9 tổ hợp theo yêu cầu (G1W2, G2W2 chưa có). Chọn theo val: G2W0 (lưới 32×40 px, 7 độ rộng).
+- Test (38 màn): mốc G0W0 400 màn Next chặt 5,3 · IoU 17,5; G2W0 500 màn (256×4) Next chặt 11,0 (3 seed 10,4 ± 1,4) · IoU 27,2.
+  W1 (chỉ 1280) và W2 (nhúng độ rộng) không giúp. Ở 400 màn, G2W0 tốt nhất trên val nhưng trên test G1W0 có IoU cao hơn (dao động).
+  Thêm màn gốc là yếu tố mạnh nhất (đường học chưa bão hòa). F1 của mô hình thấp hơn mốc "không gợi ý"; Edit tốt hơn.
+- CHƯA đưa mô hình mới vào app (model/recursive-layout.json vẫn là bản 400 màn lưới G0) – cần người dùng đồng ý.
+- Nhánh thử nghiệm: manh/c1-qus đã chứa htrung-c4-kho-tai-lieu; đã tạo LOCAL thu-nghiem/merge-c4-qus (= manh/c1-qus, 59/59 test)
+  trong worktree /home/user/db_ba_final/.wt-merge – CHƯA push, chờ người dùng.
