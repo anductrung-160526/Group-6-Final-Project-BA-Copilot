@@ -16,7 +16,7 @@ Người cập nhật: **A0**. Mỗi agent dán kết quả `npm test` / `npm ru
 | A7 | Tự cập nhật trạng thái task | 2 | `agent/a7-tu-cap-nhat` (`ec8abaa`) | ✅ Đã gộp vào `v2-features`. FN-20 → FN-23 đạt trên app thật (R-011) | 88/88 ✅ | ✅ | Xem nhật ký đợt 2 – A7 và A0 |
 | A8 | Chất lượng yêu cầu (QUS) | 2 | `agent/a8-qus` (`7c59ab1`) | ✅ Đã gộp vào `v2-features`. FN-50 → FN-56 đạt (R-020 → R-023 xong) | 75/75 ✅ | ✅ | Xem nhật ký đợt 2 – A8 và A0 |
 | A9 | Gợi ý màn tiếp theo | 2 | `agent/a9-goi-y` (`addfdb9`) | ✅ Đã gộp vào `v2-features`. FN-57 → FN-61 đạt; R-012 xong | 70/70 ✅ | ✅ | Xem nhật ký đợt 2 – A9 và A0 |
-| A10 | Dữ liệu demo | 3 | `agent/a10-seed` | ⏳ Chờ đợt 2 | — | — | |
+| A10 | Dữ liệu demo | 3 | `agent/a10-seed` (`b6ee7cd`) | ✅ Đã gộp vào `v2-demo`. Seed chạy trọn trên bản gộp thật: điểm QUS hiện ở trang dự án (100 / 75), 4 tệp tên tiếng Việt tải và xem trước được | 66/66 ✅ | ✅ | Chỉ sửa `scripts/seed.ts`. Xem nhật ký đợt 3 – A10 |
 | A11 | Kiểm thử E2E & QA | 3 | `agent/a11-e2e` | ⏳ Chờ A10 | — | — | |
 | A12 | Tài liệu & Triển khai | 3, 4 | `agent/a12-trien-khai` | ⏳ Chờ A11 | — | — | |
 
@@ -448,3 +448,44 @@ Lưu ý: lần chạy đầu `npm test` và `tsc` bị hết bộ nhớ vì máy
 - Khối "Công việc liên quan" ở cột trái Design Studio dính sát mép (không có lớp đệm cho cột hẹp). A1 xem có cần khung riêng.
 - Tuỳ chọn của A7: `taskAutomation.ts` vẫn tự viết SQL thay vì gọi `setTaskStatus`/`listTasksByArtifact` của A6. Chạy đúng, test xanh.
 - A1 xem lại R-008, R-010, R-012, R-023 (A0 đã làm thay theo đúng đề xuất).
+
+---
+
+## Nhật ký đợt 3 – A10 (2026-10-20)
+
+**Nhánh:** `agent/a10-seed`, tạo từ `v2-contract` @ `1aabff2`. Chỉ sửa `scripts/seed.ts`.
+
+### Dữ liệu `npm run seed` tạo ra
+
+| Mục | Nội dung |
+|---|---|
+| Thành viên (5) | Nguyễn Thị Lan (**BA Lead**), Trần Minh Đức, Lê Hoàng Anh, Phạm Thu Hà, Vũ Quang Huy – mã `demo-mem-*` |
+| Dự án, module | `demo-shop` "Cửa hàng điện tử (mẫu)"; `demo-mod-products` "Quản lý sản phẩm", `demo-mod-orders` "Quản lý đơn hàng" |
+| QUS | Sản phẩm: 5 story tốt → **100 (Tốt)**. Đơn hàng: 6 story trộn tốt/lỗi (ATOMIC + NO_END, WELL_FORMED + AMBIGUOUS, FULL_SENTENCE, DUPLICATE, MINIMAL) → **75 (Khá)**, 2 story dưới 60. Điểm lưu sẵn ở `modules.qus_score` (FN-56), chấm như A8 (kèm story module khác) |
+| Màn hình | Đã duyệt: Quản lý sản phẩm, Thêm sản phẩm, Quản lý danh mục. Nháp: **Đăng nhập** có link "Quên mật khẩu?" trỏ tới màn chưa có → gợi ý link gãy. Có 1 bình luận của BA Lead trên link đó. Phiên bản và bình luận có `author`/`author_id` (FN-03) |
+| Tài liệu, test | Sinh từ 3 màn đã duyệt; tài liệu **Đã duyệt**, test **Lỗi thời** (khớp task "Cần làm lại") |
+| Gợi ý màn | Sản phẩm: còn đúng 1 gợi ý "Quên mật khẩu" (link gãy). Các gợi ý FR (chủ yếu FR kiểm tra dữ liệu) đã ở danh sách Bỏ qua (`suggestion_dismissals`) để demo Khôi phục. Đơn hàng: 6 gợi ý theo story (chưa có FR) |
+| Sơ đồ UC | Module Sản phẩm, **Đã duyệt**. Có A5 thì dùng `buildUcMermaid` (kèm `%% nguon-uc`), chưa có thì vẽ bản tối giản cùng quy ước. Không task nào gắn vào sơ đồ, để luồng demo A11 tự tạo task "Vẽ UC diagram" |
+| Kho tài liệu (4) | Biên bản họp kickoff.docx (cấp dự án), Yêu cầu nghiệp vụ đơn hàng.pdf, Phác thảo màn đăng nhập.png, Danh sách sản phẩm mẫu.xlsx; đủ người gửi, ngày nhận, ghi chú, người tải lên (FN-05). Tệp thật, mở được |
+| Công việc (8) | Cần làm 2, Đang làm 2, Xong 2, Cần làm lại 2; gắn màn / tài liệu / test, có hạn, ưu tiên, 20 dòng lịch sử (người đổi và hệ thống tự đổi kèm lý do) |
+
+**Chạy lại nhiều lần:** dữ liệu demo dùng mã cố định. Lần chạy sau xoá dự án `demo-shop` cũ (và dự án cùng tên do seed bản cũ tạo), xoá tệp trên đĩa, `prompt_runs`, `suggestion_events` của nó, rồi tạo lại. Thành viên demo ghi đè theo mã. Dự án và thành viên khác không bị đụng. Mặc định chạy chế độ Mock để dữ liệu luôn giống nhau; `SEED_AI=claude` để sinh màn bằng Claude.
+
+### Kiểm tra (Node v24.16.0)
+
+| Lệnh | Kết quả |
+|---|---|
+| `npm test` | ✅ `tests 66 · pass 66 · fail 0`, `duration_ms 14658` |
+| `npm run build` | ✅ `public/app.js 334.2kb`, `public/app-style.css 41.2kb`, `Done` |
+| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+| `npm run seed` ×3 trên DB mới (`v2-contract`) | ✅ Lần sau báo "Đã xoá 1 dự án demo cũ", số dòng giữ nguyên: 1 dự án, 2 module, 4 màn, 5 thành viên, 4 tệp (4 tệp trên đĩa), 8 task, 20 lịch sử, 1 sơ đồ |
+| Bản gộp thử (không commit): `v2-contract` + A8, A4, R-005, A3, A6, A7, A5, A9 + seed | ✅ Seed chạy 2 lần. API: `/api/members` 5, `/api/projects/demo-shop/tasks` 8 đủ 4 cột, `/files` 4 tệp đủ thông tin, tải về cả 4 tệp tên tiếng Việt → 200, sơ đồ `approved`, gợi ý chỉ còn "Quên mật khẩu" (7 đã bỏ qua). Mở bằng Chrome: dự án, Công việc, Kho tài liệu, Thành viên, Thiết kế, Sơ đồ UC (vẽ được), module Đơn hàng – 0 lỗi console |
+
+`public/app.js`, `public/app-style.css` **không** commit (sản phẩm build).
+
+### Lưu ý cho A0 khi gộp
+
+- Gộp A10 **sau** toàn bộ đợt 2 và **sau R-005** (`agent/a2-r005-file-response`). Chưa có R-005 thì tải về tệp tên tiếng Việt lỗi 500 `ERR_INVALID_CHAR` (đã thử trên `v2-contract`).
+- Kho tài liệu của A4 không nhận `.csv`, nên tệp mẫu thứ 4 là `.xlsx`.
+- `GET /api/projects/:id` chưa trả `qusScore` trên bản gộp thử (chờ điểm chèn FN-56 của A8). Seed đã ghi sẵn `modules.qus_score`, chèn xong là hiện.
+- **Phát hiện cho A9 (không sửa, ngoài phạm vi):** với tài liệu sinh từ màn đã duyệt, `suggestNextScreens` coi FR kiểm tra dữ liệu ("Hệ thống phải kiểm tra: Tên sản phẩm là bắt buộc") và FR "Mở màn hình thêm mới (…)" là chưa có màn phủ, sinh 7 gợi ý vô nghĩa ở module Sản phẩm (cả bản trên `v2-contract` lẫn `agent/a9-goi-y`). Ngoài ra gợi ý trùng tên rút gọn bị gộp, nên bỏ qua một FR thì FR cùng tên hiện tiếp. Seed tạm đưa các gợi ý này vào danh sách Bỏ qua.
