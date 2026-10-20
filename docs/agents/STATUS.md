@@ -489,3 +489,29 @@ Lưu ý: lần chạy đầu `npm test` và `tsc` bị hết bộ nhớ vì máy
 - Kho tài liệu của A4 không nhận `.csv`, nên tệp mẫu thứ 4 là `.xlsx`.
 - `GET /api/projects/:id` chưa trả `qusScore` trên bản gộp thử (chờ điểm chèn FN-56 của A8). Seed đã ghi sẵn `modules.qus_score`, chèn xong là hiện.
 - **Phát hiện cho A9 (không sửa, ngoài phạm vi):** với tài liệu sinh từ màn đã duyệt, `suggestNextScreens` coi FR kiểm tra dữ liệu ("Hệ thống phải kiểm tra: Tên sản phẩm là bắt buộc") và FR "Mở màn hình thêm mới (…)" là chưa có màn phủ, sinh 7 gợi ý vô nghĩa ở module Sản phẩm (cả bản trên `v2-contract` lẫn `agent/a9-goi-y`). Ngoài ra gợi ý trùng tên rút gọn bị gộp, nên bỏ qua một FR thì FR cùng tên hiện tiếp. Seed tạm đưa các gợi ý này vào danh sách Bỏ qua.
+---
+
+## Nhật ký đợt 3 – A11 (2026-10-20)
+
+**Nhánh:** `agent/a11-e2e`, tạo từ `v2-contract` @ `1aabff2`. Chỉ thêm `e2e/demo-flow.mjs`, `docs/agents/QA_REPORT.md` và dòng/nhật ký này.
+
+`v2-features` chưa có, A10 chưa chạy → A11 kiểm thử trên **bản gộp tạm** (worktree `E:/wt-a11-int`, không đẩy lên): `v2-contract` + `a2-r005` → A8 → A4 → A3 → A6 → A7 → A5 → A9, xung đột duy nhất ở `client/routes.ts`, rồi mô phỏng điểm chèn A0 R-005, R-011 và `actorId` của `TasksView`. Chi tiết và danh sách lỗi Q-01 → Q-13: `docs/agents/QA_REPORT.md`.
+
+### Kiểm tra (Node v24.16.0)
+
+| Lệnh | Nhánh `agent/a11-e2e` | Bản gộp tạm đợt 2 |
+|---|---|---|
+| `npm test` | ✅ `tests 66 · pass 66 · fail 0`, `duration_ms 16456` | ✅ `tests 143 · pass 143 · fail 0`, `duration_ms 20385` |
+| `npm run build` | ✅ `public/app.js 334.2kb`, `public/app-style.css 41.2kb`, `Done` | ✅ `public/app.js 363.2kb`, `public/app-style.css 41.7kb`, `Done` |
+| `npx tsc --noEmit` | ✅ | ✅ |
+| `node e2e/demo-flow.mjs` | – (tính năng đợt 2 chưa có trên nhánh này) | ❌ khi chưa chèn R-005 (Q-01) · ✅ **27/27**, 0 lỗi JavaScript khi có R-005 + R-011 |
+| `node e2e/e2e.mjs` (hồi quy) | – | ✅ 18/18 (`E2E_BASE` + `CHROME_PATH`; `npm run e2e` hỏng trên Windows – Q-12) |
+
+### Điểm A0 cần chèn khi gộp (để E2E xanh)
+
+1. **R-005** – `client/main.tsx`: thay header cũ bằng `<TopBar />` (Q-01, Cao).
+2. **R-011** – `server/app.ts`: `registerTaskAutomation()` đầu `createApp()` (Q-02, Cao).
+3. `client/views/TasksView.tsx`: `currentActorId` → `currentMemberId()` (điểm chèn A6).
+4. Xung đột `client/routes.ts`: giữ cả 3 import và 3 dòng `TasksView`, `FilesView`, `MembersView`.
+5. Sau khi gộp: `npm run build && node e2e/demo-flow.mjs`.
+
