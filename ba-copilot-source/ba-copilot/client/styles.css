@@ -102,6 +102,9 @@
   --z-busy: 60;
   --z-toast: 70;
   --topbar-h: 52px;
+  --drawer-w: 40vw; /* ngăn phải rộng 40% màn hình (quyết định đợt 5) */
+  --drawer-min-w: 360px;
+  --side-nav-indent: var(--space-5); /* thụt lề mỗi cấp của SideNav */
 
   /* ---- Tên cũ (giữ để mã của agent khác không vỡ) – không dùng cho mã mới ---- */
   --bg: var(--color-bg);
@@ -2020,17 +2023,21 @@ select:focus {
   display: flex;
   justify-content: flex-end;
 }
+/* Rộng 40% màn hình, tối thiểu 360px; ≤ 768px phủ hết chiều ngang (xem @media cuối khối) */
 .drawer {
   background: var(--color-surface);
-  width: min(var(--drawer-w, 480px), 100%);
+  width: max(var(--drawer-min-w), var(--drawer-w));
+  max-width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-lg);
   animation: drawer-in 0.18s ease-out;
 }
-.drawer-lg {
-  --drawer-w: 720px;
+@media (max-width: 768px) {
+  .drawer {
+    width: 100%;
+  }
 }
 @keyframes drawer-in {
   from {
@@ -2144,8 +2151,8 @@ select:focus {
   cursor: not-allowed;
 }
 .filedrop-icon {
-  font-size: 22px;
-  line-height: 1;
+  display: inline-flex;
+  color: var(--color-muted);
 }
 .filedrop-title {
   font-weight: var(--font-weight-semibold);
@@ -2301,6 +2308,187 @@ select:focus {
   margin-top: var(--space-1);
 }
 
+/* =========================================================================
+   Component đợt 5 (C1): Icon, IconBtn, RowActions, SideNav, ApprovalBar, ConflictNotice
+   ========================================================================= */
+
+/* Icon (Lucide) – màu theo currentColor, không co lại trong flex */
+.icon {
+  flex: none;
+}
+.btn .icon,
+.badge .icon {
+  margin: 0 calc(-1 * var(--space-0-5));
+}
+
+/* IconBtn – nút vuông chỉ có icon (Sửa, Xoá, Đóng, mở/thu…) */
+.icon-action {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  padding: var(--space-1-5);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+  line-height: 0;
+}
+.icon-action:hover {
+  background: var(--color-hover);
+  color: var(--color-strong);
+}
+.icon-action:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+.icon-action-danger {
+  color: var(--color-danger);
+}
+.icon-action-danger:hover {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+.icon-action:disabled {
+  background: transparent;
+  color: var(--color-border-strong);
+  cursor: not-allowed;
+}
+
+/* RowActions – cột cuối bảng (icon) hoặc chân ngăn phải (nút chữ) */
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-0-5);
+  white-space: nowrap;
+}
+.row-actions-buttons {
+  gap: var(--space-2);
+}
+.tbl td.actions,
+.tbl th.actions {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+.tbl td.actions {
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
+}
+
+/* SideNav – menu trái nhiều cấp (dùng lại .side-nav-item ở trên) */
+.side-nav {
+  background: var(--color-surface);
+}
+.side-nav-header {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+.side-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.side-nav-list[hidden] {
+  display: none;
+}
+.side-nav .side-nav-item {
+  width: 100%;
+  min-width: 0;
+  padding-left: calc(var(--space-3) + var(--depth, 0) * var(--side-nav-indent));
+  color: var(--color-body);
+}
+.side-nav .side-nav-item.active {
+  color: var(--color-accent-strong);
+}
+.side-nav-item.has-active {
+  color: var(--color-strong);
+  font-weight: var(--font-weight-semibold);
+}
+.side-nav-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.side-nav-caret {
+  color: var(--color-muted);
+}
+.side-nav-row {
+  display: flex;
+  align-items: center;
+}
+.side-nav-row > .side-nav-item {
+  flex: 1;
+}
+.side-nav-row > .icon-action {
+  margin-right: var(--space-1);
+}
+.side-nav-step {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--space-5);
+  height: var(--space-5);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+.side-nav-item.active .side-nav-step {
+  border-color: var(--color-accent);
+  color: var(--color-accent-strong);
+}
+
+/* ApprovalBar – trạng thái + Xong / Duyệt / Yêu cầu sửa */
+.approval-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.approval-state,
+.approval-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.approval-actions {
+  margin-left: auto;
+}
+
+/* Notice – thông báo nằm trong trang (ConflictNotice) */
+.notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+.notice-text {
+  flex: 1;
+  min-width: 0;
+}
+.notice-warn {
+  background: var(--color-warning-soft);
+  border-color: var(--color-warning-border);
+  color: var(--color-warning);
+}
+
 /* Gallery (#/_gallery) */
 .gallery {
   display: flex;
@@ -2352,6 +2540,28 @@ select:focus {
 }
 .type-row > * {
   margin: 0;
+}
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: var(--space-2);
+}
+.icon-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1-5) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-body);
+  font-size: var(--font-size-small);
+}
+.gallery-panel {
+  width: min(280px, 100%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 @media (max-width: 640px) {
   .type-row {

@@ -1,6 +1,103 @@
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from "react";
+// Chỉ import đích danh từng icon (esbuild bỏ phần còn lại khi đóng gói). Thêm icon mới: thêm vào đây + ICONS bên dưới.
+import {
+  ArrowDown,
+  ArrowRight,
+  ArrowUp,
+  BadgeCheck,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  ChevronUp,
+  CircleCheck,
+  Crosshair,
+  Ellipsis,
+  ExternalLink,
+  Folder,
+  GitBranch,
+  History,
+  LayoutGrid,
+  Lock,
+  LogOut,
+  Pencil,
+  Play,
+  Plus,
+  RefreshCw,
+  RotateCcw,
+  Settings,
+  Sparkles,
+  Trash2,
+  Upload,
+  User,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 
 // Bộ component dùng chung của BA Copilot. Quy tắc dùng: docs/design-system.md. Xem trực quan: #/_gallery.
+
+// ---------------------------------------------------------------- Icon (Lucide)
+/** Bảng tên dùng chung → icon Lucide. Màn hình chỉ gọi theo tên ở đây, không import lucide-react trực tiếp. */
+const ICONS = {
+  edit: Pencil,
+  delete: Trash2,
+  folder: Folder,
+  ai: Sparkles,
+  check: Check,
+  approve: BadgeCheck,
+  revision: RotateCcw,
+  done: CircleCheck,
+  reload: RefreshCw,
+  arrowRight: ArrowRight,
+  chevronDown: ChevronDown,
+  chevronRight: ChevronRight,
+  chevronUp: ChevronUp,
+  more: Ellipsis,
+  up: ArrowUp,
+  down: ArrowDown,
+  external: ExternalLink,
+  play: Play,
+  grid: LayoutGrid,
+  upload: Upload,
+  target: Crosshair,
+  github: GitBranch, // Lucide 1.x đã bỏ icon thương hiệu (Github) → dùng GitBranch
+  plus: Plus,
+  close: X,
+  user: User,
+  logout: LogOut,
+  settings: Settings,
+  history: History,
+  lock: Lock,
+} satisfies Record<string, LucideIcon>;
+export type IconName = keyof typeof ICONS;
+export const ICON_NAMES = Object.keys(ICONS) as IconName[];
+const ICON_SIZE = { xs: 12, sm: 14, md: 16, lg: 20 } as const;
+export type IconSize = keyof typeof ICON_SIZE;
+
+/**
+ * Icon Lucide theo tên dùng chung. Màu kế thừa `currentColor` (đặt màu ở phần tử cha).
+ * `label` chỉ truyền khi icon đứng một mình mang nghĩa; icon đi kèm chữ thì bỏ trống (ẩn với trình đọc màn hình).
+ */
+export function Icon({ name, size = "md", label, className = "" }: { name: IconName; size?: IconSize | number; label?: string; className?: string }) {
+  const C = ICONS[name];
+  const px = typeof size === "number" ? size : ICON_SIZE[size];
+  return <C size={px} strokeWidth={2} className={`icon ${className}`} aria-hidden={label ? undefined : true} aria-label={label} role={label ? "img" : undefined} focusable="false" />;
+}
+
+/** Nút chỉ có icon (vuông, nền trong suốt). Bắt buộc có `label` → dùng làm `title` (tooltip) và `aria-label`. */
+export function IconBtn({
+  icon,
+  label,
+  tone = "default",
+  size = "md",
+  className = "",
+  ...rest
+}: Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "children"> & { icon: IconName; label: string; tone?: "default" | "danger"; size?: IconSize }) {
+  return (
+    <button type="button" {...rest} title={rest.title ?? label} aria-label={label} className={`icon-action ${tone === "danger" ? "icon-action-danger" : ""} ${className}`}>
+      <Icon name={icon} size={size} />
+    </button>
+  );
+}
 
 // ---------------------------------------------------------------- Toast + busy overlay
 export type ToastKind = "ok" | "err" | "info";
@@ -119,18 +216,208 @@ export function Btn(props: React.ButtonHTMLAttributes<HTMLButtonElement> & { kin
   return <button {...rest} className={`btn btn-${kind} btn-${size} ${className}`} />;
 }
 
-const STATUS: Record<string, [string, string]> = {
+const STATUS: Record<string, [string, BadgeTone]> = {
+  // Sản phẩm BA (ArtifactStatus)
   none: ["Chưa có", "gray"],
   draft: ["Bản nháp", "blue"],
+  done: ["Xong", "orange"], // chờ BA Lead duyệt – dùng chung cho task "done"
   approved: ["Đã duyệt", "green"],
   outdated: ["Lỗi thời", "amber"],
+  // Công việc (TaskStatus)
+  todo: ["Cần làm", "gray"],
+  doing: ["Đang làm", "blue"],
+  // Bình luận
   open: ["Mở", "blue"],
   sent: ["Đã gửi AI", "violet"],
   resolved: ["Đã xử lý", "green"],
 };
-export function StatusBadge({ status }: { status: string }) {
+/** Nhãn trạng thái tiếng Việt cho sản phẩm BA, công việc và bình luận. Trạng thái lạ → hiện nguyên mã, màu xám. */
+export function StatusBadge({ status, testId }: { status: string; testId?: string }) {
   const [label, tone] = STATUS[status] ?? [status, "gray"];
-  return <span className={`badge badge-${tone}`}>{label}</span>;
+  return (
+    <span className={`badge badge-${tone}`} data-testid={testId} data-status={status}>
+      {label}
+    </span>
+  );
+}
+
+/** Tag "Yêu cầu sửa" – hiện khi BA Lead trả task về (cờ `revisionRequested`), giữ tới khi Duyệt. */
+export function RevisionTag({ testId = "revision-tag" }: { testId?: string }) {
+  return (
+    <span className="badge badge-red" data-testid={testId}>
+      <Icon name="revision" size="xs" />
+      Yêu cầu sửa
+    </span>
+  );
+}
+
+/** "Đang được sửa bởi …" – người khác đang mở cùng màn/tài liệu. Danh sách rỗng thì không hiện gì. */
+export function EditingBadge({ names, max = 2, testId = "editing-badge" }: { names: string[]; max?: number; testId?: string }) {
+  const list = [...new Set(names.filter(Boolean))];
+  if (!list.length) return null;
+  const rest = list.length - max;
+  return (
+    <span className="badge badge-violet" title={list.join(", ")} data-testid={testId}>
+      <Icon name="edit" size="xs" />
+      Đang được sửa bởi {list.slice(0, max).join(", ")}
+      {rest > 0 ? ` và ${rest} người khác` : ""}
+    </span>
+  );
+}
+
+/** Báo lưu bị chặn vì bản đã đổi (HTTP 409). Đặt ngay trên vùng đang sửa; nút "Tải lại" lấy bản mới. */
+export function ConflictNotice({
+  onReload,
+  message = "Bản đã thay đổi – có người vừa sửa. Tải lại để xem bản mới.",
+  busy,
+  testId = "conflict-notice",
+}: {
+  onReload: () => void;
+  message?: React.ReactNode;
+  busy?: boolean;
+  testId?: string;
+}) {
+  return (
+    <div className="notice notice-warn" role="alert" data-testid={testId}>
+      <span className="notice-text">{message}</span>
+      <Btn size="sm" onClick={onReload} disabled={busy} data-testid={`${testId}-reload`}>
+        <Icon name="reload" size="sm" />
+        Tải lại
+      </Btn>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- Sửa / Xoá
+export interface DeleteConfirm {
+  title: string;
+  message?: React.ReactNode;
+  okLabel?: string;
+}
+/**
+ * Cặp hành động Sửa / Xoá cho một dòng hoặc một mục.
+ * - `variant="icons"` (mặc định): icon bút chì + thùng rác ở **cột cuối bảng / cuối dòng danh sách**.
+ * - `variant="buttons"`: nút chữ "Sửa" + nút danger "Xoá" – dùng trong **ngăn phải (Drawer)**, hộp thoại.
+ * Xoá luôn hỏi xác nhận (`useUI().confirm`, kiểu danger) rồi mới gọi `onDelete`. Cú bấm không lan lên dòng cha.
+ */
+export function RowActions({
+  onEdit,
+  onDelete,
+  deleteConfirm,
+  editLabel = "Sửa",
+  deleteLabel = "Xoá",
+  variant = "icons",
+  disabled,
+  testId,
+}: {
+  onEdit?: () => void;
+  onDelete?: () => void | Promise<unknown>;
+  deleteConfirm?: DeleteConfirm;
+  editLabel?: string;
+  deleteLabel?: string;
+  variant?: "icons" | "buttons";
+  disabled?: boolean;
+  testId?: string;
+}) {
+  const { confirm } = useUI();
+  const tid = (s: string) => (testId ? `${testId}-${s}` : `row-${s}`);
+  const edit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit?.();
+  };
+  const del = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!onDelete) return;
+    const c = deleteConfirm ?? { title: `${deleteLabel} mục này?` };
+    if (await confirm({ title: c.title, message: c.message, okLabel: c.okLabel ?? deleteLabel, danger: true })) await onDelete();
+  };
+  if (variant === "buttons")
+    return (
+      <span className="row-actions row-actions-buttons" data-testid={testId}>
+        {onEdit && (
+          <Btn onClick={edit} disabled={disabled} data-testid={tid("edit")}>
+            {editLabel}
+          </Btn>
+        )}
+        {onDelete && (
+          <Btn kind="danger" onClick={del} disabled={disabled} data-testid={tid("delete")}>
+            {deleteLabel}
+          </Btn>
+        )}
+      </span>
+    );
+  return (
+    <span className="row-actions" data-testid={testId} onClick={(e) => e.stopPropagation()}>
+      {onEdit && <IconBtn icon="edit" label={editLabel} onClick={edit} disabled={disabled} data-testid={tid("edit")} />}
+      {onDelete && <IconBtn icon="delete" label={deleteLabel} tone="danger" onClick={del} disabled={disabled} data-testid={tid("delete")} />}
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------- Thanh duyệt (Xong / Duyệt / Yêu cầu sửa)
+export type ApprovalStatus = "none" | "draft" | "done" | "approved" | "outdated";
+/**
+ * Thanh trạng thái + nút luồng duyệt, đặt ở đầu **mọi màn sản phẩm** và trong ngăn chi tiết task. Chỉ hiển thị, không gọi API.
+ * - "Xong" (mọi BA): khi `draft` / `outdated` và có `onDone`.
+ * - "Yêu cầu sửa" + "Duyệt": chỉ khi `isLead` và `status = "done"` (nút nào có handler mới hiện).
+ * `disabledReason` khoá mọi nút và hiện lý do (vd "Bước Tài liệu chưa Xong"). `busy` khoá nút khi đang gửi.
+ */
+export function ApprovalBar({
+  status,
+  revisionRequested,
+  isLead,
+  onDone,
+  onApprove,
+  onRequestChange,
+  busy,
+  disabledReason,
+  testId = "approval-bar",
+}: {
+  status: ApprovalStatus;
+  revisionRequested?: boolean;
+  isLead: boolean;
+  onDone?: () => void;
+  onApprove?: () => void;
+  onRequestChange?: () => void;
+  busy?: boolean;
+  disabledReason?: string;
+  testId?: string;
+}) {
+  const off = !!busy || !!disabledReason;
+  const canDone = (status === "draft" || status === "outdated") && !!onDone;
+  const canReview = isLead && status === "done" && !!(onApprove || onRequestChange);
+  return (
+    <div className="approval-bar" data-testid={testId} data-status={status}>
+      <span className="approval-state">
+        <span className="muted small">Trạng thái</span>
+        <StatusBadge status={status} testId={`${testId}-status`} />
+        {revisionRequested && <RevisionTag testId={`${testId}-revision`} />}
+      </span>
+      {(canDone || canReview) && (
+        <span className="approval-actions">
+          {disabledReason && <span className="muted small">{disabledReason}</span>}
+          {canDone && (
+            <Btn kind="primary" size="sm" onClick={onDone} disabled={off} title={disabledReason} data-testid={`${testId}-done`}>
+              <Icon name="done" size="sm" />
+              Xong
+            </Btn>
+          )}
+          {canReview && onRequestChange && (
+            <Btn size="sm" onClick={onRequestChange} disabled={off} title={disabledReason} data-testid={`${testId}-request-change`}>
+              <Icon name="revision" size="sm" />
+              Yêu cầu sửa
+            </Btn>
+          )}
+          {canReview && onApprove && (
+            <Btn kind="primary" size="sm" onClick={onApprove} disabled={off} title={disabledReason} data-testid={`${testId}-approve`}>
+              <Icon name="approve" size="sm" />
+              Duyệt
+            </Btn>
+          )}
+        </span>
+      )}
+    </div>
+  );
 }
 
 export type BadgeTone = "gray" | "blue" | "mint" | "green" | "amber" | "orange" | "red" | "violet" | "flag";
@@ -150,9 +437,7 @@ export function Modal({ title, onClose, children, footer, wide }: { title: strin
       <div className={`modal ${wide ? "modal-wide" : ""}`} role="dialog" aria-modal="true" aria-label={title}>
         <div className="modal-head">
           <h3>{title}</h3>
-          <button className="icon-btn" onClick={onClose} aria-label="Đóng">
-            ×
-          </button>
+          <IconBtn icon="close" label="Đóng" size="lg" onClick={onClose} />
         </div>
         <div className="modal-body">{children}</div>
         {footer && <div className="modal-foot">{footer}</div>}
@@ -182,14 +467,17 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
 
 // ---------------------------------------------------------------- Component bổ sung (A1)
 
-/** Ngăn trượt từ phải. Dùng cho mọi panel xem/sửa chi tiết (SCR-04, SCR-07). Esc hoặc bấm nền để đóng. */
+/**
+ * Ngăn trượt từ phải. Dùng cho mọi panel xem/sửa chi tiết (SCR-04, SCR-07). Esc hoặc bấm nền để đóng.
+ * Rộng 40% màn hình (`--drawer-w`), tối thiểu 360px; màn ≤ 768px thì phủ hết chiều ngang.
+ */
 export function Drawer({
   title,
   onClose,
   children,
   footer,
   actions,
-  size = "md",
+  testId,
 }: {
   title: React.ReactNode;
   onClose: () => void;
@@ -197,7 +485,9 @@ export function Drawer({
   footer?: React.ReactNode;
   /** Nút phụ cạnh tiêu đề (ví dụ "Tải về"). */
   actions?: React.ReactNode;
+  /** @deprecated Mọi ngăn phải đều rộng 40% (quyết định đợt 5). Vẫn nhận để mã cũ không vỡ, không còn tác dụng. */
   size?: "md" | "lg";
+  testId?: string;
 }) {
   useEffect(() => {
     const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -206,13 +496,11 @@ export function Drawer({
   }, [onClose]);
   return (
     <div className="drawer-back" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <aside className={`drawer ${size === "lg" ? "drawer-lg" : ""}`} role="dialog" aria-modal="true" aria-label={typeof title === "string" ? title : undefined}>
+      <aside className="drawer" role="dialog" aria-modal="true" aria-label={typeof title === "string" ? title : undefined} data-testid={testId}>
         <div className="drawer-head">
           <h3>{title}</h3>
           {actions}
-          <button className="icon-btn" onClick={onClose} aria-label="Đóng">
-            ×
-          </button>
+          <IconBtn icon="close" label="Đóng" size="lg" onClick={onClose} />
         </div>
         <div className="drawer-body">{children}</div>
         {footer && <div className="drawer-foot">{footer}</div>}
@@ -264,6 +552,121 @@ export function Tabs<K extends string>({
           </button>
         );
       })}
+    </nav>
+  );
+}
+
+export interface SideNavItem {
+  key: string;
+  label: React.ReactNode;
+  /** Có href thì mục là liên kết (#/...), không thì là nút gọi `onSelect`. Mục cha không href → bấm để mở/thu. */
+  href?: string;
+  icon?: IconName;
+  children?: SideNavItem[];
+  /** Số bước hiện trong vòng tròn trước nhãn (vd luồng Tài liệu → Sơ đồ → Prototype…). */
+  step?: number;
+  /** Badge / ghi chú nhỏ cuối dòng (vd StatusBadge). */
+  extra?: React.ReactNode;
+  testId?: string;
+}
+const hasKey = (it: SideNavItem, key: string): boolean => it.key === key || !!it.children?.some((c) => hasKey(c, key));
+
+/**
+ * Menu trái nhiều cấp. Mục đang chọn: nền mint-50, vạch trái mint-500, chữ đậm, `aria-current="page"`.
+ * Mục cha mở/thu bằng nút mũi tên (tự mở khi có mục con đang chọn). `header` là chỗ chèn bộ chọn module.
+ */
+export function SideNav({
+  items,
+  active,
+  header,
+  onSelect,
+  ariaLabel = "Menu",
+  className = "",
+  testId,
+}: {
+  items: SideNavItem[];
+  active: string;
+  header?: React.ReactNode;
+  onSelect?: (key: string) => void;
+  ariaLabel?: string;
+  className?: string;
+  testId?: string;
+}) {
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+  const baseId = useId();
+  const isOpen = (it: SideNavItem) => open[it.key] ?? hasKey(it, active);
+  // Chuyển sang mục con của nhóm đã bị thu → mở lại nhóm đó (không đóng nhóm người dùng đã mở).
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+  useEffect(() => {
+    setOpen((o) => {
+      let next = o;
+      const walk = (list: SideNavItem[]) =>
+        list.forEach((it) => {
+          if (!it.children?.length) return;
+          if (o[it.key] === false && hasKey(it, active)) next = { ...next, [it.key]: true };
+          walk(it.children);
+        });
+      walk(itemsRef.current);
+      return next;
+    });
+  }, [active]);
+
+  const render = (list: SideNavItem[], depth: number): React.ReactNode =>
+    list.map((it) => {
+      const kids = it.children?.length ? it.children : null;
+      const expanded = kids ? isOpen(it) : false;
+      const toggle = () => setOpen((o) => ({ ...o, [it.key]: !expanded }));
+      const childId = `${baseId}-${it.key}`;
+      const selected = it.key === active;
+      const cls = `side-nav-item ${selected ? "active" : ""} ${!selected && kids && hasKey(it, active) ? "has-active" : ""}`;
+      const body = (
+        <>
+          {it.step !== undefined && <span className="side-nav-step">{it.step}</span>}
+          {it.icon && <Icon name={it.icon} />}
+          <span className="side-nav-label">{it.label}</span>
+          {it.extra}
+        </>
+      );
+      const style = { "--depth": depth } as React.CSSProperties;
+      const main = it.href ? (
+        <a href={it.href} className={cls} style={style} aria-current={selected ? "page" : undefined} data-testid={it.testId} onClick={() => onSelect?.(it.key)}>
+          {body}
+        </a>
+      ) : kids && !onSelect ? (
+        <button type="button" className={cls} style={style} aria-expanded={expanded} aria-controls={childId} data-testid={it.testId} onClick={toggle}>
+          {body}
+          <Icon name={expanded ? "chevronDown" : "chevronRight"} size="sm" className="side-nav-caret" />
+        </button>
+      ) : (
+        <button type="button" className={cls} style={style} aria-current={selected ? "page" : undefined} data-testid={it.testId} onClick={() => (onSelect ? onSelect(it.key) : undefined)}>
+          {body}
+        </button>
+      );
+      const needToggleBtn = kids && (it.href || onSelect);
+      return (
+        <li key={it.key} className="side-nav-node">
+          {needToggleBtn ? (
+            <div className="side-nav-row">
+              {main}
+              <IconBtn icon={expanded ? "chevronDown" : "chevronRight"} size="sm" label={expanded ? "Thu gọn" : "Mở rộng"} aria-expanded={expanded} aria-controls={childId} onClick={toggle} />
+            </div>
+          ) : (
+            main
+          )}
+          {kids && (
+            <ul id={childId} className="side-nav-list" hidden={!expanded}>
+              {render(kids, depth + 1)}
+            </ul>
+          )}
+        </li>
+      );
+    });
+
+  return (
+    <nav className={`side-nav ${className}`} aria-label={ariaLabel} data-testid={testId}>
+      {header && <div className="side-nav-header">{header}</div>}
+      <ul className="side-nav-list">{render(items, 0)}</ul>
     </nav>
   );
 }
@@ -402,8 +805,8 @@ export function FileDrop({
         take(e.dataTransfer.files);
       }}
     >
-      <span className="filedrop-icon" aria-hidden="true">
-        ⇪
+      <span className="filedrop-icon">
+        <Icon name="upload" size="lg" />
       </span>
       <span className="filedrop-title">{title}</span>
       <span className="muted small">{hint}</span>
