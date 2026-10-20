@@ -393,3 +393,103 @@ export function countClaudeRunsToday(): number {
   const r = getDb().prepare("SELECT COUNT(*) AS n FROM prompt_runs WHERE provider = 'claude' AND created_at >= ?").get(start.toISOString()) as Row;
   return Number(r.n);
 }
+
+// ---------- Gợi ý thành phần (log Áp dụng / Bỏ qua để đo tỷ lệ chấp nhận) ----------
+export interface SuggestionEvent {
+  screenId: string;
+  versionId: string | null;
+  kind: string;
+  targetNodeId: string | null;
+  title: string;
+  confidence: number;
+  action: "shown" | "applied" | "dismissed";
+}
+
+export function logSuggestionEvent(e: SuggestionEvent): void {
+  getDb()
+    .prepare("INSERT INTO suggestion_events (id, screen_id, version_id, suggestion_kind, target_node_id, title, confidence, action, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    .run(uid(), e.screenId, e.versionId, e.kind, e.targetNodeId, e.title, e.confidence, e.action, now());
+}
+
+export function suggestionStats(moduleId: string): { shown: number; applied: number; dismissed: number; acceptanceRate: number; byKind: Record<string, { shown: number; applied: number }> } {
+  const rows = getDb()
+    .prepare(
+      `SELECT e.suggestion_kind AS kind, e.action AS action, COUNT(*) AS n FROM suggestion_events e JOIN screens s ON s.id = e.screen_id
+       WHERE s.module_id = ? GROUP BY e.suggestion_kind, e.action`,
+    )
+    .all(moduleId) as Row[];
+  const t = { shown: 0, applied: 0, dismissed: 0 };
+  const byKind: Record<string, { shown: number; applied: number }> = {};
+  for (const r of rows) {
+    const n = Number(r.n);
+    t[r.action as keyof typeof t] += n;
+    const k = (byKind[r.kind] ??= { shown: 0, applied: 0 });
+    if (r.action === "shown") k.shown += n;
+    if (r.action === "applied") k.applied += n;
+  }
+  return { ...t, acceptanceRate: t.shown ? t.applied / t.shown : 0, byKind };
+}
+
+// ---------- Kho tài liệu (files) ----------
+import type { FileRecord } from "../shared/types.ts";
+
+const toFileRecord = (r: Row): FileRecord => ({
+  id: r.id,
+  projectId: r.project_id,
+  moduleId: r.module_id ?? null,
+  name: r.name,
+  mime: r.mime,
+  size: Number(r.size),
+  source: r.source,
+  createdAt: r.created_at,
+});
+
+export function createFile(rec: FileRecord & { storedName: string }): FileRecord {
+  getDb()
+    .prepare("INSERT INTO files (id, project_id, module_id, name, stored_name, mime, size, source, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    .run(rec.id, rec.projectId, rec.moduleId, rec.name, rec.storedName, rec.mime, rec.size, rec.source, rec.createdAt);
+  return {
+    id: rec.id,
+    projectId: rec.projectId,
+    moduleId: rec.moduleId,
+    name: rec.name,
+    mime: rec.mime,
+    size: rec.size,
+    source: rec.source,
+    createdAt: rec.createdAt,
+  };
+}
+
+export function listFiles(projectId: string): FileRecord[] {
+  return (
+    getDb()
+      .prepare("SELECT * FROM files WHERE project_id = ? ORDER BY created_at DESC")
+      .all(projectId) as Row[]
+  ).map(toFileRecord);
+}
+
+export function getFile(id: string): (FileRecord & { storedName: string }) | null {
+  const r = getDb().prepare("SELECT * FROM files WHERE id = ?").get(id) as Row | undefined;
+  if (!r) return null;
+  return {
+    ...toFileRecord(r),
+    storedName: r.stored_name,
+  };
+}
+
+export function deleteFileRow(id: string): void {
+  getDb().prepare("DELETE FROM files WHERE id = ?").run(id);
+}
+
+export function findExportFile(projectId: string, moduleId: string, name: string): (FileRecord & { storedName: string }) | null {
+  const r = getDb()
+    .prepare("SELECT * FROM files WHERE project_id = ? AND module_id = ? AND name = ? AND source = 'export'")
+    .get(projectId, moduleId, name) as Row | undefined;
+  if (!r) return null;
+  return {
+    ...toFileRecord(r),
+    storedName: r.stored_name,
+  };
+}
+
+

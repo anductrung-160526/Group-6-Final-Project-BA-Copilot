@@ -60,7 +60,7 @@ try {
   // Sinh 2 màn hình
   await page.getByTestId("new-screen").click();
   await page.getByTestId("screen-name").fill("Đăng nhập");
-  await page.getByTestId("screen-prompt").fill("Màn hình đăng nhập bằng email và mật khẩu, có quên mật khẩu và đăng ký");
+  await page.getByTestId("screen-prompt").fill("Màn hình đăng nhập bằng email và mật khẩu, nút Đăng nhập, có quên mật khẩu và link đăng ký");
   await page.getByTestId("generate-screen").click();
   await page.locator('[data-node-id="btn_login"]').waitFor();
   check(true, "AI sinh màn hình Đăng nhập");
@@ -84,7 +84,7 @@ try {
 
   // Khoanh vùng bằng kéo khung quanh ô mật khẩu
   await page.getByTestId("mode-region").click();
-  const pwd = await page.locator('[data-node-id="password"]').boundingBox();
+  const pwd = await page.locator('[data-node-type="Input"]', { hasText: "Mật khẩu" }).first().boundingBox();
   await page.mouse.move(pwd.x - 6, pwd.y - 6);
   await page.mouse.down();
   await page.mouse.move(pwd.x + pwd.width + 6, pwd.y + pwd.height + 6, { steps: 8 });
@@ -160,12 +160,23 @@ try {
   // BR-02
   await page.getByTestId("tab-design").click();
   await page.locator(".screen-item", { hasText: "Đăng nhập" }).click();
-  await page.locator('[data-node-id="remember"]').click();
-  await page.getByTestId("edit-prompt").fill("Đổi chữ thành Lưu phiên đăng nhập");
+  await page.locator('[data-node-type="Heading"]').first().click();
+  await page.getByTestId("edit-prompt").fill("Đổi chữ thành Đăng nhập hệ thống");
   await page.getByTestId("apply-edit").click();
-  await page.locator('[data-node-id="remember"]', { hasText: "Lưu phiên đăng nhập" }).waitFor();
+  await page.locator('[data-node-type="Heading"]', { hasText: "Đăng nhập hệ thống" }).waitFor();
   await page.getByTestId("tab-docs").getByText("Lỗi thời").waitFor({ timeout: 5000 });
   check(true, "BR-02: sửa thiết kế đã duyệt → tài liệu Lỗi thời");
+
+  // Gợi ý bố cục (Recursive Transformer, Li et al. 2020): chọn form → phần tử tiếp theo (top-3) → chấp nhận
+  await page.getByTestId("suggest-tab").click();
+  await page.locator('[data-node-type="Form"]').first().click({ position: { x: 3, y: 3 } });
+  await page.getByTestId("candidate").first().waitFor();
+  check((await page.getByTestId("candidate").count()) === 3, "gợi ý bố cục: top-3 loại phần tử tiếp theo trong container đang chọn");
+  await shot("layout-suggest");
+  await page.getByTestId("accept-next").click();
+  await page.getByTestId("versions-tab").click();
+  await page.getByText("Gợi ý bố cục").first().waitFor();
+  check(true, "chấp nhận gợi ý bố cục → phiên bản mới");
   await page.getByTestId("tab-logs").click();
   await page.locator(".tbl tbody tr").first().waitFor();
   await shot("logs");

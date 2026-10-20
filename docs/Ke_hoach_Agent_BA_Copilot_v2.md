@@ -92,7 +92,7 @@ Nếu xung đột chạm tệp thuộc agent khác thì không tự sửa mà tr
 
 ### A1 – Design System
 
-**Đầu vào:** `client/styles.css`, `client/components/ui.tsx`, mục 4.3 trong tài liệu v2, ảnh chụp trong `QUS/screenshots/`.
+**Đầu vào:** `client/styles.css`, `client/components/ui.tsx`, mục 4.3 trong tài liệu v2, ảnh chụp trong `docs/qus/screenshots/` (trước đây là `QUS/screenshots/`).
 
 **Các bước:**
 

@@ -1,0 +1,8602 @@
+[
+ {
+  "id": "R751",
+  "requirement": {
+   "title": "Sửa hồ sơ cá nhân trong hộp thoại – phần mềm quản lý bán lẻ SaaS",
+   "actor": "Người dùng workspace",
+   "description": "Từ trang tổng quan workspace, người dùng mở hộp thoại hồ sơ để cập nhật ảnh đại diện, họ tên, chức danh, số điện thoại và múi giờ. Lưu xong thông tin hiển thị cho đồng nghiệp trong workspace.",
+   "permissions": [
+    "Người dùng chỉ thao tác trên tài khoản của chính mình"
+   ],
+   "rules": [
+    "Họ tên bắt buộc, tối đa 60 ký tự",
+    "Số điện thoại 10 chữ số",
+    "Email đăng nhập không sửa tại đây"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Tổng quan workspace Cửa hàng Minh Phát"
+   },
+   "children": [
+    {
+     "id": "ws_kpis",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "k_rev",
+       "type": "Stat",
+       "props": {
+        "label": "Doanh thu hôm nay",
+        "value": "18.450.000đ"
+       }
+      },
+      {
+       "id": "k_orders",
+       "type": "Stat",
+       "props": {
+        "label": "Đơn chờ xử lý",
+        "value": "27"
+       }
+      }
+     ]
+    },
+    {
+     "id": "profile_modal",
+     "type": "Modal",
+     "props": {
+      "title": "Hồ sơ của tôi",
+      "open": true
+     },
+     "children": [
+      {
+       "id": "avatar_row",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "cur_avatar",
+         "type": "Avatar",
+         "props": {
+          "name": "Trần Thu Hà"
+         }
+        },
+        {
+         "id": "btn_change_photo",
+         "type": "Button",
+         "props": {
+          "label": "Đổi ảnh",
+          "variant": "secondary",
+          "action": "change_photo"
+         }
+        }
+       ]
+      },
+      {
+       "id": "profile_form",
+       "type": "Form",
+       "props": {
+        "submitAction": "save_profile"
+       },
+       "children": [
+        {
+         "id": "in_name",
+         "type": "Input",
+         "props": {
+          "label": "Họ và tên",
+          "name": "full_name",
+          "inputType": "text",
+          "required": true,
+          "maxLength": 60
+         }
+        },
+        {
+         "id": "in_title",
+         "type": "Input",
+         "props": {
+          "label": "Chức danh",
+          "name": "job_title",
+          "placeholder": "Ví dụ: Quản lý kho",
+          "inputType": "text"
+         }
+        },
+        {
+         "id": "in_phone",
+         "type": "Input",
+         "props": {
+          "label": "Số điện thoại",
+          "name": "phone",
+          "inputType": "tel",
+          "minLength": 10,
+          "maxLength": 10
+         }
+        },
+        {
+         "id": "sel_tz",
+         "type": "Select",
+         "props": {
+          "label": "Múi giờ",
+          "name": "timezone",
+          "options": [
+           "GMT+7 Hà Nội",
+           "GMT+8 Singapore",
+           "GMT+9 Tokyo"
+          ]
+         }
+        },
+        {
+         "id": "cb_show_phone",
+         "type": "Checkbox",
+         "props": {
+          "label": "Cho đồng nghiệp thấy số điện thoại",
+          "name": "show_phone"
+         }
+        },
+        {
+         "id": "email_ro",
+         "type": "Alert",
+         "props": {
+          "text": "Email đăng nhập thuha@minhphat.vn chỉ đổi được trong Cài đặt bảo mật.",
+          "tone": "info"
+         }
+        },
+        {
+         "id": "modal_actions",
+         "type": "Row",
+         "props": {
+          "gap": 8,
+          "align": "end"
+         },
+         "children": [
+          {
+           "id": "btn_cancel",
+           "type": "Button",
+           "props": {
+            "label": "Hủy",
+            "variant": "ghost",
+            "action": "close_modal"
+           }
+          },
+          {
+           "id": "btn_save",
+           "type": "Button",
+           "props": {
+            "label": "Lưu hồ sơ",
+            "variant": "primary",
+            "action": "save_profile"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R752",
+  "requirement": {
+   "title": "Hộp thoại liên hệ tư vấn gói tập – phòng gym",
+   "actor": "Khách vãng lai",
+   "description": "Khách đang xem trang bảng giá phòng tập bấm 'Liên hệ tư vấn' để mở hộp thoại để lại tên, số điện thoại, chi nhánh và khung giờ muốn được gọi lại. Gửi xong nhân viên tư vấn liên hệ trong 24 giờ.",
+   "permissions": [
+    "Khách vãng lai, chưa đăng nhập: chỉ có Đăng nhập/Đăng ký, không có chức năng tài khoản riêng"
+   ],
+   "rules": [
+    "Tên và số điện thoại bắt buộc",
+    "Phải đồng ý cho phép liên hệ",
+    "Lời nhắn tối đa 300 ký tự"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Bảng giá hội viên FitZone"
+   },
+   "children": [
+    {
+     "id": "pricing_h",
+     "type": "Heading",
+     "props": {
+      "text": "Gói hội viên FitZone 2026",
+      "level": 1
+     }
+    },
+    {
+     "id": "plan_row",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "plan_basic",
+       "type": "Card",
+       "props": {
+        "title": "Gói Cơ bản"
+       },
+       "children": [
+        {
+         "id": "pb",
+         "type": "Text",
+         "props": {
+          "text": "450.000đ/tháng"
+         }
+        }
+       ]
+      },
+      {
+       "id": "plan_pt",
+       "type": "Card",
+       "props": {
+        "title": "Gói PT 1-1"
+       },
+       "children": [
+        {
+         "id": "ppt",
+         "type": "Text",
+         "props": {
+          "text": "2.900.000đ/tháng"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "contact_modal",
+     "type": "Modal",
+     "props": {
+      "title": "Đăng ký nhận tư vấn",
+      "open": true
+     },
+     "children": [
+      {
+       "id": "cm_intro",
+       "type": "Text",
+       "props": {
+        "text": "Để lại thông tin, tư vấn viên FitZone sẽ gọi lại trong 24 giờ."
+       }
+      },
+      {
+       "id": "in_name",
+       "type": "Input",
+       "props": {
+        "label": "Họ tên",
+        "name": "name",
+        "inputType": "text",
+        "required": true
+       }
+      },
+      {
+       "id": "in_phone",
+       "type": "Input",
+       "props": {
+        "label": "Số điện thoại",
+        "name": "phone",
+        "inputType": "tel",
+        "required": true
+       }
+      },
+      {
+       "id": "sel_branch",
+       "type": "Select",
+       "props": {
+        "label": "Chi nhánh gần bạn",
+        "name": "branch",
+        "options": [
+         "Cầu Giấy",
+         "Thanh Xuân",
+         "Long Biên"
+        ]
+       }
+      },
+      {
+       "id": "ra_time",
+       "type": "Radio",
+       "props": {
+        "label": "Khung giờ gọi lại",
+        "name": "call_time",
+        "options": [
+         "Sáng 8–11h",
+         "Chiều 14–17h",
+         "Tối 18–20h"
+        ]
+       }
+      },
+      {
+       "id": "ta_msg",
+       "type": "Textarea",
+       "props": {
+        "label": "Lời nhắn",
+        "name": "message",
+        "placeholder": "Mục tiêu tập luyện của bạn",
+        "maxLength": 300
+       }
+      },
+      {
+       "id": "cb_consent",
+       "type": "Checkbox",
+       "props": {
+        "label": "Tôi đồng ý để FitZone liên hệ qua điện thoại",
+        "name": "consent"
+       }
+      },
+      {
+       "id": "cm_actions",
+       "type": "Row",
+       "props": {
+        "gap": 8,
+        "align": "end"
+       },
+       "children": [
+        {
+         "id": "btn_close",
+         "type": "Button",
+         "props": {
+          "label": "Đóng",
+          "variant": "ghost",
+          "action": "close_modal"
+         }
+        },
+        {
+         "id": "btn_send",
+         "type": "Button",
+         "props": {
+          "label": "Gửi yêu cầu",
+          "variant": "primary",
+          "action": "send_contact"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R753",
+  "requirement": {
+   "title": "Cài đặt tài khoản – công cụ quản lý dự án",
+   "actor": "Thành viên dự án",
+   "description": "Thành viên mở trang cài đặt tài khoản dạng hai cột: cột trái là danh mục cài đặt, cột phải gồm đổi mật khẩu, ngôn ngữ, ngày bắt đầu tuần và bật xác thực hai bước. Có thể đăng xuất mọi thiết bị khác.",
+   "permissions": [
+    "Người dùng chỉ thao tác trên tài khoản của chính mình"
+   ],
+   "rules": [
+    "Mật khẩu mới tối thiểu 8 ký tự",
+    "Phải nhập mật khẩu hiện tại để đổi",
+    "Đăng xuất thiết bị khác cần xác nhận"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Cài đặt tài khoản"
+   },
+   "children": [
+    {
+     "id": "page_h",
+     "type": "Heading",
+     "props": {
+      "text": "Cài đặt tài khoản",
+      "level": 1
+     }
+    },
+    {
+     "id": "two_cols",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "left_col",
+       "type": "Column",
+       "props": {},
+       "children": [
+        {
+         "id": "settings_menu",
+         "type": "List",
+         "props": {},
+         "children": [
+          {
+           "id": "m_general",
+           "type": "Link",
+           "props": {
+            "text": "Chung",
+            "navigateTo": "#chung"
+           }
+          },
+          {
+           "id": "m_security",
+           "type": "Link",
+           "props": {
+            "text": "Bảo mật",
+            "navigateTo": "#bao-mat"
+           }
+          },
+          {
+           "id": "m_sessions",
+           "type": "Link",
+           "props": {
+            "text": "Phiên đăng nhập",
+            "navigateTo": "#phien"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "right_col",
+       "type": "Column",
+       "props": {},
+       "children": [
+        {
+         "id": "general_form",
+         "type": "Form",
+         "props": {
+          "title": "Chung",
+          "submitAction": "save_general"
+         },
+         "children": [
+          {
+           "id": "sel_lang",
+           "type": "Select",
+           "props": {
+            "label": "Ngôn ngữ",
+            "name": "language",
+            "options": [
+             "Tiếng Việt",
+             "English"
+            ]
+           }
+          },
+          {
+           "id": "ra_week",
+           "type": "Radio",
+           "props": {
+            "label": "Tuần bắt đầu từ",
+            "name": "week_start",
+            "options": [
+             "Thứ Hai",
+             "Chủ Nhật"
+            ]
+           }
+          },
+          {
+           "id": "btn_save_general",
+           "type": "Button",
+           "props": {
+            "label": "Lưu",
+            "variant": "primary",
+            "action": "save_general"
+           }
+          }
+         ]
+        },
+        {
+         "id": "pwd_form",
+         "type": "Form",
+         "props": {
+          "title": "Đổi mật khẩu",
+          "submitAction": "change_password"
+         },
+         "children": [
+          {
+           "id": "in_cur",
+           "type": "Input",
+           "props": {
+            "label": "Mật khẩu hiện tại",
+            "name": "current_password",
+            "inputType": "password",
+            "required": true
+           }
+          },
+          {
+           "id": "in_new",
+           "type": "Input",
+           "props": {
+            "label": "Mật khẩu mới",
+            "name": "new_password",
+            "inputType": "password",
+            "required": true,
+            "minLength": 8
+           }
+          },
+          {
+           "id": "cb_2fa",
+           "type": "Checkbox",
+           "props": {
+            "label": "Bật xác thực hai bước qua ứng dụng",
+            "name": "two_factor"
+           }
+          },
+          {
+           "id": "btn_change_pwd",
+           "type": "Button",
+           "props": {
+            "label": "Cập nhật bảo mật",
+            "variant": "primary",
+            "action": "change_password"
+           }
+          }
+         ]
+        },
+        {
+         "id": "sessions_card",
+         "type": "Card",
+         "props": {
+          "title": "Phiên đăng nhập"
+         },
+         "children": [
+          {
+           "id": "sess_info",
+           "type": "Text",
+           "props": {
+            "text": "Đang đăng nhập trên 3 thiết bị: MacBook (hiện tại), iPhone 14, Chrome Windows"
+           }
+          },
+          {
+           "id": "btn_logout_all",
+           "type": "Button",
+           "props": {
+            "label": "Đăng xuất thiết bị khác",
+            "variant": "danger",
+            "action": "logout_others"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R754",
+  "requirement": {
+   "title": "Tra cứu lịch nghỉ lễ và ngày làm bù công khai",
+   "actor": "Khách vãng lai",
+   "description": "Trang công khai của dịch vụ chấm công cho phép khách tra cứu lịch nghỉ lễ, nghỉ bù theo khoảng ngày, loại ngày và khu vực áp dụng. Kết quả hiển thị dạng bảng; khách không cần đăng nhập.",
+   "permissions": [
+    "Khách vãng lai, chưa đăng nhập: chỉ có Đăng nhập/Đăng ký, không có chức năng tài khoản riêng",
+    "Chỉ xem: không có thao tác thêm, sửa, xóa"
+   ],
+   "rules": [
+    "Từ ngày không lớn hơn đến ngày",
+    "Khoảng tra cứu tối đa 12 tháng",
+    "Có thể chọn nhiều loại ngày"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Tra cứu lịch nghỉ lễ 2026–2027"
+   },
+   "children": [
+    {
+     "id": "hero",
+     "type": "Section",
+     "props": {},
+     "children": [
+      {
+       "id": "hero_img",
+       "type": "Image",
+       "props": {
+        "alt": "Lịch treo tường đánh dấu các ngày nghỉ lễ"
+       }
+      },
+      {
+       "id": "hero_h",
+       "type": "Heading",
+       "props": {
+        "text": "Lịch nghỉ lễ, nghỉ bù và làm bù",
+        "level": 1
+       }
+      },
+      {
+       "id": "hero_sub",
+       "type": "Text",
+       "props": {
+        "text": "Dữ liệu theo thông báo của Bộ LĐ-TB&XH, cập nhật 10/2026",
+        "tone": "muted"
+       }
+      }
+     ]
+    },
+    {
+     "id": "filter_form",
+     "type": "Form",
+     "props": {
+      "title": "Bộ lọc nâng cao",
+      "submitAction": "search_holidays"
+     },
+     "children": [
+      {
+       "id": "date_row",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "dp_from",
+         "type": "DatePicker",
+         "props": {
+          "label": "Từ ngày",
+          "name": "from_date",
+          "required": true
+         }
+        },
+        {
+         "id": "dp_to",
+         "type": "DatePicker",
+         "props": {
+          "label": "Đến ngày",
+          "name": "to_date",
+          "required": true
+         }
+        }
+       ]
+      },
+      {
+       "id": "type_row",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "cb_holiday",
+         "type": "Checkbox",
+         "props": {
+          "label": "Nghỉ lễ",
+          "name": "type_holiday"
+         }
+        },
+        {
+         "id": "cb_comp",
+         "type": "Checkbox",
+         "props": {
+          "label": "Nghỉ bù",
+          "name": "type_comp"
+         }
+        },
+        {
+         "id": "cb_makeup",
+         "type": "Checkbox",
+         "props": {
+          "label": "Làm bù",
+          "name": "type_makeup"
+         }
+        }
+       ]
+      },
+      {
+       "id": "sel_scope",
+       "type": "Select",
+       "props": {
+        "label": "Áp dụng cho",
+        "name": "scope",
+        "options": [
+         "Khu vực nhà nước",
+         "Doanh nghiệp tư nhân",
+         "Tất cả"
+        ]
+       }
+      },
+      {
+       "id": "filter_actions",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "lnk_reset",
+         "type": "Link",
+         "props": {
+          "text": "Bỏ chọn tất cả",
+          "navigateTo": "?"
+         }
+        },
+        {
+         "id": "btn_search",
+         "type": "Button",
+         "props": {
+          "label": "Tra cứu",
+          "variant": "primary",
+          "action": "search_holidays"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "result_sec",
+     "type": "Section",
+     "props": {
+      "title": "Kết quả"
+     },
+     "children": [
+      {
+       "id": "tb_holidays",
+       "type": "Table",
+       "props": {
+        "columns": [
+         "Ngày",
+         "Thứ",
+         "Loại",
+         "Dịp",
+         "Áp dụng"
+        ],
+        "rows": [
+         [
+          "01/01/2027",
+          "Thứ Sáu",
+          "Nghỉ lễ",
+          "Tết Dương lịch",
+          "Tất cả"
+         ],
+         [
+          "06/02/2027",
+          "Thứ Bảy",
+          "Làm bù",
+          "Tết Nguyên đán",
+          "Nhà nước"
+         ]
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "guest_cta",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "cta_t",
+       "type": "Text",
+       "props": {
+        "text": "Doanh nghiệp muốn đồng bộ lịch vào bảng công?"
+       }
+      },
+      {
+       "id": "lnk_signup",
+       "type": "Link",
+       "props": {
+        "text": "Đăng ký dùng thử",
+        "navigateTo": "/dang-ky"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R755",
+  "requirement": {
+   "title": "Việc làm tuyển dụng tại công ty phần mềm quản trị hệ thống",
+   "actor": "Ứng viên đã đăng nhập",
+   "description": "Ứng viên đã đăng nhập xem danh sách vị trí đang tuyển của nhóm quản trị hệ thống trong một thẻ ở giữa trang, lọc theo phòng ban và hình thức, ứng tuyển hoặc lưu việc. Các vị trí đã ứng tuyển được đánh dấu.",
+   "permissions": [
+    "Khách hàng đã đăng nhập: chỉ thao tác trên dữ liệu của chính mình",
+    "Chỉ ứng tuyển và lưu việc cho chính mình"
+   ],
+   "rules": [
+    "Mỗi vị trí chỉ ứng tuyển một lần",
+    "Danh sách 10 vị trí mỗi trang"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Cơ hội nghề nghiệp – SysOps Việt"
+   },
+   "children": [
+    {
+     "id": "jobs_card",
+     "type": "Card",
+     "props": {
+      "title": "Vị trí đang tuyển"
+     },
+     "children": [
+      {
+       "id": "job_filters",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "in_kw",
+         "type": "Input",
+         "props": {
+          "label": "Từ khóa",
+          "name": "keyword",
+          "placeholder": "Ví dụ: DevOps, IAM",
+          "inputType": "text"
+         }
+        },
+        {
+         "id": "sel_dept",
+         "type": "Select",
+         "props": {
+          "label": "Phòng ban",
+          "name": "department",
+          "options": [
+           "Hạ tầng",
+           "Bảo mật & IAM",
+           "Hỗ trợ hệ thống"
+          ]
+         }
+        },
+        {
+         "id": "sel_type",
+         "type": "Select",
+         "props": {
+          "label": "Hình thức",
+          "name": "work_type",
+          "options": [
+           "Toàn thời gian",
+           "Bán thời gian",
+           "Từ xa"
+          ]
+         }
+        }
+       ]
+      },
+      {
+       "id": "job_list",
+       "type": "List",
+       "props": {},
+       "children": [
+        {
+         "id": "job1",
+         "type": "Card",
+         "props": {
+          "title": "Kỹ sư quản trị danh tính (IAM)"
+         },
+         "children": [
+          {
+           "id": "j1_meta",
+           "type": "Text",
+           "props": {
+            "text": "Bảo mật & IAM · Hà Nội · 25–35 triệu"
+           }
+          },
+          {
+           "id": "j1_act",
+           "type": "Row",
+           "props": {
+            "gap": 8
+           },
+           "children": [
+            {
+             "id": "j1_badge",
+             "type": "Badge",
+             "props": {
+              "text": "Đã ứng tuyển",
+              "tone": "success"
+             }
+            },
+            {
+             "id": "btn_save_j1",
+             "type": "Button",
+             "props": {
+              "label": "Lưu việc",
+              "variant": "ghost",
+              "action": "save_job"
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "job2",
+         "type": "Card",
+         "props": {
+          "title": "Chuyên viên vận hành Linux"
+         },
+         "children": [
+          {
+           "id": "j2_meta",
+           "type": "Text",
+           "props": {
+            "text": "Hạ tầng · TP.HCM · 20–28 triệu"
+           }
+          },
+          {
+           "id": "j2_act",
+           "type": "Row",
+           "props": {
+            "gap": 8
+           },
+           "children": [
+            {
+             "id": "btn_apply_j2",
+             "type": "Button",
+             "props": {
+              "label": "Ứng tuyển",
+              "variant": "primary",
+              "action": "apply_job"
+             }
+            },
+            {
+             "id": "btn_save_j2",
+             "type": "Button",
+             "props": {
+              "label": "Lưu việc",
+              "variant": "ghost",
+              "action": "save_job"
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "job3",
+         "type": "Card",
+         "props": {
+          "title": "Nhân viên hỗ trợ tài khoản người dùng"
+         },
+         "children": [
+          {
+           "id": "j3_meta",
+           "type": "Text",
+           "props": {
+            "text": "Hỗ trợ hệ thống · Từ xa · 12–16 triệu"
+           }
+          },
+          {
+           "id": "j3_act",
+           "type": "Row",
+           "props": {
+            "gap": 8
+           },
+           "children": [
+            {
+             "id": "btn_apply_j3",
+             "type": "Button",
+             "props": {
+              "label": "Ứng tuyển",
+              "variant": "primary",
+              "action": "apply_job"
+             }
+            },
+            {
+             "id": "btn_save_j3",
+             "type": "Button",
+             "props": {
+              "label": "Lưu việc",
+              "variant": "ghost",
+              "action": "save_job"
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "job_pages",
+       "type": "Pagination",
+       "props": {
+        "pages": 3
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R756",
+  "requirement": {
+   "title": "Biên tập trang tra cứu theo dõi đơn hàng – thời trang",
+   "actor": "Biên tập viên nội dung",
+   "description": "Biên tập viên chỉnh nội dung trang công khai 'Theo dõi đơn hàng' của shop thời trang: tiêu đề, hướng dẫn, các mốc trạng thái hiển thị cho khách và câu hỏi thường gặp, rồi xem trước và xuất bản. Không tra cứu hay sửa đơn của khách.",
+   "permissions": [
+    "Quản trị nội dung: được sửa nội dung và xuất bản trang công khai, không thao tác thay người dùng"
+   ],
+   "rules": [
+    "Tiêu đề tối đa 80 ký tự",
+    "Phải giữ đủ 5 mốc trạng thái",
+    "Xuất bản cần xem trước"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Biên tập trang Theo dõi đơn hàng"
+   },
+   "children": [
+    {
+     "id": "cms_nav",
+     "type": "Header",
+     "props": {},
+     "children": [
+      {
+       "id": "brand",
+       "type": "Heading",
+       "props": {
+        "text": "LUA Studio – CMS",
+        "level": 2
+       }
+      },
+      {
+       "id": "nav",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "n_pages",
+         "type": "Link",
+         "props": {
+          "text": "Trang",
+          "navigateTo": "/cms/trang"
+         }
+        },
+        {
+         "id": "n_media",
+         "type": "Link",
+         "props": {
+          "text": "Thư viện",
+          "navigateTo": "/cms/media"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "status_bar",
+     "type": "Row",
+     "props": {
+      "gap": 8,
+      "align": "between"
+     },
+     "children": [
+      {
+       "id": "st_draft",
+       "type": "Badge",
+       "props": {
+        "text": "Bản nháp chưa xuất bản",
+        "tone": "warning"
+       }
+      },
+      {
+       "id": "last_edit",
+       "type": "Text",
+       "props": {
+        "text": "Sửa lần cuối 09:40 hôm nay",
+        "tone": "muted"
+       }
+      }
+     ]
+    },
+    {
+     "id": "page_form",
+     "type": "Form",
+     "props": {
+      "title": "Nội dung trang",
+      "submitAction": "save_page"
+     },
+     "children": [
+      {
+       "id": "in_title",
+       "type": "Input",
+       "props": {
+        "label": "Tiêu đề trang",
+        "name": "page_title",
+        "inputType": "text",
+        "required": true,
+        "maxLength": 80
+       }
+      },
+      {
+       "id": "ta_guide",
+       "type": "Textarea",
+       "props": {
+        "label": "Hướng dẫn tra cứu",
+        "name": "guide_text",
+        "required": true,
+        "maxLength": 500
+       }
+      },
+      {
+       "id": "steps_sec",
+       "type": "Section",
+       "props": {
+        "title": "Nhãn mốc trạng thái hiển thị"
+       },
+       "children": [
+        {
+         "id": "st1",
+         "type": "Input",
+         "props": {
+          "label": "Mốc 1",
+          "name": "step_1",
+          "placeholder": "Đã đặt hàng",
+          "inputType": "text",
+          "required": true
+         }
+        },
+        {
+         "id": "st2",
+         "type": "Input",
+         "props": {
+          "label": "Mốc 2",
+          "name": "step_2",
+          "placeholder": "Đang đóng gói",
+          "inputType": "text",
+          "required": true
+         }
+        },
+        {
+         "id": "st3",
+         "type": "Input",
+         "props": {
+          "label": "Mốc 3",
+          "name": "step_3",
+          "placeholder": "Đã giao vận chuyển",
+          "inputType": "text",
+          "required": true
+         }
+        },
+        {
+         "id": "st4",
+         "type": "Input",
+         "props": {
+          "label": "Mốc 4",
+          "name": "step_4",
+          "placeholder": "Đang giao",
+          "inputType": "text",
+          "required": true
+         }
+        },
+        {
+         "id": "st5",
+         "type": "Input",
+         "props": {
+          "label": "Mốc 5",
+          "name": "step_5",
+          "placeholder": "Giao thành công",
+          "inputType": "text",
+          "required": true
+         }
+        }
+       ]
+      },
+      {
+       "id": "ta_faq",
+       "type": "Textarea",
+       "props": {
+        "label": "Câu hỏi thường gặp",
+        "name": "faq",
+        "maxLength": 2000
+       }
+      },
+      {
+       "id": "actions",
+       "type": "Row",
+       "props": {
+        "gap": 8,
+        "align": "end"
+       },
+       "children": [
+        {
+         "id": "btn_preview",
+         "type": "Button",
+         "props": {
+          "label": "Xem trước",
+          "variant": "secondary",
+          "action": "preview"
+         }
+        },
+        {
+         "id": "btn_save",
+         "type": "Button",
+         "props": {
+          "label": "Lưu nháp",
+          "variant": "ghost",
+          "action": "save_page"
+         }
+        },
+        {
+         "id": "btn_publish",
+         "type": "Button",
+         "props": {
+          "label": "Xuất bản",
+          "variant": "primary",
+          "action": "publish"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "footer",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "ft",
+       "type": "Text",
+       "props": {
+        "text": "LUA Studio © 2026",
+        "tone": "muted"
+       }
+      },
+      {
+       "id": "ft_help",
+       "type": "Link",
+       "props": {
+        "text": "Hướng dẫn biên tập",
+        "navigateTo": "/cms/huong-dan"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R757",
+  "requirement": {
+   "title": "Danh mục gói dịch vụ hỗ trợ khách hàng",
+   "actor": "Khách vãng lai",
+   "description": "Khách xem lưới các gói dịch vụ helpdesk (ticket, live chat, tổng đài) với sidebar điều hướng nhóm sản phẩm và bộ lọc quy mô, kênh hỗ trợ, mức giá. Mỗi gói có giá và nút dùng thử; muốn mua phải đăng ký.",
+   "permissions": [
+    "Khách vãng lai, chưa đăng nhập: chỉ có Đăng nhập/Đăng ký, không có chức năng tài khoản riêng"
+   ],
+   "rules": [
+    "Giá hiển thị theo tháng, chưa VAT",
+    "Lọc nhiều kênh cùng lúc",
+    "12 gói mỗi trang"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Gói dịch vụ HelpDeskPro"
+   },
+   "children": [
+    {
+     "id": "layout",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "side_nav",
+       "type": "Sidebar",
+       "props": {},
+       "children": [
+        {
+         "id": "sb_h",
+         "type": "Heading",
+         "props": {
+          "text": "Nhóm sản phẩm",
+          "level": 3
+         }
+        },
+        {
+         "id": "c_ticket",
+         "type": "Link",
+         "props": {
+          "text": "Hệ thống ticket",
+          "navigateTo": "/goi/ticket"
+         }
+        },
+        {
+         "id": "c_chat",
+         "type": "Link",
+         "props": {
+          "text": "Live chat",
+          "navigateTo": "/goi/chat"
+         }
+        },
+        {
+         "id": "c_call",
+         "type": "Link",
+         "props": {
+          "text": "Tổng đài ảo",
+          "navigateTo": "/goi/tong-dai"
+         }
+        },
+        {
+         "id": "sb_div",
+         "type": "Divider",
+         "props": {}
+        },
+        {
+         "id": "f_size",
+         "type": "Select",
+         "props": {
+          "label": "Quy mô đội hỗ trợ",
+          "name": "team_size",
+          "options": [
+           "1–5 nhân viên",
+           "6–20 nhân viên",
+           "Trên 20"
+          ]
+         }
+        },
+        {
+         "id": "f_email",
+         "type": "Checkbox",
+         "props": {
+          "label": "Kênh email",
+          "name": "ch_email"
+         }
+        },
+        {
+         "id": "f_zalo",
+         "type": "Checkbox",
+         "props": {
+          "label": "Kênh Zalo OA",
+          "name": "ch_zalo"
+         }
+        },
+        {
+         "id": "f_fb",
+         "type": "Checkbox",
+         "props": {
+          "label": "Kênh Messenger",
+          "name": "ch_messenger"
+         }
+        },
+        {
+         "id": "f_price",
+         "type": "Select",
+         "props": {
+          "label": "Mức giá",
+          "name": "price",
+          "options": [
+           "Dưới 500.000đ",
+           "500.000đ – 2 triệu",
+           "Trên 2 triệu"
+          ]
+         }
+        }
+       ]
+      },
+      {
+       "id": "main",
+       "type": "Column",
+       "props": {},
+       "children": [
+        {
+         "id": "grid_head",
+         "type": "Row",
+         "props": {
+          "gap": 8,
+          "align": "between"
+         },
+         "children": [
+          {
+           "id": "grid_h",
+           "type": "Heading",
+           "props": {
+            "text": "Hệ thống ticket",
+            "level": 2
+           }
+          },
+          {
+           "id": "sort",
+           "type": "Select",
+           "props": {
+            "label": "Sắp xếp",
+            "name": "sort",
+            "options": [
+             "Phổ biến",
+             "Giá tăng dần",
+             "Giá giảm dần"
+            ]
+           }
+          }
+         ]
+        },
+        {
+         "id": "grid",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "p1",
+           "type": "Card",
+           "props": {
+            "title": "Ticket Starter"
+           },
+           "children": [
+            {
+             "id": "p1p",
+             "type": "Text",
+             "props": {
+              "text": "290.000đ/tháng · 3 agent"
+             }
+            },
+            {
+             "id": "btn_try1",
+             "type": "Button",
+             "props": {
+              "label": "Dùng thử 14 ngày",
+              "variant": "primary",
+              "action": "start_trial"
+             }
+            }
+           ]
+          },
+          {
+           "id": "p2",
+           "type": "Card",
+           "props": {
+            "title": "Ticket Business"
+           },
+           "children": [
+            {
+             "id": "p2b",
+             "type": "Badge",
+             "props": {
+              "text": "Bán chạy",
+              "tone": "success"
+             }
+            },
+            {
+             "id": "p2p",
+             "type": "Text",
+             "props": {
+              "text": "990.000đ/tháng · 10 agent · SLA"
+             }
+            },
+            {
+             "id": "btn_try2",
+             "type": "Button",
+             "props": {
+              "label": "Dùng thử 14 ngày",
+              "variant": "primary",
+              "action": "start_trial"
+             }
+            }
+           ]
+          },
+          {
+           "id": "p3",
+           "type": "Card",
+           "props": {
+            "title": "Ticket Enterprise"
+           },
+           "children": [
+            {
+             "id": "p3p",
+             "type": "Text",
+             "props": {
+              "text": "Liên hệ báo giá · không giới hạn agent"
+             }
+            },
+            {
+             "id": "lnk_quote",
+             "type": "Link",
+             "props": {
+              "text": "Yêu cầu báo giá",
+              "navigateTo": "/bao-gia"
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "grid_pages",
+         "type": "Pagination",
+         "props": {
+          "pages": 2
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R758",
+  "requirement": {
+   "title": "Chuyển tiền thành công – ví điện tử",
+   "actor": "Khách hàng đã đăng nhập",
+   "description": "Sau khi xác thực OTP, khách hàng thấy màn hình chuyển tiền thành công với tóm tắt giao dịch: số tiền, người nhận, ngân hàng, nội dung, phí, mã giao dịch và thời gian. Có thể lưu người nhận, chia sẻ biên lai hoặc về trang chủ.",
+   "permissions": [
+    "Khách hàng đã đăng nhập: chỉ thao tác trên dữ liệu của chính mình"
+   ],
+   "rules": [
+    "Mã giao dịch duy nhất",
+    "Biên lai chỉ chia sẻ được của chính giao dịch này"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Giao dịch thành công"
+   },
+   "children": [
+    {
+     "id": "ok_icon",
+     "type": "Image",
+     "props": {
+      "alt": "Biểu tượng dấu tích xanh"
+     }
+    },
+    {
+     "id": "ok_h",
+     "type": "Heading",
+     "props": {
+      "text": "Chuyển tiền thành công",
+      "level": 1
+     }
+    },
+    {
+     "id": "amount",
+     "type": "Heading",
+     "props": {
+      "text": "2.500.000 ₫",
+      "level": 2
+     }
+    },
+    {
+     "id": "ok_alert",
+     "type": "Alert",
+     "props": {
+      "text": "Tiền đã đến tài khoản người nhận lúc 14:32:08, 19/10/2026.",
+      "tone": "success"
+     }
+    },
+    {
+     "id": "summary",
+     "type": "Table",
+     "props": {
+      "columns": [
+       "Thông tin",
+       "Chi tiết"
+      ],
+      "rows": [
+       [
+        "Người nhận",
+        "NGUYEN VAN LONG"
+       ],
+       [
+        "Ngân hàng",
+        "Techcombank · 1903 5566 7788"
+       ],
+       [
+        "Nội dung",
+        "Tra tien thue nha T10"
+       ],
+       [
+        "Phí",
+        "Miễn phí"
+       ],
+       [
+        "Mã giao dịch",
+        "FT26292148837"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "cb_save_payee",
+     "type": "Checkbox",
+     "props": {
+      "label": "Lưu người nhận vào danh bạ",
+      "name": "save_payee"
+     }
+    },
+    {
+     "id": "ok_actions",
+     "type": "Row",
+     "props": {
+      "gap": 8,
+      "align": "center"
+     },
+     "children": [
+      {
+       "id": "btn_share",
+       "type": "Button",
+       "props": {
+        "label": "Chia sẻ biên lai",
+        "variant": "secondary",
+        "action": "share_receipt"
+       }
+      },
+      {
+       "id": "btn_new",
+       "type": "Button",
+       "props": {
+        "label": "Giao dịch mới",
+        "variant": "ghost",
+        "action": "new_transfer"
+       }
+      },
+      {
+       "id": "btn_home",
+       "type": "Button",
+       "props": {
+        "label": "Về trang chủ",
+        "variant": "primary",
+        "action": "go_home"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R759",
+  "requirement": {
+   "title": "Quản lý thông báo bảo trì cổng hóa đơn điện tử",
+   "actor": "Quản trị nội dung",
+   "description": "Quản trị nội dung soạn banner cảnh báo bảo trì hiển thị trên cổng tra cứu hóa đơn công khai: mức cảnh báo, nội dung, thời gian bắt đầu/kết thúc và các trang hiển thị. Thanh tiêu đề có nút xuất bản và gỡ cảnh báo.",
+   "permissions": [
+    "Quản trị nội dung: được sửa nội dung và xuất bản trang công khai, không thao tác thay người dùng"
+   ],
+   "rules": [
+    "Nội dung tối đa 200 ký tự",
+    "Giờ kết thúc sau giờ bắt đầu",
+    "Gỡ cảnh báo cần xác nhận"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Cảnh báo hệ thống – Cổng hóa đơn"
+   },
+   "children": [
+    {
+     "id": "title_bar",
+     "type": "Header",
+     "props": {},
+     "children": [
+      {
+       "id": "tb_h",
+       "type": "Heading",
+       "props": {
+        "text": "Cảnh báo bảo trì",
+        "level": 2
+       }
+      },
+      {
+       "id": "tb_btns",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "btn_remove",
+         "type": "Button",
+         "props": {
+          "label": "Gỡ cảnh báo",
+          "variant": "danger",
+          "action": "remove_notice"
+         }
+        },
+        {
+         "id": "btn_publish",
+         "type": "Button",
+         "props": {
+          "label": "Xuất bản",
+          "variant": "primary",
+          "action": "publish_notice"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "preview_alert",
+     "type": "Alert",
+     "props": {
+      "text": "Xem trước: Hệ thống tra cứu hóa đơn bảo trì 22:00–02:00 ngày 25/10/2026.",
+      "tone": "warning"
+     }
+    },
+    {
+     "id": "notice_form",
+     "type": "Form",
+     "props": {
+      "submitAction": "save_notice"
+     },
+     "children": [
+      {
+       "id": "ra_level",
+       "type": "Radio",
+       "props": {
+        "label": "Mức cảnh báo",
+        "name": "level",
+        "options": [
+         "Thông tin",
+         "Cảnh báo",
+         "Nghiêm trọng"
+        ]
+       }
+      },
+      {
+       "id": "ta_content",
+       "type": "Textarea",
+       "props": {
+        "label": "Nội dung hiển thị",
+        "name": "content",
+        "required": true,
+        "maxLength": 200
+       }
+      },
+      {
+       "id": "time_row",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "dp_start",
+         "type": "DatePicker",
+         "props": {
+          "label": "Bắt đầu",
+          "name": "start_at",
+          "required": true
+         }
+        },
+        {
+         "id": "dp_end",
+         "type": "DatePicker",
+         "props": {
+          "label": "Kết thúc",
+          "name": "end_at",
+          "required": true
+         }
+        }
+       ]
+      },
+      {
+       "id": "cb_lookup",
+       "type": "Checkbox",
+       "props": {
+        "label": "Trang tra cứu hóa đơn",
+        "name": "show_lookup"
+       }
+      },
+      {
+       "id": "cb_download",
+       "type": "Checkbox",
+       "props": {
+        "label": "Trang tải hóa đơn PDF",
+        "name": "show_download"
+       }
+      },
+      {
+       "id": "btn_save",
+       "type": "Button",
+       "props": {
+        "label": "Lưu nháp",
+        "variant": "secondary",
+        "action": "save_notice"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R760",
+  "requirement": {
+   "title": "Tổng quan khóa học theo vai trò người tạo và người duyệt",
+   "actor": "Trưởng bộ môn (chỉ xem)",
+   "description": "Trưởng bộ môn xem lưới thẻ các khóa học đang trong quy trình xuất bản, mỗi thẻ cho biết người soạn, người duyệt, trạng thái và ngày gửi. Có thể chuyển giữa góc nhìn 'Tôi tạo' và 'Tôi duyệt'; không thao tác duyệt hay sửa.",
+   "permissions": [
+    "Chỉ xem: không có thao tác thêm, sửa, xóa"
+   ],
+   "rules": [
+    "Chỉ hiển thị khóa học của bộ môn mình",
+    "Không có nút duyệt/sửa trên màn này"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Khóa học theo vai trò"
+   },
+   "children": [
+    {
+     "id": "h",
+     "type": "Heading",
+     "props": {
+      "text": "Quy trình xuất bản khóa học – Bộ môn Tin học",
+      "level": 1
+     }
+    },
+    {
+     "id": "role_tabs",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "tab_creator",
+       "type": "Link",
+       "props": {
+        "text": "Góc nhìn người tạo",
+        "navigateTo": "?vai-tro=tao"
+       }
+      },
+      {
+       "id": "tab_reviewer",
+       "type": "Link",
+       "props": {
+        "text": "Góc nhìn người duyệt",
+        "navigateTo": "?vai-tro=duyet"
+       }
+      },
+      {
+       "id": "sel_status",
+       "type": "Select",
+       "props": {
+        "label": "Trạng thái",
+        "name": "status",
+        "options": [
+         "Tất cả",
+         "Chờ duyệt",
+         "Cần chỉnh sửa",
+         "Đã xuất bản"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "grid",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "c1",
+       "type": "Card",
+       "props": {
+        "title": "Python cho người mới"
+       },
+       "children": [
+        {
+         "id": "c1s",
+         "type": "Badge",
+         "props": {
+          "text": "Chờ duyệt",
+          "tone": "warning"
+         }
+        },
+        {
+         "id": "c1m",
+         "type": "Text",
+         "props": {
+          "text": "Tạo: Lê Hoàng · Duyệt: Phạm Thảo · Gửi 12/10"
+         }
+        }
+       ]
+      },
+      {
+       "id": "c2",
+       "type": "Card",
+       "props": {
+        "title": "Excel nâng cao"
+       },
+       "children": [
+        {
+         "id": "c2s",
+         "type": "Badge",
+         "props": {
+          "text": "Cần chỉnh sửa",
+          "tone": "danger"
+         }
+        },
+        {
+         "id": "c2m",
+         "type": "Text",
+         "props": {
+          "text": "Tạo: Ngô Vy · Duyệt: Phạm Thảo · Gửi 08/10"
+         }
+        }
+       ]
+      },
+      {
+       "id": "c3",
+       "type": "Card",
+       "props": {
+        "title": "SQL thực chiến"
+       },
+       "children": [
+        {
+         "id": "c3s",
+         "type": "Badge",
+         "props": {
+          "text": "Đã xuất bản",
+          "tone": "success"
+         }
+        },
+        {
+         "id": "c3m",
+         "type": "Text",
+         "props": {
+          "text": "Tạo: Lê Hoàng · Duyệt: Trịnh Nam · Xuất bản 01/10"
+         }
+        }
+       ]
+      },
+      {
+       "id": "c4",
+       "type": "Card",
+       "props": {
+        "title": "Tin học văn phòng"
+       },
+       "children": [
+        {
+         "id": "c4s",
+         "type": "Badge",
+         "props": {
+          "text": "Chờ duyệt",
+          "tone": "warning"
+         }
+        },
+        {
+         "id": "c4m",
+         "type": "Text",
+         "props": {
+          "text": "Tạo: Đỗ Quyên · Duyệt: Trịnh Nam · Gửi 15/10"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "pages",
+     "type": "Pagination",
+     "props": {
+      "pages": 2
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "R761",
+  "requirement": {
+   "title": "Hộp thoại bài viết đã lưu – báo điện tử",
+   "actor": "Độc giả đã đăng nhập",
+   "description": "Độc giả mở hộp thoại 'Bài đã lưu' từ trang chủ báo để xem danh sách bài mình đã lưu, tìm theo tiêu đề, lọc chuyên mục và bỏ lưu bài không cần nữa.",
+   "permissions": [
+    "Khách hàng đã đăng nhập: chỉ thao tác trên dữ liệu của chính mình"
+   ],
+   "rules": [
+    "Chỉ hiển thị bài của chính độc giả",
+    "Bỏ lưu không xóa bài viết"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Tin Nhanh 24h – Trang chủ"
+   },
+   "children": [
+    {
+     "id": "site_head",
+     "type": "Header",
+     "props": {},
+     "children": [
+      {
+       "id": "logo",
+       "type": "Heading",
+       "props": {
+        "text": "Tin Nhanh 24h",
+        "level": 2
+       }
+      },
+      {
+       "id": "reader",
+       "type": "Avatar",
+       "props": {
+        "name": "Vũ Bảo Anh"
+       }
+      }
+     ]
+    },
+    {
+     "id": "saved_modal",
+     "type": "Modal",
+     "props": {
+      "title": "Bài viết đã lưu (14)",
+      "open": true
+     },
+     "children": [
+      {
+       "id": "saved_filters",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "in_q",
+         "type": "Input",
+         "props": {
+          "label": "Tìm theo tiêu đề",
+          "name": "q",
+          "inputType": "text"
+         }
+        },
+        {
+         "id": "sel_cat",
+         "type": "Select",
+         "props": {
+          "label": "Chuyên mục",
+          "name": "category",
+          "options": [
+           "Tất cả",
+           "Kinh tế",
+           "Công nghệ",
+           "Thể thao"
+          ]
+         }
+        }
+       ]
+      },
+      {
+       "id": "saved_list",
+       "type": "List",
+       "props": {},
+       "children": [
+        {
+         "id": "a1",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "a1_t",
+           "type": "Link",
+           "props": {
+            "text": "Giá vàng tuần tới: chuyên gia dự báo gì?",
+            "navigateTo": "/kinh-te/gia-vang"
+           }
+          },
+          {
+           "id": "a1_d",
+           "type": "Text",
+           "props": {
+            "text": "Kinh tế · 18/10",
+            "tone": "muted"
+           }
+          },
+          {
+           "id": "btn_unsave1",
+           "type": "Button",
+           "props": {
+            "label": "Bỏ lưu",
+            "variant": "ghost",
+            "action": "unsave"
+           }
+          }
+         ]
+        },
+        {
+         "id": "a2",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "a2_t",
+           "type": "Link",
+           "props": {
+            "text": "Điện thoại gập 2026: nên mua mẫu nào",
+            "navigateTo": "/cong-nghe/dien-thoai-gap"
+           }
+          },
+          {
+           "id": "a2_d",
+           "type": "Text",
+           "props": {
+            "text": "Công nghệ · 16/10",
+            "tone": "muted"
+           }
+          },
+          {
+           "id": "btn_unsave2",
+           "type": "Button",
+           "props": {
+            "label": "Bỏ lưu",
+            "variant": "ghost",
+            "action": "unsave"
+           }
+          }
+         ]
+        },
+        {
+         "id": "a3",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "a3_t",
+           "type": "Link",
+           "props": {
+            "text": "V-League vòng 7: cuộc đua ngôi đầu",
+            "navigateTo": "/the-thao/v-league"
+           }
+          },
+          {
+           "id": "a3_d",
+           "type": "Text",
+           "props": {
+            "text": "Thể thao · 15/10",
+            "tone": "muted"
+           }
+          },
+          {
+           "id": "btn_unsave3",
+           "type": "Button",
+           "props": {
+            "label": "Bỏ lưu",
+            "variant": "ghost",
+            "action": "unsave"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "saved_pages",
+       "type": "Pagination",
+       "props": {
+        "pages": 5
+       }
+      },
+      {
+       "id": "btn_close",
+       "type": "Button",
+       "props": {
+        "label": "Đóng",
+        "variant": "secondary",
+        "action": "close_modal"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R762",
+  "requirement": {
+   "title": "Tùy chọn cookie cho khách – cửa hàng điện máy",
+   "actor": "Khách vãng lai",
+   "description": "Khách lần đầu vào website điện máy thấy thẻ cài đặt quyền riêng tư ở giữa màn hình để chọn loại cookie cho phép: cần thiết, phân tích, quảng cáo cá nhân hóa. Lựa chọn lưu trên trình duyệt.",
+   "permissions": [
+    "Khách vãng lai, chưa đăng nhập: chỉ có Đăng nhập/Đăng ký, không có chức năng tài khoản riêng"
+   ],
+   "rules": [
+    "Cookie cần thiết luôn bật",
+    "Khách có thể chấp nhận tất cả hoặc chỉ lưu lựa chọn"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Điện Máy Sao Việt"
+   },
+   "children": [
+    {
+     "id": "privacy_card",
+     "type": "Card",
+     "props": {
+      "title": "Quyền riêng tư của bạn"
+     },
+     "children": [
+      {
+       "id": "pc_intro",
+       "type": "Text",
+       "props": {
+        "text": "Chúng tôi dùng cookie để giữ giỏ hàng, đo lường lượt xem và gợi ý sản phẩm phù hợp."
+       }
+      },
+      {
+       "id": "cb_need",
+       "type": "Checkbox",
+       "props": {
+        "label": "Cần thiết (luôn bật) – giỏ hàng, phiên truy cập",
+        "name": "cookie_necessary"
+       }
+      },
+      {
+       "id": "cb_analytics",
+       "type": "Checkbox",
+       "props": {
+        "label": "Phân tích – thống kê lượt xem sản phẩm",
+        "name": "cookie_analytics"
+       }
+      },
+      {
+       "id": "cb_ads",
+       "type": "Checkbox",
+       "props": {
+        "label": "Quảng cáo cá nhân hóa trên mạng xã hội",
+        "name": "cookie_ads"
+       }
+      },
+      {
+       "id": "lnk_policy",
+       "type": "Link",
+       "props": {
+        "text": "Đọc chính sách quyền riêng tư",
+        "navigateTo": "/quyen-rieng-tu"
+       }
+      },
+      {
+       "id": "pc_actions",
+       "type": "Row",
+       "props": {
+        "gap": 8,
+        "align": "end"
+       },
+       "children": [
+        {
+         "id": "btn_save",
+         "type": "Button",
+         "props": {
+          "label": "Lưu lựa chọn",
+          "variant": "secondary",
+          "action": "save_choice"
+         }
+        },
+        {
+         "id": "btn_accept",
+         "type": "Button",
+         "props": {
+          "label": "Chấp nhận tất cả",
+          "variant": "primary",
+          "action": "accept_all"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R763",
+  "requirement": {
+   "title": "Cấu hình biểu mẫu góp ý công khai – thương hiệu thời trang",
+   "actor": "Quản trị nội dung",
+   "description": "Quản trị nội dung chỉnh biểu mẫu khiếu nại/góp ý trên website: tiêu đề, lời dẫn, danh sách chủ đề khách được chọn, có bắt buộc mã đơn không, email nhận thông báo và lời cảm ơn sau khi gửi.",
+   "permissions": [
+    "Quản trị nội dung: được sửa nội dung và xuất bản trang công khai, không thao tác thay người dùng",
+    "Không xem hay trả lời phiếu khiếu nại của khách tại màn này"
+   ],
+   "rules": [
+    "Tiêu đề bắt buộc",
+    "Ít nhất 2 chủ đề",
+    "Email nhận thông báo đúng định dạng"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Cấu hình biểu mẫu góp ý"
+   },
+   "children": [
+    {
+     "id": "h",
+     "type": "Heading",
+     "props": {
+      "text": "Biểu mẫu Khiếu nại & Góp ý",
+      "level": 1
+     }
+    },
+    {
+     "id": "sub",
+     "type": "Text",
+     "props": {
+      "text": "Trang công khai: maymay.vn/gop-y",
+      "tone": "muted"
+     }
+    },
+    {
+     "id": "cfg_form",
+     "type": "Form",
+     "props": {
+      "submitAction": "save_form_config"
+     },
+     "children": [
+      {
+       "id": "in_title",
+       "type": "Input",
+       "props": {
+        "label": "Tiêu đề biểu mẫu",
+        "name": "form_title",
+        "inputType": "text",
+        "required": true
+       }
+      },
+      {
+       "id": "ta_intro",
+       "type": "Textarea",
+       "props": {
+        "label": "Lời dẫn",
+        "name": "intro",
+        "maxLength": 400
+       }
+      },
+      {
+       "id": "ta_topics",
+       "type": "Textarea",
+       "props": {
+        "label": "Chủ đề (mỗi dòng một chủ đề)",
+        "name": "topics",
+        "placeholder": "Chất lượng sản phẩm\nGiao hàng\nĐổi trả",
+        "required": true
+       }
+      },
+      {
+       "id": "cb_order_req",
+       "type": "Checkbox",
+       "props": {
+        "label": "Bắt buộc nhập mã đơn hàng",
+        "name": "require_order"
+       }
+      },
+      {
+       "id": "cb_photo",
+       "type": "Checkbox",
+       "props": {
+        "label": "Cho phép đính kèm ảnh sản phẩm",
+        "name": "allow_photo"
+       }
+      },
+      {
+       "id": "in_email",
+       "type": "Input",
+       "props": {
+        "label": "Email nhận thông báo",
+        "name": "notify_email",
+        "inputType": "email",
+        "required": true
+       }
+      },
+      {
+       "id": "ta_thanks",
+       "type": "Textarea",
+       "props": {
+        "label": "Lời cảm ơn sau khi gửi",
+        "name": "thanks_msg",
+        "maxLength": 200
+       }
+      },
+      {
+       "id": "acts",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "btn_preview",
+         "type": "Button",
+         "props": {
+          "label": "Xem trước",
+          "variant": "ghost",
+          "action": "preview"
+         }
+        },
+        {
+         "id": "btn_publish",
+         "type": "Button",
+         "props": {
+          "label": "Lưu và xuất bản",
+          "variant": "primary",
+          "action": "save_form_config"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R764",
+  "requirement": {
+   "title": "Danh sách món đề xuất của bếp – nhà hàng",
+   "actor": "Bếp trưởng chi nhánh",
+   "description": "Bếp trưởng xem danh sách món đề xuất bổ sung thực đơn dưới banner chiến dịch thực đơn mùa đông, tìm, lọc theo nhóm món và trạng thái, và tạo đề xuất mới. Đề xuất đã gửi không sửa hay xóa.",
+   "permissions": [
+    "Chỉ được tạo mới, không sửa/xóa bản ghi đã tạo"
+   ],
+   "rules": [
+    "Tên món và giá dự kiến bắt buộc khi tạo",
+    "20 đề xuất mỗi trang"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Đề xuất món mùa đông 2026"
+   },
+   "children": [
+    {
+     "id": "banner",
+     "type": "Section",
+     "props": {},
+     "children": [
+      {
+       "id": "bn_img",
+       "type": "Image",
+       "props": {
+        "alt": "Nồi lẩu nghi ngút khói trên bàn gỗ"
+       }
+      },
+      {
+       "id": "bn_h",
+       "type": "Heading",
+       "props": {
+        "text": "Thực đơn mùa đông – nhận đề xuất đến 15/11",
+        "level": 1
+       }
+      },
+      {
+       "id": "btn_new",
+       "type": "Button",
+       "props": {
+        "label": "Tạo đề xuất món",
+        "variant": "primary",
+        "action": "create_proposal"
+       }
+      }
+     ]
+    },
+    {
+     "id": "list_sec",
+     "type": "Section",
+     "props": {
+      "title": "Đề xuất đã gửi"
+     },
+     "children": [
+      {
+       "id": "filters",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "in_q",
+         "type": "Input",
+         "props": {
+          "label": "Tìm món",
+          "name": "q",
+          "inputType": "text"
+         }
+        },
+        {
+         "id": "sel_group",
+         "type": "Select",
+         "props": {
+          "label": "Nhóm món",
+          "name": "group",
+          "options": [
+           "Lẩu",
+           "Món nướng",
+           "Đồ uống nóng",
+           "Tráng miệng"
+          ]
+         }
+        },
+        {
+         "id": "sel_state",
+         "type": "Select",
+         "props": {
+          "label": "Trạng thái",
+          "name": "state",
+          "options": [
+           "Chờ xét",
+           "Được chọn",
+           "Không chọn"
+          ]
+         }
+        }
+       ]
+      },
+      {
+       "id": "tb",
+       "type": "Table",
+       "props": {
+        "columns": [
+         "Mã",
+         "Tên món",
+         "Nhóm",
+         "Giá dự kiến",
+         "Chi nhánh",
+         "Trạng thái"
+        ],
+        "rows": [
+         [
+          "DX-118",
+          "Lẩu riêu cua bắp bò",
+          "Lẩu",
+          "329.000đ",
+          "Phan Xích Long",
+          "Chờ xét"
+         ],
+         [
+          "DX-112",
+          "Trà gừng mật ong",
+          "Đồ uống nóng",
+          "39.000đ",
+          "Quận 7",
+          "Được chọn"
+         ]
+        ]
+       }
+      },
+      {
+       "id": "pg",
+       "type": "Pagination",
+       "props": {
+        "pages": 4
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R765",
+  "requirement": {
+   "title": "Biên tập trang Giới thiệu – chuỗi phòng tập",
+   "actor": "Quản trị nội dung",
+   "description": "Quản trị nội dung sửa trang 'Về chúng tôi' của chuỗi phòng tập: câu chuyện thương hiệu, sứ mệnh, số liệu nổi bật, ảnh đội ngũ huấn luyện viên. Có nút xem trước và xuất bản.",
+   "permissions": [
+    "Quản trị nội dung: được sửa nội dung và xuất bản trang công khai, không thao tác thay người dùng"
+   ],
+   "rules": [
+    "Câu chuyện thương hiệu tối đa 1500 ký tự",
+    "Số liệu là số nguyên dương"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Biên tập: Về PowerHouse Gym"
+   },
+   "children": [
+    {
+     "id": "nav",
+     "type": "Header",
+     "props": {},
+     "children": [
+      {
+       "id": "brand",
+       "type": "Heading",
+       "props": {
+        "text": "PowerHouse CMS",
+        "level": 2
+       }
+      },
+      {
+       "id": "nav_r",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "n_site",
+         "type": "Link",
+         "props": {
+          "text": "Xem trang công khai",
+          "navigateTo": "/ve-chung-toi"
+         }
+        },
+        {
+         "id": "editor",
+         "type": "Avatar",
+         "props": {
+          "name": "Mai Phương"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "about_form",
+     "type": "Form",
+     "props": {
+      "title": "Nội dung trang Giới thiệu",
+      "submitAction": "save_about"
+     },
+     "children": [
+      {
+       "id": "in_head",
+       "type": "Input",
+       "props": {
+        "label": "Tiêu đề chính",
+        "name": "headline",
+        "inputType": "text",
+        "required": true
+       }
+      },
+      {
+       "id": "ta_story",
+       "type": "Textarea",
+       "props": {
+        "label": "Câu chuyện thương hiệu",
+        "name": "story",
+        "required": true,
+        "maxLength": 1500
+       }
+      },
+      {
+       "id": "ta_mission",
+       "type": "Textarea",
+       "props": {
+        "label": "Sứ mệnh",
+        "name": "mission",
+        "maxLength": 300
+       }
+      },
+      {
+       "id": "stats_row",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "in_branches",
+         "type": "Input",
+         "props": {
+          "label": "Số chi nhánh",
+          "name": "branches",
+          "inputType": "number",
+          "min": 1
+         }
+        },
+        {
+         "id": "in_members",
+         "type": "Input",
+         "props": {
+          "label": "Số hội viên",
+          "name": "members",
+          "inputType": "number",
+          "min": 1
+         }
+        },
+        {
+         "id": "in_coaches",
+         "type": "Input",
+         "props": {
+          "label": "Số HLV",
+          "name": "coaches",
+          "inputType": "number",
+          "min": 1
+         }
+        }
+       ]
+      },
+      {
+       "id": "img_row",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "team_img",
+         "type": "Image",
+         "props": {
+          "alt": "Ảnh tập thể huấn luyện viên"
+         }
+        },
+        {
+         "id": "btn_replace_img",
+         "type": "Button",
+         "props": {
+          "label": "Thay ảnh",
+          "variant": "secondary",
+          "action": "replace_image"
+         }
+        }
+       ]
+      },
+      {
+       "id": "acts",
+       "type": "Row",
+       "props": {
+        "gap": 8,
+        "align": "end"
+       },
+       "children": [
+        {
+         "id": "btn_preview",
+         "type": "Button",
+         "props": {
+          "label": "Xem trước",
+          "variant": "ghost",
+          "action": "preview"
+         }
+        },
+        {
+         "id": "btn_publish",
+         "type": "Button",
+         "props": {
+          "label": "Xuất bản",
+          "variant": "primary",
+          "action": "publish"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "footer",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "ft",
+       "type": "Text",
+       "props": {
+        "text": "Phiên bản đang xuất bản: 03/09/2026",
+        "tone": "muted"
+       }
+      },
+      {
+       "id": "ft_hist",
+       "type": "Link",
+       "props": {
+        "text": "Lịch sử phiên bản",
+        "navigateTo": "/cms/lich-su"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R766",
+  "requirement": {
+   "title": "Chi tiết tin cho thuê và bình luận – cư dân",
+   "actor": "Cư dân đã đăng nhập",
+   "description": "Cư dân đọc bài thông báo của ban quản lý về điều chỉnh phí gửi xe trong hợp đồng thuê, xem bình luận của cư dân khác và gửi bình luận của mình; chỉ được xóa bình luận của chính mình.",
+   "permissions": [
+    "Khách hàng đã đăng nhập: chỉ thao tác trên dữ liệu của chính mình",
+    "Chỉ xóa bình luận của chính mình"
+   ],
+   "rules": [
+    "Bình luận 1–500 ký tự",
+    "Bình luận hiển thị sau khi gửi"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Thông báo điều chỉnh phí gửi xe từ 01/11/2026"
+   },
+   "children": [
+    {
+     "id": "bar",
+     "type": "Header",
+     "props": {},
+     "children": [
+      {
+       "id": "back",
+       "type": "Link",
+       "props": {
+        "text": "← Bảng tin cư dân",
+        "navigateTo": "/bang-tin"
+       }
+      },
+      {
+       "id": "bar_btns",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "btn_follow",
+         "type": "Button",
+         "props": {
+          "label": "Theo dõi bài",
+          "variant": "secondary",
+          "action": "follow_post"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "title",
+     "type": "Heading",
+     "props": {
+      "text": "Điều chỉnh phí gửi xe máy và ô tô từ 01/11/2026",
+      "level": 1
+     }
+    },
+    {
+     "id": "meta",
+     "type": "Text",
+     "props": {
+      "text": "Ban quản lý Sky Garden · 17/10/2026 · 32 bình luận",
+      "tone": "muted"
+     }
+    },
+    {
+     "id": "body",
+     "type": "Text",
+     "props": {
+      "text": "Theo phụ lục hợp đồng thuê, phí gửi xe máy tăng từ 100.000đ lên 120.000đ/tháng; ô tô giữ nguyên 1.500.000đ/tháng..."
+     }
+    },
+    {
+     "id": "div",
+     "type": "Divider",
+     "props": {}
+    },
+    {
+     "id": "comments",
+     "type": "Section",
+     "props": {
+      "title": "Bình luận"
+     },
+     "children": [
+      {
+       "id": "cm1",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "cm1_av",
+         "type": "Avatar",
+         "props": {
+          "name": "Hoàng Yến"
+         }
+        },
+        {
+         "id": "cm1_t",
+         "type": "Text",
+         "props": {
+          "text": "Phí tăng có kèm lắp thêm camera hầm B2 không ạ?"
+         }
+        }
+       ]
+      },
+      {
+       "id": "cm2",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "cm2_av",
+         "type": "Avatar",
+         "props": {
+          "name": "Bạn"
+         }
+        },
+        {
+         "id": "cm2_t",
+         "type": "Text",
+         "props": {
+          "text": "Mong ban quản lý thông báo sớm hơn."
+         }
+        },
+        {
+         "id": "btn_del_mine",
+         "type": "Button",
+         "props": {
+          "label": "Xóa",
+          "variant": "ghost",
+          "action": "delete_comment"
+         }
+        }
+       ]
+      },
+      {
+       "id": "cm_pages",
+       "type": "Pagination",
+       "props": {
+        "pages": 4
+       }
+      }
+     ]
+    },
+    {
+     "id": "cm_form",
+     "type": "Form",
+     "props": {
+      "submitAction": "post_comment"
+     },
+     "children": [
+      {
+       "id": "ta_cm",
+       "type": "Textarea",
+       "props": {
+        "label": "Viết bình luận",
+        "name": "comment",
+        "required": true,
+        "maxLength": 500
+       }
+      },
+      {
+       "id": "btn_post",
+       "type": "Button",
+       "props": {
+        "label": "Gửi bình luận",
+        "variant": "primary",
+        "action": "post_comment"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R767",
+  "requirement": {
+   "title": "Bảng lịch khai giảng toàn hệ thống",
+   "actor": "Khách vãng lai",
+   "description": "Khách xem bảng tất cả lớp sắp khai giảng của trung tâm đào tạo, chia nhiều trang, chọn ngành ở sidebar, tìm theo tên lớp và lọc cơ sở. Muốn đăng ký lớp thì chuyển sang trang đăng ký.",
+   "permissions": [
+    "Khách vãng lai, chưa đăng nhập: chỉ có Đăng nhập/Đăng ký, không có chức năng tài khoản riêng",
+    "Chỉ xem: không có thao tác thêm, sửa, xóa"
+   ],
+   "rules": [
+    "25 lớp mỗi trang",
+    "Sắp xếp theo ngày khai giảng gần nhất"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Lịch khai giảng"
+   },
+   "children": [
+    {
+     "id": "layout",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "sb",
+       "type": "Sidebar",
+       "props": {},
+       "children": [
+        {
+         "id": "sb_h",
+         "type": "Heading",
+         "props": {
+          "text": "Ngành đào tạo",
+          "level": 3
+         }
+        },
+        {
+         "id": "s_it",
+         "type": "Link",
+         "props": {
+          "text": "Công nghệ thông tin",
+          "navigateTo": "?nganh=cntt"
+         }
+        },
+        {
+         "id": "s_acc",
+         "type": "Link",
+         "props": {
+          "text": "Kế toán",
+          "navigateTo": "?nganh=ke-toan"
+         }
+        },
+        {
+         "id": "s_lang",
+         "type": "Link",
+         "props": {
+          "text": "Ngoại ngữ",
+          "navigateTo": "?nganh=ngoai-ngu"
+         }
+        },
+        {
+         "id": "s_design",
+         "type": "Link",
+         "props": {
+          "text": "Thiết kế đồ họa",
+          "navigateTo": "?nganh=thiet-ke"
+         }
+        }
+       ]
+      },
+      {
+       "id": "main",
+       "type": "Column",
+       "props": {},
+       "children": [
+        {
+         "id": "h",
+         "type": "Heading",
+         "props": {
+          "text": "Lớp sắp khai giảng – Công nghệ thông tin",
+          "level": 1
+         }
+        },
+        {
+         "id": "tools",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "in_q",
+           "type": "Input",
+           "props": {
+            "label": "Tìm lớp",
+            "name": "q",
+            "inputType": "text"
+           }
+          },
+          {
+           "id": "sel_campus",
+           "type": "Select",
+           "props": {
+            "label": "Cơ sở",
+            "name": "campus",
+            "options": [
+             "Tất cả",
+             "Hai Bà Trưng",
+             "Hà Đông",
+             "Thủ Đức"
+            ]
+           }
+          }
+         ]
+        },
+        {
+         "id": "tb",
+         "type": "Table",
+         "props": {
+          "columns": [
+           "Mã lớp",
+           "Tên lớp",
+           "Cơ sở",
+           "Khai giảng",
+           "Lịch học",
+           "Học phí",
+           "Chỗ trống"
+          ],
+          "rows": [
+           [
+            "IT-2611",
+            "Lập trình Java cơ bản",
+            "Hà Đông",
+            "02/11/2026",
+            "T3-T5 18h",
+            "4.500.000đ",
+            "8"
+           ],
+           [
+            "IT-2614",
+            "React từ zero",
+            "Thủ Đức",
+            "05/11/2026",
+            "T7-CN 9h",
+            "5.200.000đ",
+            "3"
+           ]
+          ],
+          "rowActions": [
+           "Xem chi tiết"
+          ]
+         }
+        },
+        {
+         "id": "tb_foot",
+         "type": "Row",
+         "props": {
+          "gap": 8,
+          "align": "between"
+         },
+         "children": [
+          {
+           "id": "count",
+           "type": "Text",
+           "props": {
+            "text": "Hiển thị 1–25 trong 118 lớp",
+            "tone": "muted"
+           }
+          },
+          {
+           "id": "pg",
+           "type": "Pagination",
+           "props": {
+            "pages": 5
+           }
+          }
+         ]
+        },
+        {
+         "id": "lnk_reg",
+         "type": "Link",
+         "props": {
+          "text": "Đăng ký học",
+          "navigateTo": "/dang-ky-hoc"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R768",
+  "requirement": {
+   "title": "Quản lý gói khám có điều khoản – phòng khám",
+   "actor": "Quản trị nội dung",
+   "description": "Quản trị nội dung xem lưới thẻ các gói khám sức khỏe đăng trên trang đặt lịch công khai và sửa điều khoản dịch vụ khách phải đồng ý khi đăng ký gói: thời hạn hủy, hoàn tiền, chuẩn bị trước khám.",
+   "permissions": [
+    "Quản trị nội dung: được sửa nội dung và xuất bản trang công khai, không thao tác thay người dùng"
+   ],
+   "rules": [
+    "Điều khoản bắt buộc trước khi xuất bản",
+    "Ẩn gói không xóa lịch hẹn đã đặt"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Gói khám & điều khoản đăng ký"
+   },
+   "children": [
+    {
+     "id": "h",
+     "type": "Heading",
+     "props": {
+      "text": "Gói khám đăng trên trang đặt lịch",
+      "level": 1
+     }
+    },
+    {
+     "id": "grid",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "g1",
+       "type": "Card",
+       "props": {
+        "title": "Khám tổng quát cơ bản"
+       },
+       "children": [
+        {
+         "id": "g1p",
+         "type": "Text",
+         "props": {
+          "text": "1.290.000đ"
+         }
+        },
+        {
+         "id": "g1s",
+         "type": "Badge",
+         "props": {
+          "text": "Đang hiển thị",
+          "tone": "success"
+         }
+        },
+        {
+         "id": "g1a",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "btn_edit_g1",
+           "type": "Button",
+           "props": {
+            "label": "Sửa",
+            "variant": "secondary",
+            "action": "edit_package"
+           }
+          },
+          {
+           "id": "btn_hide_g1",
+           "type": "Button",
+           "props": {
+            "label": "Ẩn",
+            "variant": "ghost",
+            "action": "hide_package"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "g2",
+       "type": "Card",
+       "props": {
+        "title": "Tầm soát tim mạch"
+       },
+       "children": [
+        {
+         "id": "g2p",
+         "type": "Text",
+         "props": {
+          "text": "2.850.000đ"
+         }
+        },
+        {
+         "id": "g2s",
+         "type": "Badge",
+         "props": {
+          "text": "Đang hiển thị",
+          "tone": "success"
+         }
+        },
+        {
+         "id": "g2a",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "btn_edit_g2",
+           "type": "Button",
+           "props": {
+            "label": "Sửa",
+            "variant": "secondary",
+            "action": "edit_package"
+           }
+          },
+          {
+           "id": "btn_hide_g2",
+           "type": "Button",
+           "props": {
+            "label": "Ẩn",
+            "variant": "ghost",
+            "action": "hide_package"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "g3",
+       "type": "Card",
+       "props": {
+        "title": "Khám tiền hôn nhân"
+       },
+       "children": [
+        {
+         "id": "g3p",
+         "type": "Text",
+         "props": {
+          "text": "1.950.000đ"
+         }
+        },
+        {
+         "id": "g3s",
+         "type": "Badge",
+         "props": {
+          "text": "Đã ẩn",
+          "tone": "neutral"
+         }
+        },
+        {
+         "id": "btn_show_g3",
+         "type": "Button",
+         "props": {
+          "label": "Hiển thị lại",
+          "variant": "secondary",
+          "action": "show_package"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "terms_form",
+     "type": "Form",
+     "props": {
+      "title": "Điều khoản khi đăng ký gói",
+      "submitAction": "save_terms"
+     },
+     "children": [
+      {
+       "id": "ta_cancel",
+       "type": "Textarea",
+       "props": {
+        "label": "Chính sách hủy và đổi lịch",
+        "name": "cancel_policy",
+        "required": true
+       }
+      },
+      {
+       "id": "ta_refund",
+       "type": "Textarea",
+       "props": {
+        "label": "Chính sách hoàn tiền",
+        "name": "refund_policy",
+        "required": true
+       }
+      },
+      {
+       "id": "ta_prep",
+       "type": "Textarea",
+       "props": {
+        "label": "Hướng dẫn chuẩn bị (nhịn ăn, mang giấy tờ)",
+        "name": "preparation"
+       }
+      },
+      {
+       "id": "btn_save_terms",
+       "type": "Button",
+       "props": {
+        "label": "Lưu và xuất bản điều khoản",
+        "variant": "primary",
+        "action": "save_terms"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R769",
+  "requirement": {
+   "title": "Duyệt đề nghị chỉnh sửa thông tin sự kiện",
+   "actor": "Kiểm duyệt viên sự kiện",
+   "description": "Ban tổ chức gửi đề nghị chỉnh sửa sự kiện đã mở bán vé. Kiểm duyệt viên xem so sánh hai cột thông tin hiện tại và thông tin đề nghị (giờ, địa điểm, giá vé), rồi duyệt hoặc từ chối kèm lý do.",
+   "permissions": [
+    "Chỉ được duyệt/từ chối, không thêm hay sửa dữ liệu nghiệp vụ"
+   ],
+   "rules": [
+    "Từ chối bắt buộc nhập lý do",
+    "Đổi giờ/địa điểm sau duyệt sẽ gửi email cho người mua vé"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Đề nghị chỉnh sửa #EV-5521"
+   },
+   "children": [
+    {
+     "id": "h",
+     "type": "Heading",
+     "props": {
+      "text": "Đêm nhạc Mùa Thu Hà Nội – đề nghị chỉnh sửa",
+      "level": 1
+     }
+    },
+    {
+     "id": "by",
+     "type": "Text",
+     "props": {
+      "text": "Gửi bởi Công ty Sao Việt Entertainment · 18/10/2026",
+      "tone": "muted"
+     }
+    },
+    {
+     "id": "compare",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "cur",
+       "type": "Card",
+       "props": {
+        "title": "Thông tin hiện tại"
+       },
+       "children": [
+        {
+         "id": "c_time",
+         "type": "Text",
+         "props": {
+          "text": "Thời gian: 20:00, 08/11/2026"
+         }
+        },
+        {
+         "id": "c_place",
+         "type": "Text",
+         "props": {
+          "text": "Địa điểm: Cung Văn hóa Hữu Nghị"
+         }
+        },
+        {
+         "id": "c_price",
+         "type": "Text",
+         "props": {
+          "text": "Vé VIP: 1.500.000đ"
+         }
+        }
+       ]
+      },
+      {
+       "id": "new",
+       "type": "Card",
+       "props": {
+        "title": "Thông tin đề nghị"
+       },
+       "children": [
+        {
+         "id": "n_time",
+         "type": "Text",
+         "props": {
+          "text": "Thời gian: 19:30, 08/11/2026"
+         }
+        },
+        {
+         "id": "n_place",
+         "type": "Text",
+         "props": {
+          "text": "Địa điểm: Nhà hát Âu Cơ"
+         }
+        },
+        {
+         "id": "n_price",
+         "type": "Text",
+         "props": {
+          "text": "Vé VIP: 1.500.000đ (không đổi)"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "impact",
+     "type": "Alert",
+     "props": {
+      "text": "1.284 vé đã bán sẽ nhận email thông báo thay đổi nếu duyệt.",
+      "tone": "warning"
+     }
+    },
+    {
+     "id": "decision",
+     "type": "Form",
+     "props": {
+      "submitAction": "decide"
+     },
+     "children": [
+      {
+       "id": "ta_reason",
+       "type": "Textarea",
+       "props": {
+        "label": "Lý do (bắt buộc khi từ chối)",
+        "name": "reason",
+        "maxLength": 500
+       }
+      },
+      {
+       "id": "acts",
+       "type": "Row",
+       "props": {
+        "gap": 8,
+        "align": "end"
+       },
+       "children": [
+        {
+         "id": "btn_reject",
+         "type": "Button",
+         "props": {
+          "label": "Từ chối",
+          "variant": "danger",
+          "action": "reject"
+         }
+        },
+        {
+         "id": "btn_approve",
+         "type": "Button",
+         "props": {
+          "label": "Duyệt chỉnh sửa",
+          "variant": "primary",
+          "action": "approve"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R770",
+  "requirement": {
+   "title": "Trang 404 cổng quản trị người dùng",
+   "actor": "Khách vãng lai",
+   "description": "Khách mở một đường dẫn không tồn tại trên cổng quản trị tài khoản doanh nghiệp. Trang báo không tìm thấy, gợi ý đăng nhập, trang hỗ trợ hoặc quay về trang chủ.",
+   "permissions": [
+    "Khách vãng lai, chưa đăng nhập: chỉ có Đăng nhập/Đăng ký, không có chức năng tài khoản riêng"
+   ],
+   "rules": [
+    "Không tiết lộ đường dẫn quản trị nội bộ"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Không tìm thấy trang"
+   },
+   "children": [
+    {
+     "id": "nav",
+     "type": "Header",
+     "props": {},
+     "children": [
+      {
+       "id": "brand",
+       "type": "Heading",
+       "props": {
+        "text": "IDPortal",
+        "level": 2
+       }
+      },
+      {
+       "id": "nav_r",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "n_login",
+         "type": "Link",
+         "props": {
+          "text": "Đăng nhập",
+          "navigateTo": "/dang-nhap"
+         }
+        },
+        {
+         "id": "n_signup",
+         "type": "Link",
+         "props": {
+          "text": "Đăng ký",
+          "navigateTo": "/dang-ky"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "content",
+     "type": "Column",
+     "props": {},
+     "children": [
+      {
+       "id": "code",
+       "type": "Heading",
+       "props": {
+        "text": "404",
+        "level": 1
+       }
+      },
+      {
+       "id": "msg",
+       "type": "Heading",
+       "props": {
+        "text": "Trang bạn tìm không tồn tại hoặc đã được di chuyển",
+        "level": 2
+       }
+      },
+      {
+       "id": "hint",
+       "type": "Text",
+       "props": {
+        "text": "Kiểm tra lại đường dẫn hoặc đăng nhập để truy cập bảng quản trị người dùng."
+       }
+      },
+      {
+       "id": "acts",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "btn_home",
+         "type": "Button",
+         "props": {
+          "label": "Về trang chủ",
+          "variant": "primary",
+          "action": "go_home"
+         }
+        },
+        {
+         "id": "lnk_help",
+         "type": "Link",
+         "props": {
+          "text": "Trung tâm hỗ trợ",
+          "navigateTo": "/ho-tro"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "footer",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "ft",
+       "type": "Text",
+       "props": {
+        "text": "© 2026 IDPortal",
+        "tone": "muted"
+       }
+      },
+      {
+       "id": "ft_status",
+       "type": "Link",
+       "props": {
+        "text": "Trạng thái hệ thống",
+        "navigateTo": "/trang-thai"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R771",
+  "requirement": {
+   "title": "Chào mừng và bắt đầu dùng phần mềm kho",
+   "actor": "Chủ kho đã đăng nhập",
+   "description": "Lần đầu đăng nhập, chủ kho thấy màn chào mừng với lưới thẻ các bước bắt đầu: tạo kho, nhập danh mục hàng, mời nhân viên, cài máy quét mã vạch. Mỗi bước có trạng thái và nút thực hiện; có thể bỏ qua hướng dẫn.",
+   "permissions": [
+    "Khách hàng đã đăng nhập: chỉ thao tác trên dữ liệu của chính mình"
+   ],
+   "rules": [
+    "Bước đã hoàn thành không cần làm lại",
+    "Có thể mở lại hướng dẫn trong Trợ giúp"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Chào mừng đến KhoXanh"
+   },
+   "children": [
+    {
+     "id": "h",
+     "type": "Heading",
+     "props": {
+      "text": "Chào Phạm Quốc Tuấn, bắt đầu quản lý kho thôi!",
+      "level": 1
+     }
+    },
+    {
+     "id": "progress",
+     "type": "Row",
+     "props": {
+      "gap": 8,
+      "align": "between"
+     },
+     "children": [
+      {
+       "id": "st_done",
+       "type": "Stat",
+       "props": {
+        "label": "Đã hoàn thành",
+        "value": "1/4 bước"
+       }
+      },
+      {
+       "id": "btn_skip",
+       "type": "Button",
+       "props": {
+        "label": "Bỏ qua hướng dẫn",
+        "variant": "ghost",
+        "action": "skip_onboarding"
+       }
+      }
+     ]
+    },
+    {
+     "id": "grid",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "s1",
+       "type": "Card",
+       "props": {
+        "title": "1. Tạo kho đầu tiên"
+       },
+       "children": [
+        {
+         "id": "s1b",
+         "type": "Badge",
+         "props": {
+          "text": "Xong",
+          "tone": "success"
+         }
+        },
+        {
+         "id": "s1t",
+         "type": "Text",
+         "props": {
+          "text": "Kho Bình Dương đã được tạo"
+         }
+        }
+       ]
+      },
+      {
+       "id": "s2",
+       "type": "Card",
+       "props": {
+        "title": "2. Nhập danh mục hàng hóa"
+       },
+       "children": [
+        {
+         "id": "s2t",
+         "type": "Text",
+         "props": {
+          "text": "Tải file Excel mẫu hoặc thêm thủ công"
+         }
+        },
+        {
+         "id": "btn_import",
+         "type": "Button",
+         "props": {
+          "label": "Nhập hàng hóa",
+          "variant": "primary",
+          "action": "import_items"
+         }
+        }
+       ]
+      },
+      {
+       "id": "s3",
+       "type": "Card",
+       "props": {
+        "title": "3. Mời nhân viên kho"
+       },
+       "children": [
+        {
+         "id": "s3t",
+         "type": "Text",
+         "props": {
+          "text": "Phân quyền thủ kho, nhân viên soạn hàng"
+         }
+        },
+        {
+         "id": "btn_invite",
+         "type": "Button",
+         "props": {
+          "label": "Mời nhân viên",
+          "variant": "secondary",
+          "action": "invite_staff"
+         }
+        }
+       ]
+      },
+      {
+       "id": "s4",
+       "type": "Card",
+       "props": {
+        "title": "4. Kết nối máy quét mã vạch"
+       },
+       "children": [
+        {
+         "id": "s4t",
+         "type": "Text",
+         "props": {
+          "text": "Hỗ trợ máy quét USB và Bluetooth"
+         }
+        },
+        {
+         "id": "lnk_scanner",
+         "type": "Link",
+         "props": {
+          "text": "Xem hướng dẫn",
+          "navigateTo": "/huong-dan/may-quet"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R772",
+  "requirement": {
+   "title": "Không có quyền xem báo cáo công nợ",
+   "actor": "Nhân viên kế toán (chỉ xem)",
+   "description": "Nhân viên mở báo cáo công nợ nhà cung cấp nhưng không có quyền. Màn hai cột: bên trái giải thích lý do và người cấp quyền, bên phải là các báo cáo nhân viên được xem. Không có nút sửa dữ liệu.",
+   "permissions": [
+    "Chỉ xem: không có thao tác thêm, sửa, xóa"
+   ],
+   "rules": [
+    "Không hiển thị số liệu của báo cáo bị chặn",
+    "Gửi yêu cầu cấp quyền tới kế toán trưởng"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Không có quyền truy cập"
+   },
+   "children": [
+    {
+     "id": "cols",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "left",
+       "type": "Column",
+       "props": {},
+       "children": [
+        {
+         "id": "lock_img",
+         "type": "Image",
+         "props": {
+          "alt": "Biểu tượng ổ khóa"
+         }
+        },
+        {
+         "id": "h",
+         "type": "Heading",
+         "props": {
+          "text": "Bạn chưa có quyền xem Báo cáo công nợ nhà cung cấp",
+          "level": 1
+         }
+        },
+        {
+         "id": "why",
+         "type": "Text",
+         "props": {
+          "text": "Báo cáo này chỉ dành cho nhóm Kế toán thanh toán. Người cấp quyền: Kế toán trưởng Lý Thanh Mai."
+         }
+        },
+        {
+         "id": "btn_request",
+         "type": "Button",
+         "props": {
+          "label": "Gửi yêu cầu cấp quyền",
+          "variant": "primary",
+          "action": "request_access"
+         }
+        }
+       ]
+      },
+      {
+       "id": "right",
+       "type": "Column",
+       "props": {},
+       "children": [
+        {
+         "id": "h2",
+         "type": "Heading",
+         "props": {
+          "text": "Báo cáo bạn được xem",
+          "level": 3
+         }
+        },
+        {
+         "id": "allowed",
+         "type": "List",
+         "props": {},
+         "children": [
+          {
+           "id": "r1",
+           "type": "Link",
+           "props": {
+            "text": "Sổ quỹ tiền mặt",
+            "navigateTo": "/bao-cao/so-quy"
+           }
+          },
+          {
+           "id": "r2",
+           "type": "Link",
+           "props": {
+            "text": "Hóa đơn đầu ra theo tháng",
+            "navigateTo": "/bao-cao/hoa-don-ra"
+           }
+          },
+          {
+           "id": "r3",
+           "type": "Link",
+           "props": {
+            "text": "Bảng kê chi phí phòng ban",
+            "navigateTo": "/bao-cao/chi-phi"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R773",
+  "requirement": {
+   "title": "Báo cáo chấm công tháng theo phòng ban",
+   "actor": "Quản trị nhân sự",
+   "description": "Quản trị nhân sự xem báo cáo bảng công tháng dưới banner tổng hợp: số ngày công, đi muộn, nghỉ phép, làm thêm của từng nhân viên. Có thể lọc, thêm bản ghi điều chỉnh, sửa, xóa dòng sai và xuất Excel.",
+   "permissions": [
+    "Toàn quyền: xem, thêm, sửa, xóa"
+   ],
+   "rules": [
+    "Xóa dòng cần xác nhận",
+    "Kỳ công đã khóa không được sửa"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Báo cáo chấm công tháng 09/2026"
+   },
+   "children": [
+    {
+     "id": "banner",
+     "type": "Section",
+     "props": {},
+     "children": [
+      {
+       "id": "bn_h",
+       "type": "Heading",
+       "props": {
+        "text": "Bảng công tháng 09/2026",
+        "level": 1
+       }
+      },
+      {
+       "id": "stats",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "s1",
+         "type": "Stat",
+         "props": {
+          "label": "Nhân viên",
+          "value": "186"
+         }
+        },
+        {
+         "id": "s2",
+         "type": "Stat",
+         "props": {
+          "label": "Tổng giờ làm thêm",
+          "value": "1.240 giờ"
+         }
+        },
+        {
+         "id": "s3",
+         "type": "Stat",
+         "props": {
+          "label": "Lượt đi muộn",
+          "value": "73"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "tbl_sec",
+     "type": "Section",
+     "props": {
+      "title": "Chi tiết"
+     },
+     "children": [
+      {
+       "id": "tools",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "sel_dept",
+         "type": "Select",
+         "props": {
+          "label": "Phòng ban",
+          "name": "dept",
+          "options": [
+           "Tất cả",
+           "Sản xuất",
+           "Kinh doanh",
+           "Văn phòng"
+          ]
+         }
+        },
+        {
+         "id": "in_q",
+         "type": "Input",
+         "props": {
+          "label": "Tìm nhân viên",
+          "name": "q",
+          "inputType": "text"
+         }
+        },
+        {
+         "id": "btn_add",
+         "type": "Button",
+         "props": {
+          "label": "Thêm điều chỉnh",
+          "variant": "primary",
+          "action": "add_adjust"
+         }
+        },
+        {
+         "id": "btn_export",
+         "type": "Button",
+         "props": {
+          "label": "Xuất Excel",
+          "variant": "secondary",
+          "action": "export"
+         }
+        }
+       ]
+      },
+      {
+       "id": "tb",
+       "type": "Table",
+       "props": {
+        "columns": [
+         "Mã NV",
+         "Họ tên",
+         "Phòng ban",
+         "Ngày công",
+         "Đi muộn",
+         "Nghỉ phép",
+         "Làm thêm (giờ)"
+        ],
+        "rows": [
+         [
+          "NV0412",
+          "Trịnh Văn Hùng",
+          "Sản xuất",
+          "25",
+          "2",
+          "1",
+          "18"
+         ]
+        ],
+        "rowActions": [
+         "Sửa",
+         "Xóa"
+        ]
+       }
+      },
+      {
+       "id": "pg",
+       "type": "Pagination",
+       "props": {
+        "pages": 8
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R774",
+  "requirement": {
+   "title": "Hồ sơ nhân viên nhiều phần – tự cập nhật",
+   "actor": "Nhân viên",
+   "description": "Nhân viên tự cập nhật hồ sơ của mình qua biểu mẫu nhiều phần; sidebar liệt kê các phần: thông tin cá nhân, liên hệ khẩn cấp, tài khoản ngân hàng nhận lương. Lưu từng phần hoặc gửi cho HR xác nhận.",
+   "permissions": [
+    "Chỉ thao tác trên bản ghi của chính mình"
+   ],
+   "rules": [
+    "CCCD 12 chữ số",
+    "Số tài khoản phải trùng tên nhân viên",
+    "Người liên hệ khẩn cấp bắt buộc"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Hồ sơ của tôi"
+   },
+   "children": [
+    {
+     "id": "layout",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "sb",
+       "type": "Sidebar",
+       "props": {},
+       "children": [
+        {
+         "id": "p1",
+         "type": "Link",
+         "props": {
+          "text": "1. Thông tin cá nhân",
+          "navigateTo": "#ca-nhan"
+         }
+        },
+        {
+         "id": "p2",
+         "type": "Link",
+         "props": {
+          "text": "2. Liên hệ khẩn cấp",
+          "navigateTo": "#khan-cap"
+         }
+        },
+        {
+         "id": "p3",
+         "type": "Link",
+         "props": {
+          "text": "3. Tài khoản nhận lương",
+          "navigateTo": "#ngan-hang"
+         }
+        }
+       ]
+      },
+      {
+       "id": "hr_form",
+       "type": "Form",
+       "props": {
+        "title": "Cập nhật hồ sơ nhân sự",
+        "submitAction": "submit_to_hr"
+       },
+       "children": [
+        {
+         "id": "sec1",
+         "type": "Section",
+         "props": {
+          "title": "1. Thông tin cá nhân"
+         },
+         "children": [
+          {
+           "id": "in_cccd",
+           "type": "Input",
+           "props": {
+            "label": "Số CCCD",
+            "name": "id_number",
+            "inputType": "text",
+            "required": true,
+            "minLength": 12,
+            "maxLength": 12
+           }
+          },
+          {
+           "id": "dp_dob",
+           "type": "DatePicker",
+           "props": {
+            "label": "Ngày sinh",
+            "name": "dob",
+            "required": true
+           }
+          },
+          {
+           "id": "in_addr",
+           "type": "Input",
+           "props": {
+            "label": "Địa chỉ thường trú",
+            "name": "address",
+            "inputType": "text",
+            "required": true
+           }
+          }
+         ]
+        },
+        {
+         "id": "sec2",
+         "type": "Section",
+         "props": {
+          "title": "2. Liên hệ khẩn cấp"
+         },
+         "children": [
+          {
+           "id": "in_ec_name",
+           "type": "Input",
+           "props": {
+            "label": "Họ tên người liên hệ",
+            "name": "ec_name",
+            "inputType": "text",
+            "required": true
+           }
+          },
+          {
+           "id": "sel_rel",
+           "type": "Select",
+           "props": {
+            "label": "Quan hệ",
+            "name": "ec_relation",
+            "options": [
+             "Bố/Mẹ",
+             "Vợ/Chồng",
+             "Anh/Chị/Em",
+             "Khác"
+            ],
+            "required": true
+           }
+          },
+          {
+           "id": "in_ec_phone",
+           "type": "Input",
+           "props": {
+            "label": "Số điện thoại",
+            "name": "ec_phone",
+            "inputType": "tel",
+            "required": true
+           }
+          }
+         ]
+        },
+        {
+         "id": "sec3",
+         "type": "Section",
+         "props": {
+          "title": "3. Tài khoản nhận lương"
+         },
+         "children": [
+          {
+           "id": "sel_bank",
+           "type": "Select",
+           "props": {
+            "label": "Ngân hàng",
+            "name": "bank",
+            "options": [
+             "Vietcombank",
+             "VietinBank",
+             "MB Bank"
+            ],
+            "required": true
+           }
+          },
+          {
+           "id": "in_acc",
+           "type": "Input",
+           "props": {
+            "label": "Số tài khoản",
+            "name": "account",
+            "inputType": "text",
+            "required": true
+           }
+          }
+         ]
+        },
+        {
+         "id": "acts",
+         "type": "Row",
+         "props": {
+          "gap": 8,
+          "align": "end"
+         },
+         "children": [
+          {
+           "id": "btn_draft",
+           "type": "Button",
+           "props": {
+            "label": "Lưu nháp",
+            "variant": "ghost",
+            "action": "save_draft"
+           }
+          },
+          {
+           "id": "btn_submit",
+           "type": "Button",
+           "props": {
+            "label": "Gửi HR xác nhận",
+            "variant": "primary",
+            "action": "submit_to_hr"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R775",
+  "requirement": {
+   "title": "Biên tập trang công khai lịch sử thanh toán – phòng khám",
+   "actor": "Quản trị nội dung",
+   "description": "Phòng khám có trang 'Lịch sử thanh toán' cho bệnh nhân. Quản trị nội dung chỉnh các nhãn cột, số dòng mỗi trang, khoảng ngày mặc định và văn bản khi không có giao dịch, xem trước bằng dữ liệu mẫu rồi xuất bản.",
+   "permissions": [
+    "Quản trị nội dung: được sửa nội dung và xuất bản trang công khai, không thao tác thay người dùng",
+    "Chỉ thấy dữ liệu mẫu, không xem giao dịch thật của bệnh nhân"
+   ],
+   "rules": [
+    "Số dòng mỗi trang 10–50",
+    "Văn bản trạng thái rỗng bắt buộc"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Cấu hình trang Lịch sử thanh toán"
+   },
+   "children": [
+    {
+     "id": "h",
+     "type": "Heading",
+     "props": {
+      "text": "Trang Lịch sử thanh toán cho bệnh nhân",
+      "level": 1
+     }
+    },
+    {
+     "id": "cfg",
+     "type": "Form",
+     "props": {
+      "submitAction": "publish_config"
+     },
+     "children": [
+      {
+       "id": "r1",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "sel_range",
+         "type": "Select",
+         "props": {
+          "label": "Khoảng ngày mặc định",
+          "name": "default_range",
+          "options": [
+           "30 ngày gần nhất",
+           "3 tháng",
+           "12 tháng"
+          ]
+         }
+        },
+        {
+         "id": "in_rows",
+         "type": "Input",
+         "props": {
+          "label": "Số dòng mỗi trang",
+          "name": "page_size",
+          "inputType": "number",
+          "required": true,
+          "min": 10,
+          "max": 50
+         }
+        }
+       ]
+      },
+      {
+       "id": "in_empty",
+       "type": "Input",
+       "props": {
+        "label": "Thông điệp khi không có giao dịch",
+        "name": "empty_text",
+        "placeholder": "Bạn chưa có giao dịch nào trong khoảng thời gian này",
+        "inputType": "text",
+        "required": true
+       }
+      },
+      {
+       "id": "cb_invoice",
+       "type": "Checkbox",
+       "props": {
+        "label": "Hiển thị nút tải hóa đơn VAT",
+        "name": "show_invoice"
+       }
+      },
+      {
+       "id": "btn_publish",
+       "type": "Button",
+       "props": {
+        "label": "Xuất bản cấu hình",
+        "variant": "primary",
+        "action": "publish_config"
+       }
+      }
+     ]
+    },
+    {
+     "id": "preview",
+     "type": "Section",
+     "props": {
+      "title": "Xem trước (dữ liệu mẫu)"
+     },
+     "children": [
+      {
+       "id": "pv_filter",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "pv_from",
+         "type": "DatePicker",
+         "props": {
+          "label": "Từ ngày",
+          "name": "pv_from"
+         }
+        },
+        {
+         "id": "pv_to",
+         "type": "DatePicker",
+         "props": {
+          "label": "Đến ngày",
+          "name": "pv_to"
+         }
+        }
+       ]
+      },
+      {
+       "id": "pv_tb",
+       "type": "Table",
+       "props": {
+        "columns": [
+         "Ngày",
+         "Dịch vụ",
+         "Số tiền",
+         "Hình thức",
+         "Trạng thái"
+        ],
+        "rows": [
+         [
+          "12/10/2026",
+          "Khám nội tổng quát",
+          "350.000đ",
+          "Thẻ",
+          "Đã thanh toán"
+         ]
+        ]
+       }
+      },
+      {
+       "id": "pv_pg",
+       "type": "Pagination",
+       "props": {
+        "pages": 3
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R776",
+  "requirement": {
+   "title": "Xác nhận duyệt hoàn tiền từ ticket",
+   "actor": "Trưởng nhóm hỗ trợ",
+   "description": "Trưởng nhóm hỗ trợ bấm duyệt yêu cầu hoàn tiền trong ticket; thẻ xác nhận ở giữa trang tóm tắt khách hàng, số tiền, lý do và hỏi lại trước khi duyệt hoặc từ chối.",
+   "permissions": [
+    "Chỉ được duyệt/từ chối, không thêm hay sửa dữ liệu nghiệp vụ"
+   ],
+   "rules": [
+    "Từ chối phải ghi lý do",
+    "Hoàn tiền trên 5 triệu cần duyệt cấp 2"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Xác nhận hoàn tiền"
+   },
+   "children": [
+    {
+     "id": "confirm",
+     "type": "Card",
+     "props": {
+      "title": "Duyệt hoàn tiền cho ticket #TK-90214?"
+     },
+     "children": [
+      {
+       "id": "cust",
+       "type": "Text",
+       "props": {
+        "text": "Khách hàng: Lâm Gia Huy · Đơn DH-77810"
+       }
+      },
+      {
+       "id": "amt",
+       "type": "Stat",
+       "props": {
+        "label": "Số tiền hoàn",
+        "value": "1.180.000đ"
+       }
+      },
+      {
+       "id": "reason",
+       "type": "Text",
+       "props": {
+        "text": "Lý do khách: Sản phẩm lỗi nguồn, đã đổi một lần."
+       }
+      },
+      {
+       "id": "note",
+       "type": "Alert",
+       "props": {
+        "text": "Tiền sẽ hoàn về thẻ trong 3–5 ngày làm việc sau khi duyệt.",
+        "tone": "info"
+       }
+      },
+      {
+       "id": "ta_reject",
+       "type": "Textarea",
+       "props": {
+        "label": "Lý do từ chối (nếu từ chối)",
+        "name": "reject_reason",
+        "maxLength": 300
+       }
+      },
+      {
+       "id": "acts",
+       "type": "Row",
+       "props": {
+        "gap": 8,
+        "align": "end"
+       },
+       "children": [
+        {
+         "id": "btn_cancel",
+         "type": "Button",
+         "props": {
+          "label": "Quay lại ticket",
+          "variant": "ghost",
+          "action": "back"
+         }
+        },
+        {
+         "id": "btn_reject",
+         "type": "Button",
+         "props": {
+          "label": "Từ chối",
+          "variant": "danger",
+          "action": "reject"
+         }
+        },
+        {
+         "id": "btn_approve",
+         "type": "Button",
+         "props": {
+          "label": "Xác nhận duyệt",
+          "variant": "primary",
+          "action": "approve"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R777",
+  "requirement": {
+   "title": "Album ảnh chứng từ trong ví – hộp thoại",
+   "actor": "Khách hàng đã đăng nhập",
+   "description": "Trong lịch sử giao dịch ví, khách mở hộp thoại album ảnh hóa đơn/biên lai mình đã đính kèm cho một khoản chi, xem ảnh, thêm ảnh mới và xóa ảnh của mình.",
+   "permissions": [
+    "Khách hàng đã đăng nhập: chỉ thao tác trên dữ liệu của chính mình"
+   ],
+   "rules": [
+    "Tối đa 10 ảnh mỗi giao dịch",
+    "Xóa ảnh cần xác nhận"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Lịch sử giao dịch"
+   },
+   "children": [
+    {
+     "id": "tx",
+     "type": "Table",
+     "props": {
+      "columns": [
+       "Ngày",
+       "Nội dung",
+       "Số tiền"
+      ],
+      "rows": [
+       [
+        "18/10/2026",
+        "Thanh toán siêu thị WinMart",
+        "-845.000đ"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "album",
+     "type": "Modal",
+     "props": {
+      "title": "Chứng từ – Thanh toán WinMart 18/10",
+      "open": true
+     },
+     "children": [
+      {
+       "id": "count",
+       "type": "Text",
+       "props": {
+        "text": "3/10 ảnh",
+        "tone": "muted"
+       }
+      },
+      {
+       "id": "photos",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "ph1",
+         "type": "Image",
+         "props": {
+          "alt": "Hóa đơn WinMart trang 1"
+         }
+        },
+        {
+         "id": "ph2",
+         "type": "Image",
+         "props": {
+          "alt": "Hóa đơn WinMart trang 2"
+         }
+        },
+        {
+         "id": "ph3",
+         "type": "Image",
+         "props": {
+          "alt": "Phiếu tích điểm thành viên"
+         }
+        }
+       ]
+      },
+      {
+       "id": "acts",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "btn_add",
+         "type": "Button",
+         "props": {
+          "label": "Thêm ảnh",
+          "variant": "primary",
+          "action": "add_photo"
+         }
+        },
+        {
+         "id": "btn_delete",
+         "type": "Button",
+         "props": {
+          "label": "Xóa ảnh đã chọn",
+          "variant": "danger",
+          "action": "delete_photo"
+         }
+        },
+        {
+         "id": "btn_close",
+         "type": "Button",
+         "props": {
+          "label": "Đóng",
+          "variant": "ghost",
+          "action": "close_modal"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R778",
+  "requirement": {
+   "title": "Thông báo bảo trì công cụ quản lý công việc",
+   "actor": "Khách vãng lai",
+   "description": "Khách mở trang đăng nhập công cụ quản lý dự án khi hệ thống đang bảo trì; thanh tiêu đề có nút xem trang trạng thái. Nội dung cho biết thời gian dự kiến, các tính năng bị ảnh hưởng và cho đăng ký nhận email khi hoạt động lại.",
+   "permissions": [
+    "Khách vãng lai, chưa đăng nhập: chỉ có Đăng nhập/Đăng ký, không có chức năng tài khoản riêng"
+   ],
+   "rules": [
+    "Email đúng định dạng",
+    "Không cho đăng nhập trong thời gian bảo trì"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Đang bảo trì hệ thống"
+   },
+   "children": [
+    {
+     "id": "bar",
+     "type": "Header",
+     "props": {},
+     "children": [
+      {
+       "id": "brand",
+       "type": "Heading",
+       "props": {
+        "text": "TaskFlow",
+        "level": 2
+       }
+      },
+      {
+       "id": "btn_status",
+       "type": "Button",
+       "props": {
+        "label": "Trang trạng thái",
+        "variant": "secondary",
+        "action": "open_status"
+       }
+      }
+     ]
+    },
+    {
+     "id": "maint",
+     "type": "Alert",
+     "props": {
+      "text": "TaskFlow đang nâng cấp cơ sở dữ liệu từ 23:00 19/10 đến 03:00 20/10/2026 (giờ Việt Nam).",
+      "tone": "warning"
+     }
+    },
+    {
+     "id": "h",
+     "type": "Heading",
+     "props": {
+      "text": "Chúng tôi sẽ quay lại sớm",
+      "level": 2
+     }
+    },
+    {
+     "id": "impact",
+     "type": "List",
+     "props": {},
+     "children": [
+      {
+       "id": "i1",
+       "type": "Text",
+       "props": {
+        "text": "Không thể đăng nhập và tạo công việc mới"
+       }
+      },
+      {
+       "id": "i2",
+       "type": "Text",
+       "props": {
+        "text": "Thông báo nhắc hạn gửi chậm sau khi hoạt động lại"
+       }
+      },
+      {
+       "id": "i3",
+       "type": "Text",
+       "props": {
+        "text": "Dữ liệu của bạn được giữ nguyên"
+       }
+      }
+     ]
+    },
+    {
+     "id": "notify",
+     "type": "Form",
+     "props": {
+      "title": "Nhận email khi hệ thống hoạt động lại",
+      "submitAction": "subscribe"
+     },
+     "children": [
+      {
+       "id": "in_email",
+       "type": "Input",
+       "props": {
+        "label": "Email",
+        "name": "email",
+        "inputType": "email",
+        "required": true
+       }
+      },
+      {
+       "id": "btn_sub",
+       "type": "Button",
+       "props": {
+        "label": "Đăng ký nhận tin",
+        "variant": "primary",
+        "action": "subscribe"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R779",
+  "requirement": {
+   "title": "Biên tập hồ sơ công khai nhà thiết kế nội thất",
+   "actor": "Quản trị nội dung",
+   "description": "Quản trị nội dung sửa hồ sơ công khai của một nhà thiết kế trên sàn nội thất: ảnh đại diện, giới thiệu, chuyên môn và lưới thẻ dự án tiêu biểu (ẩn/hiện, sắp thứ tự). Xuất bản sau khi xem trước.",
+   "permissions": [
+    "Quản trị nội dung: được sửa nội dung và xuất bản trang công khai, không thao tác thay người dùng",
+    "Không sửa thông tin liên hệ và hợp đồng của nhà thiết kế"
+   ],
+   "rules": [
+    "Giới thiệu tối đa 600 ký tự",
+    "Tối đa 6 dự án hiển thị"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Hồ sơ công khai: KTS Đặng Minh Châu"
+   },
+   "children": [
+    {
+     "id": "head",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "av",
+       "type": "Avatar",
+       "props": {
+        "name": "Đặng Minh Châu"
+       }
+      },
+      {
+       "id": "head_info",
+       "type": "Column",
+       "props": {},
+       "children": [
+        {
+         "id": "name",
+         "type": "Heading",
+         "props": {
+          "text": "Đặng Minh Châu",
+          "level": 2
+         }
+        },
+        {
+         "id": "verified",
+         "type": "Badge",
+         "props": {
+          "text": "Đã xác minh",
+          "tone": "success"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "bio_form",
+     "type": "Form",
+     "props": {
+      "submitAction": "save_profile"
+     },
+     "children": [
+      {
+       "id": "ta_bio",
+       "type": "Textarea",
+       "props": {
+        "label": "Giới thiệu",
+        "name": "bio",
+        "required": true,
+        "maxLength": 600
+       }
+      },
+      {
+       "id": "sel_style",
+       "type": "Select",
+       "props": {
+        "label": "Phong cách chính",
+        "name": "style",
+        "options": [
+         "Tối giản",
+         "Indochine",
+         "Scandinavian",
+         "Hiện đại"
+        ],
+        "required": true
+       }
+      },
+      {
+       "id": "btn_save",
+       "type": "Button",
+       "props": {
+        "label": "Lưu",
+        "variant": "secondary",
+        "action": "save_profile"
+       }
+      }
+     ]
+    },
+    {
+     "id": "proj_h",
+     "type": "Heading",
+     "props": {
+      "text": "Dự án tiêu biểu",
+      "level": 3
+     }
+    },
+    {
+     "id": "proj_grid",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "pj1",
+       "type": "Card",
+       "props": {
+        "title": "Căn hộ Vinhomes 85m²"
+       },
+       "children": [
+        {
+         "id": "pj1i",
+         "type": "Image",
+         "props": {
+          "alt": "Phòng khách tông gỗ sáng"
+         }
+        },
+        {
+         "id": "pj1v",
+         "type": "Checkbox",
+         "props": {
+          "label": "Hiển thị",
+          "name": "show_p1"
+         }
+        }
+       ]
+      },
+      {
+       "id": "pj2",
+       "type": "Card",
+       "props": {
+        "title": "Nhà phố Thảo Điền"
+       },
+       "children": [
+        {
+         "id": "pj2i",
+         "type": "Image",
+         "props": {
+          "alt": "Bếp mở kết nối sân vườn"
+         }
+        },
+        {
+         "id": "pj2v",
+         "type": "Checkbox",
+         "props": {
+          "label": "Hiển thị",
+          "name": "show_p2"
+         }
+        }
+       ]
+      },
+      {
+       "id": "pj3",
+       "type": "Card",
+       "props": {
+        "title": "Văn phòng startup 200m²"
+       },
+       "children": [
+        {
+         "id": "pj3i",
+         "type": "Image",
+         "props": {
+          "alt": "Khu làm việc chung"
+         }
+        },
+        {
+         "id": "pj3v",
+         "type": "Checkbox",
+         "props": {
+          "label": "Hiển thị",
+          "name": "show_p3"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "acts",
+     "type": "Row",
+     "props": {
+      "gap": 8,
+      "align": "end"
+     },
+     "children": [
+      {
+       "id": "btn_preview",
+       "type": "Button",
+       "props": {
+        "label": "Xem trước",
+        "variant": "ghost",
+        "action": "preview"
+       }
+      },
+      {
+       "id": "btn_publish",
+       "type": "Button",
+       "props": {
+        "label": "Xuất bản hồ sơ",
+        "variant": "primary",
+        "action": "publish"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R780",
+  "requirement": {
+   "title": "Tra cứu lịch sử tích điểm bằng số điện thoại",
+   "actor": "Khách vãng lai",
+   "description": "Khách chưa có tài khoản tra cứu lịch sử giao dịch tích điểm thành viên của cửa hàng bằng số điện thoại và mã OTP, lọc theo khoảng ngày. Kết quả phân trang; muốn đổi điểm phải đăng ký tài khoản.",
+   "permissions": [
+    "Khách vãng lai, chưa đăng nhập: chỉ có Đăng nhập/Đăng ký, không có chức năng tài khoản riêng",
+    "Chỉ xem: không có thao tác thêm, sửa, xóa"
+   ],
+   "rules": [
+    "Phải xác thực OTP trước khi hiện kết quả",
+    "Khoảng ngày tối đa 6 tháng"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Tra cứu điểm thành viên"
+   },
+   "children": [
+    {
+     "id": "h",
+     "type": "Heading",
+     "props": {
+      "text": "Lịch sử tích điểm",
+      "level": 1
+     }
+    },
+    {
+     "id": "lookup",
+     "type": "Form",
+     "props": {
+      "submitAction": "lookup"
+     },
+     "children": [
+      {
+       "id": "r1",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "in_phone",
+         "type": "Input",
+         "props": {
+          "label": "Số điện thoại",
+          "name": "phone",
+          "inputType": "tel",
+          "required": true
+         }
+        },
+        {
+         "id": "in_otp",
+         "type": "Input",
+         "props": {
+          "label": "Mã OTP",
+          "name": "otp",
+          "inputType": "text",
+          "required": true,
+          "maxLength": 6
+         }
+        },
+        {
+         "id": "btn_otp",
+         "type": "Button",
+         "props": {
+          "label": "Gửi mã",
+          "variant": "ghost",
+          "action": "send_otp"
+         }
+        }
+       ]
+      },
+      {
+       "id": "r2",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "dp_from",
+         "type": "DatePicker",
+         "props": {
+          "label": "Từ ngày",
+          "name": "from"
+         }
+        },
+        {
+         "id": "dp_to",
+         "type": "DatePicker",
+         "props": {
+          "label": "Đến ngày",
+          "name": "to"
+         }
+        }
+       ]
+      },
+      {
+       "id": "btn_lookup",
+       "type": "Button",
+       "props": {
+        "label": "Tra cứu",
+        "variant": "primary",
+        "action": "lookup"
+       }
+      }
+     ]
+    },
+    {
+     "id": "balance",
+     "type": "Stat",
+     "props": {
+      "label": "Điểm hiện có",
+      "value": "1.250 điểm"
+     }
+    },
+    {
+     "id": "tb",
+     "type": "Table",
+     "props": {
+      "columns": [
+       "Ngày",
+       "Cửa hàng",
+       "Giao dịch",
+       "Điểm"
+      ],
+      "rows": [
+       [
+        "15/10/2026",
+        "Quận 3",
+        "Mua hàng 620.000đ",
+        "+62"
+       ],
+       [
+        "02/10/2026",
+        "Gò Vấp",
+        "Đổi voucher",
+        "-200"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "pg",
+     "type": "Pagination",
+     "props": {
+      "pages": 3
+     }
+    },
+    {
+     "id": "cta",
+     "type": "Text",
+     "props": {
+      "text": "Đăng ký tài khoản để đổi điểm lấy quà.",
+      "tone": "muted"
+     }
+    },
+    {
+     "id": "lnk_reg",
+     "type": "Link",
+     "props": {
+      "text": "Đăng ký ngay",
+      "navigateTo": "/dang-ky"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "R781",
+  "requirement": {
+   "title": "Đặt lịch demo với chuyên viên triển khai SaaS",
+   "actor": "Khách hàng đã đăng nhập",
+   "description": "Khách hàng đang dùng gói dùng thử đặt buổi demo trực tuyến với chuyên viên: chọn chủ đề, ngày, khung giờ và ghi chú nhu cầu, dưới banner giới thiệu dịch vụ hỗ trợ triển khai.",
+   "permissions": [
+    "Khách hàng đã đăng nhập: chỉ thao tác trên dữ liệu của chính mình"
+   ],
+   "rules": [
+    "Ngày hẹn trong 14 ngày tới, trừ Chủ nhật",
+    "Mỗi tài khoản tối đa 2 lịch chưa diễn ra"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Đặt lịch demo"
+   },
+   "children": [
+    {
+     "id": "banner",
+     "type": "Section",
+     "props": {},
+     "children": [
+      {
+       "id": "bn",
+       "type": "Image",
+       "props": {
+        "alt": "Chuyên viên tư vấn qua video call"
+       }
+      },
+      {
+       "id": "bn_h",
+       "type": "Heading",
+       "props": {
+        "text": "Demo 1-1 cùng chuyên viên triển khai",
+        "level": 1
+       }
+      },
+      {
+       "id": "bn_t",
+       "type": "Text",
+       "props": {
+        "text": "45 phút · Google Meet · Miễn phí trong thời gian dùng thử",
+        "tone": "muted"
+       }
+      }
+     ]
+    },
+    {
+     "id": "blocks",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "book",
+       "type": "Form",
+       "props": {
+        "title": "Chọn lịch",
+        "submitAction": "book_demo"
+       },
+       "children": [
+        {
+         "id": "sel_topic",
+         "type": "Select",
+         "props": {
+          "label": "Chủ đề",
+          "name": "topic",
+          "options": [
+           "Thiết lập ban đầu",
+           "Tích hợp API",
+           "Báo cáo & phân tích"
+          ],
+          "required": true
+         }
+        },
+        {
+         "id": "dp_date",
+         "type": "DatePicker",
+         "props": {
+          "label": "Ngày",
+          "name": "date",
+          "required": true
+         }
+        },
+        {
+         "id": "ra_slot",
+         "type": "Radio",
+         "props": {
+          "label": "Khung giờ",
+          "name": "slot",
+          "options": [
+           "09:00",
+           "10:30",
+           "14:00",
+           "15:30"
+          ]
+         }
+        },
+        {
+         "id": "ta_note",
+         "type": "Textarea",
+         "props": {
+          "label": "Nhu cầu cụ thể",
+          "name": "note",
+          "maxLength": 500
+         }
+        },
+        {
+         "id": "btn_book",
+         "type": "Button",
+         "props": {
+          "label": "Xác nhận đặt lịch",
+          "variant": "primary",
+          "action": "book_demo"
+         }
+        }
+       ]
+      },
+      {
+       "id": "upcoming",
+       "type": "Card",
+       "props": {
+        "title": "Lịch của bạn"
+       },
+       "children": [
+        {
+         "id": "up1",
+         "type": "Text",
+         "props": {
+          "text": "22/10 · 10:30 · Tích hợp API"
+         }
+        },
+        {
+         "id": "btn_cancel_up1",
+         "type": "Button",
+         "props": {
+          "label": "Hủy lịch",
+          "variant": "ghost",
+          "action": "cancel_booking"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R782",
+  "requirement": {
+   "title": "Biên tập widget đặt phòng có ngày đến và ngày đi",
+   "actor": "Quản trị nội dung khách sạn",
+   "description": "Quản trị nội dung cấu hình widget đặt phòng trên trang chủ khách sạn: số đêm tối thiểu, số ngày đặt trước tối đa, các loại phòng hiển thị và nhãn nút. Bên dưới là bản xem trước widget với ngày nhận và trả phòng.",
+   "permissions": [
+    "Quản trị nội dung: được sửa nội dung và xuất bản trang công khai, không thao tác thay người dùng"
+   ],
+   "rules": [
+    "Số đêm tối thiểu ≥ 1",
+    "Ngày trả phòng phải sau ngày nhận phòng (áp dụng cho widget)"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Cấu hình widget đặt phòng"
+   },
+   "children": [
+    {
+     "id": "nav",
+     "type": "Header",
+     "props": {},
+     "children": [
+      {
+       "id": "brand",
+       "type": "Heading",
+       "props": {
+        "text": "Hội An Riverside – CMS",
+        "level": 2
+       }
+      },
+      {
+       "id": "n_site",
+       "type": "Link",
+       "props": {
+        "text": "Xem website",
+        "navigateTo": "/"
+       }
+      }
+     ]
+    },
+    {
+     "id": "cfg",
+     "type": "Form",
+     "props": {
+      "title": "Thiết lập",
+      "submitAction": "save_widget"
+     },
+     "children": [
+      {
+       "id": "r1",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "in_min",
+         "type": "Input",
+         "props": {
+          "label": "Số đêm tối thiểu",
+          "name": "min_nights",
+          "inputType": "number",
+          "required": true,
+          "min": 1
+         }
+        },
+        {
+         "id": "in_adv",
+         "type": "Input",
+         "props": {
+          "label": "Đặt trước tối đa (ngày)",
+          "name": "max_advance",
+          "inputType": "number",
+          "min": 1,
+          "max": 365
+         }
+        }
+       ]
+      },
+      {
+       "id": "cb_deluxe",
+       "type": "Checkbox",
+       "props": {
+        "label": "Hiển thị phòng Deluxe hướng sông",
+        "name": "show_deluxe"
+       }
+      },
+      {
+       "id": "cb_suite",
+       "type": "Checkbox",
+       "props": {
+        "label": "Hiển thị Suite gia đình",
+        "name": "show_suite"
+       }
+      },
+      {
+       "id": "in_label",
+       "type": "Input",
+       "props": {
+        "label": "Nhãn nút",
+        "name": "button_label",
+        "placeholder": "Kiểm tra phòng trống",
+        "inputType": "text",
+        "required": true
+       }
+      },
+      {
+       "id": "btn_publish",
+       "type": "Button",
+       "props": {
+        "label": "Lưu và xuất bản",
+        "variant": "primary",
+        "action": "save_widget"
+       }
+      }
+     ]
+    },
+    {
+     "id": "preview",
+     "type": "Card",
+     "props": {
+      "title": "Xem trước widget"
+     },
+     "children": [
+      {
+       "id": "pv",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "pv_in",
+         "type": "DatePicker",
+         "props": {
+          "label": "Ngày nhận phòng",
+          "name": "check_in"
+         }
+        },
+        {
+         "id": "pv_out",
+         "type": "DatePicker",
+         "props": {
+          "label": "Ngày trả phòng",
+          "name": "check_out"
+         }
+        },
+        {
+         "id": "pv_guest",
+         "type": "Select",
+         "props": {
+          "label": "Số khách",
+          "name": "guests",
+          "options": [
+           "1",
+           "2",
+           "3",
+           "4"
+          ]
+         }
+        }
+       ]
+      },
+      {
+       "id": "pv_btn",
+       "type": "Button",
+       "props": {
+        "label": "Kiểm tra phòng trống",
+        "variant": "secondary",
+        "action": "preview_search"
+       }
+      }
+     ]
+    },
+    {
+     "id": "footer",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "ft",
+       "type": "Text",
+       "props": {
+        "text": "© 2026 Hội An Riverside",
+        "tone": "muted"
+       }
+      },
+      {
+       "id": "ft_help",
+       "type": "Link",
+       "props": {
+        "text": "Hỗ trợ CMS",
+        "navigateTo": "/cms/ho-tro"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R783",
+  "requirement": {
+   "title": "Đặt lịch nhận hàng tại cửa hàng",
+   "actor": "Khách hàng đã đăng nhập",
+   "description": "Khách đã mua online chọn cửa hàng, ngày và khung giờ đến nhận đơn hàng của mình. Thanh tiêu đề có nút xem đơn; nội dung hiện danh sách sản phẩm trong đơn và form đặt chỗ nhận.",
+   "permissions": [
+    "Khách hàng đã đăng nhập: chỉ thao tác trên dữ liệu của chính mình"
+   ],
+   "rules": [
+    "Khung giờ đã đủ 10 lượt sẽ bị khóa",
+    "Ngày nhận trong 7 ngày kể từ khi hàng về"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Hẹn nhận hàng"
+   },
+   "children": [
+    {
+     "id": "bar",
+     "type": "Header",
+     "props": {},
+     "children": [
+      {
+       "id": "bar_h",
+       "type": "Heading",
+       "props": {
+        "text": "Hẹn nhận đơn DH-552310",
+        "level": 2
+       }
+      },
+      {
+       "id": "btn_order",
+       "type": "Button",
+       "props": {
+        "label": "Xem đơn hàng",
+        "variant": "secondary",
+        "action": "view_order"
+       }
+      }
+     ]
+    },
+    {
+     "id": "items",
+     "type": "List",
+     "props": {},
+     "children": [
+      {
+       "id": "it1",
+       "type": "Text",
+       "props": {
+        "text": "Nồi chiên không dầu 6L × 1"
+       }
+      },
+      {
+       "id": "it2",
+       "type": "Text",
+       "props": {
+        "text": "Bộ dao inox 5 món × 1"
+       }
+      }
+     ]
+    },
+    {
+     "id": "pickup",
+     "type": "Form",
+     "props": {
+      "submitAction": "book_pickup"
+     },
+     "children": [
+      {
+       "id": "sel_store",
+       "type": "Select",
+       "props": {
+        "label": "Cửa hàng",
+        "name": "store",
+        "options": [
+         "Quận 1 – 45 Lê Lợi",
+         "Quận 10 – 120 3/2",
+         "Thủ Đức – Vincom"
+        ],
+        "required": true
+       }
+      },
+      {
+       "id": "dp_day",
+       "type": "DatePicker",
+       "props": {
+        "label": "Ngày nhận",
+        "name": "pickup_date",
+        "required": true
+       }
+      },
+      {
+       "id": "sel_slot",
+       "type": "Select",
+       "props": {
+        "label": "Khung giờ",
+        "name": "slot",
+        "options": [
+         "9:00–11:00",
+         "13:00–15:00",
+         "17:00–19:00 (đã đủ)"
+        ],
+        "required": true
+       }
+      },
+      {
+       "id": "in_proxy",
+       "type": "Input",
+       "props": {
+        "label": "Người nhận hộ (nếu có)",
+        "name": "proxy_name",
+        "inputType": "text"
+       }
+      },
+      {
+       "id": "acts",
+       "type": "Row",
+       "props": {
+        "gap": 8,
+        "align": "end"
+       },
+       "children": [
+        {
+         "id": "btn_back",
+         "type": "Button",
+         "props": {
+          "label": "Hủy",
+          "variant": "ghost",
+          "action": "back"
+         }
+        },
+        {
+         "id": "btn_confirm",
+         "type": "Button",
+         "props": {
+          "label": "Xác nhận lịch nhận",
+          "variant": "primary",
+          "action": "book_pickup"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R784",
+  "requirement": {
+   "title": "Phiếu đánh giá bài giảng mở – khách dự thính",
+   "actor": "Khách vãng lai",
+   "description": "Khách dự thính bài giảng mở miễn phí chấm điểm nội dung, giảng viên, chất lượng video theo thang 1–10 và gợi ý chủ đề. Sidebar là mục lục khóa học công khai.",
+   "permissions": [
+    "Khách vãng lai, chưa đăng nhập: chỉ có Đăng nhập/Đăng ký, không có chức năng tài khoản riêng"
+   ],
+   "rules": [
+    "Ba thang điểm bắt buộc",
+    "Mỗi trình duyệt gửi một phiếu cho mỗi bài"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Đánh giá bài giảng"
+   },
+   "children": [
+    {
+     "id": "layout",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "toc",
+       "type": "Sidebar",
+       "props": {},
+       "children": [
+        {
+         "id": "toc_h",
+         "type": "Heading",
+         "props": {
+          "text": "Khóa: Tư duy thiết kế",
+          "level": 3
+         }
+        },
+        {
+         "id": "l1",
+         "type": "Link",
+         "props": {
+          "text": "Bài 1. Thấu cảm người dùng",
+          "navigateTo": "/bai-1"
+         }
+        },
+        {
+         "id": "l2",
+         "type": "Link",
+         "props": {
+          "text": "Bài 2. Xác định vấn đề",
+          "navigateTo": "/bai-2"
+         }
+        },
+        {
+         "id": "l3",
+         "type": "Link",
+         "props": {
+          "text": "Bài 3. Lên ý tưởng",
+          "navigateTo": "/bai-3"
+         }
+        }
+       ]
+      },
+      {
+       "id": "rating",
+       "type": "Form",
+       "props": {
+        "title": "Đánh giá Bài 2 – Xác định vấn đề",
+        "submitAction": "submit_rating"
+       },
+       "children": [
+        {
+         "id": "in_content",
+         "type": "Input",
+         "props": {
+          "label": "Nội dung bài giảng (1–10)",
+          "name": "score_content",
+          "inputType": "number",
+          "required": true,
+          "min": 1,
+          "max": 10
+         }
+        },
+        {
+         "id": "in_teacher",
+         "type": "Input",
+         "props": {
+          "label": "Giảng viên truyền đạt (1–10)",
+          "name": "score_teacher",
+          "inputType": "number",
+          "required": true,
+          "min": 1,
+          "max": 10
+         }
+        },
+        {
+         "id": "in_video",
+         "type": "Input",
+         "props": {
+          "label": "Chất lượng video, âm thanh (1–10)",
+          "name": "score_video",
+          "inputType": "number",
+          "required": true,
+          "min": 1,
+          "max": 10
+         }
+        },
+        {
+         "id": "ra_recommend",
+         "type": "Radio",
+         "props": {
+          "label": "Bạn có giới thiệu bài này cho bạn bè?",
+          "name": "recommend",
+          "options": [
+           "Có",
+           "Có thể",
+           "Không"
+          ]
+         }
+        },
+        {
+         "id": "ta_topic",
+         "type": "Textarea",
+         "props": {
+          "label": "Chủ đề muốn học tiếp",
+          "name": "next_topic",
+          "maxLength": 300
+         }
+        },
+        {
+         "id": "btn_submit",
+         "type": "Button",
+         "props": {
+          "label": "Gửi đánh giá",
+          "variant": "primary",
+          "action": "submit_rating"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R785",
+  "requirement": {
+   "title": "Hộp thoại bảo trì đặt lớp – phòng tập",
+   "actor": "Khách vãng lai",
+   "description": "Khách vào trang đặt lớp yoga/boxing khi hệ thống đặt lớp đang bảo trì; hộp thoại thông báo thời gian, gợi ý gọi hotline đặt lớp và cho xem lịch lớp tĩnh.",
+   "permissions": [
+    "Khách vãng lai, chưa đăng nhập: chỉ có Đăng nhập/Đăng ký, không có chức năng tài khoản riêng"
+   ],
+   "rules": [
+    "Không cho đặt lớp trong thời gian bảo trì"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Đặt lớp FitZone"
+   },
+   "children": [
+    {
+     "id": "bg",
+     "type": "Heading",
+     "props": {
+      "text": "Lịch lớp tuần này",
+      "level": 1
+     }
+    },
+    {
+     "id": "maint",
+     "type": "Modal",
+     "props": {
+      "title": "Hệ thống đặt lớp đang bảo trì",
+      "open": true
+     },
+     "children": [
+      {
+       "id": "img",
+       "type": "Image",
+       "props": {
+        "alt": "Hình minh họa dụng cụ đang sửa chữa"
+       }
+      },
+      {
+       "id": "t",
+       "type": "Text",
+       "props": {
+        "text": "Chức năng đặt lớp tạm dừng đến 06:00 ngày 20/10/2026."
+       }
+      },
+      {
+       "id": "hot",
+       "type": "Text",
+       "props": {
+        "text": "Cần đặt gấp? Gọi 1900 6363 (6:00–22:00)."
+       }
+      },
+      {
+       "id": "eta",
+       "type": "Badge",
+       "props": {
+        "text": "Dự kiến mở lại 06:00",
+        "tone": "warning"
+       }
+      },
+      {
+       "id": "acts",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "lnk_sched",
+         "type": "Link",
+         "props": {
+          "text": "Xem lịch lớp (chỉ xem)",
+          "navigateTo": "/lich-lop"
+         }
+        },
+        {
+         "id": "btn_ok",
+         "type": "Button",
+         "props": {
+          "label": "Đã hiểu",
+          "variant": "primary",
+          "action": "close_modal"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R786",
+  "requirement": {
+   "title": "Báo cáo chi tiêu bảo hành theo khoảng ngày",
+   "actor": "Khách hàng đã đăng nhập",
+   "description": "Khách hàng xem báo cáo các lần sửa chữa, bảo hành thiết bị điện máy đã mua trong khoảng ngày chọn: tổng chi phí, số lần, bảng chi tiết. Có thể tải PDF.",
+   "permissions": [
+    "Khách hàng đã đăng nhập: chỉ thao tác trên dữ liệu của chính mình",
+    "Chỉ xem: không có thao tác thêm, sửa, xóa"
+   ],
+   "rules": [
+    "Khoảng ngày tối đa 24 tháng",
+    "Chỉ thiết bị của chính khách hàng"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Báo cáo bảo hành của tôi"
+   },
+   "children": [
+    {
+     "id": "report",
+     "type": "Card",
+     "props": {
+      "title": "Bảo hành & sửa chữa"
+     },
+     "children": [
+      {
+       "id": "intro",
+       "type": "Text",
+       "props": {
+        "text": "Thống kê các lần mang thiết bị đến trung tâm bảo hành Điện Máy Sao Việt.",
+        "tone": "muted"
+       }
+      },
+      {
+       "id": "range_form",
+       "type": "Form",
+       "props": {
+        "submitAction": "apply"
+       },
+       "children": [
+        {
+         "id": "sel_quick",
+         "type": "Select",
+         "props": {
+          "label": "Khoảng nhanh",
+          "name": "quick_range",
+          "options": [
+           "6 tháng gần nhất",
+           "12 tháng gần nhất",
+           "Tùy chọn"
+          ]
+         }
+        },
+        {
+         "id": "dp_from",
+         "type": "DatePicker",
+         "props": {
+          "label": "Từ ngày",
+          "name": "from",
+          "required": true
+         }
+        },
+        {
+         "id": "dp_to",
+         "type": "DatePicker",
+         "props": {
+          "label": "Đến ngày",
+          "name": "to",
+          "required": true
+         }
+        },
+        {
+         "id": "btn_apply",
+         "type": "Button",
+         "props": {
+          "label": "Xem báo cáo",
+          "variant": "primary",
+          "action": "apply"
+         }
+        }
+       ]
+      },
+      {
+       "id": "dv",
+       "type": "Divider",
+       "props": {}
+      },
+      {
+       "id": "devices",
+       "type": "List",
+       "props": {},
+       "children": [
+        {
+         "id": "d1",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "d1b",
+           "type": "Badge",
+           "props": {
+            "text": "Miễn phí",
+            "tone": "success"
+           }
+          },
+          {
+           "id": "d1t",
+           "type": "Text",
+           "props": {
+            "text": "03/04/2026 · Tủ lạnh Toshiba 360L · Không đông đá"
+           }
+          }
+         ]
+        },
+        {
+         "id": "d2",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "d2b",
+           "type": "Badge",
+           "props": {
+            "text": "850.000đ",
+            "tone": "warning"
+           }
+          },
+          {
+           "id": "d2t",
+           "type": "Text",
+           "props": {
+            "text": "21/08/2026 · Máy giặt LG 9kg · Kêu to khi vắt"
+           }
+          }
+         ]
+        },
+        {
+         "id": "d3",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "d3b",
+           "type": "Badge",
+           "props": {
+            "text": "500.000đ",
+            "tone": "warning"
+           }
+          },
+          {
+           "id": "d3t",
+           "type": "Text",
+           "props": {
+            "text": "02/10/2026 · Điều hòa Daikin 1HP · Thay tụ"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "total",
+       "type": "Text",
+       "props": {
+        "text": "Tổng chi phí ngoài bảo hành: 1.350.000đ trong 3 lần sửa"
+       }
+      },
+      {
+       "id": "lnk_pdf",
+       "type": "Link",
+       "props": {
+        "text": "Tải báo cáo PDF",
+        "navigateTo": "/bao-hanh/bao-cao.pdf"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R787",
+  "requirement": {
+   "title": "Biên tập trang thiết lập trích lương đóng quỹ định kỳ",
+   "actor": "Quản trị nội dung cổng nhân sự",
+   "description": "Quản trị nội dung soạn trang giải thích và các tùy chọn mà nhân viên thấy khi thiết lập trích lương định kỳ đóng quỹ công đoàn/quỹ từ thiện: hai cột gồm phần soạn bên trái và xem trước bên phải.",
+   "permissions": [
+    "Quản trị nội dung: được sửa nội dung và xuất bản trang công khai, không thao tác thay người dùng",
+    "Không thiết lập trích lương thay nhân viên"
+   ],
+   "rules": [
+    "Ít nhất một mức trích",
+    "Nội dung hướng dẫn bắt buộc"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Trang: Trích lương định kỳ"
+   },
+   "children": [
+    {
+     "id": "cols",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "edit",
+       "type": "Form",
+       "props": {
+        "title": "Soạn nội dung",
+        "submitAction": "publish"
+       },
+       "children": [
+        {
+         "id": "in_title",
+         "type": "Input",
+         "props": {
+          "label": "Tiêu đề",
+          "name": "title",
+          "inputType": "text",
+          "required": true
+         }
+        },
+        {
+         "id": "ta_guide",
+         "type": "Textarea",
+         "props": {
+          "label": "Hướng dẫn cho nhân viên",
+          "name": "guide",
+          "required": true,
+          "maxLength": 800
+         }
+        },
+        {
+         "id": "in_levels",
+         "type": "Input",
+         "props": {
+          "label": "Các mức trích (nghìn đồng, cách nhau dấu phẩy)",
+          "name": "levels",
+          "placeholder": "50, 100, 200",
+          "inputType": "text",
+          "required": true
+         }
+        },
+        {
+         "id": "sel_day",
+         "type": "Select",
+         "props": {
+          "label": "Ngày trích mặc định",
+          "name": "default_day",
+          "options": [
+           "Ngày trả lương",
+           "Ngày 15 hằng tháng"
+          ]
+         }
+        },
+        {
+         "id": "acts",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "btn_save",
+           "type": "Button",
+           "props": {
+            "label": "Lưu nháp",
+            "variant": "ghost",
+            "action": "save"
+           }
+          },
+          {
+           "id": "btn_pub",
+           "type": "Button",
+           "props": {
+            "label": "Xuất bản",
+            "variant": "primary",
+            "action": "publish"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "preview",
+       "type": "Card",
+       "props": {
+        "title": "Xem trước như nhân viên"
+       },
+       "children": [
+        {
+         "id": "pv_h",
+         "type": "Heading",
+         "props": {
+          "text": "Đóng quỹ từ thiện hằng tháng",
+          "level": 3
+         }
+        },
+        {
+         "id": "pv_level",
+         "type": "Radio",
+         "props": {
+          "label": "Mức trích",
+          "name": "pv_level",
+          "options": [
+           "50.000đ",
+           "100.000đ",
+           "200.000đ"
+          ]
+         }
+        },
+        {
+         "id": "pv_agree",
+         "type": "Checkbox",
+         "props": {
+          "label": "Tôi đồng ý trích từ lương hằng tháng",
+          "name": "pv_agree"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R788",
+  "requirement": {
+   "title": "Chào mừng mở ví lần đầu",
+   "actor": "Khách hàng đã đăng nhập",
+   "description": "Khách hàng vừa đăng ký ví điện tử thấy thẻ chào mừng ở giữa màn hình với 3 việc nên làm: xác thực danh tính eKYC, liên kết ngân hàng, đặt mã PIN thanh toán. Có tiến độ và nút bắt đầu từng việc.",
+   "permissions": [
+    "Khách hàng đã đăng nhập: chỉ thao tác trên dữ liệu của chính mình"
+   ],
+   "rules": [
+    "Chưa eKYC thì hạn mức 10 triệu/tháng",
+    "Có thể làm sau"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Chào mừng đến MoMoney"
+   },
+   "children": [
+    {
+     "id": "welcome",
+     "type": "Card",
+     "props": {
+      "title": "Chào Lý Ngọc Trâm!"
+     },
+     "children": [
+      {
+       "id": "img",
+       "type": "Image",
+       "props": {
+        "alt": "Minh họa chiếc ví mở với đồng xu"
+       }
+      },
+      {
+       "id": "intro",
+       "type": "Text",
+       "props": {
+        "text": "Hoàn tất 3 bước để chuyển tiền và thanh toán không giới hạn."
+       }
+      },
+      {
+       "id": "prog",
+       "type": "Badge",
+       "props": {
+        "text": "Đã xong 0/3",
+        "tone": "info"
+       }
+      },
+      {
+       "id": "steps",
+       "type": "List",
+       "props": {},
+       "children": [
+        {
+         "id": "st1",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "st1t",
+           "type": "Text",
+           "props": {
+            "text": "Xác thực danh tính bằng CCCD gắn chip"
+           }
+          },
+          {
+           "id": "btn_ekyc",
+           "type": "Button",
+           "props": {
+            "label": "Bắt đầu",
+            "variant": "primary",
+            "action": "start_ekyc"
+           }
+          }
+         ]
+        },
+        {
+         "id": "st2",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "st2t",
+           "type": "Text",
+           "props": {
+            "text": "Liên kết tài khoản ngân hàng"
+           }
+          },
+          {
+           "id": "btn_link",
+           "type": "Button",
+           "props": {
+            "label": "Liên kết",
+            "variant": "secondary",
+            "action": "link_bank"
+           }
+          }
+         ]
+        },
+        {
+         "id": "st3",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "st3t",
+           "type": "Text",
+           "props": {
+            "text": "Đặt mã PIN 6 số"
+           }
+          },
+          {
+           "id": "btn_pin",
+           "type": "Button",
+           "props": {
+            "label": "Đặt PIN",
+            "variant": "secondary",
+            "action": "set_pin"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "limit",
+       "type": "Alert",
+       "props": {
+        "text": "Chưa xác thực: hạn mức giao dịch 10.000.000đ/tháng.",
+        "tone": "warning"
+       }
+      },
+      {
+       "id": "later",
+       "type": "Link",
+       "props": {
+        "text": "Để sau",
+        "navigateTo": "/trang-chu"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R789",
+  "requirement": {
+   "title": "Gian hàng xưởng gỗ trên sàn nội thất",
+   "actor": "Khách vãng lai",
+   "description": "Khách xem trang gian hàng của một xưởng gỗ: thanh tiêu đề có tên xưởng và nút theo dõi (yêu cầu đăng nhập), thông tin đánh giá, danh sách sản phẩm có lọc và phân trang.",
+   "permissions": [
+    "Khách vãng lai, chưa đăng nhập: chỉ có Đăng nhập/Đăng ký, không có chức năng tài khoản riêng",
+    "Theo dõi và nhắn tin yêu cầu đăng nhập"
+   ],
+   "rules": [
+    "24 sản phẩm mỗi trang"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Xưởng Gỗ Mộc Lâm"
+   },
+   "children": [
+    {
+     "id": "bar",
+     "type": "Header",
+     "props": {},
+     "children": [
+      {
+       "id": "brand",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "logo",
+         "type": "Avatar",
+         "props": {
+          "name": "Mộc Lâm"
+         }
+        },
+        {
+         "id": "name",
+         "type": "Heading",
+         "props": {
+          "text": "Xưởng Gỗ Mộc Lâm",
+          "level": 2
+         }
+        }
+       ]
+      },
+      {
+       "id": "btn_follow",
+       "type": "Button",
+       "props": {
+        "label": "Đăng nhập để theo dõi",
+        "variant": "secondary",
+        "action": "login_to_follow"
+       }
+      }
+     ]
+    },
+    {
+     "id": "stats",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "s1",
+       "type": "Stat",
+       "props": {
+        "label": "Đánh giá",
+        "value": "4,8/5"
+       }
+      },
+      {
+       "id": "s2",
+       "type": "Stat",
+       "props": {
+        "label": "Sản phẩm",
+        "value": "126"
+       }
+      },
+      {
+       "id": "s3",
+       "type": "Stat",
+       "props": {
+        "label": "Phản hồi chat",
+        "value": "95%"
+       }
+      }
+     ]
+    },
+    {
+     "id": "filters",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "sel_cat",
+       "type": "Select",
+       "props": {
+        "label": "Danh mục",
+        "name": "cat",
+        "options": [
+         "Bàn ăn",
+         "Kệ sách",
+         "Giường",
+         "Ghế"
+        ]
+       }
+      },
+      {
+       "id": "sel_wood",
+       "type": "Select",
+       "props": {
+        "label": "Loại gỗ",
+        "name": "wood",
+        "options": [
+         "Sồi",
+         "Óc chó",
+         "Tràm"
+        ]
+       }
+      },
+      {
+       "id": "sort",
+       "type": "Select",
+       "props": {
+        "label": "Sắp xếp",
+        "name": "sort",
+        "options": [
+         "Mới nhất",
+         "Bán chạy",
+         "Giá tăng dần"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "grid",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "p1",
+       "type": "Card",
+       "props": {
+        "title": "Bàn ăn gỗ sồi 6 ghế"
+       },
+       "children": [
+        {
+         "id": "p1i",
+         "type": "Image",
+         "props": {
+          "alt": "Bàn ăn gỗ sồi sáng màu"
+         }
+        },
+        {
+         "id": "p1p",
+         "type": "Text",
+         "props": {
+          "text": "12.900.000đ"
+         }
+        }
+       ]
+      },
+      {
+       "id": "p2",
+       "type": "Card",
+       "props": {
+        "title": "Kệ sách óc chó 5 tầng"
+       },
+       "children": [
+        {
+         "id": "p2i",
+         "type": "Image",
+         "props": {
+          "alt": "Kệ sách gỗ óc chó"
+         }
+        },
+        {
+         "id": "p2p",
+         "type": "Text",
+         "props": {
+          "text": "7.450.000đ"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "pg",
+     "type": "Pagination",
+     "props": {
+      "pages": 6
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "R790",
+  "requirement": {
+   "title": "Soạn bài phóng sự có ảnh minh họa",
+   "actor": "Biên tập viên",
+   "description": "Biên tập viên soạn bài phóng sự ảnh: cột trái là tiêu đề, sapo, nội dung, chuyên mục; cột phải quản lý ảnh minh họa với chú thích và tác giả ảnh. Lưu nháp hoặc xuất bản.",
+   "permissions": [
+    "Quản trị nội dung: được sửa nội dung và xuất bản trang công khai, không thao tác thay người dùng"
+   ],
+   "rules": [
+    "Ảnh phải có chú thích và tác giả",
+    "Sapo tối đa 250 ký tự",
+    "Tiêu đề bắt buộc"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Soạn bài: Mùa lúa chín Mù Cang Chải"
+   },
+   "children": [
+    {
+     "id": "cols",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "article",
+       "type": "Form",
+       "props": {
+        "title": "Nội dung bài",
+        "submitAction": "publish"
+       },
+       "children": [
+        {
+         "id": "in_title",
+         "type": "Input",
+         "props": {
+          "label": "Tiêu đề",
+          "name": "title",
+          "inputType": "text",
+          "required": true,
+          "maxLength": 120
+         }
+        },
+        {
+         "id": "ta_sapo",
+         "type": "Textarea",
+         "props": {
+          "label": "Sapo",
+          "name": "sapo",
+          "required": true,
+          "maxLength": 250
+         }
+        },
+        {
+         "id": "ta_body",
+         "type": "Textarea",
+         "props": {
+          "label": "Nội dung",
+          "name": "body",
+          "required": true
+         }
+        },
+        {
+         "id": "sel_cat",
+         "type": "Select",
+         "props": {
+          "label": "Chuyên mục",
+          "name": "category",
+          "options": [
+           "Du lịch",
+           "Đời sống",
+           "Phóng sự ảnh"
+          ],
+          "required": true
+         }
+        },
+        {
+         "id": "acts",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "btn_draft",
+           "type": "Button",
+           "props": {
+            "label": "Lưu nháp",
+            "variant": "ghost",
+            "action": "save_draft"
+           }
+          },
+          {
+           "id": "btn_pub",
+           "type": "Button",
+           "props": {
+            "label": "Xuất bản",
+            "variant": "primary",
+            "action": "publish"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "media",
+       "type": "Column",
+       "props": {},
+       "children": [
+        {
+         "id": "m_h",
+         "type": "Heading",
+         "props": {
+          "text": "Ảnh minh họa (2)",
+          "level": 3
+         }
+        },
+        {
+         "id": "img1",
+         "type": "Card",
+         "props": {},
+         "children": [
+          {
+           "id": "i1",
+           "type": "Image",
+           "props": {
+            "alt": "Ruộng bậc thang vàng óng buổi sáng"
+           }
+          },
+          {
+           "id": "cap1",
+           "type": "Input",
+           "props": {
+            "label": "Chú thích",
+            "name": "caption_1",
+            "inputType": "text",
+            "required": true
+           }
+          },
+          {
+           "id": "au1",
+           "type": "Input",
+           "props": {
+            "label": "Tác giả ảnh",
+            "name": "author_1",
+            "inputType": "text",
+            "required": true
+           }
+          }
+         ]
+        },
+        {
+         "id": "img2",
+         "type": "Card",
+         "props": {},
+         "children": [
+          {
+           "id": "i2",
+           "type": "Image",
+           "props": {
+            "alt": "Nông dân gặt lúa trên sườn đồi"
+           }
+          },
+          {
+           "id": "cap2",
+           "type": "Input",
+           "props": {
+            "label": "Chú thích",
+            "name": "caption_2",
+            "inputType": "text",
+            "required": true
+           }
+          },
+          {
+           "id": "au2",
+           "type": "Input",
+           "props": {
+            "label": "Tác giả ảnh",
+            "name": "author_2",
+            "inputType": "text",
+            "required": true
+           }
+          }
+         ]
+        },
+        {
+         "id": "btn_add_img",
+         "type": "Button",
+         "props": {
+          "label": "Thêm ảnh",
+          "variant": "secondary",
+          "action": "add_image"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R791",
+  "requirement": {
+   "title": "Danh bạ giảng viên công khai",
+   "actor": "Khách vãng lai",
+   "description": "Khách xem danh bạ giảng viên của nền tảng học trực tuyến: tìm tên, lọc lĩnh vực, mỗi giảng viên có ảnh, chuyên môn, số khóa và học viên. Danh bạ phân trang; muốn nhắn tin phải đăng nhập.",
+   "permissions": [
+    "Khách vãng lai, chưa đăng nhập: chỉ có Đăng nhập/Đăng ký, không có chức năng tài khoản riêng",
+    "Chỉ xem: không có thao tác thêm, sửa, xóa"
+   ],
+   "rules": [
+    "12 giảng viên mỗi trang"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Đội ngũ giảng viên"
+   },
+   "children": [
+    {
+     "id": "nav",
+     "type": "Header",
+     "props": {},
+     "children": [
+      {
+       "id": "brand",
+       "type": "Heading",
+       "props": {
+        "text": "HọcGì.vn",
+        "level": 2
+       }
+      },
+      {
+       "id": "nav_r",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "n_courses",
+         "type": "Link",
+         "props": {
+          "text": "Khóa học",
+          "navigateTo": "/khoa-hoc"
+         }
+        },
+        {
+         "id": "n_login",
+         "type": "Link",
+         "props": {
+          "text": "Đăng nhập",
+          "navigateTo": "/dang-nhap"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "dir_h",
+     "type": "Heading",
+     "props": {
+      "text": "Đội ngũ 214 giảng viên",
+      "level": 1
+     }
+    },
+    {
+     "id": "teacher_grid",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "t1",
+       "type": "Card",
+       "props": {
+        "title": "Nguyễn Đức Thịnh"
+       },
+       "children": [
+        {
+         "id": "t1a",
+         "type": "Avatar",
+         "props": {
+          "name": "Nguyễn Đức Thịnh"
+         }
+        },
+        {
+         "id": "t1b",
+         "type": "Badge",
+         "props": {
+          "text": "Lập trình Python",
+          "tone": "info"
+         }
+        },
+        {
+         "id": "t1t",
+         "type": "Text",
+         "props": {
+          "text": "8 khóa · 12.400 học viên · 4,9★"
+         }
+        }
+       ]
+      },
+      {
+       "id": "t2",
+       "type": "Card",
+       "props": {
+        "title": "Hà Linh Chi"
+       },
+       "children": [
+        {
+         "id": "t2a",
+         "type": "Avatar",
+         "props": {
+          "name": "Hà Linh Chi"
+         }
+        },
+        {
+         "id": "t2b",
+         "type": "Badge",
+         "props": {
+          "text": "IELTS Speaking",
+          "tone": "info"
+         }
+        },
+        {
+         "id": "t2t",
+         "type": "Text",
+         "props": {
+          "text": "5 khóa · 9.800 học viên · 4,8★"
+         }
+        }
+       ]
+      },
+      {
+       "id": "t3",
+       "type": "Card",
+       "props": {
+        "title": "Trương Khải"
+       },
+       "children": [
+        {
+         "id": "t3a",
+         "type": "Avatar",
+         "props": {
+          "name": "Trương Khải"
+         }
+        },
+        {
+         "id": "t3b",
+         "type": "Badge",
+         "props": {
+          "text": "Digital Marketing",
+          "tone": "info"
+         }
+        },
+        {
+         "id": "t3t",
+         "type": "Text",
+         "props": {
+          "text": "6 khóa · 7.150 học viên · 4,7★"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "sel_field",
+     "type": "Select",
+     "props": {
+      "label": "Lọc theo lĩnh vực",
+      "name": "field",
+      "options": [
+       "Tất cả",
+       "Lập trình",
+       "Marketing",
+       "Ngoại ngữ",
+       "Tài chính"
+      ]
+     }
+    },
+    {
+     "id": "msg_hint",
+     "type": "Text",
+     "props": {
+      "text": "Đăng nhập để nhắn tin cho giảng viên.",
+      "tone": "muted"
+     }
+    },
+    {
+     "id": "pg",
+     "type": "Pagination",
+     "props": {
+      "pages": 9
+     }
+    },
+    {
+     "id": "footer",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "ft",
+       "type": "Text",
+       "props": {
+        "text": "© 2026 HọcGì.vn",
+        "tone": "muted"
+       }
+      },
+      {
+       "id": "ft_teach",
+       "type": "Link",
+       "props": {
+        "text": "Trở thành giảng viên",
+        "navigateTo": "/giang-vien/dang-ky"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R792",
+  "requirement": {
+   "title": "Quyền riêng tư tài khoản du lịch",
+   "actor": "Khách hàng đã đăng nhập",
+   "description": "Khách hàng kiểm soát quyền riêng tư: ai thấy đánh giá khách sạn của mình, chia sẻ lịch sử chuyến đi với đối tác, nhận gợi ý cá nhân hóa, và yêu cầu tải xuống hoặc xóa dữ liệu. Sidebar điều hướng các mục tài khoản.",
+   "permissions": [
+    "Khách hàng đã đăng nhập: chỉ thao tác trên dữ liệu của chính mình"
+   ],
+   "rules": [
+    "Yêu cầu xóa dữ liệu cần xác nhận mật khẩu",
+    "File dữ liệu gửi qua email trong 48 giờ"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Quyền riêng tư"
+   },
+   "children": [
+    {
+     "id": "layout",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "sb",
+       "type": "Sidebar",
+       "props": {},
+       "children": [
+        {
+         "id": "a1",
+         "type": "Link",
+         "props": {
+          "text": "Hồ sơ",
+          "navigateTo": "/tai-khoan"
+         }
+        },
+        {
+         "id": "a2",
+         "type": "Link",
+         "props": {
+          "text": "Đặt chỗ của tôi",
+          "navigateTo": "/dat-cho"
+         }
+        },
+        {
+         "id": "a3",
+         "type": "Link",
+         "props": {
+          "text": "Quyền riêng tư",
+          "navigateTo": "/rieng-tu"
+         }
+        },
+        {
+         "id": "a4",
+         "type": "Link",
+         "props": {
+          "text": "Thanh toán",
+          "navigateTo": "/thanh-toan"
+         }
+        }
+       ]
+      },
+      {
+       "id": "main",
+       "type": "Column",
+       "props": {},
+       "children": [
+        {
+         "id": "privacy",
+         "type": "Form",
+         "props": {
+          "title": "Cài đặt quyền riêng tư",
+          "submitAction": "save_privacy"
+         },
+         "children": [
+          {
+           "id": "ra_reviews",
+           "type": "Radio",
+           "props": {
+            "label": "Ai thấy tên thật trên đánh giá của tôi",
+            "name": "review_visibility",
+            "options": [
+             "Mọi người",
+             "Chỉ hiện tên viết tắt"
+            ]
+           }
+          },
+          {
+           "id": "cb_partner",
+           "type": "Checkbox",
+           "props": {
+            "label": "Chia sẻ lịch sử chuyến đi với hãng bay đối tác để tích dặm",
+            "name": "share_partner"
+           }
+          },
+          {
+           "id": "cb_personal",
+           "type": "Checkbox",
+           "props": {
+            "label": "Gợi ý khách sạn dựa trên lịch sử tìm kiếm",
+            "name": "personalize"
+           }
+          },
+          {
+           "id": "btn_save",
+           "type": "Button",
+           "props": {
+            "label": "Lưu cài đặt",
+            "variant": "primary",
+            "action": "save_privacy"
+           }
+          }
+         ]
+        },
+        {
+         "id": "data",
+         "type": "Card",
+         "props": {
+          "title": "Dữ liệu của bạn"
+         },
+         "children": [
+          {
+           "id": "data_acts",
+           "type": "Row",
+           "props": {
+            "gap": 8
+           },
+           "children": [
+            {
+             "id": "btn_export",
+             "type": "Button",
+             "props": {
+              "label": "Tải xuống dữ liệu",
+              "variant": "secondary",
+              "action": "export_data"
+             }
+            },
+            {
+             "id": "btn_delete",
+             "type": "Button",
+             "props": {
+              "label": "Yêu cầu xóa tài khoản",
+              "variant": "danger",
+              "action": "request_delete"
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R793",
+  "requirement": {
+   "title": "Soạn câu hỏi khảo sát NPS trong hộp thoại",
+   "actor": "Quản trị nội dung SaaS",
+   "description": "Quản trị nội dung mở hộp thoại từ danh sách khảo sát để soạn khảo sát nhiều câu hỏi hiển thị cho người dùng sản phẩm: câu NPS 0–10, câu lý do, câu chọn tính năng, thời gian chạy. Lưu hoặc kích hoạt.",
+   "permissions": [
+    "Quản trị nội dung: được sửa nội dung và xuất bản trang công khai, không thao tác thay người dùng"
+   ],
+   "rules": [
+    "Tối đa 5 câu",
+    "Ngày kết thúc sau ngày bắt đầu"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Khảo sát trong ứng dụng"
+   },
+   "children": [
+    {
+     "id": "list",
+     "type": "Table",
+     "props": {
+      "columns": [
+       "Tên khảo sát",
+       "Trạng thái",
+       "Phản hồi"
+      ],
+      "rows": [
+       [
+        "NPS quý III",
+        "Đã kết thúc",
+        "1.204"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "editor",
+     "type": "Modal",
+     "props": {
+      "title": "Khảo sát mới: NPS quý IV/2026",
+      "open": true
+     },
+     "children": [
+      {
+       "id": "q1",
+       "type": "Input",
+       "props": {
+        "label": "Câu 1 (thang 0–10)",
+        "name": "q1_text",
+        "placeholder": "Bạn có giới thiệu sản phẩm cho đồng nghiệp?",
+        "inputType": "text",
+        "required": true
+       }
+      },
+      {
+       "id": "q2",
+       "type": "Input",
+       "props": {
+        "label": "Câu 2 (trả lời mở)",
+        "name": "q2_text",
+        "placeholder": "Lý do chính cho điểm của bạn là gì?",
+        "inputType": "text"
+       }
+      },
+      {
+       "id": "q3",
+       "type": "Textarea",
+       "props": {
+        "label": "Câu 3 – lựa chọn tính năng (mỗi dòng một lựa chọn)",
+        "name": "q3_options",
+        "placeholder": "Báo cáo\nTự động hóa\nTích hợp"
+       }
+      },
+      {
+       "id": "dates",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "dp_start",
+         "type": "DatePicker",
+         "props": {
+          "label": "Bắt đầu",
+          "name": "start",
+          "required": true
+         }
+        },
+        {
+         "id": "dp_end",
+         "type": "DatePicker",
+         "props": {
+          "label": "Kết thúc",
+          "name": "end",
+          "required": true
+         }
+        }
+       ]
+      },
+      {
+       "id": "sel_target",
+       "type": "Select",
+       "props": {
+        "label": "Đối tượng",
+        "name": "target",
+        "options": [
+         "Tất cả người dùng",
+         "Chỉ quản trị workspace",
+         "Người dùng gói trả phí"
+        ]
+       }
+      },
+      {
+       "id": "acts",
+       "type": "Row",
+       "props": {
+        "gap": 8,
+        "align": "end"
+       },
+       "children": [
+        {
+         "id": "btn_cancel",
+         "type": "Button",
+         "props": {
+          "label": "Hủy",
+          "variant": "ghost",
+          "action": "close_modal"
+         }
+        },
+        {
+         "id": "btn_save",
+         "type": "Button",
+         "props": {
+          "label": "Lưu nháp",
+          "variant": "secondary",
+          "action": "save"
+         }
+        },
+        {
+         "id": "btn_activate",
+         "type": "Button",
+         "props": {
+          "label": "Kích hoạt",
+          "variant": "primary",
+          "action": "activate"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R794",
+  "requirement": {
+   "title": "Chưa có lớp học nào trong học kỳ",
+   "actor": "Quản trị đào tạo",
+   "description": "Quản trị đào tạo mở danh sách lớp học kỳ I/2027 nhưng chưa có lớp nào. Banner giải thích trạng thái rỗng, đưa nút tạo lớp, nhập từ học kỳ trước và hướng dẫn.",
+   "permissions": [
+    "Toàn quyền: xem, thêm, sửa, xóa"
+   ],
+   "rules": [
+    "Nhập từ học kỳ trước chỉ sao chép lớp, không sao chép học viên"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Lớp học – Học kỳ I/2027"
+   },
+   "children": [
+    {
+     "id": "banner",
+     "type": "Section",
+     "props": {},
+     "children": [
+      {
+       "id": "empty_img",
+       "type": "Image",
+       "props": {
+        "alt": "Lớp học trống với bảng đen sạch"
+       }
+      },
+      {
+       "id": "h",
+       "type": "Heading",
+       "props": {
+        "text": "Học kỳ I/2027 chưa có lớp nào",
+        "level": 1
+       }
+      },
+      {
+       "id": "t",
+       "type": "Text",
+       "props": {
+        "text": "Tạo lớp mới hoặc sao chép cấu trúc lớp từ Học kỳ II/2026 để bắt đầu xếp lịch."
+       }
+      },
+      {
+       "id": "acts",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "btn_create",
+         "type": "Button",
+         "props": {
+          "label": "Tạo lớp mới",
+          "variant": "primary",
+          "action": "create_class"
+         }
+        },
+        {
+         "id": "btn_import",
+         "type": "Button",
+         "props": {
+          "label": "Sao chép từ HK II/2026",
+          "variant": "secondary",
+          "action": "import_classes"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "tips",
+     "type": "Section",
+     "props": {
+      "title": "Bạn có thể cần"
+     },
+     "children": [
+      {
+       "id": "tip_list",
+       "type": "List",
+       "props": {},
+       "children": [
+        {
+         "id": "tp1",
+         "type": "Link",
+         "props": {
+          "text": "Hướng dẫn xếp lịch giảng viên",
+          "navigateTo": "/huong-dan/xep-lich"
+         }
+        },
+        {
+         "id": "tp2",
+         "type": "Link",
+         "props": {
+          "text": "Mẫu Excel nhập lớp hàng loạt",
+          "navigateTo": "/mau/nhap-lop.xlsx"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R795",
+  "requirement": {
+   "title": "Không có quyền vào hàng đợi ticket VIP",
+   "actor": "Nhân viên hỗ trợ (chỉ xem)",
+   "description": "Nhân viên hỗ trợ mở hàng đợi ticket khách VIP nhưng không thuộc nhóm được phép. Màn hiển thị thông báo không có quyền và lưới thẻ các hàng đợi nhân viên được xem.",
+   "permissions": [
+    "Chỉ xem: không có thao tác thêm, sửa, xóa"
+   ],
+   "rules": [
+    "Không hiển thị số lượng hay nội dung ticket VIP"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Không có quyền truy cập"
+   },
+   "children": [
+    {
+     "id": "deny",
+     "type": "Alert",
+     "props": {
+      "text": "Hàng đợi 'Khách hàng VIP' chỉ dành cho nhóm Chăm sóc đặc biệt. Liên hệ trưởng nhóm Hồ Văn Bình nếu cần quyền.",
+      "tone": "danger"
+     }
+    },
+    {
+     "id": "h",
+     "type": "Heading",
+     "props": {
+      "text": "Hàng đợi bạn được xem",
+      "level": 2
+     }
+    },
+    {
+     "id": "grid",
+     "type": "Row",
+     "props": {
+      "gap": 8
+     },
+     "children": [
+      {
+       "id": "q1",
+       "type": "Card",
+       "props": {
+        "title": "Hỗ trợ chung"
+       },
+       "children": [
+        {
+         "id": "q1t",
+         "type": "Text",
+         "props": {
+          "text": "Ticket mới từ email và web"
+         }
+        },
+        {
+         "id": "q1l",
+         "type": "Link",
+         "props": {
+          "text": "Mở hàng đợi",
+          "navigateTo": "/hang-doi/chung"
+         }
+        }
+       ]
+      },
+      {
+       "id": "q2",
+       "type": "Card",
+       "props": {
+        "title": "Thanh toán"
+       },
+       "children": [
+        {
+         "id": "q2t",
+         "type": "Text",
+         "props": {
+          "text": "Hóa đơn, hoàn tiền, gia hạn"
+         }
+        },
+        {
+         "id": "q2l",
+         "type": "Link",
+         "props": {
+          "text": "Mở hàng đợi",
+          "navigateTo": "/hang-doi/thanh-toan"
+         }
+        }
+       ]
+      },
+      {
+       "id": "q3",
+       "type": "Card",
+       "props": {
+        "title": "Kỹ thuật cấp 1"
+       },
+       "children": [
+        {
+         "id": "q3t",
+         "type": "Text",
+         "props": {
+          "text": "Lỗi đăng nhập, cấu hình cơ bản"
+         }
+        },
+        {
+         "id": "q3l",
+         "type": "Link",
+         "props": {
+          "text": "Mở hàng đợi",
+          "navigateTo": "/hang-doi/ky-thuat"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "back",
+     "type": "Link",
+     "props": {
+      "text": "Về bảng điều khiển",
+      "navigateTo": "/"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "R796",
+  "requirement": {
+   "title": "Cấu hình bộ lọc nâng cao trang danh mục thời trang",
+   "actor": "Quản trị nội dung",
+   "description": "Quản trị nội dung chọn các bộ lọc hiển thị trên trang danh mục 'Váy đầm' công khai: khoảng giá, size, màu, chất liệu, khoảng ngày hàng mới về, và thứ tự hiển thị mặc định.",
+   "permissions": [
+    "Quản trị nội dung: được sửa nội dung và xuất bản trang công khai, không thao tác thay người dùng"
+   ],
+   "rules": [
+    "Ít nhất 2 bộ lọc được bật",
+    "Giá tối thiểu nhỏ hơn giá tối đa"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Bộ lọc trang Váy đầm"
+   },
+   "children": [
+    {
+     "id": "h",
+     "type": "Heading",
+     "props": {
+      "text": "Bộ lọc nâng cao – danh mục Váy đầm",
+      "level": 1
+     }
+    },
+    {
+     "id": "cfg",
+     "type": "Form",
+     "props": {
+      "submitAction": "publish_filters"
+     },
+     "children": [
+      {
+       "id": "s_enable",
+       "type": "Section",
+       "props": {
+        "title": "Bộ lọc hiển thị"
+       },
+       "children": [
+        {
+         "id": "f_size",
+         "type": "Checkbox",
+         "props": {
+          "label": "Size (XS–XXL)",
+          "name": "f_size"
+         }
+        },
+        {
+         "id": "f_color",
+         "type": "Checkbox",
+         "props": {
+          "label": "Màu sắc",
+          "name": "f_color"
+         }
+        },
+        {
+         "id": "f_material",
+         "type": "Checkbox",
+         "props": {
+          "label": "Chất liệu",
+          "name": "f_material"
+         }
+        },
+        {
+         "id": "f_new",
+         "type": "Checkbox",
+         "props": {
+          "label": "Hàng mới về theo ngày",
+          "name": "f_new"
+         }
+        }
+       ]
+      },
+      {
+       "id": "s_price",
+       "type": "Section",
+       "props": {
+        "title": "Khoảng giá mặc định"
+       },
+       "children": [
+        {
+         "id": "pr",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "in_min",
+           "type": "Input",
+           "props": {
+            "label": "Giá từ (đ)",
+            "name": "price_min",
+            "inputType": "number",
+            "min": 0
+           }
+          },
+          {
+           "id": "in_max",
+           "type": "Input",
+           "props": {
+            "label": "Giá đến (đ)",
+            "name": "price_max",
+            "inputType": "number",
+            "min": 0
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "s_dates",
+       "type": "Section",
+       "props": {
+        "title": "Khoảng ngày hàng mới về"
+       },
+       "children": [
+        {
+         "id": "dr",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "dp_from",
+           "type": "DatePicker",
+           "props": {
+            "label": "Từ ngày",
+            "name": "new_from"
+           }
+          },
+          {
+           "id": "dp_to",
+           "type": "DatePicker",
+           "props": {
+            "label": "Đến ngày",
+            "name": "new_to"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "sel_sort",
+       "type": "Select",
+       "props": {
+        "label": "Sắp xếp mặc định",
+        "name": "default_sort",
+        "options": [
+         "Mới nhất",
+         "Bán chạy",
+         "Giá tăng dần"
+        ]
+       }
+      },
+      {
+       "id": "acts",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "btn_reset",
+         "type": "Button",
+         "props": {
+          "label": "Khôi phục mặc định",
+          "variant": "ghost",
+          "action": "reset"
+         }
+        },
+        {
+         "id": "btn_pub",
+         "type": "Button",
+         "props": {
+          "label": "Xuất bản bộ lọc",
+          "variant": "primary",
+          "action": "publish_filters"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R797",
+  "requirement": {
+   "title": "Cài đặt nhắc lịch khám và kết quả xét nghiệm",
+   "actor": "Bệnh nhân đã đăng nhập",
+   "description": "Bệnh nhân chọn loại thông báo muốn nhận (nhắc lịch hẹn, kết quả xét nghiệm, nhắc uống thuốc, ưu đãi gói khám) và kênh nhận cho từng loại. Thanh tiêu đề có nút lưu.",
+   "permissions": [
+    "Khách hàng đã đăng nhập: chỉ thao tác trên dữ liệu của chính mình"
+   ],
+   "rules": [
+    "Thông báo kết quả xét nghiệm không thể tắt hoàn toàn",
+    "Nhắc lịch trước 1 hoặc 24 giờ"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Cài đặt thông báo"
+   },
+   "children": [
+    {
+     "id": "bar",
+     "type": "Header",
+     "props": {},
+     "children": [
+      {
+       "id": "bar_h",
+       "type": "Heading",
+       "props": {
+        "text": "Thông báo",
+        "level": 2
+       }
+      },
+      {
+       "id": "btn_save",
+       "type": "Button",
+       "props": {
+        "label": "Lưu thay đổi",
+        "variant": "primary",
+        "action": "save_notifications"
+       }
+      }
+     ]
+    },
+    {
+     "id": "opts",
+     "type": "List",
+     "props": {},
+     "children": [
+      {
+       "id": "o1",
+       "type": "Card",
+       "props": {
+        "title": "Nhắc lịch hẹn khám"
+       },
+       "children": [
+        {
+         "id": "o1_sms",
+         "type": "Checkbox",
+         "props": {
+          "label": "SMS",
+          "name": "appt_sms"
+         }
+        },
+        {
+         "id": "o1_app",
+         "type": "Checkbox",
+         "props": {
+          "label": "Ứng dụng",
+          "name": "appt_app"
+         }
+        },
+        {
+         "id": "o1_lead",
+         "type": "Select",
+         "props": {
+          "label": "Nhắc trước",
+          "name": "appt_lead",
+          "options": [
+           "1 giờ",
+           "24 giờ"
+          ]
+         }
+        }
+       ]
+      },
+      {
+       "id": "o2",
+       "type": "Card",
+       "props": {
+        "title": "Kết quả xét nghiệm"
+       },
+       "children": [
+        {
+         "id": "o2_note",
+         "type": "Text",
+         "props": {
+          "text": "Luôn gửi qua ứng dụng; có thể thêm email.",
+          "tone": "muted"
+         }
+        },
+        {
+         "id": "o2_email",
+         "type": "Checkbox",
+         "props": {
+          "label": "Email",
+          "name": "lab_email"
+         }
+        }
+       ]
+      },
+      {
+       "id": "o3",
+       "type": "Card",
+       "props": {
+        "title": "Nhắc uống thuốc"
+       },
+       "children": [
+        {
+         "id": "o3_app",
+         "type": "Checkbox",
+         "props": {
+          "label": "Ứng dụng",
+          "name": "med_app"
+         }
+        }
+       ]
+      },
+      {
+       "id": "o4",
+       "type": "Card",
+       "props": {
+        "title": "Ưu đãi gói khám"
+       },
+       "children": [
+        {
+         "id": "o4_email",
+         "type": "Checkbox",
+         "props": {
+          "label": "Email",
+          "name": "promo_email"
+         }
+        },
+        {
+         "id": "o4_zalo",
+         "type": "Checkbox",
+         "props": {
+          "label": "Zalo",
+          "name": "promo_zalo"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R798",
+  "requirement": {
+   "title": "Trạng thái hệ thống đặt món – chuỗi nhà hàng",
+   "actor": "Khách vãng lai",
+   "description": "Khách xem trang trạng thái hệ thống đặt món: banner trạng thái tổng, từng dịch vụ (ứng dụng đặt món, thanh toán, theo dõi tài xế), sự cố gần đây và đăng ký nhận cập nhật qua email.",
+   "permissions": [
+    "Khách vãng lai, chưa đăng nhập: chỉ có Đăng nhập/Đăng ký, không có chức năng tài khoản riêng",
+    "Chỉ xem: không có thao tác thêm, sửa, xóa"
+   ],
+   "rules": [
+    "Email đúng định dạng"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Trạng thái hệ thống Bếp Nhà"
+   },
+   "children": [
+    {
+     "id": "banner",
+     "type": "Section",
+     "props": {},
+     "children": [
+      {
+       "id": "bn_h",
+       "type": "Heading",
+       "props": {
+        "text": "Một số dịch vụ đang chậm",
+        "level": 1
+       }
+      },
+      {
+       "id": "bn_b",
+       "type": "Badge",
+       "props": {
+        "text": "Gián đoạn một phần",
+        "tone": "warning"
+       }
+      },
+      {
+       "id": "bn_t",
+       "type": "Text",
+       "props": {
+        "text": "Cập nhật 18:45, 19/10/2026",
+        "tone": "muted"
+       }
+      }
+     ]
+    },
+    {
+     "id": "services",
+     "type": "Section",
+     "props": {
+      "title": "Dịch vụ"
+     },
+     "children": [
+      {
+       "id": "sv1",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "sv1n",
+         "type": "Text",
+         "props": {
+          "text": "Ứng dụng đặt món"
+         }
+        },
+        {
+         "id": "sv1s",
+         "type": "Badge",
+         "props": {
+          "text": "Hoạt động",
+          "tone": "success"
+         }
+        }
+       ]
+      },
+      {
+       "id": "sv2",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "sv2n",
+         "type": "Text",
+         "props": {
+          "text": "Thanh toán ví & thẻ"
+         }
+        },
+        {
+         "id": "sv2s",
+         "type": "Badge",
+         "props": {
+          "text": "Chậm",
+          "tone": "warning"
+         }
+        }
+       ]
+      },
+      {
+       "id": "sv3",
+       "type": "Row",
+       "props": {
+        "gap": 8
+       },
+       "children": [
+        {
+         "id": "sv3n",
+         "type": "Text",
+         "props": {
+          "text": "Theo dõi tài xế"
+         }
+        },
+        {
+         "id": "sv3s",
+         "type": "Badge",
+         "props": {
+          "text": "Hoạt động",
+          "tone": "success"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "incidents",
+     "type": "Section",
+     "props": {
+      "title": "Sự cố gần đây"
+     },
+     "children": [
+      {
+       "id": "tb",
+       "type": "Table",
+       "props": {
+        "columns": [
+         "Thời gian",
+         "Sự cố",
+         "Trạng thái"
+        ],
+        "rows": [
+         [
+          "19/10 18:10",
+          "Thanh toán thẻ chậm 30–60 giây",
+          "Đang xử lý"
+         ],
+         [
+          "15/10 11:20",
+          "Không nhận mã giảm giá",
+          "Đã khắc phục"
+         ]
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "sub",
+     "type": "Form",
+     "props": {
+      "title": "Nhận cập nhật",
+      "submitAction": "subscribe"
+     },
+     "children": [
+      {
+       "id": "in_email",
+       "type": "Input",
+       "props": {
+        "label": "Email",
+        "name": "email",
+        "inputType": "email",
+        "required": true
+       }
+      },
+      {
+       "id": "btn_sub",
+       "type": "Button",
+       "props": {
+        "label": "Đăng ký",
+        "variant": "primary",
+        "action": "subscribe"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R799",
+  "requirement": {
+   "title": "Báo cáo khách hàng tiềm năng theo nguồn – tạo báo cáo",
+   "actor": "Nhân viên kinh doanh",
+   "description": "Nhân viên kinh doanh tạo báo cáo khách hàng tiềm năng theo nguồn (website, hội chợ, giới thiệu) trong một thẻ ở giữa: chọn kỳ và nguồn, tạo báo cáo, xem bảng báo cáo đã tạo. Không sửa hay xóa báo cáo đã tạo.",
+   "permissions": [
+    "Chỉ được tạo mới, không sửa/xóa bản ghi đã tạo"
+   ],
+   "rules": [
+    "Kỳ báo cáo bắt buộc",
+    "Báo cáo đã tạo chỉ xem và tải xuống"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Báo cáo lead theo nguồn"
+   },
+   "children": [
+    {
+     "id": "card",
+     "type": "Card",
+     "props": {
+      "title": "Báo cáo khách hàng tiềm năng"
+     },
+     "children": [
+      {
+       "id": "new",
+       "type": "Form",
+       "props": {
+        "title": "Tạo báo cáo mới",
+        "submitAction": "create_report"
+       },
+       "children": [
+        {
+         "id": "r",
+         "type": "Row",
+         "props": {
+          "gap": 8
+         },
+         "children": [
+          {
+           "id": "dp_from",
+           "type": "DatePicker",
+           "props": {
+            "label": "Từ ngày",
+            "name": "from",
+            "required": true
+           }
+          },
+          {
+           "id": "dp_to",
+           "type": "DatePicker",
+           "props": {
+            "label": "Đến ngày",
+            "name": "to",
+            "required": true
+           }
+          }
+         ]
+        },
+        {
+         "id": "sel_src",
+         "type": "Select",
+         "props": {
+          "label": "Nguồn",
+          "name": "source",
+          "options": [
+           "Tất cả",
+           "Website",
+           "Hội chợ",
+           "Giới thiệu",
+           "Facebook Ads"
+          ]
+         }
+        },
+        {
+         "id": "btn_create",
+         "type": "Button",
+         "props": {
+          "label": "Tạo báo cáo",
+          "variant": "primary",
+          "action": "create_report"
+         }
+        }
+       ]
+      },
+      {
+       "id": "dv",
+       "type": "Divider",
+       "props": {}
+      },
+      {
+       "id": "tb",
+       "type": "Table",
+       "props": {
+        "columns": [
+         "Kỳ",
+         "Nguồn",
+         "Số lead",
+         "Tỷ lệ chuyển đổi",
+         "Người tạo"
+        ],
+        "rows": [
+         [
+          "01–30/09/2026",
+          "Tất cả",
+          "412",
+          "18,4%",
+          "Bạn"
+         ],
+         [
+          "01–31/08/2026",
+          "Hội chợ",
+          "96",
+          "22,9%",
+          "Bạn"
+         ]
+        ],
+        "rowActions": [
+         "Xem",
+         "Tải CSV"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "R800",
+  "requirement": {
+   "title": "Hộp thoại danh sách suất diễn còn vé",
+   "actor": "Khách vãng lai",
+   "description": "Trên trang giới thiệu vở kịch, khách mở hộp thoại xem bảng tất cả suất diễn: ngày, giờ, rạp, giá từ và số vé còn, chia nhiều trang, lọc theo tháng. Chọn suất sẽ chuyển sang trang mua vé.",
+   "permissions": [
+    "Khách vãng lai, chưa đăng nhập: chỉ có Đăng nhập/Đăng ký, không có chức năng tài khoản riêng",
+    "Chỉ xem: không có thao tác thêm, sửa, xóa"
+   ],
+   "rules": [
+    "10 suất mỗi trang",
+    "Suất hết vé hiển thị 'Hết vé'"
+   ]
+  },
+  "tree": {
+   "id": "page",
+   "type": "Page",
+   "props": {
+    "title": "Kịch: Hồn Trương Ba, da hàng thịt"
+   },
+   "children": [
+    {
+     "id": "poster",
+     "type": "Image",
+     "props": {
+      "alt": "Poster vở kịch tông đỏ đen"
+     }
+    },
+    {
+     "id": "shows",
+     "type": "Modal",
+     "props": {
+      "title": "Lịch diễn",
+      "open": true
+     },
+     "children": [
+      {
+       "id": "sel_month",
+       "type": "Select",
+       "props": {
+        "label": "Tháng",
+        "name": "month",
+        "options": [
+         "11/2026",
+         "12/2026",
+         "01/2027"
+        ]
+       }
+      },
+      {
+       "id": "note800",
+       "type": "Text",
+       "props": {
+        "text": "Giá đã gồm VAT. Mỗi khách tối đa 8 vé/suất.",
+        "tone": "muted"
+       }
+      },
+      {
+       "id": "bd800",
+       "type": "Badge",
+       "props": {
+        "text": "Còn 18 suất",
+        "tone": "info"
+       }
+      },
+      {
+       "id": "tb",
+       "type": "Table",
+       "props": {
+        "columns": [
+         "Ngày",
+         "Giờ",
+         "Rạp",
+         "Giá từ",
+         "Còn vé"
+        ],
+        "rows": [
+         [
+          "07/11/2026",
+          "20:00",
+          "Nhà hát Lớn",
+          "350.000đ",
+          "42"
+         ],
+         [
+          "08/11/2026",
+          "20:00",
+          "Nhà hát Lớn",
+          "350.000đ",
+          "Hết vé"
+         ]
+        ],
+        "rowActions": [
+         "Chọn suất"
+        ]
+       }
+      },
+      {
+       "id": "note",
+       "type": "Text",
+       "props": {
+        "text": "Giá đã gồm VAT. Mỗi khách tối đa 8 vé/suất.",
+        "tone": "muted"
+       }
+      },
+      {
+       "id": "pg",
+       "type": "Pagination",
+       "props": {
+        "pages": 3
+       }
+      },
+      {
+       "id": "btn_close",
+       "type": "Button",
+       "props": {
+        "label": "Đóng",
+        "variant": "ghost",
+        "action": "close_modal"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ }
+]

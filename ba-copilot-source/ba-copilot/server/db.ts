@@ -56,11 +56,33 @@ CREATE TABLE IF NOT EXISTS prompt_runs (
   input_tokens INTEGER NOT NULL DEFAULT 0, output_tokens INTEGER NOT NULL DEFAULT 0, latency_ms INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS suggestion_events (
+  id TEXT PRIMARY KEY, screen_id TEXT NOT NULL, version_id TEXT, suggestion_kind TEXT NOT NULL,
+  target_node_id TEXT, title TEXT NOT NULL, confidence REAL NOT NULL,
+  action TEXT NOT NULL CHECK(action IN ('shown','applied','dismissed')), created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS model_learned_trees (
+  version_id TEXT PRIMARY KEY, screen_id TEXT NOT NULL, tree TEXT NOT NULL, created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_sugg_screen ON suggestion_events(screen_id);
 CREATE INDEX IF NOT EXISTS idx_modules_project ON modules(project_id);
 CREATE INDEX IF NOT EXISTS idx_screens_module ON screens(module_id);
 CREATE INDEX IF NOT EXISTS idx_versions_screen ON screen_versions(screen_id);
 CREATE INDEX IF NOT EXISTS idx_ann_screen ON annotations(screen_id);
 CREATE INDEX IF NOT EXISTS idx_runs_module ON prompt_runs(module_id);
+CREATE TABLE IF NOT EXISTS files (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  module_id TEXT REFERENCES modules(id) ON DELETE SET NULL,
+  name TEXT NOT NULL,
+  stored_name TEXT NOT NULL,
+  mime TEXT NOT NULL,
+  size INTEGER NOT NULL,
+  source TEXT NOT NULL DEFAULT 'upload',
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_files_project ON files(project_id);
+CREATE INDEX IF NOT EXISTS idx_files_module ON files(module_id);
 `;
 
 export function openDb(file: string): DatabaseSync {

@@ -3,6 +3,9 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { createServer, Server } from "node:http";
 import type { AddressInfo } from "node:net";
+import { mkdtempSync, rmSync, existsSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { openDb } from "../server/db.ts";
 import { createApp } from "../server/app.ts";
 import JSZip from "jszip";
@@ -11,6 +14,7 @@ let server: Server;
 let base = "";
 let fakeClaude: Server;
 const claudeCalls: any[] = [];
+let tmpUploadDir = "";
 
 async function api(method: string, path: string, body?: unknown) {
   const res = await fetch(base + path, { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
@@ -20,6 +24,8 @@ async function api(method: string, path: string, body?: unknown) {
 }
 
 before(async () => {
+  tmpUploadDir = mkdtempSync(join(tmpdir(), "ba-test-api-uploads-"));
+  process.env.UPLOAD_DIR = tmpUploadDir;
   delete process.env.ANTHROPIC_API_KEY;
   openDb(":memory:");
   server = createApp({ publicDir: process.cwd() + "/public" });
@@ -29,6 +35,12 @@ before(async () => {
 after(() => {
   server.close();
   fakeClaude?.close();
+  if (tmpUploadDir && existsSync(tmpUploadDir)) {
+    try {
+      rmSync(tmpUploadDir, { recursive: true, force: true });
+    } catch {}
+  }
+  delete process.env.UPLOAD_DIR;
 });
 
 test("luồng end-to-end (mock): dự án → màn hình → khoanh vùng + bình luận → sửa → duyệt → tài liệu → test → xuất file", async () => {
@@ -37,7 +49,7 @@ test("luồng end-to-end (mock): dự án → màn hình → khoanh vùng + bìn
   const m = await api("POST", `/api/projects/${p.data.id}/modules`, { name: "Xác thực", requirementInput: "As a Khách hàng, I want đăng nhập để mua hàng" });
   const mid = m.data.id;
 
-  const s = await api("POST", `/api/modules/${mid}/screens`, { prompt: "Màn hình đăng nhập bằng email và mật khẩu", name: "Đăng nhập" });
+  const s = await api("POST", `/api/modules/${mid}/screens`, { prompt: "Màn hình đăng nhập bằng email và mật khẩu (bắt buộc, mật khẩu tối thiểu 8 ký tự, email tối đa 100 ký tự), nút Đăng nhập", name: "Đăng nhập" });
   assert.equal(s.status, 200, JSON.stringify(s.data));
   const sid = s.data.screen.id;
 
@@ -141,4 +153,73 @@ test("đường gọi Claude thật: tool use, tự sửa khi kết quả sai sc
     delete process.env.ANTHROPIC_API_KEY;
     delete process.env.ANTHROPIC_BASE_URL;
   }
+});
+
+test("gợi ý bố cục (Recursive): phần tử tiếp theo, hoàn thành bố cục, chấp nhận, sửa tay, event", async () => {
+  const p = await api("POST", "/api/projects", { name: "Gợi ý" });
+  const m = await api("POST", `/api/projects/${p.data.id}/modules`, { name: "Sản phẩm" });
+  const s = await api("POST", `/api/modules/${m.data.id}/screens`, { prompt: "Form thêm sản phẩm: tên, giá; nút Lưu", name: "Thêm sản phẩm" });
+  const sid = s.data.screen.id;
+  const tree = s.data.version.tree;
+  // khung bao giả: xếp mọi node theo chiều dọc, mỗi node cao 40 px, thụt vào theo độ sâu
+  const boxes: Record<string, number[]> = {};
+  let y = 0;
+  const lay = (n: any, depth: number) => {
+    const y0 = y;
+    y += 40;
+    (n.children ?? []).forEach((c: any) => lay(c, depth + 1));
+    boxes[n.id] = [depth * 16, y0, 1280 - depth * 16, Math.max(y, y0 + 40)];
+  };
+  lay(tree, 0);
+  const layout = { pageWidth: 1280, boxes };
+
+  assert.equal((await api("POST", `/api/screens/${sid}/suggestions`, { nodeIds: [] })).status, 400); // thiếu khung bao
+  const r = await api("POST", `/api/screens/${sid}/suggestions`, { nodeIds: [], layout, mode: "next" });
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.ok(Array.isArray(r.data.items) && r.data.items.length <= 3);
+  assert.equal(r.data.model.kind, "recursive");
+  assert.ok(r.data.model.trees >= 1);
+  const form = tree.children.find((c: any) => c.type === "Form") ?? tree;
+  const one = await api("POST", `/api/screens/${sid}/suggestions`, { nodeIds: [form.id], layout, mode: "next" });
+  assert.equal(one.data.items.length, 1);
+  const e = one.data.items[0];
+  assert.equal(e.parentId, form.id);
+  assert.equal(e.candidates.length, 3);
+  assert.ok(e.candidates.every((c: any) => c.p >= 0 && c.p <= 1) && e.pEos >= 0 && e.boxPx.length === 4);
+  const all = await api("POST", `/api/screens/${sid}/suggestions`, { nodeIds: [], layout, mode: "complete" });
+  assert.equal(all.status, 200);
+  assert.ok(Array.isArray(all.data.items));
+
+  // chấp nhận: chèn Checkbox vào đầu form và một Row mới chứa Button ở cuối
+  const acc = await api("POST", `/api/screens/${sid}/layout/accept`, {
+    versionId: r.data.versionId,
+    items: [{ ref: "a", parentId: form.id, index: 0, type: "Checkbox" }, { ref: "g1", parentId: form.id, index: 99, type: "Row" }, { ref: "g2", parentId: "g1", index: 0, type: "Button" }],
+  });
+  assert.equal(acc.status, 200, JSON.stringify(acc.data));
+  assert.equal(acc.data.version.kind, "layout");
+  const f2 = acc.data.version.tree.children.find((c: any) => c.id === form.id) ?? acc.data.version.tree;
+  assert.equal(f2.children[0].type, "Checkbox");
+  assert.equal(f2.children.at(-1).type, "Row");
+  assert.equal(f2.children.at(-1).children[0].type, "Button");
+  assert.equal(acc.data.added.length, 3);
+  // gợi ý cũ (phiên bản trước) không còn đúng
+  assert.equal((await api("POST", `/api/screens/${sid}/layout/accept`, { versionId: r.data.versionId, items: [{ ref: "x", parentId: form.id, index: 0, type: "Text" }] })).status, 409);
+  assert.equal((await api("POST", `/api/screens/${sid}/layout/accept`, { versionId: acc.data.version.id, items: [{ ref: "x", parentId: form.id, index: 0, type: "Page" }] })).status, 400);
+
+  // sửa tay: chuyển xuống, xóa
+  const down = await api("POST", `/api/screens/${sid}/manual`, { op: "down", id: f2.children[0].id });
+  assert.equal(down.data.version.kind, "manual");
+  const f3 = down.data.version.tree.children.find((c: any) => c.id === form.id) ?? down.data.version.tree;
+  assert.equal(f3.children[1].type, "Checkbox");
+  const rm = await api("POST", `/api/screens/${sid}/manual`, { op: "remove", id: f2.children[0].id });
+  assert.equal(JSON.stringify(rm.data.version.tree).includes(f2.children[0].id), false);
+  assert.equal((await api("POST", `/api/screens/${sid}/manual`, { op: "remove", id: tree.id })).status, 400);
+
+  for (const action of ["shown", "shown", "applied", "dismissed"])
+    assert.equal((await api("POST", "/api/suggestions/events", { screenId: sid, versionId: r.data.versionId, kind: "layout", targetNodeId: form.id, title: "Checkbox", confidence: 0.4, action })).status, 200);
+  assert.equal((await api("POST", "/api/suggestions/events", { screenId: sid, action: "bad" })).status, 400);
+  const st = await api("GET", `/api/modules/${m.data.id}/suggestion-stats`);
+  assert.equal(st.data.shown, 2);
+  assert.equal(st.data.applied, 1);
+  assert.equal(st.data.acceptanceRate, 0.5);
 });

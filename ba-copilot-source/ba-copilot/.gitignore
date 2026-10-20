@@ -1,0 +1,10 @@
+node_modules/
+data/
+.env
+*.map
+e2e/screenshots/
+e2e/demo-*/
+data/corpus/
+analysis/
+__pycache__/
+model/*.pt
