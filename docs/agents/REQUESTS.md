@@ -246,3 +246,17 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Thay đổi: xem `QA_REPORT.md` mục 7. Component mới `useUI().confirm` đã thêm đủ 3 nơi (ui.tsx, `#/_gallery`, design-system.md).
 - Trạng thái: **Chấp nhận, đã làm** (commit `96a5a56`)
 - Quyết định của A0 (2026-10-20): các agent chủ tệp xem lại phần của mình khi rảnh; không chặn đợt 4.
+
+### R-060 – C1: icon "download" cho nút tải tệp
+- Đợt / agent yêu cầu: 5 – đợt 2 / C5
+- Tệp: `client/components/ui.tsx`, `docs/design-system.md` mục 3.1 · Chủ tệp: C1 (đợt 3: C10)
+- Lý do: màn Tài liệu có nút "Tải .md"; bảng `ICONS` chưa có icon tải về (chỉ có `upload`). C5 tạm để nút chữ không icon.
+- Thay đổi đề xuất: thêm `download: Download` (Lucide) vào `ICONS` + dòng bảng 3.1; C10 gắn `<Icon name="download" />` vào nút `doc-download` trong `client/views/DocsView.tsx`.
+- Trạng thái: Mở
+
+### R-061 – C9: đọc UC / FR từ `module_docs` của C5 cho test case và truy vết
+- Đợt / agent yêu cầu: 5 – đợt 2 / C5
+- Tệp: `server/service.ts`, `server/repo.ts`, `shared/trace.ts` · Chủ tệp: C9
+- Thông tin: `module_docs.data` của UC_SPEC là `{ useCases: UseCase[] }`, của FRD_NFR là `{ requirements: Requirement[] }`, của SRS là `{ srs: SrsDoc }` (đúng hợp đồng C2). Mỗi UC do C5 sinh có thêm trường **`storyCodes: string[]`** (mã US-xx nguồn, ngoài kiểu `UseCase`) – dùng cho cột Story → UC của truy vết. UC sinh từ story nên `screenIds` rỗng (không còn BR-01).
+- Khi UC_SPEC…FRD_NFR được ghi, C5 đã đặt bộ test (`kind "tests"`) đang có thành `outdated` + phát `artifact.stale`; C9 không cần làm lại việc này. Sinh test case nên kiểm FRD_NFR `done`/`approved` (quyết định 8) thay cho `modules.docs_status`.
+- Trạng thái: Mở
