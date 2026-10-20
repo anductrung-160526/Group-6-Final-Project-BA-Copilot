@@ -8,6 +8,8 @@ import { createApp } from "../server/app.ts";
 import { on } from "../server/events.ts";
 import { storiesText } from "../server/repo/stories.ts";
 import type { ArtifactEvent } from "../shared/types.ts";
+import { extractModel } from "../shared/extract.ts";
+import { storyKey, suggestNextScreens } from "../shared/suggest.ts";
 
 let server: Server;
 let base = "";
@@ -175,4 +177,22 @@ test("QUS lưu theo module khi story đổi; storiesText ghép story cho AI", as
   );
   await api("DELETE", `/api/stories/${s.id}`);
   assert.ok((await qus()).score < 85);
+});
+
+test("Gợi ý màn (shared/suggest.ts) đọc story có cấu trúc: tên màn từ I want, nguồn là mã US, bỏ story trống", () => {
+  const model = extractModel([]);
+  const res = suggestNextScreens({
+    model,
+    requirements: [],
+    stories: [
+      { code: "US-01", asA: "Khách hàng", iWant: "xem lịch sử đơn hàng", soThat: "theo dõi giao hàng" },
+      { code: "US-02", asA: "", iWant: "", soThat: "" },
+    ],
+  });
+  assert.equal(res.length, 1);
+  assert.equal(res[0].kind, "uncovered-story");
+  assert.equal(res[0].source, "US-01");
+  assert.match(res[0].name, /^Xem lịch sử đơn hàng/);
+  assert.match(res[0].prompt, /US-01: As a Khách hàng, I want xem lịch sử đơn hàng, so that theo dõi giao hàng\./);
+  assert.equal(res[0].key, storyKey("As a Khách hàng, I want xem lịch sử đơn hàng, so that theo dõi giao hàng."));
 });
