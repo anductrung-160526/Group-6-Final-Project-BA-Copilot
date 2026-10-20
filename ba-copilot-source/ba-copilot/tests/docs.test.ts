@@ -245,3 +245,49 @@ test("Tài liệu cũ đã chuyển sang module_docs hiển thị qua API mới"
   assert.equal(e.data.data.srs.sections[0].key, "intro");
   assert.equal(e.data.data.srs.sections[0].content, "Nội dung mới");
 });
+
+test("Bản Claude: gọi tool đúng tên, kết quả sai thì tự sửa 1 lần, nhật ký ghi provider claude", async () => {
+  const { createServer } = await import("node:http");
+  const calls: any[] = [];
+  const fake = createServer((req, res) => {
+    let raw = "";
+    req.on("data", (c) => (raw += c));
+    req.on("end", () => {
+      const body = JSON.parse(raw);
+      calls.push(body);
+      const tool = body.tool_choice.name;
+      let input: unknown;
+      if (tool === "submit_brd") input = { markdown: "# BRD – X\n\n## 1. Bối cảnh\nA\n## 2. Phạm vi\nB\n## 3. Bên liên quan\nC\n## 4. Yêu cầu\nD\n## 5. Tiêu chí\nE\n## 6. Giả định\nF" };
+      else if (calls.filter((c) => c.tool_choice.name === "submit_use_cases").length === 1) input = { useCases: [{ code: "UC-1x", name: "Sai mã", actors: ["A"], storyCodes: [], description: "", mainFlow: [], altFlows: [], exceptions: [], businessRules: [] }] };
+      else input = { useCases: [{ code: "UC-01", name: "Đăng ký", actors: ["Khách"], storyCodes: ["US-99", "KHONG"], description: "d", mainFlow: [{ no: 1, actor: "Khách", text: "Nhập email" }], altFlows: [], exceptions: [], businessRules: ["Email duy nhất"] }] };
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify({ content: [{ type: "tool_use", id: `t${calls.length}`, name: tool, input }], usage: { input_tokens: 10, output_tokens: 20 } }));
+    });
+  });
+  await new Promise<void>((r) => fake.listen(0, r));
+  const env = { ...process.env };
+  process.env.ANTHROPIC_API_KEY = "test-key";
+  process.env.ANTHROPIC_BASE_URL = `http://127.0.0.1:${(fake.address() as AddressInfo).port}`;
+  delete process.env.AI_MODE;
+  try {
+    const { pid, mid } = await setup("Claude");
+    addStory(pid, mid, { asA: "khách", iWant: "đăng ký" });
+    const brd = await gen(mid, "BRD");
+    assert.equal(brd.status, 200, JSON.stringify(brd.data));
+    assert.match(brd.data.content, /## 6\. Giả định/);
+    done(mid, "BRD");
+    const uc = await gen(mid, "UC_SPEC");
+    assert.equal(uc.status, 200, JSON.stringify(uc.data));
+    assert.equal(uc.data.data.useCases[0].code, "UC-01");
+    assert.deepEqual(uc.data.data.useCases[0].storyCodes, []); // mã story không có trong module bị bỏ
+    assert.equal(calls.filter((c) => c.tool_choice.name === "submit_use_cases").length, 2);
+    assert.match(calls[0].messages[0].content, /đăng ký/);
+    const run = getDb().prepare("SELECT provider, ok, error FROM prompt_runs WHERE module_id = ? AND type = 'generate_doc_uc_spec'").get(mid) as any;
+    assert.equal(run.provider, "claude");
+    assert.equal(run.ok, 1);
+    assert.match(run.error, /tự sửa/);
+  } finally {
+    process.env = env;
+    fake.close();
+  }
+});
