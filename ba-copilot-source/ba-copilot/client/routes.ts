@@ -6,6 +6,7 @@
 import { createElement, type ComponentType } from "react";
 import { ProjectView } from "./views/ProjectView.tsx";
 import { Gallery } from "./views/_Gallery.tsx";
+import { TasksView } from "./views/TasksView.tsx";
 
 export interface PageProps {
   projectId: string; // "" với trang global
@@ -29,7 +30,7 @@ function placeholder(title: string, fn: string): ComponentType<PageProps> {
 const LegacyFilesPage: ComponentType<PageProps> = ({ projectId, params }) => createElement(ProjectView, { id: projectId, tab: "files", initialModuleId: params[0] || null });
 
 export const PAGES: AppPage[] = [
-  { key: "tasks", label: "Công việc", scope: "project", component: placeholder("Công việc", "FN-15 → FN-19") },
+  { key: "tasks", label: "Công việc", scope: "project", component: TasksView },
   { key: "files", label: "Kho tài liệu", scope: "project", component: LegacyFilesPage },
   { key: "members", label: "Thành viên", scope: "global", component: placeholder("Thành viên", "FN-01") },
   { key: "_gallery", label: "Gallery", scope: "global", component: Gallery, hidden: true },
