@@ -6,6 +6,8 @@ import type { DesignModel } from "../../shared/extract.ts";
 import type { Requirement, SequenceDiagram, SrsDoc, SrsSection, TestCase, UseCase } from "../../shared/types.ts";
 import { runAI } from "./client.ts";
 import { mockEditOps, mockScreen, mockSequence, mockSrs, mockTests, mockUseCases } from "./mock.ts";
+import { mockUcDiagram } from "./mock.ts";
+import { buildUcMermaid, type UcRelation } from "../../shared/ucDiagram.ts";
 
 const SYSTEM_BASE = `Bạn là trợ lý của Business Analyst trong hệ thống BA Copilot.
 Nguyên tắc:
@@ -516,5 +518,49 @@ export async function refineSrsSection(args: { moduleId: string; section: SrsSec
     tool: { name: "submit_section", description: "Trả về nội dung mục đã chỉnh", input_schema: { type: "object", properties: { content: { type: "string" } }, required: ["content"] } },
     parse: (raw: any) => (raw?.content ? { value: { ...args.section, content: String(raw.content) } } : { errors: ["Thiếu content"] }),
     mock: () => ({ ...args.section, content: `${args.section.content}\n\n> **Ghi chú BA:** ${args.instruction}` }),
+  });
+}
+
+// ---------------------------------------------------------------- Sơ đồ UC (A5, FN-11)
+// AI chỉ chọn actor và quan hệ «include»/«extend»; mã Mermaid do buildUcMermaid dựng nên luôn đúng cú pháp.
+export async function generateUcDiagram(args: { moduleId: string; moduleName: string; useCases: UseCase[] }): Promise<{ code: string }> {
+  const ucCodes = new Set(args.useCases.map((u) => u.code));
+  const prompt = `Lập UC diagram cho module "${args.moduleName}" từ danh sách Use Case dưới đây.
+- actors: tác nhân bên ngoài hệ thống (không ghi "Hệ thống").
+- relations: quan hệ giữa các UC, chỉ dùng mã UC có trong danh sách.
+  - type "include": from là UC gốc, to là UC luôn được gọi trong luồng chính của UC gốc.
+  - type "extend": from là UC mở rộng (chỉ xảy ra trong điều kiện riêng), to là UC gốc.
+- Không bịa quan hệ. Không có quan hệ nào rõ ràng thì trả relations rỗng.
+
+## Use Case
+${JSON.stringify(args.useCases.map((u) => ({ code: u.code, name: u.name, actors: u.actors, mainFlow: u.mainFlow.map((s) => `${s.actor}: ${s.text}`), altFlows: u.altFlows.map((f) => f.name), exceptions: u.exceptions.map((f) => f.name) })))}`;
+  return runAI({
+    type: "generate_uc_diagram",
+    moduleId: args.moduleId,
+    system: SYSTEM_BASE + "\nBạn đóng vai Senior Business Analyst vẽ UC diagram theo UML.",
+    prompt,
+    tool: {
+      name: "submit_uc_diagram",
+      description: "Trả về actor và quan hệ include/extend của UC diagram",
+      input_schema: {
+        type: "object",
+        properties: {
+          actors: { type: "array", items: { type: "string" } },
+          relations: {
+            type: "array",
+            items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, type: { type: "string", enum: ["include", "extend"] } }, required: ["from", "to", "type"] },
+          },
+        },
+        required: ["actors", "relations"],
+      },
+    },
+    parse: (raw: any) => {
+      const relations: UcRelation[] = Array.isArray(raw?.relations) ? raw.relations.map((r: any) => ({ from: String(r.from ?? ""), to: String(r.to ?? ""), type: r.type === "extend" ? "extend" : "include" })) : [];
+      const errors = relations.filter((r) => !ucCodes.has(r.from) || !ucCodes.has(r.to)).map((r) => `Quan hệ tham chiếu UC không tồn tại: ${r.from} → ${r.to}`);
+      if (errors.length) return { errors };
+      const actors = Array.isArray(raw?.actors) ? raw.actors.map(String) : [];
+      return { value: { code: buildUcMermaid(args.useCases, actors, relations) } };
+    },
+    mock: () => mockUcDiagram(args.useCases),
   });
 }

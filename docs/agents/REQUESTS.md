@@ -159,3 +159,18 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
   Gọi nhiều lần vẫn chỉ có một bộ handler, nên đặt trong `createApp()` an toàn cho cả test lẫn `server/index.ts`. A7 đã thử trên bản gộp A6 + A7 + 2 dòng này: `npm test` 99/99.
 - Trạng thái: Mở
 - Quyết định của A0 (ngày):
+### R-009 – A5: `GET /api/modules/:id/diagram` trả `{ ok: true }` thay vì `null`
+- Đợt / agent yêu cầu: 2 / A5 (số tạm, A0 đánh lại số khi gộp nếu trùng)
+- Tệp: `server/app.ts` · Chủ tệp: A2
+- Lý do: hợp đồng (`docs/api.md` mục 3) quy định trả `UcDiagram | null` (null = chưa sinh). `createApp` gửi `out ?? { ok: true }` nên handler trả `null` thành `{ ok: true }`.
+- Thay đổi đề xuất: `send(res, 200, out === undefined ? { ok: true } : out)`. A2 rà các route khác có trả `null` có chủ đích hay không.
+- Tạm thời (A5): `DiagramTab` coi kết quả không có `code` là "chưa có sơ đồ"; `tests/ucDiagram.test.ts` chấp nhận cả hai. Sau khi sửa, bỏ nhánh `{ ok: true }` trong test.
+- Trạng thái: Mở
+
+### R-010 – A5: thêm class bố cục 2 cột bằng nhau vào design system
+- Đợt / agent yêu cầu: 2 / A5 (số tạm)
+- Tệp: `client/styles.css`, `docs/design-system.md`, `client/views/_Gallery.tsx` · Chủ tệp: A1
+- Lý do: SCR-05 cần 2 cột (soạn mã | xem trước). Design system chưa có class 2 cột bằng nhau.
+- Tạm thời (A5): `DiagramTab` dùng `.doc-layout` + `style={{ gridTemplateColumns: "1fr 1fr" }}` (không có màu hay px cứng).
+- Thay đổi đề xuất: class `.split-2` (2 cột `1fr 1fr`, khoảng cách `--space-4`, lề `0 --space-4`, về 1 cột ở màn hẹp). Sau khi có, A5 đổi `DiagramTab` sang class này.
+- Trạng thái: Mở

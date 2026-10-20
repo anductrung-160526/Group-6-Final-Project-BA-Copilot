@@ -5,6 +5,7 @@ import { ALL_TYPES, findNode, findParent, isContainer, newId, normalizeTree, UIN
 import type { PatchOp } from "../../shared/patch.ts";
 import type { DesignModel, ScreenModel, FieldSpec } from "../../shared/extract.ts";
 import type { AltFlow, Requirement, SequenceDiagram, SrsDoc, TestCase, UseCase, FlowStep } from "../../shared/types.ts";
+import { buildUcMermaid } from "../../shared/ucDiagram.ts";
 
 // ------------------------------------------------------------------ Screens
 const has = (s: string, re: RegExp) => re.test(s.toLowerCase());
@@ -709,4 +710,10 @@ function sampleValue(f: FieldSpec): string {
   if (f.options?.length) return f.options[0];
   if (f.kind === "Checkbox") return "Đã tích";
   return `${f.label} mẫu`;
+}
+
+// ------------------------------------------------------------------ Sơ đồ UC (A5, FN-11) – bản Mock dùng lại buildUcMermaid
+export function mockUcDiagram(useCases: UseCase[]): { code: string } {
+  const actors = [...new Set(useCases.flatMap((u) => u.actors))];
+  return { code: buildUcMermaid(useCases, actors) };
 }
