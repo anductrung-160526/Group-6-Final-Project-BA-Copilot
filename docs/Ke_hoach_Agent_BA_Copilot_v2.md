@@ -264,23 +264,30 @@ Nếu xung đột chạm tệp thuộc agent khác thì không tự sửa mà tr
 
 ### A8 – Chất lượng yêu cầu (QUS)
 
-**Đầu vào:** `shared/qus.ts`, `client/components/QusPanel.tsx`, `tests/qus.test.ts` từ nhánh `manh/c1-qus`, cùng các giả định G1–G4 trong tài liệu v2.
+**Đầu vào:** `shared/qus.ts`, `client/components/QusPanel.tsx`, `tests/qus.test.ts` trên `v2-contract` (bản C1 của `manh/c1-qus` đã được nâng lên G1–G4 ở commit `e05d9af`), cùng các giả định G1–G4 trong tài liệu v2.
+
+> **Hiện trạng trên `v2-contract` – không làm lại từ đầu.** Đã có:
+> - `qus.ts`: DUPLICATE (Jaccard ≥ 0,8, trong module và với story của module khác qua tham số `others`), NOT_UNIFORM (mức *info*, bỏ qua khi 1 story), `qusRating`/`RATING_LABEL` (Tốt ≥ 80, Khá 60–79, Cần sửa < 60). Hằng số `PENALTY_*` giữ nguyên.
+> - `QusPanel.tsx`: chấm trên trình duyệt, chờ 300 ms, bung/thu từng story, trạng thái rỗng. **Còn dùng `Badge` và CSS `.qus-*` riêng.**
+> - Panel đã gắn vào hai popup (FN-53, FN-54), có truyền `others`.
+>
+> Việc còn lại: bước 1–2 chỉ **kiểm lại và bổ sung nếu thiếu**; bước 3 chỉ **chuyển sang `ScoreBadge`/`IssueList`** rồi bỏ CSS `.qus-*` không còn dùng (báo A0 xoá trong `styles.css`, tệp của A1); bước 4 đã xong; trọng tâm là **bước 5–6 (FN-56)**.
 
 **Các bước:**
 
-1. Đối chiếu `qus.ts` với FN-51/52 và G1–G4:
+1. *(Đã có, kiểm lại.)* Đối chiếu `qus.ts` với FN-51/52 và G1–G4:
    - DUPLICATE: so trong cùng module, Jaccard ≥ 0,8;
    - NOT_UNIFORM: lệch khuôn mẫu đa số, mức *info*, bỏ qua khi chỉ có 1 story;
    - ngưỡng xếp hạng Tốt/Khá/Cần sửa.
 
    Sửa nếu lệch và giữ nguyên các hằng số `PENALTY_*`.
-2. Bổ sung `tests/qus.test.ts` cho đủ tiêu chí ở mục 3.4 của tài liệu v2.
-3. Làm lại `QusPanel.tsx` (SCR-15) bằng `ScoreBadge` và `IssueList` của A1. Chấm ngay trên trình duyệt (`qus.ts` nằm trong `shared/` nên chạy được ở client), chờ 300 ms sau lần gõ cuối. Mỗi story có thể bung ra hoặc thu lại. Có trạng thái rỗng.
-4. Gắn panel vào popup Tạo module (`ProjectView.tsx`, FN-53) và popup Sửa yêu cầu (`ModuleView.tsx`, FN-54). Chỉ sửa trong khối `<Modal>` của 2 popup đó.
-5. FN-56 (nếu kịp):
+2. *(Đã có, bổ sung nếu thiếu.)* Bổ sung `tests/qus.test.ts` cho đủ tiêu chí ở mục 3.4 của tài liệu v2.
+3. *(Còn phần giao diện.)* Làm lại `QusPanel.tsx` (SCR-15) bằng `ScoreBadge` và `IssueList` của A1. Chấm ngay trên trình duyệt (`qus.ts` nằm trong `shared/` nên chạy được ở client), chờ 300 ms sau lần gõ cuối. Mỗi story có thể bung ra hoặc thu lại. Có trạng thái rỗng.
+4. *(Đã xong.)* Gắn panel vào popup Tạo module (`ProjectView.tsx`, FN-53) và popup Sửa yêu cầu (`ModuleView.tsx`, FN-54). Chỉ sửa trong khối `<Modal>` của 2 popup đó.
+5. FN-56 (**việc chính**):
    - khi lưu yêu cầu, server tính lại điểm bằng chính `scoreStories` và lưu vào `modules.qus_score`;
    - hiển thị `ScoreBadge` ở danh sách module.
-6. Viết `server/routes/qus.ts`, chỉ cần nếu làm FN-56: `GET /api/modules/:id/qus`.
+6. Viết `server/routes/qus.ts` (thay stub 501): `GET /api/modules/:id/qus` theo `docs/api.md` mục 5, và thêm `qusScore` vào `modules[]` của `GET /api/projects/:id`.
 
 **Tệp sở hữu:** `shared/qus.ts`, `client/components/QusPanel.tsx`, `server/routes/qus.ts`, `tests/qus.test.ts`, khối Modal trong `ProjectView.tsx` và `ModuleView.tsx`.
 
@@ -290,9 +297,22 @@ Nếu xung đột chạm tệp thuộc agent khác thì không tự sửa mà tr
 
 ### A9 – Gợi ý màn tiếp theo
 
+**Đầu vào:** `shared/suggest.ts`, `tests/suggest.test.ts` và khối "Gợi ý tiếp theo" trong `DesignTab.tsx` trên `v2-contract` (commit `e05d9af`).
+
+> **Hiện trạng trên `v2-contract` – không làm lại từ đầu.** Đã có:
+> - `suggest.ts` với `suggestNextScreens()`: link gãy, FR chưa phủ, story chưa phủ khi chưa có FR (BR-07), prompt điền sẵn, thứ tự đúng, lọc theo `dismissed`.
+> - `tests/suggest.test.ts`.
+> - Khối gợi ý **viết thẳng trong `DesignTab.tsx`** (cột trái), CSS `.suggest-*` riêng. Nút Tạo mở hộp thoại Màn hình mới đã điền sẵn. **Bỏ qua/Khôi phục đang lưu ở `localStorage`** (biến `screenDismissed`, khoá `suggest-dismissed:<moduleId>`).
+>
+> Lệch hợp đồng cần sửa:
+> - Khoá story đang là `story:<slug>`, `docs/api.md` ghi `story:<hash>`. Chọn một: đổi sang hash, **hoặc** ghi yêu cầu sửa hợp đồng vào `REQUESTS.md`.
+> - `suggest.ts` tự khai báo `Suggestion`/`SuggestionKind`, trùng với `ScreenSuggestion` trong `shared/types.ts`. Phải dùng kiểu trong `types.ts`.
+>
+> Việc còn lại: bước 1–2 chỉ **kiểm lại và sửa hai chỗ lệch trên**; trọng tâm là **bước 3** (API, bỏ qua lưu trong bảng `suggestion_dismissals`) và **bước 4** (tách khối trong `DesignTab.tsx` ra `SuggestionsPanel.tsx` dùng `SuggestionCard`, gọi API thay cho `localStorage`, bỏ CSS `.suggest-*` – báo A0 xoá trong `styles.css`).
+
 **Các bước:**
 
-1. Viết `shared/suggest.ts`, hàm thuần:
+1. *(Đã có, sửa lệch hợp đồng.)* Viết `shared/suggest.ts`, hàm thuần:
 
    ```
    suggestNextScreens({ model: DesignModel, requirements: Requirement[],
@@ -303,13 +323,15 @@ Nếu xung đột chạm tệp thuộc agent khác thì không tự sửa mà tr
    - **Yêu cầu chưa phủ (FN-57):** với mỗi FR, hoặc mỗi story nếu chưa có FR (BR-07), chuẩn hoá thành từ khoá (bỏ dấu, bỏ stop-word), khớp với tên màn, field và action trong `extractModel`. Nếu không khớp màn nào thì tạo gợi ý. Khoá gợi ý là `fr:<code>` hoặc `story:<hash>`.
    - **Prompt điền sẵn (FN-60):** ghép tên màn, nội dung FR hoặc story, và màn nguồn (nếu là link gãy).
    - Thứ tự: link gãy trước, FR chưa phủ sau. Loại các khoá có trong `dismissed`.
-2. Viết `tests/suggest.test.ts` gồm 5 ca (a) → (e) ở mục 3.4.
-3. Viết `server/routes/suggest.ts`:
+2. *(Đã có, bổ sung nếu thiếu.)* Viết `tests/suggest.test.ts` gồm 5 ca (a) → (e) ở mục 3.4.
+3. Viết `server/routes/suggest.ts` (thay stub 501):
    - `GET /api/modules/:id/suggestions` (lấy dữ liệu, gọi hàm thuần);
    - `POST /dismiss` và `DELETE /dismiss` (FN-61).
 4. Viết `client/components/SuggestionsPanel.tsx` (SCR-16) bằng `SuggestionCard`. Bấm **Tạo** thì mở hộp thoại "Màn hình mới" có sẵn trong `DesignTab.tsx` với tên và prompt điền trước.
 
    Chỉ sửa `DesignTab.tsx` ở hai chỗ: chèn panel vào cột trái, và cho hộp thoại tạo màn nhận `initialName`/`initialPrompt`. Sau khi tạo màn hoặc duyệt thì tải lại danh sách gợi ý.
+
+   Vì khối hiện tại đang nằm trong `DesignTab.tsx`, A9 được **xoá khối cũ** (state `screenDismissed`, `updateScreenDismissed`, `suggestions` và JSX `suggest-block`) và thay bằng một dòng `<SuggestionsPanel …/>` tại đúng chỗ đó. Không đụng state `dismissed` của gợi ý bố cục ML.
 
 **Tệp sở hữu:** `shared/suggest.ts`, `server/routes/suggest.ts`, `client/components/SuggestionsPanel.tsx`, `tests/suggest.test.ts`, và 2 điểm chèn trong `DesignTab.tsx`.
 

@@ -14,8 +14,8 @@ Người cập nhật: **A0**. Mỗi agent dán kết quả `npm test` / `npm ru
 | A5 | Sơ đồ UC | 2 | `agent/a5-so-do-uc` | ⏳ Sẵn sàng | — | — | |
 | A6 | Công việc Kanban | 2 | `agent/a6-kanban` | ⏳ Sẵn sàng | — | — | |
 | A7 | Tự cập nhật trạng thái task | 2 | `agent/a7-tu-cap-nhat` | ⏳ Sẵn sàng | — | — | Gộp sau A6 |
-| A8 | Chất lượng yêu cầu (QUS) | 2 | `agent/a8-qus` | ⏳ Sẵn sàng | — | — | Code C1 + bản G1–G4 (`e05d9af`, chi_task) đã có trên `v2-contract`; còn FN-56 và chuyển sang `ScoreBadge`/`IssueList` |
-| A9 | Gợi ý màn tiếp theo | 2 | `agent/a9-goi-y` | ⏳ Sẵn sàng | — | — | `shared/suggest.ts` + khối gợi ý trong `DesignTab.tsx` (`e05d9af`) đã có; bỏ qua đang lưu trên trình duyệt, cần chuyển sang API `suggestion_dismissals`. Gộp cuối đợt 2 |
+| A8 | Chất lượng yêu cầu (QUS) | 2 | `agent/a8-qus` | ⏳ Sẵn sàng | — | — | Phần lớn đã có; việc còn lại ghi ở khung "Hiện trạng" mục A8 trong kế hoạch (chính: FN-56, `ScoreBadge`/`IssueList`) |
+| A9 | Gợi ý màn tiếp theo | 2 | `agent/a9-goi-y` | ⏳ Sẵn sàng | — | — | Phần lớn đã có; việc còn lại ghi ở khung "Hiện trạng" mục A9 trong kế hoạch (chính: API + `suggestion_dismissals`, tách `SuggestionsPanel`, sửa 2 chỗ lệch hợp đồng). Gộp cuối đợt 2 |
 | A10 | Dữ liệu demo | 3 | `agent/a10-seed` | ⏳ Chờ đợt 2 | — | — | |
 | A11 | Kiểm thử E2E & QA | 3 | `agent/a11-e2e` | ⏳ Chờ A10 | — | — | |
 | A12 | Tài liệu & Triển khai | 3, 4 | `agent/a12-trien-khai` | ⏳ Chờ A11 | — | — | |
@@ -27,7 +27,7 @@ Thứ tự gộp đợt 2: A8 → A4 → A3 → A6 → A7 → A5 → A9.
 | Đợt | Nhánh | Trạng thái |
 |---|---|---|
 | 0 | `v2-base` | ✅ Test và build qua (2026-10-20) |
-| 1 | `v2-contract` | ✅ Build qua, 65/66 test (1 test tốc độ, xem lưu ý) (2026-10-20). **Nhánh nền cho đợt 2** |
+| 1 | `v2-contract` | ✅ Build qua, 66/66 test (2026-10-20). **Nhánh nền cho đợt 2** |
 | 2 | `v2-features` | ⏳ |
 | 3–4 | `v2-demo` | ⏳ |
 
@@ -129,5 +129,7 @@ Ba lựa chọn A2 tự chốt, A0 **xác nhận** (tài liệu v2 không quy đ
 | 4. Hợp đồng | Bản khoá chính là bản trên `v2-contract` |
 | 5. Chế độ Mock | ✅ Chạy app với DB mới, không có khoá AI. Mở `#/_gallery`, trang chủ, dự án, Kho tài liệu, Công việc và Thành viên (trang giữ chỗ), 5 tab module, popup Sửa yêu cầu có panel QUS: 0 lỗi console. `GET /api/members` và `GET /api/projects/:id/tasks` trả 501 (stub) đúng dự kiến |
 
-**Đề xuất cho đợt 2:** nên xử lý test tốc độ trước khi 7 agent chạy song song, nếu không cổng số 1 sẽ đỏ liên tục. Ví dụ: chỉ đo thời gian khi biến môi trường `PERF=1`. Tệp này không thuộc agent nào, cần người quyết định.
+**Đã xử lý (theo quyết định của người dùng):** phép đo `< 400 ms` trong `tests/transformer.test.ts` chỉ chạy khi `PERF=1`. Phần kiểm tra kết quả của mô hình vẫn chạy như cũ. Sau khi sửa: `npm test` 66/66 hai lần liên tiếp. Đo tốc độ riêng: `PERF=1 npx tsx --test tests/transformer.test.ts` (đang qua).
+
+**A8, A9:** mục A8 và A9 trong `docs/Ke_hoach_Agent_BA_Copilot_v2.md` đã có khung "Hiện trạng trên `v2-contract`", ghi rõ phần đã có, việc còn lại và 2 chỗ lệch hợp đồng của `suggest.ts`. Khi khởi chạy A8, A9, phải giữ nguyên khung đó trong prompt.
 

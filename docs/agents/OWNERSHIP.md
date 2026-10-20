@@ -38,7 +38,7 @@ Nguồn: mục 4 của `docs/Ke_hoach_Agent_BA_Copilot_v2.md`. Người giữ b�
 | | A8 | Chỉ khối `<Modal>` Sửa yêu cầu (FN-54) |
 | `client/views/ProjectView.tsx` | A8 | Chỉ khối `<Modal>` Tạo module (FN-53) |
 | `client/views/DesignTab.tsx` | A3 | 2 chỗ hiển thị tên tác giả: ghim bình luận và danh sách phiên bản (FN-03) |
-| | A9 | 2 điểm: chèn `SuggestionsPanel` vào cột trái; hộp thoại tạo màn nhận `initialName`/`initialPrompt` |
+| | A9 | 2 điểm: chèn `SuggestionsPanel` vào cột trái; hộp thoại tạo màn nhận `initialName`/`initialPrompt`. Được xoá khối gợi ý màn cũ (`screenDismissed`, `updateScreenDismissed`, `suggestions`, JSX `suggest-block`); không đụng state `dismissed` của gợi ý bố cục ML |
 | | A0 | Chèn `RelatedTasks` do A6 giao (FN-19), làm khi gộp |
 | `client/views/DocsTab.tsx` | A0 | Chèn `RelatedTasks` do A6 giao (FN-19), làm khi gộp |
 | `client/views/moduleTabs.ts` | A5 | Đăng ký đúng một dòng cho `DiagramTab` |
