@@ -4,7 +4,7 @@
 // - kiểm tra cú pháp cơ bản (không thay cho mermaid.parse thật ở client) và báo theo số dòng;
 // - xuất Markdown (khối ```mermaid) để tải về / đẩy lên GitHub.
 
-import { DIAGRAM_KIND_LABEL, type DiagramKind, type DiagramPart, type DocKind } from "./types.ts";
+import { DIAGRAM_KIND_LABEL, DOC_KIND_LABEL, type ArtifactStatus, type DiagramKind, type DiagramPart, type DocKind } from "./types.ts";
 
 // ---------------------------------------------------------------- quy ước chung
 
@@ -16,6 +16,22 @@ export const DIAGRAM_SOURCES: Record<DiagramKind, DocKind[]> = {
   BPMN: ["BRD", "UC_SPEC"],
   ERD: ["SRS", "FRD_NFR"],
 };
+
+const STATUS_VI: Record<ArtifactStatus, string> = { none: "chưa có", draft: "Đang làm", done: "Xong", approved: "Đã duyệt", outdated: "Lỗi thời" };
+
+/**
+ * Lý do chưa sinh được loại sơ đồ: tài liệu nguồn chưa Xong / Đã duyệt (quyết định 8). null = sinh được.
+ * Server chặn bằng lý do này; màn Sơ đồ hiện đúng câu này cạnh nút Sinh bằng AI đang khoá.
+ */
+export function diagramBlockReason(kind: DiagramKind, statusOf: (doc: DocKind) => ArtifactStatus | undefined): string | null {
+  const missing = DIAGRAM_SOURCES[kind].filter((k) => {
+    const s = statusOf(k);
+    return s !== "done" && s !== "approved";
+  });
+  if (!missing.length) return null;
+  const list = missing.map((k) => `${DOC_KIND_LABEL[k]} (hiện: ${STATUS_VI[statusOf(k) ?? "none"]})`).join(", ");
+  return `Cần tài liệu ${list} ở trạng thái Xong trước khi sinh sơ đồ ${DIAGRAM_KIND_LABEL[kind]}`;
+}
 
 /** Loại cú pháp Mermaid mà mỗi sơ đồ phải dùng. */
 export type MermaidSyntax = "flowchart" | "sequence" | "er";

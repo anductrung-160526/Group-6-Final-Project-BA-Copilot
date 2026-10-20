@@ -10,11 +10,9 @@ import { getDb, tx, getArtifactState, setArtifactState, bumpRev } from "../db.ts
 import { emit, on } from "../events.ts";
 import { actor, assertRev, baseRevOf, HttpError, requireMember, route, type HandlerCtx } from "../http.ts";
 import { generateDiagram, type DiagramSources } from "../ai/diagramPipelines.ts";
-import { checkDiagram, DIAGRAM_SOURCES, MAX_DIAGRAM_CODE, normalizeParts } from "../../shared/diagrams.ts";
+import { checkDiagram, DIAGRAM_SOURCES, diagramBlockReason, MAX_DIAGRAM_CODE, normalizeParts } from "../../shared/diagrams.ts";
 import {
   DIAGRAM_KINDS,
-  DIAGRAM_KIND_LABEL,
-  DOC_KIND_LABEL,
   type ArtifactRef,
   type ArtifactStatus,
   type DiagramKind,
@@ -98,17 +96,9 @@ function readDocs(moduleId: string): Map<DocKind, DocRow> {
   return new Map(rows.map((r) => [r.kind, r]));
 }
 
-const STATUS_VI: Record<ArtifactStatus, string> = { none: "chưa có", draft: "Đang làm", done: "Xong", approved: "Đã duyệt", outdated: "Lỗi thời" };
-
 /** Lý do chưa sinh được loại sơ đồ (nguồn chưa Xong / Đã duyệt); null = sinh được. */
 export function generateBlockReason(moduleId: string, kind: DiagramKind, docs = readDocs(moduleId)): string | null {
-  const missing = DIAGRAM_SOURCES[kind].filter((k) => {
-    const s = docs.get(k)?.status ?? "none";
-    return s !== "done" && s !== "approved";
-  });
-  if (!missing.length) return null;
-  const list = missing.map((k) => `${DOC_KIND_LABEL[k]} (hiện: ${STATUS_VI[docs.get(k)?.status ?? "none"]})`).join(", ");
-  return `Cần tài liệu ${list} ở trạng thái Xong trước khi sinh sơ đồ ${DIAGRAM_KIND_LABEL[kind]}`;
+  return diagramBlockReason(kind, (k) => docs.get(k)?.status ?? "none");
 }
 
 /** UC_SPEC.data: `{ useCases }` (hợp đồng C2) hoặc mảng `UseCase[]`. */
