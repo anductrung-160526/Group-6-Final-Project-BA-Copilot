@@ -206,7 +206,7 @@ export function Gallery() {
 
       <Section title="Icon (Lucide)">
         <div className="muted small">
-          Gọi <code>{'<Icon name="edit" />'}</code> theo tên dưới đây; màu theo chữ của phần tử cha. Cỡ: xs 12 · sm 14 · md 16 (mặc định) · lg 20.
+          Gọi {'<Icon name="edit" />'} theo tên dưới đây; màu theo chữ của phần tử cha. Cỡ: xs 12 · sm 14 · md 16 (mặc định) · lg 20.
         </div>
         <div className="icon-grid">
           {ICON_NAMES.map((n) => (
@@ -236,7 +236,7 @@ export function Gallery() {
       </Section>
 
       <Section title="Sửa / Xoá (RowActions)">
-        <div className="muted small">Trong bảng: icon ở cột cuối (`variant="icons"`). Trong ngăn phải: nút chữ (`variant="buttons"`). Xoá luôn hỏi xác nhận.</div>
+        <div className="muted small">Trong bảng: icon ở cột cuối (variant="icons"). Trong ngăn phải: nút chữ (variant="buttons"). Xoá luôn hỏi xác nhận.</div>
         <table className="tbl">
           <thead>
             <tr>
