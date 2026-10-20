@@ -1,6 +1,8 @@
+// Trang chủ (đợt 5): danh sách dự án – tạo, sửa, xoá. Bấm vào dự án mở thẳng "Quản lý công việc". Chủ sở hữu: C3.
 import React, { useEffect, useState } from "react";
-import { get, post, del } from "../api.ts";
-import { Btn, Empty, Field, Modal, fmtTime, useUI } from "../components/ui.tsx";
+import { del, get, patch, post } from "../api.ts";
+import { Btn, Empty, Field, Modal, RowActions, fmtTime, useUI } from "../components/ui.tsx";
+import { projectHref } from "../projectMenu.ts";
 
 interface P {
   id: string;
@@ -10,85 +12,98 @@ interface P {
   moduleCount: number;
 }
 
+type Form = { id: string | null; name: string; description: string };
+
 export function Home() {
-  const { run, toast, confirm } = useUI();
+  const { run, toast } = useUI();
   const [projects, setProjects] = useState<P[] | null>(null);
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [desc, setDesc] = useState("");
+  const [form, setForm] = useState<Form | null>(null);
   const load = () => get<P[]>("/api/projects").then(setProjects).catch((e) => toast(e.message, "err"));
   useEffect(() => {
     load();
   }, []);
 
-  const create = async () => {
-    const p = await run("Đang tạo dự án", () => post("/api/projects", { name, description: desc }));
-    if (p) {
-      setOpen(false);
-      setName("");
-      setDesc("");
-      window.location.hash = `#/p/${p.id}`;
+  const save = async () => {
+    if (!form) return;
+    const body = { name: form.name.trim(), description: form.description };
+    if (form.id) {
+      // PATCH /api/projects/:id – route tạm của C3 (R-041), client api.ts chưa có hàm riêng.
+      const id = form.id;
+      const p = await run("Đang lưu", () => patch<P>(`/api/projects/${encodeURIComponent(id)}`, body));
+      if (!p) return;
+      toast(`Đã cập nhật dự án ${p.name}`, "ok");
+      setForm(null);
+      load();
+      return;
     }
+    const p = await run("Đang tạo dự án", () => post<P>("/api/projects", body));
+    if (p) {
+      setForm(null);
+      window.location.hash = projectHref(p.id);
+    }
+  };
+  const remove = async (p: P) => {
+    const r = await run("Đang xoá", () => del(`/api/projects/${encodeURIComponent(p.id)}`));
+    if (r) toast(`Đã xoá dự án ${p.name}`, "ok");
+    load();
   };
 
   return (
-    <div className="page">
+    <div className="page" data-testid="home">
       <div className="page-head">
         <div>
           <h1>Dự án</h1>
-          <p className="muted">Mỗi dự án gồm nhiều module. Mỗi module đi qua 4 bước: Thiết kế → Tài liệu → Test case → Truy vết.</p>
+          <p className="muted">Mỗi dự án có user story, các module và luồng Tài liệu → Sơ đồ → Prototype → Test case → Truy vết.</p>
         </div>
-        <Btn kind="primary" onClick={() => setOpen(true)} data-testid="new-project">
+        <Btn kind="primary" onClick={() => setForm({ id: null, name: "", description: "" })} data-testid="new-project">
           + Dự án mới
         </Btn>
       </div>
       {projects === null ? (
         <div className="muted">Đang tải…</div>
       ) : projects.length === 0 ? (
-        <Empty title="Chưa có dự án nào">Tạo dự án đầu tiên để bắt đầu thiết kế module.</Empty>
+        <Empty title="Chưa có dự án nào">Tạo dự án đầu tiên để bắt đầu viết yêu cầu nghiệp vụ.</Empty>
       ) : (
         <div className="grid">
           {projects.map((p) => (
-            <a key={p.id} className="tile" href={`#/p/${p.id}`}>
-              <div className="tile-title">{p.name}</div>
+            <div key={p.id} className="tile clickable" data-testid="project-tile" onClick={() => (window.location.hash = projectHref(p.id))}>
+              <a className="tile-title" href={projectHref(p.id)} onClick={(e) => e.stopPropagation()}>
+                {p.name}
+              </a>
               <div className="muted small clamp">{p.description || "Không có mô tả"}</div>
               <div className="tile-foot">
                 <span>{p.moduleCount} module</span>
                 <span>{fmtTime(p.createdAt)}</span>
-                <button
-                  className="link-danger"
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    if (!(await confirm({ title: `Xóa dự án "${p.name}"?`, message: "Toàn bộ module, màn hình và tài liệu của dự án sẽ bị xoá.", okLabel: "Xóa", danger: true }))) return;
-                    await run("Đang xóa", () => del(`/api/projects/${p.id}`));
-                    load();
-                  }}
-                >
-                  Xóa
-                </button>
+                <span className="spacer" />
+                <RowActions
+                  testId={`project-${p.id}`}
+                  onEdit={() => setForm({ id: p.id, name: p.name, description: p.description })}
+                  onDelete={() => remove(p)}
+                  deleteConfirm={{ title: `Xoá dự án "${p.name}"?`, message: "Toàn bộ module, user story, tài liệu, sơ đồ, màn hình và công việc của dự án sẽ bị xoá." }}
+                />
               </div>
-            </a>
+            </div>
           ))}
         </div>
       )}
-      {open && (
+      {form && (
         <Modal
-          title="Dự án mới"
-          onClose={() => setOpen(false)}
+          title={form.id ? "Sửa dự án" : "Dự án mới"}
+          onClose={() => setForm(null)}
           footer={
             <>
-              <Btn onClick={() => setOpen(false)}>Hủy</Btn>
-              <Btn kind="primary" disabled={!name.trim()} onClick={create} data-testid="create-project">
-                Tạo dự án
+              <Btn onClick={() => setForm(null)}>Huỷ</Btn>
+              <Btn kind="primary" disabled={!form.name.trim()} onClick={save} data-testid="create-project">
+                {form.id ? "Lưu" : "Tạo dự án"}
               </Btn>
             </>
           }
         >
           <Field label="Tên dự án">
-            <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="VD: Hệ thống bán hàng online" />
+            <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="VD: Hệ thống bán hàng online" data-testid="project-name" />
           </Field>
           <Field label="Mô tả">
-            <textarea rows={3} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Mục tiêu, phạm vi, người dùng…" />
+            <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Mục tiêu, phạm vi, người dùng…" />
           </Field>
         </Modal>
       )}

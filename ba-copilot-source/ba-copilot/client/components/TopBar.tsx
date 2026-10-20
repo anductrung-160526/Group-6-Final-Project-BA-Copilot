@@ -1,5 +1,6 @@
-// SCR-02 – Thanh trên: logo, menu trang (dựng từ client/routes.ts), ô "Tôi là…" (FN-02), chế độ AI, đăng xuất.
-// Chủ sở hữu: A3. main.tsx thay khối <header className="topbar"> bằng <TopBar />.
+// SCR-02 – Thanh trên (đợt 5): logo, menu ngoài (Dự án; "Quản trị hệ thống" chỉ khi người đang chọn là BA Lead),
+// ô "Tôi là…" (FN-02 – thay cho đăng nhập), chế độ AI, đăng xuất (chỉ khi bật cổng APP_PASSWORD).
+// Menu trong dự án (Công việc, Kho tài liệu…) nằm ở menu trái của ProjectShell. Chủ sở hữu: C3.
 import React, { useEffect, useState } from "react";
 import { get } from "../api.ts";
 import { PAGES, pageHref } from "../routes.ts";
@@ -16,59 +17,37 @@ function useHash() {
   return hash;
 }
 
-// Dự án đang mở – để menu Công việc / Kho tài liệu trỏ đúng dự án, kể cả khi đang ở trang global (Thành viên).
-let lastProjectId = "";
-const moduleProject = new Map<string, string>();
-
-function useProjectId(parts: string[]): string {
-  const [pid, setPid] = useState(lastProjectId);
-  const moduleId = parts[0] === "m" ? parts[1] ?? "" : "";
-  useEffect(() => {
-    if (parts[0] === "p" && parts[1]) return setPid((lastProjectId = parts[1]));
-    if (!moduleId) return setPid(lastProjectId);
-    const known = moduleProject.get(moduleId);
-    if (known) return setPid((lastProjectId = known));
-    let alive = true;
-    get<{ projectId: string }>(`/api/modules/${encodeURIComponent(moduleId)}`)
-      .then((m) => {
-        moduleProject.set(moduleId, m.projectId);
-        if (alive) setPid((lastProjectId = m.projectId));
-      })
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, [parts[0], parts[1]]);
-  return pid;
-}
-
 export function TopBar() {
   const hash = useHash();
   const parts = hash.replace(/^#\/?/, "").split("/");
-  const projectId = useProjectId(parts);
   const { me, members, loaded, setMe } = useCurrentMember();
   const [settings, setSettings] = useState<{ provider: string; model: string; auth?: boolean } | null>(null);
   useEffect(() => {
     get("/api/settings").then(setSettings).catch(() => {});
   }, []);
 
-  const menu = PAGES.filter((p) => !p.hidden && (p.scope === "global" || projectId));
-  const active = (parts[0] === "p" ? parts[2] : parts[0]) ?? "";
+  const isLead = me?.role === "BA_LEAD";
+  const menu = [
+    { key: "projects", label: "Dự án", href: "#/", testId: "nav-projects" },
+    ...PAGES.filter((p) => !p.hidden && (!p.leadOnly || isLead)).map((p) => ({ key: p.key, label: p.label, href: pageHref(p), testId: `nav-${p.key}` })),
+  ];
+  // Trang chủ và mọi trang trong dự án / module đều thuộc mục "Dự án".
+  const active = !parts[0] || parts[0] === "p" || parts[0] === "m" ? "projects" : parts[0];
 
   return (
     <header className="topbar" data-testid="topbar">
       <a href="#/" className="brand">
         <span className="logo">BA</span>
         <span>
-          BA Copilot<span className="brand-sub">Prompt → Thiết kế → Tài liệu → Test</span>
+          BA Copilot<span className="brand-sub">Yêu cầu → Tài liệu → Sơ đồ → Prototype → Test</span>
         </span>
       </a>
-      <Tabs variant="pill" items={menu.map((p) => ({ key: p.key, label: p.label, href: pageHref(p, projectId), testId: `nav-${p.key}` }))} active={active} />
+      <Tabs variant="pill" items={menu} active={active} />
       <span className="spacer" />
-      <label className="member-picker" title="Tên của bạn được ghi lên bình luận, phiên bản thiết kế và công việc">
+      <label className="member-picker" title="Người đang thao tác: tên được ghi lên bình luận, phiên bản và công việc; quyền BA Lead xét theo người này">
         <span className="muted small">Tôi là</span>
         {loaded && !members.length ? (
-          <a className="link small" href="#/members" data-testid="me-empty">
+          <a className="link small" href="#/admin" data-testid="me-empty">
             Thêm thành viên trước
           </a>
         ) : (

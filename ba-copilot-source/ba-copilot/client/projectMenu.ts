@@ -11,6 +11,7 @@ import { createElement, type ComponentType } from "react";
 import { DIAGRAM_KINDS, DIAGRAM_KIND_LABEL, DOC_KINDS, DOC_KIND_LABEL } from "../shared/types.ts";
 import { Empty } from "./components/ui.tsx";
 import { FilesView } from "./views/FilesView.tsx";
+import { LogsTab } from "./views/LogsTab.tsx";
 import { TasksView } from "./views/TasksView.tsx";
 
 /** Mục cấp 1 của menu trái. */
@@ -84,7 +85,7 @@ export const PROJECT_MENU: ProjectMenuItem[] = [
   { key: "stories", label: "Yêu cầu nghiệp vụ", icon: "BookText", owner: "C4", component: placeholder<ProjectPageProps>("Yêu cầu nghiệp vụ", "C4") },
   { key: "work", label: "Thực hiện công việc", icon: "Workflow", owner: "C3", steps: WORK_STEPS },
   { key: "files", label: "Kho tài liệu", icon: "FolderOpen", owner: "A4", component: FilesView },
-  { key: "logs", label: "Nhật ký AI", icon: "ScrollText", owner: "C3", component: placeholder<ProjectPageProps>("Nhật ký AI", "C3") },
+  { key: "logs", label: "Nhật ký AI", icon: "ScrollText", owner: "C3", component: LogsTab },
   { key: "git", label: "Lịch sử GitHub", icon: "GitBranch", owner: "C8", component: placeholder<ProjectPageProps>("Lịch sử GitHub", "C8") },
 ];
 
