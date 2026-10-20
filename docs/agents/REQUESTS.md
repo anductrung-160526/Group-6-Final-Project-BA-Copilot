@@ -220,7 +220,7 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
   - `countOpenTasks()` đếm task chưa xong theo trạng thái mới: `status NOT IN ('done','approved')`.
   - Màn đăng nhập ở `#/login` (client `api.ts` tự chuyển tới khi nhận `401 mode "member"`); gọi `login({ name, password })`, `getMe()`, `logout()`; màn Quản trị đặt mật khẩu bằng `setMemberPassword(id, pw)`. Phiên, băm mật khẩu, `requireMember`/`requireLead` nằm ở `server/http.ts` (C2) – C3 có thể chuyển sang `auth.ts` nhưng giữ tên hàm export.
   - `client/presence.ts` (C2) dùng `currentMemberId()` cho chế độ demo; nếu C3 bỏ ô "Tôi là…" thì giữ hàm này (trả `undefined` cũng được).
-- Trạng thái: Mở
+- Trạng thái: **Đã làm một phần (C3, đợt 2)** – chỉ `countOpenTasks()` (`status NOT IN ('done','approved')`, tức Cần làm / Đang làm; `redo` cũ nếu còn vẫn tính chưa xong). Phần mật khẩu / màn đăng nhập / `hasPassword` **bỏ** theo quyết định 15 (không có màn đăng nhập, giữ ô "Tôi là…"); `server/auth.ts`, `currentMember.ts` để nguyên.
 
 ### R-033 – C9: đọc cột mới của màn và bộ test
 - Đợt / agent yêu cầu: 5 – đợt 1 / C2
@@ -246,3 +246,26 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Thay đổi: xem `QA_REPORT.md` mục 7. Component mới `useUI().confirm` đã thêm đủ 3 nơi (ui.tsx, `#/_gallery`, design-system.md).
 - Trạng thái: **Chấp nhận, đã làm** (commit `96a5a56`)
 - Quyết định của A0 (2026-10-20): các agent chủ tệp xem lại phần của mình khi rảnh; không chặn đợt 4.
+
+### R-040 – C3 cần C1/C0 thêm icon menu trái và lớp bố cục khung dự án
+- Đợt / agent yêu cầu: 5 – đợt 2 / C3
+- Tệp: `client/components/ui.tsx`, `client/styles.css`, `client/views/_Gallery.tsx`, `docs/design-system.md` · Chủ tệp: C1 (đã xong đợt 1) → C0
+- Lý do: (1) `projectMenu.ts` ghi tên icon Lucide (`SquareKanban`, `BookText`, `Workflow`, `FolderOpen`, `ScrollText`, `GitBranch`, `FileText`, `Network`, `LayoutTemplate`, `FlaskConical`, `Route`) nhưng bảng `ICONS` của `Icon` chưa có, và chưa có icon "menu" (nút mở menu trái ở màn hẹp). (2) Chưa có lớp CSS cho khung 2 cột "menu trái + nội dung" của dự án.
+- Cách tạm C3 đã làm (trong `ProjectShell.tsx`): `menuIcon()` dùng icon trùng tên nếu `ICONS` có (nguyên dạng hoặc viết thường chữ đầu, vd `squareKanban`), không thì dùng icon gần nghĩa có sẵn (grid, user, play, folder, ai, github); các bước 1–5 chỉ hiện số bước. Nút mở menu dùng icon `more`. Bố cục dùng lại `.module-head` + `.doc-layout` / `.doc-nav` / `.doc-main` (điểm gãy 860px sẵn có – nên menu thu gọn ở ≤ 860px, gồm cả ≤ 768px) và 2 thuộc tính inline chỉ dùng token (`paddingBottom: var(--space-3)`, `paddingTop: var(--space-4)`).
+- Thay đổi đề xuất: thêm vào `ICONS` các khoá `squareKanban, bookText, workflow, folderOpen, scrollText, fileText, network, layoutTemplate, flaskConical, route, menu` (Lucide cùng tên) → `ProjectShell` tự dùng, không phải sửa. Thêm lớp `.project-shell` / `.project-nav` (menu trái dính dưới thanh trên, cuộn riêng) nếu C10 muốn tách khỏi `.doc-layout`, rồi bỏ 2 style inline.
+- Trạng thái: Mở
+
+### R-041 – C3 cần route sửa dự án (`PATCH /api/projects/:id`) trong `app.ts`
+- Đợt / agent yêu cầu: 5 – đợt 2 / C3
+- Tệp: `server/app.ts`, `server/repo.ts`, `client/api.ts`, `docs/api.md` · Chủ tệp: C2 (khoá), C9 (`repo.ts`)
+- Lý do: trang chủ cần nút Sửa dự án (`RowActions`) nhưng server chưa có route sửa dự án.
+- Cách tạm C3 đã làm: đăng ký `PATCH /api/projects/:id` `{ name?, description? }` → `Project` (tên rỗng 400, không có dự án 404) ở cuối `server/routes/members.ts` (khối ghi "TẠM (R-041)"), ghi bằng SQL trực tiếp; `Home.tsx` gọi `patch()` của `api.ts`. Có test trong `tests/members.test.ts`.
+- Thay đổi đề xuất (C0 khi gộp): chuyển route sang `app.ts` cạnh `POST /api/projects`, thêm `repo.updateProject()`, `updateProject(id, b)` trong `client/api.ts`, một dòng trong `docs/api.md`; xoá khối tạm trong `members.ts`.
+- Trạng thái: Mở
+
+### R-042 – C11: e2e và seed theo khung dự án mới của C3
+- Đợt / agent yêu cầu: 5 – đợt 2 / C3
+- Tệp: `e2e/demo-flow.mjs`, `e2e/e2e.mjs`, `scripts/seed.ts` · Chủ tệp: C11
+- Lý do: URL và màn đổi: `#/members` → `#/admin` (vẫn chuyển hướng; `data-testid="members-view"` giữ nguyên; nút Sửa/Xoá thành viên giờ là `RowActions` – testid `member-<id>-edit` / `member-<id>-delete`, xoá hỏi bằng `confirm-ok`); thanh trên chỉ còn "Dự án" + "Quản trị hệ thống" (BA Lead) – bỏ `nav-tasks`, `nav-files`, `nav-members`; `#/p/:id` → `#/p/:id/tasks`; `#/m/:id/<tab>` → `#/p/:pid/work/:mid/<bước>`. Thêm / sửa / xoá thành viên cần `actorId` là BA Lead khi hệ thống đã có BA Lead (server trả 403). Menu trái: `pnav-<mục>`, `pnav-work-<bước>[-<loại>]`; bộ chọn module `module-picker`, tạo module `new-module` → `module-name` → `create-module`.
+- Thay đổi đề xuất: cập nhật kịch bản e2e theo testid trên; seed không cần đổi (ghi thẳng DB).
+- Trạng thái: Mở

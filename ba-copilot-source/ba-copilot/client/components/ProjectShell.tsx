@@ -196,7 +196,7 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
     const Step = step.component;
     content = (
       <>
-        <div className="toolbar" data-testid="module-bar">
+        <div className="toolbar filters" data-testid="module-bar">
           <span className="muted small">Module</span>
           <Select
             value={validUrlModule}
