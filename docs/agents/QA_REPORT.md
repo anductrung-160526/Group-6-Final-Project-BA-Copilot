@@ -111,3 +111,36 @@ Bản kiểm thử: nhánh `v2-demo` = `v2-features` (gộp đợt 2 + mọi đi
 Các điểm chèn "không gây lỗi nhìn thấy" ghi ở cuối mục 3 đều đã làm: `RelatedTasks` (DesignTab, DocsTab), `actorId` ở FilesView / DiagramTab / DesignTab, R-006/R-007 của A3, dọn `LegacyFilesPage` + `FilesTab.tsx` (nay là R-014), `.split-2`, dọn CSS `.suggest-*`, `.qus-*`. Số trùng R-005/R-006 của A4 đã đổi thành R-013/R-014.
 
 **Kết luận:** không còn lỗi mức Cao hay Trung bình về chức năng trên `v2-demo`. Còn lại Q-05 → Q-08 (Trung bình/Thấp, giao diện màn hẹp) và các lỗi Thấp Q-09 → Q-13.
+
+---
+
+## 7. Sửa lỗi Q-05 → Q-13 (A0, 2026-10-20, commit `96a5a56` trên `v2-demo`)
+
+| Mã | Đã sửa | Tệp |
+|---|---|---|
+| Q-05 | Màn ≤ 640 px: thanh trên xuống 2 hàng (logo + "Tôi là…" / menu pill), ẩn phụ đề và nhãn chế độ AI | `styles.css` |
+| Q-06 | `.page-head`, `.filters` được xuống dòng; Kanban cuộn ngang trong khung | `styles.css` |
+| Q-07 | Bảng thành viên trong `.table-wrap` | `MembersView.tsx` |
+| Q-08 | Bảng tệp trong `.table-wrap`; hàng lọc xuống dòng; `Empty` trong `.page` thẳng mép với nội dung khác | `FilesView.tsx`, `styles.css` |
+| (377 px) | Tiêu đề module (`.module-title-row`) xuống dòng; mẫu chữ ở `#/_gallery` về 1 cột trên màn hẹp | `styles.css` |
+| Q-09 | Nút "Tạo" của `SuggestionCard` là `secondary`; cột trái chỉ còn một nút primary "+ Mới" | `ui.tsx`, `design-system.md` |
+| Q-10 | Tên màn gợi ý: bỏ "Hệ thống phải (cho phép … thực hiện)", lấy thao tác trong ngoặc kép, dừng trước mệnh đề phụ ("theo", "để", "cho"…), bỏ chú thích trong ngoặc, không kết thúc bằng từ nối, tối đa 8 từ. FR "Hệ thống phải kiểm tra: …" (quy tắc trường) không còn thành gợi ý màn. Test mới (d2) | `shared/suggest.ts`, `tests/suggest.test.ts` |
+| Q-11 | Ô "Người làm" hiện "BA Lead" thay "BA_LEAD" (`ROLE_LABEL`) | `TaskDialog.tsx`, `design-system.md` |
+| Q-12 | `npm run e2e` tự bật server trên Windows (gọi `tsx` bằng `node`, DB + `DATA_DIR` tạm), dự phòng Chrome cài sẵn khi thiếu Chromium | `e2e/e2e.mjs` |
+| Q-13 | Thêm `useUI().confirm(...)` (hiện `Modal`, nút Huỷ + nút đồng ý, `danger` cho xoá) vào design system + `#/_gallery`; thay **cả 7** chỗ `window.confirm` (Thiết kế ×2, Tài liệu, Sơ đồ UC, Test case, xoá dự án, xoá module) | `ui.tsx`, `_Gallery.tsx`, `design-system.md`, 6 màn |
+
+Ngoài danh sách: khối "Công việc liên quan" ở cột trái Design Studio có lề (`.studio-left > .box`); `server/taskAutomation.ts` dùng `listTasksByArtifact`/`setTaskStatus`/`memberExists` của A6 thay cho SQL viết lại.
+
+### Kiểm tra sau khi sửa
+
+| Hạng mục | Kết quả |
+|---|---|
+| `npx tsc --noEmit` | ✅ |
+| `npm test` | ✅ 144/144 (thêm 1 test Q-10) |
+| `npm run build` | ✅ |
+| `node e2e/demo-flow.mjs` | ✅ 27/27, **không còn trang tràn ngang** ở 375 px, 0 lỗi JavaScript |
+| `npm run e2e` (không đặt biến môi trường nào) | ✅ 18/18 trên Windows |
+| Đo 9 trang ở 375 px và 1280 px trên dữ liệu seed | ✅ đều vừa khung |
+| `npm run seed` 2 lần trên DB mới | ✅ không lỗi; module Sản phẩm còn 1 gợi ý (link gãy) và 4 đã bỏ qua (trước là 7, vì FR kiểm tra dữ liệu không còn thành gợi ý) |
+
+**Kết luận:** danh sách lỗi Q-01 → Q-13 đã đóng hết.

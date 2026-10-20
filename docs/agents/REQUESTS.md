@@ -195,3 +195,10 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
   3. Nếu A1 muốn đổi tên hai class khung thì báo lại A9 để sửa `SuggestionsPanel.tsx` (2 chỗ).
 - Trạng thái: **Chấp nhận, đã làm**
 - Quyết định của A0 (2026-10-20): A0 làm thay A1: xoá `.suggest-item/.suggest-name/.suggest-actions`, giữ hai class khung và thêm dòng vào `design-system.md` mục 3.1. Commit `195af3e`.
+
+### R-024 – A0 sửa lỗi QA Q-05 → Q-13 trên tệp của nhiều agent
+- Đợt / agent: 3 / A0 (người dùng yêu cầu trực tiếp "sửa các lỗi đang có", 2026-10-20)
+- Tệp: `styles.css`, `ui.tsx`, `_Gallery.tsx`, `design-system.md` (A1) · `e2e/e2e.mjs` (chưa có chủ) · `MembersView.tsx` (A3) · `FilesView.tsx` (A4) · `DiagramTab.tsx` (A5) · `TaskDialog.tsx` (A6) · `taskAutomation.ts` (A7) · `shared/suggest.ts`, `tests/suggest.test.ts` (A9) · `DesignTab.tsx`, `DocsTab.tsx`, `TestsTab.tsx`, `Home.tsx`, `ProjectView.tsx` (dùng chung / chưa có chủ)
+- Thay đổi: xem `QA_REPORT.md` mục 7. Component mới `useUI().confirm` đã thêm đủ 3 nơi (ui.tsx, `#/_gallery`, design-system.md).
+- Trạng thái: **Chấp nhận, đã làm** (commit `96a5a56`)
+- Quyết định của A0 (2026-10-20): các agent chủ tệp xem lại phần của mình khi rảnh; không chặn đợt 4.

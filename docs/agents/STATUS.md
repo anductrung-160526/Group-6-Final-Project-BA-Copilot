@@ -29,7 +29,7 @@ Thứ tự gộp đợt 2: A8 → A4 → A3 → A6 → A7 → A5 → A9.
 | 0 | `v2-base` | ✅ Test và build qua (2026-10-20) |
 | 1 | `v2-contract` | ✅ Build qua, 66/66 test (2026-10-20). **Nhánh nền cho đợt 2** |
 | 2 | `v2-features` | ✅ 143/143 test, build qua, E2E demo A11 27/27 và E2E cũ 18/18 (2026-10-20). **Nhánh nền cho đợt 3** |
-| 3–4 | `v2-demo` | ✅ Đợt 3 phần A10 + A11 (2026-10-20): 143/143 test, build qua, E2E demo 27/27 trên bản gộp thật, seed chạy trọn. A12 làm tiếp từ đây |
+| 3–4 | `v2-demo` | ✅ Đợt 3 phần A10 + A11 + sửa lỗi QA (2026-10-20): 144/144 test, build qua, E2E demo 27/27 không còn tràn ngang, `npm run e2e` 18/18 trên Windows; Q-01 → Q-13 đã đóng. A12 làm tiếp từ đây |
 
 ---
 
@@ -534,4 +534,4 @@ Lưu ý: lần chạy đầu `npm test` và `tsc` bị hết bộ nhớ vì máy
 | `npm run build` | ✅ |
 | `node e2e/demo-flow.mjs` | ✅ 27/27, 0 lỗi JavaScript |
 
-Còn mở cho đợt sau: Q-05 → Q-13 (xem `QA_REPORT.md` mục 6). Bản gộp tạm `E:/wt-a11-int` của A11 không còn cần, xoá được bằng `git worktree remove E:/wt-a11-int`.
+Q-05 → Q-13 đã sửa sau đó (`96a5a56`, yêu cầu R-024), xem `QA_REPORT.md` mục 7. Không còn lỗi mở trong danh sách QA. Bản gộp tạm `E:/wt-a11-int` của A11 không còn cần, xoá được bằng `git worktree remove E:/wt-a11-int`.

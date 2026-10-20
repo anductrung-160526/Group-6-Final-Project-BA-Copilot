@@ -79,6 +79,7 @@ Mọi lần một agent sửa tệp không thuộc dòng của mình đều ph�
 | R-020 → R-022 | 2 | A8 → A0 | `server/app.ts`, `server/repo.ts`, `ProjectView.tsx` (ngoài Modal) – FN-56 | A2 / chưa có chủ / dùng chung | **Chấp nhận, A0 chèn khi gộp** |
 | R-023 | 2 | A8 → A0 | `styles.css` – dọn `.qus-*` | A1 | **Chấp nhận, A0 làm thay A1** |
 | — | 2 | A5 | `server/ai/mock.ts`, `server/ai/pipelines.ts` – thêm 1 dòng import ở đầu tệp (ngoài "chỉ thêm ở cuối") | Dùng chung | **Chấp nhận** – bắt buộc để hàm mới ở cuối tệp chạy; không sửa code cũ (phát hiện ở cổng số 3) |
+| R-024 | 3 | A0 | Sửa lỗi QA Q-05 → Q-13 trên tệp A1, A3, A4, A5, A6, A7, A9 và tệp dùng chung | Nhiều chủ | **Người dùng yêu cầu trực tiếp.** Chi tiết `QA_REPORT.md` mục 7 |
 
 Từ đợt 2: cổng số 3 báo tệp ngoài bảng → A0 ghi một dòng vào đây trước khi quyết gộp hay trả lại.
 
