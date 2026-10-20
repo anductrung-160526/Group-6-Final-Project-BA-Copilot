@@ -5,6 +5,7 @@ import { Home } from "./views/Home.tsx";
 import { ProjectView } from "./views/ProjectView.tsx";
 import { ModuleView } from "./views/ModuleView.tsx";
 import { get } from "./api.ts";
+import { matchPage } from "./routes.ts";
 
 export function navigate(hash: string) {
   window.location.hash = hash;
@@ -27,8 +28,10 @@ function App() {
     get("/api/settings").then(setSettings).catch(() => {});
   }, []);
   const parts = hash.replace(/^#\/?/, "").split("/");
+  const page = matchPage(parts); // trang đăng ký trong client/routes.ts
   let view: React.ReactNode;
-  if (parts[0] === "p" && parts[1]) view = <ProjectView id={parts[1]} tab={parts[2] || "modules"} initialModuleId={parts[3] || null} />;
+  if (page) view = <page.page.component {...page.props} />;
+  else if (parts[0] === "p" && parts[1]) view = <ProjectView id={parts[1]} tab={parts[2] || "modules"} initialModuleId={parts[3] || null} />;
   else if (parts[0] === "m" && parts[1]) view = <ModuleView id={parts[1]} tab={parts[2] || "design"} />;
   else view = <Home />;
 

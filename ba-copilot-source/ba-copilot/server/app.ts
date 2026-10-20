@@ -12,29 +12,9 @@ import { buildDocx } from "./export/docx.ts";
 import { testWorkbook } from "./export/xlsx.ts";
 import { authEnabled, isAuthenticated, login, logout, LOGIN_HTML } from "./auth.ts";
 import { buildTrace } from "../shared/trace.ts";
-import { saveBuffer, readFileFromDisk, removeFileFromDisk, saveExport } from "./files.ts";
-
-type Handler = (ctx: { req: IncomingMessage; res: ServerResponse; params: Record<string, string>; body: any; query: URLSearchParams }) => Promise<unknown> | unknown;
-interface Route {
-  method: string;
-  pattern: RegExp;
-  keys: string[];
-  handler: Handler;
-}
-
-const routes: Route[] = [];
-function route(method: string, path: string, handler: Handler) {
-  const keys: string[] = [];
-  const pattern = new RegExp("^" + path.replace(/:(\w+)/g, (_, k) => (keys.push(k), "([^/]+)")) + "$");
-  routes.push({ method, pattern, keys, handler });
-}
-
-class FileResponse {
-  constructor(public data: Buffer, public filename: string, public contentType: string) {}
-}
-
-const str = (v: unknown, max = 20000) => (typeof v === "string" ? v.slice(0, max) : "");
-const arr = (v: unknown) => (Array.isArray(v) ? v.map(String) : []);
+import { saveExport } from "./files.ts";
+import { route, matchRoute, FileResponse, HttpError, str, arr, actor } from "./http.ts";
+import "./routes/index.ts"; // route v2 theo phân hệ (members, files, diagram, tasks, qus, suggest)
 
 // ---------------------------------------------------------------- API
 route("GET", "/api/settings", () => {
@@ -84,13 +64,13 @@ route("GET", "/api/modules/:id/model", ({ params }) => svc.getDesignModel(params
 route("GET", "/api/modules/:id/runs", ({ params }) => repo.listRuns(params.id));
 
 // Design Studio
-route("POST", "/api/modules/:id/screens", ({ params, body }) => svc.createScreenFromPrompt(params.id, str(body.prompt), str(body.name, 120)));
+route("POST", "/api/modules/:id/screens", ({ params, body }) => svc.createScreenFromPrompt(params.id, str(body.prompt), str(body.name, 120), actor(body)));
 route("PATCH", "/api/screens/:id", ({ params, body }) => (repo.updateScreen(params.id, { name: str(body.name, 120) }), repo.getScreen(params.id)));
 route("DELETE", "/api/screens/:id", ({ params }) => (repo.deleteScreen(params.id), { ok: true }));
 route("GET", "/api/screens/:id/versions", ({ params }) => repo.listVersions(params.id));
-route("POST", "/api/screens/:id/edit", ({ params, body }) => svc.editScreenWithPrompt(params.id, { prompt: str(body.prompt), nodeIds: arr(body.nodeIds), annotationIds: arr(body.annotationIds) }));
-route("POST", "/api/screens/:id/revert", ({ params, body }) => svc.revertScreen(params.id, str(body.versionId)));
-route("POST", "/api/screens/:id/approve", ({ params, body }) => svc.setScreenApproval(params.id, body.approved !== false));
+route("POST", "/api/screens/:id/edit", ({ params, body }) => svc.editScreenWithPrompt(params.id, { prompt: str(body.prompt), nodeIds: arr(body.nodeIds), annotationIds: arr(body.annotationIds) }, actor(body)));
+route("POST", "/api/screens/:id/revert", ({ params, body }) => svc.revertScreen(params.id, str(body.versionId), actor(body)));
+route("POST", "/api/screens/:id/approve", ({ params, body }) => svc.setScreenApproval(params.id, body.approved !== false, actor(body)));
 route("POST", "/api/screens/:id/annotations", ({ params, body }) => {
   const s = repo.getScreen(params.id);
   if (!s || !s.currentVersionId) throw new BizError("Không tìm thấy màn hình", 404);
@@ -117,11 +97,11 @@ route("POST", "/api/screens/:id/suggestions", ({ params, body }) => {
 });
 route("POST", "/api/screens/:id/layout/accept", ({ params, body }) => {
   const items = (Array.isArray(body.items) ? body.items : []).slice(0, 100).map((x: Record<string, unknown>) => ({ ref: str(x?.ref, 60), parentId: str(x?.parentId, 120), index: Math.max(0, Math.floor(Number(x?.index) || 0)), type: str(x?.type, 30) }));
-  return svc.acceptLayout(params.id, { versionId: str(body.versionId, 100), items });
+  return svc.acceptLayout(params.id, { versionId: str(body.versionId, 100), items }, actor(body));
 });
 route("POST", "/api/screens/:id/manual", ({ params, body }) => {
   if (!["remove", "up", "down"].includes(body.op)) throw new svc.BizError("Thao tác không hợp lệ");
-  return svc.manualEdit(params.id, { op: body.op, id: str(body.id, 120) });
+  return svc.manualEdit(params.id, { op: body.op, id: str(body.id, 120) }, actor(body));
 });
 route("POST", "/api/suggestions/events", ({ body }) => {
   const action = body.action;
@@ -142,13 +122,13 @@ route("POST", "/api/suggestions/events", ({ body }) => {
 route("GET", "/api/modules/:id/suggestion-stats", ({ params }) => repo.suggestionStats(params.id));
 
 // Docs
-route("POST", "/api/modules/:id/docs/generate", ({ params }) => svc.generateDocs(params.id));
-route("POST", "/api/modules/:id/docs/refine", ({ params, body }) => svc.refineDoc(params.id, str(body.target, 100), str(body.instruction)));
-route("POST", "/api/modules/:id/docs/approve", ({ params, body }) => svc.approveDocs(params.id, body.approved !== false));
+route("POST", "/api/modules/:id/docs/generate", ({ params, body }) => svc.generateDocs(params.id, actor(body)));
+route("POST", "/api/modules/:id/docs/refine", ({ params, body }) => svc.refineDoc(params.id, str(body.target, 100), str(body.instruction), actor(body)));
+route("POST", "/api/modules/:id/docs/approve", ({ params, body }) => svc.approveDocs(params.id, body.approved !== false, actor(body)));
 route("PUT", "/api/modules/:id/requirements", ({ params, body }) => svc.updateRequirements(params.id, Array.isArray(body.requirements) ? body.requirements : []));
 
 // Tests & trace
-route("POST", "/api/modules/:id/tests/generate", ({ params }) => svc.generateTests(params.id));
+route("POST", "/api/modules/:id/tests/generate", ({ params, body }) => svc.generateTests(params.id, actor(body)));
 route("GET", "/api/modules/:id/trace", ({ params }) => svc.trace(params.id));
 
 // Export
@@ -181,42 +161,7 @@ route("GET", "/api/screens/:id/export/json", ({ params }) => {
   return new FileResponse(Buffer.from(JSON.stringify(v.tree, null, 2)), `${fileSafe(s.name)}.json`, "application/json");
 });
 
-// Kho tài liệu
-route("GET", "/api/projects/:id/files", ({ params }) => {
-  if (!repo.getProject(params.id)) throw new BizError("Không tìm thấy dự án", 404);
-  return repo.listFiles(params.id);
-});
-route("POST", "/api/projects/:id/files", ({ params, body }) => {
-  if (!repo.getProject(params.id)) throw new BizError("Không tìm thấy dự án", 404);
-  if (body.moduleId) {
-    const mod = repo.getModule(str(body.moduleId));
-    if (!mod || mod.projectId !== params.id) throw new BizError("Module không thuộc dự án này", 400);
-  }
-  const b64 = typeof body.contentBase64 === "string" ? body.contentBase64.trim() : "";
-  if (!b64) throw new BizError("Nội dung file (base64) không được để trống");
-  let buf: Buffer;
-  try {
-    buf = Buffer.from(b64, "base64");
-  } catch {
-    throw new BizError("Nội dung base64 không hợp lệ");
-  }
-  if (!buf.length) throw new BizError("Nội dung file rỗng");
-  return saveBuffer(params.id, body.moduleId ? str(body.moduleId) : null, str(body.name), buf, "upload");
-});
-route("GET", "/api/files/:id/download", ({ params }) => {
-  const f = repo.getFile(params.id);
-  if (!f) throw new BizError("Không tìm thấy file", 404);
-  const buf = readFileFromDisk(f.storedName);
-  if (!buf) throw new BizError("Không tìm thấy file trên đĩa", 404);
-  return new FileResponse(buf, f.name, f.mime);
-});
-route("DELETE", "/api/files/:id", ({ params }) => {
-  const f = repo.getFile(params.id);
-  if (!f) throw new BizError("Không tìm thấy file", 404);
-  removeFileFromDisk(f.storedName);
-  repo.deleteFileRow(params.id);
-  return { ok: true };
-});
+// Kho tài liệu: server/routes/files.ts
 
 function fileSafe(s: string) {
   return s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").replace(/[^\w-]+/g, "_").slice(0, 60) || "export";
@@ -270,21 +215,15 @@ export function createApp(opts: { publicDir: string }): Server {
         return res.end(LOGIN_HTML);
       }
       if (url.pathname.startsWith("/api/")) {
-        for (const r of routes) {
-          if (r.method !== req.method) continue;
-          const m = url.pathname.match(r.pattern);
-          if (!m) continue;
-          const params: Record<string, string> = {};
-          r.keys.forEach((k, i) => (params[k] = decodeURIComponent(m[i + 1])));
-          const body = await readBody(req);
-          const out = await r.handler({ req, res, params, body, query: url.searchParams });
-          if (out instanceof FileResponse) {
-            res.writeHead(200, { "content-type": out.contentType, "content-disposition": `attachment; filename="${out.filename}"; filename*=UTF-8''${encodeURIComponent(out.filename)}` });
-            res.end(out.data);
-          } else send(res, 200, out ?? { ok: true });
-          return;
-        }
-        return send(res, 404, { error: "API không tồn tại" });
+        const hit = matchRoute(req.method ?? "GET", url.pathname);
+        if (!hit) return send(res, 404, { error: "API không tồn tại" });
+        const body = await readBody(req);
+        const out = await hit.route.handler({ req, res, params: hit.params, body, query: url.searchParams });
+        if (out instanceof FileResponse) {
+          res.writeHead(200, { "content-type": out.contentType, "content-disposition": `attachment; filename="${out.filename}"; filename*=UTF-8''${encodeURIComponent(out.filename)}` });
+          res.end(out.data);
+        } else send(res, 200, out ?? { ok: true });
+        return;
       }
       // static
       if (url.pathname === "/vendor/mermaid.min.js" && mermaidPath) return serveFile(res, mermaidPath);
@@ -295,7 +234,7 @@ export function createApp(opts: { publicDir: string }): Server {
       if (st?.isFile()) return serveFile(res, file);
       return serveFile(res, join(opts.publicDir, "index.html"));
     } catch (e) {
-      if (e instanceof BizError) return send(res, e.status, { error: e.message });
+      if (e instanceof BizError || e instanceof HttpError) return send(res, e.status, { error: e.message });
       if (e instanceof AIError) return send(res, 502, { error: e.message, details: e.details });
       console.error(e);
       return send(res, 500, { error: `Lỗi máy chủ: ${(e as Error).message}` });
