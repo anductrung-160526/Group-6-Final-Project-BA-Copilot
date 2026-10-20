@@ -15,7 +15,7 @@ import { Renderer } from "../components/Renderer.tsx";
 import { SuggestionsPanel } from "../components/SuggestionsPanel.tsx";
 import { RelatedTasks } from "../components/RelatedTasks.tsx";
 import { currentMemberId, useCurrentMember, withActor } from "../currentMember.ts";
-import { ApprovalBar, Badge, Btn, ConflictNotice, EditingBadge, Empty, Field, Icon, Modal, StatusBadge, fmtTime, useUI } from "../components/ui.tsx";
+import { ApprovalBar, Badge, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Field, Icon, Modal, RowActions, StatusBadge, fmtTime, useUI } from "../components/ui.tsx";
 
 type Mode = "select" | "region" | "prototype";
 interface Rect {
@@ -28,7 +28,7 @@ interface Rect {
 const TEMPLATES = [
   { name: "Đăng nhập", prompt: "Màn hình đăng nhập bằng email và mật khẩu, có ghi nhớ đăng nhập, quên mật khẩu và link đăng ký." },
   { name: "Quản lý sản phẩm", prompt: "Màn hình quản lý sản phẩm: tìm kiếm theo tên, lọc theo danh mục và trạng thái, bảng danh sách có sửa/xóa, nút thêm mới, phân trang." },
-  { name: "Thêm sản phẩm", prompt: "Form thêm sản phẩm: tên, mã SKU, danh mục, giá bán, số lượng tồn, mô tả, ảnh; nút Lưu và Hủy." },
+  { name: "Thêm sản phẩm", prompt: "Form thêm sản phẩm: tên, mã SKU, danh mục, giá bán, số lượng tồn, mô tả, ảnh; nút Lưu và Huỷ." },
   { name: "Trang chủ", prompt: "Dashboard tổng quan cho quản trị viên: các chỉ số doanh thu, đơn hàng, khách hàng mới và bảng đơn hàng gần đây." },
 ];
 
@@ -167,7 +167,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
       }
     });
     if (!r) return;
-    if (action === "approve" && r.git) toast(r.git.message, r.git.pushed ? "ok" : "info");
+    if (action === "approve" && r.git) toast(<GitOutcome git={r.git} />, r.git.pushed ? "ok" : "info");
     else toast(action === "done" ? "Đã đánh dấu Xong – chờ BA Lead duyệt" : action === "approve" ? "Đã duyệt màn hình" : "Đã gửi yêu cầu sửa", "ok");
     await reload();
   };
@@ -556,6 +556,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
               <div className="spacer" />
               {others.length > 0 && <EditingBadge names={others.map((o) => o.name)} />}
               <Btn size="sm" onClick={() => run("Đang xuất HTML", () => download(screenHtmlUrl(screen.id)))} title="Tải trang HTML tĩnh (mở được bằng trình duyệt, không cần app)" data-testid="export-html">
+                <Icon name="download" size="sm" />
                 Xuất HTML
               </Btn>
               <details className="menu">
@@ -563,9 +564,15 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                   <Icon name="more" />
                 </summary>
                 <div className="menu-pop">
-                  <button onClick={() => setRename(screen.name)}>Đổi tên</button>
-                  <button onClick={() => window.open(`${screenHtmlUrl(screen.id)}?inline=1`, "_blank", "noopener")}>Xem HTML trong tab mới</button>
-                  <button onClick={() => run("Đang xuất", () => download(`/api/screens/${screen.id}/export/json`))}>Xuất JSON</button>
+                  <button onClick={() => setRename(screen.name)}>
+                    <Icon name="edit" size="sm" /> Đổi tên
+                  </button>
+                  <button onClick={() => window.open(`${screenHtmlUrl(screen.id)}?inline=1`, "_blank", "noopener")}>
+                    <Icon name="external" size="sm" /> Xem HTML trong tab mới
+                  </button>
+                  <button onClick={() => run("Đang xuất", () => download(`/api/screens/${screen.id}/export/json`))}>
+                    <Icon name="download" size="sm" /> Xuất JSON
+                  </button>
                   <button
                     className="danger"
                     onClick={async () => {
@@ -574,7 +581,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                       reload();
                     }}
                   >
-                    Xoá màn hình
+                    <Icon name="delete" size="sm" /> Xoá màn hình
                   </button>
                 </div>
               </details>
@@ -684,7 +691,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
       {screen && tree && (
         <aside className="studio-right">
           <div className="seg seg-full">
-            <button className={panel === "edit" ? "on" : ""} onClick={() => setPanel("edit")}>
+            <button className={panel === "edit" ? "on" : ""} onClick={() => setPanel("edit")} data-testid="edit-tab">
               Sửa {openAnns.length ? `(${openAnns.length})` : ""}
             </button>
             <button className={panel === "layers" ? "on" : ""} onClick={() => setPanel("layers")}>
@@ -874,7 +881,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                       <div className="ann-main" onClick={() => setSelected(a.nodeIds.filter((id) => tree && findNode(tree, id)))}>
                         <div className="ann-text">{a.comment}</div>
                         <div className="muted small">
-                          {a.nodeIds.length ? a.nodeIds.map((id) => (tree && findNode(tree, id) ? nodeLabel(findNode(tree, id)!) : `${id} (đã xóa)`)).join(", ") : "Toàn màn hình"} · {a.author} · {fmtTime(a.createdAt)}
+                          {a.nodeIds.length ? a.nodeIds.map((id) => (tree && findNode(tree, id) ? nodeLabel(findNode(tree, id)!) : `${id} (đã xoá)`)).join(", ") : "Toàn màn hình"} · {a.author} · {fmtTime(a.createdAt)}
                         </div>
                       </div>
                       <div className="ann-actions">
@@ -888,9 +895,14 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                             Mở lại
                           </button>
                         )}
-                        <button className="link-danger small" onClick={async () => { await del(`/api/annotations/${a.id}`); reload(); }}>
-                          Xoá
-                        </button>
+                        <RowActions
+                          onDelete={async () => {
+                            await del(`/api/annotations/${a.id}`);
+                            reload();
+                          }}
+                          deleteConfirm={{ title: "Xoá bình luận?", message: a.comment }}
+                          testId={`ann-${i + 1}`}
+                        />
                       </div>
                     </div>
                   ))}
@@ -927,7 +939,17 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                     <Icon name="down" size="sm" />
                     Xuống
                   </Btn>
-                  <Btn size="sm" kind="danger" disabled={!!previewing} onClick={() => manual("remove", selectedNodes[0].id)} data-testid="remove-node">
+                  <Btn
+                    size="sm"
+                    kind="danger"
+                    disabled={!!previewing}
+                    onClick={async () => {
+                      const n = selectedNodes[0];
+                      if (await confirm({ title: `Xoá phần tử "${nodeLabel(n)}"?`, message: "Khôi phục được ở tab Phiên bản.", okLabel: "Xoá", danger: true })) manual("remove", n.id);
+                    }}
+                    data-testid="remove-node"
+                  >
+                    <Icon name="delete" size="sm" />
                     Xoá phần tử
                   </Btn>
                 </div>

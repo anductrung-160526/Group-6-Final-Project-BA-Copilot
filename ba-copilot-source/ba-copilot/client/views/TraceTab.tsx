@@ -103,6 +103,7 @@ export function TraceTab({ m }: { m: ModuleDetail; reload?: () => Promise<unknow
         </div>
       )}
       <div className="muted small">Liên kết có nhãn "suy luận" do hệ thống đoán theo từ khoá (tài liệu chưa ghi rõ) – BA cần xác nhận.</div>
+      <div className="table-wrap">
       <table className="tbl" data-testid="trace-matrix">
         <thead>
           <tr>
@@ -185,6 +186,7 @@ export function TraceTab({ m }: { m: ModuleDetail; reload?: () => Promise<unknow
           })}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

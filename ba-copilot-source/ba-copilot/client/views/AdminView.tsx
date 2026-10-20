@@ -3,7 +3,7 @@
 // thì ai cũng vào được để tạo người đầu tiên. Server chặn lại đúng luật đó (server/routes/members.ts).
 import React, { useState } from "react";
 import type { MemberRole } from "../../shared/types.ts";
-import { Avatar, Badge, Btn, Empty, Field, Modal, RowActions, Select, fmtTime, useUI } from "../components/ui.tsx";
+import { Avatar, Badge, Btn, Empty, Field, Icon, Modal, RowActions, Select, fmtTime, useUI } from "../components/ui.tsx";
 import { createMember, del, updateMember } from "../api.ts";
 import { ROLE_LABEL, currentMemberId, useCurrentMember, withActor } from "../currentMember.ts";
 import type { PageProps } from "../routes.ts";
@@ -58,7 +58,8 @@ export function AdminView(_: PageProps) {
           <p className="muted">Thành viên nhóm và vai trò. BA Lead duyệt sản phẩm và quản trị thành viên; người được chọn ở ô "Tôi là…" được ghi làm người thao tác.</p>
         </div>
         <Btn kind="primary" onClick={() => setForm({ id: null, name: "", role: hasLead ? "BA" : "BA_LEAD" })} data-testid="new-member">
-          + Thêm thành viên
+          <Icon name="plus" size="sm" />
+          Thêm thành viên
         </Btn>
       </div>
 

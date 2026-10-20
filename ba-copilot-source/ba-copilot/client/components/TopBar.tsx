@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { get } from "../api.ts";
 import { PAGES, pageHref } from "../routes.ts";
 import { ROLE_LABEL, useCurrentMember } from "../currentMember.ts";
-import { MemberPicker, Tabs } from "./ui.tsx";
+import { Icon, MemberPicker, Tabs } from "./ui.tsx";
 
 function useHash() {
   const [hash, setHash] = useState(window.location.hash || "#/");
@@ -67,6 +67,7 @@ export function TopBar() {
       )}
       {settings?.auth && (
         <button className="btn btn-ghost btn-sm" onClick={() => fetch("/api/logout", { method: "POST" }).then(() => window.location.reload())}>
+          <Icon name="logout" size="sm" />
           Đăng xuất
         </button>
       )}

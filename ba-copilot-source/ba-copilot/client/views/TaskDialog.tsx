@@ -39,11 +39,8 @@ export const TASK_PRIORITY: { key: TaskPriority; label: string; tone: BadgeTone 
 export const priorityInfo = (p: TaskPriority) => TASK_PRIORITY.find((x) => x.key === p) ?? TASK_PRIORITY[1];
 export const priorityBadge = (p: TaskPriority) => <Badge tone={priorityInfo(p).tone}>{priorityInfo(p).label}</Badge>;
 
-/**
- * Icon theo loại sản phẩm. Bảng icon chung chưa có icon riêng cho tài liệu / sơ đồ / test (REQUESTS R-080 cho C1):
- * khi C1 thêm, chỉ cần đổi bảng này.
- */
-export const ARTIFACT_ICON: Record<ArtifactKind, IconName> = { screen: "grid", doc: "folder", diagram: "target", tests: "check", docs: "folder" };
+/** Icon theo loại sản phẩm (bảng icon chung, R-080). "docs" = bộ tài liệu cũ. */
+export const ARTIFACT_ICON: Record<ArtifactKind, IconName> = { screen: "screen", doc: "doc", diagram: "diagram", tests: "tests", docs: "doc" };
 
 type ArtifactLike = { kind?: ArtifactKind | null; id?: string | null; sub?: string | null };
 /** Khoá chọn sản phẩm "<kind>:<id>:<sub>". */
@@ -362,40 +359,19 @@ export function TaskDialog({
           testId="task-approval"
         />
       ) : (
-        // Task không gắn sản phẩm: cùng bố cục thanh duyệt, theo trạng thái task.
-        <div className="approval-bar" data-testid="task-approval" data-status={s}>
-          <span className="approval-state">
-            <span className="muted small">Trạng thái</span>
-            <StatusBadge status={s} testId="task-approval-status" />
-            {t.revisionRequested && <RevisionTag testId="task-approval-revision" />}
-          </span>
-          <span className="approval-actions">
-            {s === "todo" && (
-              <Btn size="sm" onClick={() => move("doing", "Đã chuyển sang Đang làm")} disabled={busy} data-testid="task-approval-start">
-                <Icon name="play" size="sm" />
-                Bắt đầu làm
-              </Btn>
-            )}
-            {s === "doing" && (
-              <Btn kind="primary" size="sm" onClick={() => move("done", "Đã bấm Xong")} disabled={busy} data-testid="task-approval-done">
-                <Icon name="done" size="sm" />
-                Xong
-              </Btn>
-            )}
-            {isLead && (s === "done" || s === "approved") && (
-              <Btn size="sm" onClick={() => move("doing", "Đã yêu cầu sửa")} disabled={busy} data-testid="task-approval-request-change">
-                <Icon name="revision" size="sm" />
-                Yêu cầu sửa
-              </Btn>
-            )}
-            {isLead && s === "done" && (
-              <Btn kind="primary" size="sm" onClick={() => move("approved", "Đã duyệt")} disabled={busy} data-testid="task-approval-approve">
-                <Icon name="approve" size="sm" />
-                Duyệt
-              </Btn>
-            )}
-          </span>
-        </div>
+        // Task không gắn sản phẩm: thanh duyệt theo trạng thái task (todo/doing/done/approved).
+        <ApprovalBar
+          status={s}
+          revisionRequested={t.revisionRequested}
+          isLead={isLead}
+          busy={busy}
+          onStart={() => move("doing", "Đã chuyển sang Đang làm")}
+          onDone={() => move("done", "Đã bấm Xong")}
+          onApprove={() => move("approved", "Đã duyệt")}
+          onRequestChange={() => move("doing", "Đã yêu cầu sửa")}
+          reopenApproved
+          testId="task-approval"
+        />
       )}
 
       {linked && (

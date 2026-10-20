@@ -19,9 +19,9 @@ import { currentMemberId, useCurrentMember, withActor } from "../currentMember.t
 import { usePresence } from "../presence.ts";
 import { workHref, type WorkStepProps } from "../projectMenu.ts";
 import { Mermaid, parseMermaid } from "../components/Mermaid.tsx";
-import { ApprovalBar, Badge, Btn, ConflictNotice, EditingBadge, Empty, Icon, StatusBadge, Tabs, useUI } from "../components/ui.tsx";
+import { ApprovalBar, Badge, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Icon, StatusBadge, Tabs, useUI } from "../components/ui.tsx";
 import { BPMN_NOTE, checkDiagram, diagramBlockReason, diagramMarkdown, DIAGRAM_FILE, DIAGRAM_HINT, DIAGRAM_SOURCES } from "../../shared/diagrams.ts";
-import { DIAGRAM_KINDS, DIAGRAM_KIND_LABEL, type ArtifactStatus, type DiagramKind, type DiagramPart, type DocKind, type ModuleDiagram } from "../../shared/types.ts";
+import { DIAGRAM_KINDS, DIAGRAM_KIND_LABEL, type ApprovalResult, type ArtifactStatus, type DiagramKind, type DiagramPart, type DocKind, type ModuleDiagram } from "../../shared/types.ts";
 
 const PREVIEW_DELAY_MS = 400;
 const SOURCE_DOCS = [...new Set(Object.values(DIAGRAM_SOURCES).flat())] as DocKind[];
@@ -191,8 +191,9 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
   const approval = async (label: string, fn: () => Promise<unknown>) => {
     setBusy(true);
     try {
-      await fn();
-      toast(label, "ok");
+      const r = (await fn()) as ApprovalResult | undefined;
+      if (r?.git) toast(<GitOutcome git={r.git} />, r.git.pushed ? "ok" : "info");
+      else toast(label, "ok");
     } catch (e) {
       if (isConflict(e)) setConflict(true);
       else toast((e as Error).message, "err");
@@ -265,6 +266,7 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
                   Lưu mã
                 </Btn>
                 <Btn kind="ghost" size="sm" onClick={downloadMd} data-testid="download-md">
+                  <Icon name="download" size="sm" />
                   Tải .md
                 </Btn>
               </>

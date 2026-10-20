@@ -8,7 +8,7 @@ import type { ArtifactStatus, ModuleDetail, TestCase } from "../../shared/types.
 import type { WorkStepProps } from "../projectMenu.ts";
 import { usePresence } from "../presence.ts";
 import { currentMemberId, useCurrentMember } from "../currentMember.ts";
-import { ApprovalBar, Badge, Btn, ConflictNotice, EditingBadge, Empty, Icon, useUI } from "../components/ui.tsx";
+import { ApprovalBar, Badge, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Icon, useUI } from "../components/ui.tsx";
 
 const TYPE_VI: Record<string, [string, string]> = { Positive: ["Tích cực", "green"], Negative: ["Tiêu cực", "red"], Boundary: ["Giá trị biên", "amber"] };
 
@@ -106,7 +106,7 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
       ),
     );
     if (!r) return;
-    if (action === "approve" && r.git) toast(r.git.message, r.git.pushed ? "ok" : "info");
+    if (action === "approve" && r.git) toast(<GitOutcome git={r.git} />, r.git.pushed ? "ok" : "info");
     else toast(action === "done" ? "Đã đánh dấu Xong – chờ BA Lead duyệt" : action === "approve" ? "Đã duyệt bộ test case" : "Đã gửi yêu cầu sửa", "ok");
     reload();
   };
@@ -128,6 +128,7 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
         {others.length > 0 && <EditingBadge names={others.map((o) => o.name)} />}
         {tests.length > 0 && (
           <Btn size="sm" onClick={() => run("Đang tạo file Excel", () => download(`/api/modules/${encodeURIComponent(m.id)}/export/xlsx`))} data-testid="export-xlsx">
+            <Icon name="download" size="sm" />
             Xuất Excel
           </Btn>
         )}
@@ -192,6 +193,7 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
               ))}
             </select>
           </div>
+          <div className="table-wrap">
           <table className="tbl tbl-tests">
             <thead>
               <tr>
@@ -250,6 +252,7 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
               ))}
             </tbody>
           </table>
+          </div>
         </>
       )}
     </div>

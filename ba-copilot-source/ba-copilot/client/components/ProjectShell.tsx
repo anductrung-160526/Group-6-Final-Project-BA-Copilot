@@ -12,21 +12,15 @@ import { Btn, Drawer, Empty, Field, ICON_NAMES, Icon, Modal, RowActions, Select,
 type ProjectData = Project & { modules: Module[] };
 
 // ---------------------------------------------------------------- icon
-// projectMenu.ts ghi tên icon Lucide (vd "SquareKanban"); ui.tsx chỉ có bảng tên dùng chung. Có tên trùng (nguyên
-// dạng hoặc viết thường chữ đầu) thì dùng luôn, không thì dùng icon gần nghĩa có sẵn (R-040 xin C1/C0 thêm icon).
-const ICON_FALLBACK: Record<string, IconName> = {
-  SquareKanban: "grid",
-  BookText: "user",
-  Workflow: "play",
-  FolderOpen: "folder",
-  ScrollText: "ai",
-  GitBranch: "github",
-};
+// projectMenu.ts ghi tên icon Lucide (vd "SquareKanban"); bảng ICONS của ui.tsx có khoá trùng tên viết thường chữ đầu
+// (R-040). "GitBranch" dùng tên chung "github".
+const ICON_ALIAS: Record<string, IconName> = { GitBranch: "github" };
 function menuIcon(name: string): IconName | undefined {
   const camel = name.charAt(0).toLowerCase() + name.slice(1);
+  if (ICON_ALIAS[name]) return ICON_ALIAS[name];
   if ((ICON_NAMES as string[]).includes(name)) return name as IconName;
   if ((ICON_NAMES as string[]).includes(camel)) return camel as IconName;
-  return ICON_FALLBACK[name];
+  return undefined;
 }
 
 // ---------------------------------------------------------------- module nhớ theo dự án
@@ -223,7 +217,7 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
 
   return (
     <div className="project-shell" data-testid="project-shell">
-      <div className="module-head" style={{ paddingBottom: "var(--space-3)" }}>
+      <div className="module-head project-head">
         <div className="crumbs">
           <a href="#/">Dự án</a> / <span>{project.name}</span>
         </div>
@@ -233,7 +227,7 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
           <span className="spacer" />
           {narrow && (
             <Btn size="sm" onClick={() => setMenuOpen(true)} aria-expanded={menuOpen} data-testid="project-menu-btn">
-              <Icon name="more" size="sm" />
+              <Icon name="menu" size="sm" />
               Menu
             </Btn>
           )}
@@ -245,11 +239,11 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
       </div>
 
       {narrow ? (
-        <div className="doc-main">{content}</div>
+        <div className="project-main">{content}</div>
       ) : (
-        <div className="doc-layout" style={{ paddingTop: "var(--space-4)", alignItems: "start" }}>
-          <aside className="doc-nav">{nav}</aside>
-          <div className="doc-main">{content}</div>
+        <div className="project-body">
+          <aside className="project-nav">{nav}</aside>
+          <div className="project-main">{content}</div>
         </div>
       )}
 

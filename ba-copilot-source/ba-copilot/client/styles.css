@@ -781,6 +781,10 @@ select:focus {
   background: var(--color-surface);
 }
 .seg button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1-5);
   border: 0;
   background: none;
   padding: var(--space-1-5) var(--space-3);
@@ -838,6 +842,9 @@ select:focus {
   z-index: var(--z-menu);
 }
 .menu-pop button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   border: 0;
   background: none;
   text-align: left;
@@ -1367,6 +1374,7 @@ select:focus {
 }
 .refine-row {
   display: flex;
+  flex-wrap: wrap; /* màn hẹp: nút xuống dòng thay vì bị cắt (Q5-02) */
   gap: var(--space-2-5);
   align-items: flex-end;
   margin-top: var(--space-2);
@@ -2315,6 +2323,8 @@ select:focus {
 /* Icon (Lucide) – màu theo currentColor, không co lại trong flex */
 .icon {
   flex: none;
+  /* icon đứng giữa dòng chữ (ngoài flex) thẳng hàng với chữ; không ảnh hưởng icon trong flex */
+  vertical-align: -0.125em;
 }
 .btn .icon,
 .badge .icon {
@@ -2443,6 +2453,34 @@ select:focus {
 .side-nav-item.active .side-nav-step {
   border-color: var(--color-accent);
   color: var(--color-accent-strong);
+}
+
+/* Khung dự án (ProjectShell, R-040): menu trái dính dưới thanh trên, cuộn riêng; nội dung bên phải.
+   Màn ≤ 860px: bỏ menu trái (ProjectShell mở menu trong Drawer), nội dung một cột. */
+.project-head {
+  padding-bottom: var(--space-3);
+}
+.project-body {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-4) 0;
+}
+.project-nav {
+  position: sticky;
+  top: calc(var(--topbar-h) + var(--space-4));
+  max-height: calc(100vh - var(--topbar-h) - var(--space-8));
+  overflow-y: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.project-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 /* ApprovalBar – trạng thái + Xong / Duyệt / Yêu cầu sửa */

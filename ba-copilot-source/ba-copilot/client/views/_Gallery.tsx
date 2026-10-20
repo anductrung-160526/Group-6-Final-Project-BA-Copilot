@@ -298,7 +298,7 @@ export function Gallery() {
           <div className="gallery-row">
             <Select
               value={appr}
-              options={(["none", "draft", "done", "approved", "outdated"] as ApprovalStatus[]).map((s) => ({ value: s, label: s }))}
+              options={(["none", "draft", "done", "approved", "outdated", "todo", "doing"] as ApprovalStatus[]).map((s) => ({ value: s, label: s }))}
               onChange={(v) => setAppr((v || "none") as ApprovalStatus)}
             />
             <label className="check-inline">
@@ -314,6 +314,7 @@ export function Gallery() {
             status={appr}
             revisionRequested={revision}
             isLead={lead}
+            onStart={() => setAppr("doing")}
             onDone={() => setAppr("done")}
             onApprove={() => {
               setAppr("approved");
@@ -324,6 +325,9 @@ export function Gallery() {
               setRevision(true);
             }}
           />
+          <div className="gallery-label">Task không gắn sản phẩm (todo → Bắt đầu làm; doing → Xong; BA Lead Yêu cầu sửa cả khi Đã duyệt)</div>
+          <ApprovalBar status="todo" isLead={lead} onStart={() => toast("Đã chuyển sang Đang làm", "ok")} testId="approval-bar-task" />
+          <ApprovalBar status="approved" isLead reopenApproved onRequestChange={() => toast("Đã yêu cầu sửa", "ok")} testId="approval-bar-task-approved" />
           <div className="gallery-label">Bị khoá (disabledReason)</div>
           <ApprovalBar status="draft" isLead={false} onDone={() => {}} disabledReason="Bước Tài liệu chưa Xong" testId="approval-bar-locked" />
           <div className="gallery-label">Báo xung đột (409)</div>
@@ -499,7 +503,7 @@ export function Gallery() {
       <div className="gallery-cols">
         <Section title="IssueList (QUS)">
           <IssueList issues={ISSUES} />
-          <IssueList issues={[]} empty="✓ Đạt chuẩn QUS" />
+          <IssueList issues={[]} empty="Đạt chuẩn QUS" />
         </Section>
         <Section title="SuggestionCard (SCR-16)">
           <SuggestionCard title="Quên mật khẩu" reason='Nút "Quên mật khẩu?" ở màn Đăng nhập chưa có đích' onAccept={() => toast("Tạo màn", "ok")} onDismiss={() => toast("Đã bỏ qua")} />

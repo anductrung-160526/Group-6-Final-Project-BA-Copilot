@@ -4,7 +4,14 @@
 import React from "react";
 import { download, fileDownloadUrl, filePreviewUrl } from "../api.ts";
 import type { FileItem } from "../../shared/types.ts";
-import { Badge, Btn, Drawer, Empty, fmtTime, useUI } from "../components/ui.tsx";
+import { Badge, Btn, Drawer, Empty, Icon, RowActions, fmtTime, useUI, type DeleteConfirm } from "../components/ui.tsx";
+
+/** Câu hỏi xác nhận xoá tệp – dùng chung cho bảng Kho tài liệu và ngăn xem tệp. */
+export const deleteConfirm = (file: FileItem): DeleteConfirm => ({
+  title: "Xoá tệp?",
+  message: `Xoá "${file.name}" khỏi kho? Tệp bị xoá khỏi máy chủ và không khôi phục được.`,
+  okLabel: "Xoá tệp",
+});
 
 /** Loại tệp cho phép (khớp server/files.ts): Word, PDF, Excel, ảnh. */
 export const ALLOWED_EXTS = [".docx", ".doc", ".xlsx", ".xls", ".pdf", ".png", ".jpg", ".jpeg", ".gif", ".webp"];
@@ -50,7 +57,8 @@ export function FileDrawer({
   moduleName: string;
   onClose: () => void;
   onEdit: () => void;
-  onDelete: () => void;
+  /** Gọi sau khi người dùng đã xác nhận xoá (RowActions hỏi). */
+  onDelete: () => void | Promise<unknown>;
 }) {
   const dl = useDownload();
   const isPdf = file.mime === "application/pdf";
@@ -67,22 +75,22 @@ export function FileDrawer({
   return (
     <Drawer
       title={file.name}
-      size="lg"
       onClose={onClose}
       actions={
         <Btn size="sm" onClick={() => dl(file)} data-testid="drawer-download">
-          ⤓ Tải về
+          <Icon name="download" size="sm" />
+          Tải về
         </Btn>
       }
       footer={
-        <>
-          <Btn kind="danger" onClick={onDelete} data-testid="drawer-delete">
-            Xoá
-          </Btn>
-          <Btn onClick={onEdit} data-testid="drawer-edit">
-            Sửa thông tin
-          </Btn>
-        </>
+        <RowActions
+          variant="buttons"
+          editLabel="Sửa thông tin"
+          onEdit={onEdit}
+          onDelete={onDelete}
+          deleteConfirm={deleteConfirm(file)}
+          testIds={{ edit: "drawer-edit", delete: "drawer-delete" }}
+        />
       }
     >
       <div className="box box-accent" data-testid="file-preview">

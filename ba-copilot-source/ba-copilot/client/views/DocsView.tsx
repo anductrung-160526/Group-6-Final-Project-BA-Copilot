@@ -17,8 +17,8 @@ import {
   saveModuleDoc,
 } from "../api.ts";
 import { DOC_KINDS, DOC_KIND_LABEL } from "../../shared/types.ts";
-import type { DocKind, ModuleDoc } from "../../shared/types.ts";
-import { ApprovalBar, Btn, ConflictNotice, EditingBadge, Empty, Field, Icon, Modal, RevisionTag, Select, StatusBadge, Tabs, fmtTime, useUI } from "../components/ui.tsx";
+import type { ApprovalResult, DocKind, ModuleDoc } from "../../shared/types.ts";
+import { ApprovalBar, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Field, Icon, Modal, RevisionTag, Select, StatusBadge, Tabs, fmtTime, useUI } from "../components/ui.tsx";
 import { Markdown } from "../components/Markdown.tsx";
 import { currentMemberId, useCurrentMember, withActor } from "../currentMember.ts";
 import { usePresence } from "../presence.ts";
@@ -195,7 +195,9 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
     setBusy(true);
     try {
       const r = await guard(text, fn);
-      if (r) toast(ok, "ok");
+      const git = (r as ApprovalResult | undefined)?.git;
+      if (git) toast(<GitOutcome git={git} />, git.pushed ? "ok" : "info");
+      else if (r) toast(ok, "ok");
       await load();
     } finally {
       setBusy(false);
@@ -247,6 +249,7 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
                 Chỉnh bằng AI
               </Btn>
               <Btn kind="ghost" onClick={() => downloadMd(kind, doc.content)} data-testid="doc-download">
+                <Icon name="download" size="sm" />
                 Tải .md
               </Btn>
             </>
