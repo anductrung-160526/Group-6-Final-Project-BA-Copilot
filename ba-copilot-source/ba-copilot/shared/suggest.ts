@@ -4,19 +4,8 @@
 
 import type { DesignModel, ScreenModel } from "./extract.ts";
 import { slug } from "./extract.ts";
-import type { Requirement } from "./types.ts";
+import type { Requirement, ScreenSuggestion } from "./types.ts";
 import { parseStory } from "./qus.ts";
-
-export type SuggestionKind = "broken-link" | "uncovered-fr" | "uncovered-story";
-
-export interface Suggestion {
-  key: string; // mã ổn định để bỏ qua/khôi phục: "link:<screenId>:<nodeId>", "fr:FR-04", "story:<slug>"
-  kind: SuggestionKind;
-  name: string; // tên màn đề xuất
-  reason: string; // lý do hiển thị cho BA
-  source: string; // nguồn: mã FR, story, hoặc "<màn nguồn> › <nhãn nút>" (BR-08)
-  prompt: string; // prompt điền sẵn cho hộp thoại Màn hình mới
-}
 
 export interface SuggestInput {
   model: DesignModel;
@@ -36,6 +25,17 @@ const STOPWORDS = new Set(
     "system", "user", "shall", "should", "must", "can", "the", "a", "an", "to", "of", "for", "and", "or", "with", "in", "on", "by", "be", "i", "my",
   ].flatMap((w) => w.split(" ")),
 );
+
+// Khoá ổn định của story: "story:<hash>" – FNV-1a 32 bit trên story đã chuẩn hoá (bỏ dấu, bỏ dấu câu),
+// nên sửa khoảng trắng/dấu câu không làm mất trạng thái Bỏ qua. Chạy được cả trên trình duyệt lẫn server.
+export function storyKey(story: string): string {
+  let h = 0x811c9dc5;
+  for (const ch of slug(story)) {
+    h ^= ch.charCodeAt(0);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return `story:${h.toString(36)}`;
+}
 
 function keywords(text: string): string[] {
   return [...new Set(slug(text).split("_").filter((t) => t.length > 1 && !STOPWORDS.has(t)))];
@@ -68,9 +68,13 @@ function screenName(text: string): string {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
-function brokenLinks(model: DesignModel): Suggestion[] {
-  const known = new Set(model.screens.flatMap((s) => [slug(s.screenName), slug(s.title)]));
-  const out: Suggestion[] = [];
+// Tên và tiêu đề của các màn đã có (đã chuẩn hoá) – dùng để biết đích điều hướng hay tên đề xuất đã tồn tại.
+function knownNames(model: DesignModel): Set<string> {
+  return new Set(model.screens.flatMap((s) => [slug(s.screenName), slug(s.title)]).filter(Boolean));
+}
+
+function brokenLinks(model: DesignModel, known: Set<string>): ScreenSuggestion[] {
+  const out: ScreenSuggestion[] = [];
   for (const s of model.screens) {
     const targets = [
       ...s.actions.map((a) => ({ nodeId: a.nodeId, label: a.label, to: a.navigateTo })),
@@ -92,20 +96,23 @@ function brokenLinks(model: DesignModel): Suggestion[] {
   return out;
 }
 
-export function suggestNextScreens(input: SuggestInput): Suggestion[] {
+export function suggestNextScreens(input: SuggestInput): ScreenSuggestion[] {
   const { model, requirements, stories } = input;
   const dismissed = new Set(input.dismissed ?? []);
   const vocabularies = model.screens.map(screenVocabulary);
+  const known = knownNames(model);
+  // Đã có màn trùng tên đề xuất (thường là màn vừa tạo từ chính gợi ý này) thì coi như đã phủ
+  const uncovered = (text: string, name: string) => !known.has(slug(name)) && !isCovered(text, vocabularies);
 
   // Thứ tự: link gãy trước, FR/story chưa phủ sau (FN-59)
-  const all: Suggestion[] = brokenLinks(model);
+  const all: ScreenSuggestion[] = brokenLinks(model, known);
 
   // BR-07 / G5: đã có FR thì dựa trên FR, chưa có FR thì dựa trên user story
   const frs = requirements.filter((r) => r.type === "FR");
   if (frs.length) {
     for (const r of frs) {
-      if (isCovered(r.statement, vocabularies)) continue;
       const name = screenName(r.statement);
+      if (!uncovered(r.statement, name)) continue;
       all.push({
         key: `fr:${r.code}`,
         kind: "uncovered-fr",
@@ -118,10 +125,10 @@ export function suggestNextScreens(input: SuggestInput): Suggestion[] {
   } else {
     for (const story of stories) {
       const means = parseStory(story).means ?? story;
-      if (isCovered(means, vocabularies)) continue;
       const name = screenName(means);
+      if (!uncovered(means, name)) continue;
       all.push({
-        key: `story:${slug(story)}`,
+        key: storyKey(story),
         kind: "uncovered-story",
         name,
         reason: "User story chưa có màn nào phủ",
@@ -131,13 +138,15 @@ export function suggestNextScreens(input: SuggestInput): Suggestion[] {
     }
   }
 
-  // Bỏ gợi ý đã bị bỏ qua và gộp các gợi ý trùng tên màn (giữ gợi ý đứng trước)
+  // Gộp các gợi ý trùng tên màn (giữ gợi ý đứng trước) rồi mới bỏ gợi ý đã bị bỏ qua:
+  // Bỏ qua một gợi ý là ẩn màn đề xuất đó, không để gợi ý trùng tên ở nguồn khác hiện lên thay.
   const seen = new Set<string>();
-  return all.filter((s) => {
-    if (dismissed.has(s.key)) return false;
-    const k = slug(s.name);
-    if (seen.has(k)) return false;
-    seen.add(k);
-    return true;
-  });
+  return all
+    .filter((s) => {
+      const k = slug(s.name);
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    })
+    .filter((s) => !dismissed.has(s.key));
 }

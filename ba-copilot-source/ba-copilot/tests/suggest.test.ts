@@ -1,10 +1,15 @@
-import { test } from "node:test";
+import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
+import type { Server } from "node:http";
+import type { AddressInfo } from "node:net";
 import { extractModel } from "../shared/extract.ts";
 import type { UINode } from "../shared/design.ts";
-import type { Requirement } from "../shared/types.ts";
+import type { Requirement, ScreenSuggestions } from "../shared/types.ts";
 import { splitStories } from "../shared/qus.ts";
-import { suggestNextScreens } from "../shared/suggest.ts";
+import { storyKey, suggestNextScreens } from "../shared/suggest.ts";
+import { openDb } from "../server/db.ts";
+import { createApp } from "../server/app.ts";
+import * as repo from "../server/repo.ts";
 
 const loginTree: UINode = {
   id: "root",
@@ -75,6 +80,11 @@ test("(d) chưa có FR thì dựa trên user story (G5 / BR-07); có FR thì b�
   assert.equal(fromStories.length, 1);
   assert.equal(fromStories[0].name, "Xem lịch sử đơn hàng");
   assert.ok(fromStories[0].prompt.includes(stories[1]));
+  // Khoá story theo hợp đồng: "story:<hash>", ổn định khi chỉ đổi dấu câu / khoảng trắng
+  assert.match(fromStories[0].key, /^story:[0-9a-z]+$/);
+  assert.equal(fromStories[0].key, storyKey(stories[1]));
+  assert.equal(storyKey(stories[1]), storyKey(`  ${stories[1].replace(/\.$/, "")} `));
+  assert.notEqual(storyKey(stories[0]), storyKey(stories[1]));
 
   const withFr = suggestNextScreens({ model, requirements: [fr("FR-01", "Người dùng đăng nhập bằng email và mật khẩu")], stories });
   assert.ok(!withFr.some((s) => s.kind === "uncovered-story"));
@@ -88,6 +98,27 @@ test("(e) gợi ý đã bị bỏ qua thì không hiện lại", () => {
     dismissed: ["fr:FR-04", "link:s1:forgot"],
   });
   assert.deepEqual(res, []);
+
+  // Hai màn cùng trỏ tới "Quên mật khẩu": chỉ một gợi ý; Bỏ qua nó thì gợi ý trùng tên ở màn kia không hiện lên thay
+  const twoSources = extractModel([
+    { id: "s1", name: "Đăng nhập", tree: loginTree },
+    { id: "s2", name: "Trang chủ", tree: homeTree },
+    { id: "s3", name: "Hồ sơ", tree: { id: "root", type: "Page", props: { title: "Hồ sơ" }, children: [{ id: "pw", type: "Button", props: { label: "Đổi mật khẩu", navigateTo: "Quên mật khẩu" } }] } },
+  ]);
+  assert.deepEqual(suggestNextScreens({ model: twoSources, requirements: [], stories: [] }).map((s) => s.key), ["link:s1:forgot"]);
+  assert.deepEqual(suggestNextScreens({ model: twoSources, requirements: [], stories: [], dismissed: ["link:s1:forgot"] }), []);
+});
+
+test("Đã có màn trùng tên đề xuất (vừa tạo từ gợi ý) thì gợi ý biến mất", () => {
+  const before = suggestNextScreens({ model, requirements: [fr("FR-04", "Xem lịch sử đơn hàng")], stories: [] });
+  assert.deepEqual(before.map((s) => s.key), ["link:s1:forgot", "fr:FR-04"]);
+  const after = extractModel([
+    { id: "s1", name: "Đăng nhập", tree: loginTree },
+    { id: "s2", name: "Trang chủ", tree: homeTree },
+    { id: "s3", name: "Quên mật khẩu", tree: { id: "root", type: "Page", props: { title: "Khôi phục tài khoản" }, children: [] } },
+    { id: "s4", name: before[1].name, tree: { id: "root", type: "Page", props: { title: "Đơn của tôi" }, children: [] } },
+  ]);
+  assert.deepEqual(suggestNextScreens({ model: after, requirements: [fr("FR-04", "Xem lịch sử đơn hàng")], stories: [] }), []);
 });
 
 test("Hàm thuần: không đổi đầu vào, gọi hai lần cho cùng kết quả", () => {
@@ -95,4 +126,78 @@ test("Hàm thuần: không đổi đầu vào, gọi hai lần cho cùng kết q
   const before = JSON.stringify(input);
   assert.deepEqual(suggestNextScreens(input), suggestNextScreens(input));
   assert.equal(JSON.stringify(input), before);
+});
+
+// ------------------------------------------------------------------ API (FN-57 → FN-61, docs/api.md mục 6)
+let server: Server;
+let base = "";
+before(async () => {
+  delete process.env.ANTHROPIC_API_KEY;
+  openDb(":memory:");
+  server = createApp({ publicDir: process.cwd() + "/public" });
+  await new Promise<void>((r) => server.listen(0, r));
+  base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+});
+after(() => server.close());
+
+const call = async <T = any>(method: string, path: string, body?: unknown) => {
+  const res = await fetch(base + path, { method, headers: { "content-type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
+  return { status: res.status, data: (await res.json()) as T };
+};
+const sugg = (mid: string) => call<ScreenSuggestions>("GET", `/api/modules/${mid}/suggestions`);
+const enc = encodeURIComponent;
+
+function seedModule() {
+  const p = repo.createProject("Shop");
+  const m = repo.createModule(p.id, "Tài khoản", "- Là khách hàng, tôi muốn xem lịch sử đơn hàng để theo dõi giao hàng.");
+  const s = repo.createScreen(m.id, "Đăng nhập");
+  repo.addVersion(s.id, { kind: "generate", prompt: "", tree: loginTree });
+  return { m, s };
+}
+
+test("API: GET trả link gãy trước, story chưa phủ sau (chưa có FR)", async () => {
+  const { m, s } = seedModule();
+  const r = await sugg(m.id);
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.data.dismissed, []);
+  assert.deepEqual(
+    r.data.items.map((i) => i.kind),
+    ["broken-link", "broken-link", "uncovered-story"],
+  );
+  const forgot = r.data.items.find((i) => i.key === `link:${s.id}:forgot`)!;
+  assert.equal(forgot.name, "Quên mật khẩu");
+  assert.ok(forgot.prompt.includes("Quên mật khẩu?") && forgot.prompt.includes("Đăng nhập"));
+  assert.equal((await sugg("khong-co")).status, 404);
+});
+
+test("API: Bỏ qua / Khôi phục lưu theo module, lặp lại không lỗi (FN-61)", async () => {
+  const { m, s } = seedModule();
+  const key = `link:${s.id}:forgot`;
+  for (let i = 0; i < 2; i++) {
+    const r = await call("POST", `/api/modules/${m.id}/suggestions/${enc(key)}/dismiss`, {});
+    assert.deepEqual([r.status, r.data], [200, { ok: true }]);
+  }
+  let r = await sugg(m.id);
+  assert.ok(!r.data.items.some((i) => i.key === key));
+  assert.deepEqual(r.data.dismissed.map((i) => i.key), [key]);
+  // Module khác không bị ảnh hưởng
+  const other = seedModule();
+  assert.ok((await sugg(other.m.id)).data.items.some((i) => i.key === `link:${other.s.id}:forgot`));
+
+  for (let i = 0; i < 2; i++) assert.equal((await call("DELETE", `/api/modules/${m.id}/suggestions/${enc(key)}/dismiss`)).status, 200);
+  r = await sugg(m.id);
+  assert.ok(r.data.items.some((i) => i.key === key));
+  assert.deepEqual(r.data.dismissed, []);
+
+  assert.equal((await call("POST", `/api/modules/${m.id}/suggestions/${enc("bad-key")}/dismiss`, {})).status, 400);
+  assert.equal((await call("POST", `/api/modules/khong-co/suggestions/${enc(key)}/dismiss`, {})).status, 404);
+});
+
+test("API: tạo màn từ gợi ý (Mock) thì gợi ý biến mất", async () => {
+  const { m, s } = seedModule();
+  const item = (await sugg(m.id)).data.items.find((i) => i.key === `link:${s.id}:forgot`)!;
+  const created = await call("POST", `/api/modules/${m.id}/screens`, { name: item.name, prompt: item.prompt });
+  assert.equal(created.status, 200, JSON.stringify(created.data));
+  const keys = (await sugg(m.id)).data.items.map((i) => i.key);
+  assert.ok(!keys.includes(item.key), keys.join(", "));
 });

@@ -174,3 +174,13 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Tạm thời (A5): `DiagramTab` dùng `.doc-layout` + `style={{ gridTemplateColumns: "1fr 1fr" }}` (không có màu hay px cứng).
 - Thay đổi đề xuất: class `.split-2` (2 cột `1fr 1fr`, khoảng cách `--space-4`, lề `0 --space-4`, về 1 cột ở màn hẹp). Sau khi có, A5 đổi `DiagramTab` sang class này.
 - Trạng thái: Mở
+### R-012 – A9: dọn CSS `.suggest-*` trong `client/styles.css`
+- Đợt / agent yêu cầu: 2 / A9
+- Tệp: `client/styles.css`, `docs/design-system.md` · Chủ tệp: A1
+- Lý do: khối gợi ý cũ trong `DesignTab.tsx` đã tách ra `client/components/SuggestionsPanel.tsx`, mỗi gợi ý vẽ bằng `SuggestionCard` (`.suggestion-*`). Ba class của thẻ cũ không còn mã nào dùng. Hai class khung (`.suggest-block`, `.suggest-list`) vẫn dùng làm khung panel trong cột trái (viền trên, danh sách dọc có khoảng cách) – A9 không tự viết kiểu mới.
+- Thay đổi đề xuất:
+  1. Xoá `.suggest-item`, `.suggest-name`, `.suggest-actions` (khối "SCR-16 Gợi ý tiếp theo" trong `styles.css`).
+  2. Giữ `.suggest-block`, `.suggest-list`; thêm 1 dòng vào bảng 3.1 của `docs/design-system.md`: "`.suggest-block`, `.suggest-list` – khung khối Gợi ý tiếp theo (SCR-16) ở cột trái Design Studio, chứa các `SuggestionCard`".
+  3. Nếu A1 muốn đổi tên hai class khung thì báo lại A9 để sửa `SuggestionsPanel.tsx` (2 chỗ).
+- Trạng thái: Mở
+- Quyết định của A0 (ngày):
