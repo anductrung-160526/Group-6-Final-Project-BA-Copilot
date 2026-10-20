@@ -4,10 +4,10 @@
 //   scope "global":  #/<key>/<params...>
 
 import { createElement, type ComponentType } from "react";
-import { ProjectView } from "./views/ProjectView.tsx";
 import { Gallery } from "./views/_Gallery.tsx";
 import { FilesView } from "./views/FilesView.tsx";
 import { MembersView } from "./views/MembersView.tsx";
+import { TasksView } from "./views/TasksView.tsx";
 
 export interface PageProps {
   projectId: string; // "" với trang global
@@ -27,11 +27,8 @@ function placeholder(title: string, fn: string): ComponentType<PageProps> {
   return () => createElement("div", { className: "page" }, createElement("h1", null, title), createElement("p", { className: "muted" }, `Đang xây dựng (${fn}).`));
 }
 
-/** Kho tài liệu hiện tại (nhánh htrung-c4) nằm trong tab của ProjectView; A4 thay bằng FilesView. */
-const LegacyFilesPage: ComponentType<PageProps> = ({ projectId, params }) => createElement(ProjectView, { id: projectId, tab: "files", initialModuleId: params[0] || null });
-
 export const PAGES: AppPage[] = [
-  { key: "tasks", label: "Công việc", scope: "project", component: placeholder("Công việc", "FN-15 → FN-19") },
+  { key: "tasks", label: "Công việc", scope: "project", component: TasksView },
   { key: "files", label: "Kho tài liệu", scope: "project", component: FilesView },
   { key: "members", label: "Thành viên", scope: "global", component: MembersView },
   { key: "_gallery", label: "Gallery", scope: "global", component: Gallery, hidden: true },

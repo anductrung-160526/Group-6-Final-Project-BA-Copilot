@@ -14,7 +14,7 @@ Người cập nhật: **A0**. Mỗi agent dán kết quả `npm test` / `npm ru
 | A3 | Thành viên & thanh trên | 2 | `agent/a3-thanh-vien` | ✅ Xong, chờ gộp. FN-01 đạt; FN-02 đạt sau khi A0 gắn TopBar (R-005); FN-03 một phần (chờ R-006, R-007) | 70/70 ✅ | ✅ | Xem nhật ký đợt 2 – A3 |
 | A4 | Kho tài liệu | 2 | `agent/a4-kho-tai-lieu` | ⏳ Sẵn sàng | — | — | Code C4 đã có trên `v2-base` |
 | A5 | Sơ đồ UC | 2 | `agent/a5-so-do-uc` | ⏳ Sẵn sàng | — | — | |
-| A6 | Công việc Kanban | 2 | `agent/a6-kanban` | ⏳ Sẵn sàng | — | — | |
+| A6 | Công việc Kanban | 2 | `agent/a6-kanban` | ✅ Xong, chờ A0 gộp | 77/77 ✅ (11 test mới) | ✅ | FN-15 → FN-19 đạt. Xem nhật ký đợt 2 – A6 (điểm A0 chèn khi gộp) |
 | A7 | Tự cập nhật trạng thái task | 2 | `agent/a7-tu-cap-nhat` | ⏳ Sẵn sàng | — | — | Gộp sau A6 |
 | A8 | Chất lượng yêu cầu (QUS) | 2 | `agent/a8-qus` | ✅ Xong, chờ gộp. FN-50 → FN-55 đạt; FN-56 xong phần của A8, chờ A0 chèn R-020 → R-022 | 75/75 ✅ (`qus.test.ts` 21/21) | ✅ | Xem nhật ký đợt 2 – A8 |
 | A9 | Gợi ý màn tiếp theo | 2 | `agent/a9-goi-y` | ⏳ Sẵn sàng | — | — | Phần lớn đã có; việc còn lại ghi ở khung "Hiện trạng" mục A9 trong kế hoạch (chính: API + `suggestion_dismissals`, tách `SuggestionsPanel`, sửa 2 chỗ lệch hợp đồng). Gộp cuối đợt 2 |
@@ -215,6 +215,40 @@ Lưu ý: lần chạy đầu `npm test` và `tsc` bị hết bộ nhớ vì máy
 ## Nhật ký đợt 2 – A3 (2026-10-20)
 
 **Nhánh:** `agent/a3-thanh-vien`, tạo từ `v2-contract` @ `1aabff2`.
+## Nhật ký đợt 2 – A6 (2026-10-20)
+
+**Nhánh:** `agent/a6-kanban`, tạo từ `v2-contract` @ `1aabff2` (worktree `E:/wt-a6`).
+
+### Tệp đã đổi
+
+| Tệp | Nội dung |
+|---|---|
+| `server/repo/tasks.ts` (mới) | CRUD task, `setTaskStatus()` ghi `task_events` (`by_member_id`, `by_system`, `reason`), `listTasksByArtifact()`, `listArtifacts()`. A7 dùng lại `setTaskStatus(id, to, { bySystem: true, reason })` |
+| `server/routes/tasks.ts` | Thay 8 stub bằng route thật, đúng `docs/api.md` mục 4 (không đổi method/path/kiểu trả về) |
+| `client/views/TasksView.tsx` (mới) | SCR-06: 4 cột, kéo thả gọi `setTaskStatus`, lỗi thì trả thẻ về cột cũ + toast; lọc người làm, module; nút "+ Thêm" từng cột |
+| `client/views/TaskDialog.tsx` (mới) | SCR-07: tiêu đề, mô tả, người làm (`MemberPicker`), hạn, ưu tiên (Cao/Trung bình/Thấp), trạng thái, module, sản phẩm gắn kèm, lịch sử trạng thái, xoá (Modal xác nhận). Dùng `Drawer` theo design-system mục 3 ("SCR-07 task") |
+| `client/components/RelatedTasks.tsx` (mới) | FN-19: danh sách task gắn với một sản phẩm. **Chưa chèn** vào màn nào |
+| `tests/tasks.test.ts` (mới) | 11 test tích hợp HTTP |
+| `client/routes.ts` | Thay đúng dòng giữ chỗ `tasks` bằng `TasksView` (+ 1 dòng import), được phép theo OWNERSHIP mục 2 |
+
+### Quy ước A6 tự chốt (trong khuôn khổ hợp đồng)
+
+- `PATCH /api/tasks/:id` có `status` → `400` (hợp đồng: "không nhận status").
+- Gắn sản phẩm mà thiếu `moduleId` → server tự điền module của sản phẩm; khác module → `400`.
+- `actorId` không phải thành viên còn tồn tại → ghi ẩn danh (`by_member_id = NULL`), không báo lỗi. `assigneeId` lạ → `400`.
+- Đổi sang đúng trạng thái hiện tại → không ghi sự kiện.
+- `GET /api/projects/:id/artifacts` liệt kê cả tài liệu / test / sơ đồ chưa sinh (`status: "none"`) để giao task "làm mới".
+- Task trỏ tới màn/module đã xoá: hiện badge viền đứt "Sản phẩm đã xoá", vẫn sửa được các trường khác.
+
+### Điểm A0 chèn khi gộp
+
+1. **Sau khi gộp A3 – `actorId`:** trong `client/views/TasksView.tsx`, thay thân hàm `currentActorId` (hiện trả `undefined`) bằng `currentMemberId()` của `client/currentMember.ts`. Đến lúc đó, kéo thẻ chưa ghi được người kéo (server đã sẵn sàng, test đã kiểm).
+2. **Sau khi gộp A3 – thành viên:** `GET /api/members` đang là stub 501 trên `v2-contract`, nên bộ lọc người làm và `MemberPicker` tạm trống (có ghi chú "Chưa có thành viên"). Không cần sửa mã, gộp A3 là chạy.
+3. **FN-19 – chèn `RelatedTasks`** (OWNERSHIP mục 2, A0 làm):
+   - `client/views/DesignTab.tsx`: `<RelatedTasks kind="screen" id={<mã màn đang chọn>} />` ở panel thông tin màn.
+   - `client/views/DocsTab.tsx`: `<RelatedTasks kind="docs" id={<moduleId>} />`.
+   - Import: `import { RelatedTasks } from "../components/RelatedTasks.tsx";`
+4. A7 gộp sau A6: dùng `server/repo/tasks.ts` (`listTasksByArtifact`, `setTaskStatus` với `bySystem: true`).
 
 ### Kiểm tra (`ba-copilot-source/ba-copilot`, Node v24.16.0)
 
@@ -247,3 +281,9 @@ Lưu ý: lần chạy đầu `npm test` và `tsc` bị hết bộ nhớ vì máy
 - `client/routes.ts`: ngoài dòng `members`, A3 thêm 1 dòng `import { MembersView }` (cần cho dòng đó).
 - Menu thanh trên dạng **pill** (theo yêu cầu người dùng): ghép từ class có sẵn `.tpl-row` + `.chip` / `.chip-sel`, không thêm CSS mới. Gợi ý cho A1 (không bắt buộc): thêm biến thể `Tabs variant="pill"` vào `ui.tsx` + `#/_gallery` để màn khác dùng chung. Sau khi đổi: `npm test` 70/70 ✅, `npm run build` ✅, 0 lỗi console.
 - Cập nhật: menu pill chuyển thành component dùng chung `Tabs variant="pill"` (người dùng yêu cầu, sửa tệp của A1 – xem **R-008**). `npm test` 70/70 ✅, `npm run build` ✅ (`app.js 339.6kb`), 0 lỗi console ở `#/_gallery` và trang dự án.
+| `npm test` | ✅ `tests 77 · pass 77 · fail 0` (66 cũ + 11 trong `tests/tasks.test.ts`), `duration_ms 14990` |
+| `npm run build` | ✅ `public/app.js 344.6kb`, `public/app-style.css 41.2kb`, `Done` |
+| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+| Chạy app (Mock, DB mới) + Chrome | ✅ Kéo thẻ Đang làm → Xong, **tải lại trang thẻ vẫn ở cột Xong**. Giả lập API lỗi khi kéo → thẻ quay về cột cũ, có toast. Tạo task gắn Sơ đồ UC (module tự điền), sửa task, lịch sử trạng thái, lọc module: đúng. 0 lỗi console |
+
+`public/app.js`, `public/app-style.css` **không** commit (sản phẩm build).

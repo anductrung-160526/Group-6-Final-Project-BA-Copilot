@@ -4,6 +4,7 @@ import type { ModuleDetail, UseCase } from "../../shared/types.ts";
 import { Badge, Btn, Empty, StatusBadge, useUI } from "../components/ui.tsx";
 import { Markdown } from "../components/Markdown.tsx";
 import { Mermaid } from "../components/Mermaid.tsx";
+import { RelatedTasks } from "../components/RelatedTasks.tsx";
 
 type Sub = "uc" | "srs" | "seq" | "req";
 
@@ -74,6 +75,7 @@ export function DocsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise<
         )}
       </div>
       {m.docsStatus === "outdated" && <div className="warn-banner">Thiết kế đã thay đổi sau khi sinh tài liệu (BR-02). Hãy duyệt lại màn hình và bấm "Sinh lại" để cập nhật.</div>}
+      <RelatedTasks kind="docs" id={m.id} />
 
       {m.docsStatus === "none" ? (
         <Empty title={approvedScreens.length ? "Sẵn sàng sinh tài liệu" : "Cần duyệt thiết kế trước (BR-01)"}>

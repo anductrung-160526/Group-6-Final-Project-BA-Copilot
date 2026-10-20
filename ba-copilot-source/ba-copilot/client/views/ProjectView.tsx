@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { get, post, del } from "../api.ts";
-import { Btn, Empty, Field, Modal, StatusBadge, useUI } from "../components/ui.tsx";
-import { FilesTab } from "./FilesTab.tsx";
+import { Btn, Empty, Field, Modal, ScoreBadge, StatusBadge, useUI } from "../components/ui.tsx";
 import { QusPanel } from "../components/QusPanel.tsx";
 
 const SAMPLE = `- As a Khách hàng, I want đăng nhập bằng email và mật khẩu, so that tôi mua hàng nhanh hơn.
@@ -69,57 +68,53 @@ export function ProjectView({ id, tab, initialModuleId }: { id: string; tab: str
         </a>
       </nav>
 
-      {/* Nội dung tab */}
-      {tab === "files" ? (
-        <FilesTab projectId={id} initialModuleId={initialModuleId ?? null} />
+      {/* Tab "Kho tài liệu" (#/p/:id/files) mở FilesView qua client/routes.ts */}
+      {data.modules.length === 0 ? (
+        <Empty title="Chưa có module">Module là một nhóm chức năng (VD: Xác thực, Quản lý sản phẩm). Tạo module rồi prompt để AI thiết kế màn hình.</Empty>
       ) : (
-        <>
-          {data.modules.length === 0 ? (
-            <Empty title="Chưa có module">Module là một nhóm chức năng (VD: Xác thực, Quản lý sản phẩm). Tạo module rồi prompt để AI thiết kế màn hình.</Empty>
-          ) : (
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>Module</th>
-                  <th>Màn hình</th>
-                  <th>Tài liệu</th>
-                  <th>Test case</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {data.modules.map((m: any) => (
-                  <tr key={m.id}>
-                    <td>
-                      <a href={`#/m/${m.id}/design`} className="strong">
-                        {m.name}
-                      </a>
-                    </td>
-                    <td>{m.screenCount}</td>
-                    <td>
-                      <StatusBadge status={m.docsStatus} />
-                    </td>
-                    <td>
-                      <StatusBadge status={m.testsStatus} />
-                    </td>
-                    <td className="right">
-                      <button
-                        className="link-danger"
-                        onClick={async () => {
-                          if (!confirm(`Xóa module "${m.name}"?`)) return;
-                          await run("Đang xóa", () => del(`/api/modules/${m.id}`));
-                          load();
-                        }}
-                      >
-                        Xóa
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </>
+        <table className="tbl">
+          <thead>
+            <tr>
+              <th>Module</th>
+              <th>Chất lượng</th>
+              <th>Màn hình</th>
+              <th>Tài liệu</th>
+              <th>Test case</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {data.modules.map((m: any) => (
+              <tr key={m.id}>
+                <td>
+                  <a href={`#/m/${m.id}/design`} className="strong">
+                    {m.name}
+                  </a>
+                </td>
+                <td>{m.qusScore == null ? <span className="muted small">Chưa chấm</span> : <ScoreBadge score={m.qusScore} />}</td>
+                <td>{m.screenCount}</td>
+                <td>
+                  <StatusBadge status={m.docsStatus} />
+                </td>
+                <td>
+                  <StatusBadge status={m.testsStatus} />
+                </td>
+                <td className="right">
+                  <button
+                    className="link-danger"
+                    onClick={async () => {
+                      if (!confirm(`Xóa module "${m.name}"?`)) return;
+                      await run("Đang xóa", () => del(`/api/modules/${m.id}`));
+                      load();
+                    }}
+                  >
+                    Xóa
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
 
       {open && (
