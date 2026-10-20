@@ -17,7 +17,7 @@ Người cập nhật: **A0**. Mỗi agent dán kết quả `npm test` / `npm ru
 | A8 | Chất lượng yêu cầu (QUS) | 2 | `agent/a8-qus` (`7c59ab1`) | ✅ Đã gộp vào `v2-features`. FN-50 → FN-56 đạt (R-020 → R-023 xong) | 75/75 ✅ | ✅ | Xem nhật ký đợt 2 – A8 và A0 |
 | A9 | Gợi ý màn tiếp theo | 2 | `agent/a9-goi-y` (`addfdb9`) | ✅ Đã gộp vào `v2-features`. FN-57 → FN-61 đạt; R-012 xong | 70/70 ✅ | ✅ | Xem nhật ký đợt 2 – A9 và A0 |
 | A10 | Dữ liệu demo | 3 | `agent/a10-seed` (`b6ee7cd`) | ✅ Đã gộp vào `v2-demo`. Seed chạy trọn trên bản gộp thật: điểm QUS hiện ở trang dự án (100 / 75), 4 tệp tên tiếng Việt tải và xem trước được | 66/66 ✅ | ✅ | Chỉ sửa `scripts/seed.ts`. Xem nhật ký đợt 3 – A10 |
-| A11 | Kiểm thử E2E & QA | 3 | `agent/a11-e2e` | ⏳ Chờ A10 | — | — | |
+| A11 | Kiểm thử E2E & QA | 3 | `agent/a11-e2e` (`ddbd127`) | ✅ Đã gộp vào `v2-demo`. A0 chạy lại trên bản gộp thật: E2E `demo-flow` 27/27, Q-01 → Q-04 đã hết | 143/143 ✅ | ✅ | Xem `QA_REPORT.md` mục 6 và nhật ký đợt 3 – A11 |
 | A12 | Tài liệu & Triển khai | 3, 4 | `agent/a12-trien-khai` | ⏳ Chờ A11 | — | — | |
 
 Thứ tự gộp đợt 2: A8 → A4 → A3 → A6 → A7 → A5 → A9.
@@ -29,7 +29,7 @@ Thứ tự gộp đợt 2: A8 → A4 → A3 → A6 → A7 → A5 → A9.
 | 0 | `v2-base` | ✅ Test và build qua (2026-10-20) |
 | 1 | `v2-contract` | ✅ Build qua, 66/66 test (2026-10-20). **Nhánh nền cho đợt 2** |
 | 2 | `v2-features` | ✅ 143/143 test, build qua, E2E demo A11 27/27 và E2E cũ 18/18 (2026-10-20). **Nhánh nền cho đợt 3** |
-| 3–4 | `v2-demo` | ⏳ |
+| 3–4 | `v2-demo` | ✅ Đợt 3 phần A10 + A11 (2026-10-20): 143/143 test, build qua, E2E demo 27/27 trên bản gộp thật, seed chạy trọn. A12 làm tiếp từ đây |
 
 ---
 
@@ -515,3 +515,23 @@ Lưu ý: lần chạy đầu `npm test` và `tsc` bị hết bộ nhớ vì máy
 4. Xung đột `client/routes.ts`: giữ cả 3 import và 3 dòng `TasksView`, `FilesView`, `MembersView`.
 5. Sau khi gộp: `npm run build && node e2e/demo-flow.mjs`.
 
+---
+
+## Nhật ký gộp đợt 3 – A0 (2026-10-20)
+
+**Nhánh:** `v2-demo`, tạo từ `v2-features` (worktree `E:/wt-features`).
+
+| Bước | Gộp | Xung đột | Ghi chú |
+|---|---|---|---|
+| 1 | `agent/a10-seed` (`b6ee7cd`) | `STATUS.md` (giữ bản `v2-features` + nhật ký A10) | Seed trên DB mới: 5 thành viên, QUS 100 / 75 hiện ở trang dự án (cần FN-56 đã chèn), 4 tệp tên tiếng Việt tải về và xem trước được (cần R-013) |
+| 2 | `agent/a11-e2e` (`ddbd127`) | `STATUS.md` (như trên) | Chạy lại toàn bộ trên bản gộp thật, không mô phỏng – kết quả ở `QA_REPORT.md` mục 6 |
+| 3 | `v2-features` (`78ae37b`) | Không | Sửa tràn ngang trang dự án do cột Chất lượng (phát hiện khi chạy lại A11) |
+
+| Cổng | Kết quả |
+|---|---|
+| `npx tsc --noEmit` | ✅ |
+| `npm test` | ✅ 143/143 |
+| `npm run build` | ✅ |
+| `node e2e/demo-flow.mjs` | ✅ 27/27, 0 lỗi JavaScript |
+
+Còn mở cho đợt sau: Q-05 → Q-13 (xem `QA_REPORT.md` mục 6). Bản gộp tạm `E:/wt-a11-int` của A11 không còn cần, xoá được bằng `git worktree remove E:/wt-a11-int`.

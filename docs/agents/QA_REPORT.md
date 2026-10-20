@@ -77,3 +77,37 @@ Các điểm chèn đã biết, **không gây lỗi nhìn thấy trong luồng d
 - Khi A0 làm **R-005 và R-011** lúc gộp, luồng demo và 2 luồng mới **xanh trên bản build**; không còn lỗi mức Cao.
 - Trên bản gộp thô (chưa chèn) còn **2 lỗi Cao** (Q-01, Q-02) – cả hai nằm ở tệp của A2, A11 không được sửa.
 - Đề xuất A0 chạy lại `node e2e/demo-flow.mjs` sau khi gộp xong `v2-features` (và sau A10 nếu seed đổi dữ liệu).
+
+---
+
+## 6. Chạy lại trên bản gộp thật `v2-demo` (A0, 2026-10-20)
+
+Bản kiểm thử: nhánh `v2-demo` = `v2-features` (gộp đợt 2 + mọi điểm chèn của A0) + `agent/a10-seed` + `agent/a11-e2e`. **Không mô phỏng điểm chèn nào**, không dùng `E:/wt-a11-int`.
+
+| Hạng mục | Kết quả |
+|---|---|
+| `npx tsc --noEmit` | ✅ |
+| `npm test` | ✅ 143/143 |
+| `npm run build` | ✅ |
+| `node e2e/demo-flow.mjs` | ✅ **27/27 kiểm tra**, 0 lỗi JavaScript |
+| `e2e/e2e.mjs` (cũ, chạy trên `v2-features`, cùng mã giao diện) | ✅ 18/18 (với `E2E_BASE`, `CHROME_PATH`; Q-12 còn nguyên) |
+| `npm run seed` trên DB mới | ✅ 5 thành viên, 2 module (QUS 100 và 75 hiện ở trang dự án), 4 tệp tên tiếng Việt: tải về 200, PDF/ảnh xem trước `inline`, 8 task đủ 4 cột |
+
+### Trạng thái lỗi sau khi gộp thật
+
+| Mã | Trạng thái | Ghi chú |
+|---|---|---|
+| Q-01 | ✅ Hết | R-005 đã chèn (`6c466d7`) |
+| Q-02 | ✅ Hết | R-011 đã chèn (`43588c0`) |
+| Q-03 | ✅ Hết | R-020 → R-022 đã chèn; trang dự án có cột Chất lượng |
+| Q-04 | ✅ Hết | R-009 đã sửa, A5 bỏ nhánh tạm (`8ced088`) |
+| Q-05 → Q-08 | ⏳ Còn | Tràn ngang 375 px không đổi: Công việc 671, Kho tài liệu 430, Gallery 418, Thành viên 395, Thiết kế / Tài liệu / Sơ đồ UC 377 px. Trang dự án từng tràn 501 px do cột Chất lượng mới, A0 đã sửa bằng `.table-wrap` (`78ae37b`) |
+| Q-09 | ⏳ Còn | Nút "Tạo" primary trên thẻ gợi ý |
+| Q-10 | ⏳ Còn | Tên màn đề xuất từ FR bị cắt vụng |
+| Q-11 | ⏳ Còn | Vai trò mã thô "BA_LEAD" – nằm ở `MemberPicker` trong `client/components/ui.tsx` (A1), không phải `TaskDialog.tsx` |
+| Q-12 | ⏳ Còn | `npm run e2e` không tự bật server trên Windows |
+| Q-13 | ⏳ Còn | "Sinh lại" sơ đồ dùng `confirm()` |
+
+Các điểm chèn "không gây lỗi nhìn thấy" ghi ở cuối mục 3 đều đã làm: `RelatedTasks` (DesignTab, DocsTab), `actorId` ở FilesView / DiagramTab / DesignTab, R-006/R-007 của A3, dọn `LegacyFilesPage` + `FilesTab.tsx` (nay là R-014), `.split-2`, dọn CSS `.suggest-*`, `.qus-*`. Số trùng R-005/R-006 của A4 đã đổi thành R-013/R-014.
+
+**Kết luận:** không còn lỗi mức Cao hay Trung bình về chức năng trên `v2-demo`. Còn lại Q-05 → Q-08 (Trung bình/Thấp, giao diện màn hẹp) và các lỗi Thấp Q-09 → Q-13.
