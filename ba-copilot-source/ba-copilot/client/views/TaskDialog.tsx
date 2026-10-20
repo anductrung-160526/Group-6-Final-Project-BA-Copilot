@@ -403,6 +403,7 @@ export function TaskDialog({
         <div className="toolbar" data-testid="task-status-row">
           <span className="muted small">Công việc</span>
           <StatusBadge status={s} testId="task-status" />
+          {t.revisionRequested && <RevisionTag testId="task-revision" />}
           {s === "todo" && (
             <Btn size="sm" kind="ghost" onClick={() => move("doing", "Đã chuyển sang Đang làm")} disabled={busy} data-testid="task-start">
               <Icon name="play" size="sm" />

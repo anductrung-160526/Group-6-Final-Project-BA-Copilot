@@ -246,3 +246,17 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Thay đổi: xem `QA_REPORT.md` mục 7. Component mới `useUI().confirm` đã thêm đủ 3 nơi (ui.tsx, `#/_gallery`, design-system.md).
 - Trạng thái: **Chấp nhận, đã làm** (commit `96a5a56`)
 - Quyết định của A0 (2026-10-20): các agent chủ tệp xem lại phần của mình khi rảnh; không chặn đợt 4.
+
+### R-080 – C1: icon theo loại sản phẩm + ApprovalBar nhận trạng thái task
+- Đợt / agent yêu cầu: 5 – đợt 2 / C7
+- Tệp: `client/components/ui.tsx`, `#/_gallery`, `docs/design-system.md` · Chủ tệp: C1
+- Lý do: (1) bảng `ICONS` chưa có icon cho màn / tài liệu / sơ đồ / bộ test – C7 tạm dùng `grid` / `folder` / `target` / `check` trong một bảng duy nhất `ARTIFACT_ICON` (`client/views/TaskDialog.tsx`). (2) `ApprovalBar` chỉ nhận `ArtifactStatus`; task không gắn sản phẩm có trạng thái `todo/doing` nên C7 tạm dựng cùng bố cục bằng class `.approval-bar` + `StatusBadge` + `Btn` trong `TaskDialog.tsx`.
+- Thay đổi đề xuất: thêm icon `screen` (LayoutTemplate), `doc` (FileText), `diagram` (Network), `tests` (FlaskConical); (tuỳ chọn) `ApprovalBar` thêm prop `onStart` + nhận `todo/doing` (doing = cho bấm Xong). C0/C7 đổi `ARTIFACT_ICON` và phần thanh tạm sau khi có.
+- Trạng thái: Mở
+
+### R-081 – C2/C0: `client/api.ts` thêm `artifactSub` cho task
+- Đợt / agent yêu cầu: 5 – đợt 2 / C7
+- Tệp: `client/api.ts` (khoá) · Chủ tệp: C2
+- Lý do: server nhận/trả `artifactSub` (doc/diagram), `GET /api/artifacts/:kind/:id/tasks?sub=`. C7 tạm gửi qua kiểu giao `TaskInput & { artifactSub }` và `get()` trực tiếp trong `RelatedTasks.tsx`.
+- Thay đổi đề xuất: `TaskInput.artifactSub?: DocKind | DiagramKind | null`; `listArtifactTasks(kind, id, sub?)`.
+- Trạng thái: Mở
