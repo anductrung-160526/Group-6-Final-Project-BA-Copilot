@@ -13,23 +13,88 @@ import { testWorkbook } from "./export/xlsx.ts";
 import { authEnabled, isAuthenticated, login, logout, LOGIN_HTML } from "./auth.ts";
 import { buildTrace } from "../shared/trace.ts";
 import { saveExport } from "./files.ts";
-import { route, matchRoute, FileResponse, HttpError, str, arr, actor } from "./http.ts";
-import "./routes/index.ts"; // route v2 theo phân hệ (members, files, diagram, tasks, qus, suggest)
+import {
+  route,
+  matchRoute,
+  FileResponse,
+  HttpError,
+  str,
+  arr,
+  actor,
+  assertRev,
+  baseRevOf,
+  currentMember,
+  loginMember,
+  logoutMemberCookie,
+  memberAuthEnabled,
+  requireLead,
+  requireMember,
+  sessionMember,
+  setMemberPassword,
+  type HandlerCtx,
+} from "./http.ts";
+import "./routes/index.ts"; // route theo phân hệ (v2 + khung đợt 5)
 import { registerTaskAutomation } from "./taskAutomation.ts";
 import { saveModuleQus } from "./routes/qus.ts";
 import { getMember } from "./repo/members.ts";
+import { bumpRev, getArtifactState } from "./db.ts";
+import { leavePresence, listPresence, PRESENCE_KINDS, touchPresence } from "./presence.ts";
+import type { MeInfo, PresenceKind, PresenceTarget, PromptRun } from "../shared/types.ts";
 
 // ---------------------------------------------------------------- API
 route("GET", "/api/settings", () => {
   const c = aiConfig();
-  return { provider: c.provider, model: c.provider === "mock" ? "rule-based" : c.model, auth: authEnabled() };
+  return { provider: c.provider, model: c.provider === "mock" ? "rule-based" : c.model, auth: authEnabled(), memberAuth: memberAuthEnabled() };
 });
+// Đợt 5: có memberId hoặc name → đăng nhập thành viên (phiên gắn memberId); chỉ có password → cổng APP_PASSWORD cũ.
 route("POST", "/api/login", ({ req, res, body }) => {
+  if (typeof body.memberId === "string" || typeof body.name === "string") {
+    const member = loginMember(req, res, { memberId: str(body.memberId, 100) || undefined, name: str(body.name, 200), password: str(body.password, 200) });
+    return { ok: true, member };
+  }
   const r = login(req, res, str(body.password, 200));
   if (!r.ok) throw new BizError(r.error ?? "Đăng nhập thất bại", r.status ?? 401);
   return { ok: true };
 });
-route("POST", "/api/logout", ({ req, res }) => (logout(req, res), { ok: true }));
+route("POST", "/api/logout", ({ req, res }) => {
+  logout(req, res);
+  const appCookie = res.getHeader("set-cookie");
+  res.setHeader("set-cookie", [...(appCookie ? [String(appCookie)] : []), logoutMemberCookie(req)]);
+  return { ok: true };
+});
+route("GET", "/api/me", (ctx): MeInfo => ({ member: currentMember(ctx), mode: memberAuthEnabled() ? "member" : "demo", appAuth: authEnabled() }));
+// Đặt / xoá mật khẩu thành viên (màn Quản trị của C3). BA Lead đặt cho mọi người; thành viên tự đổi của mình.
+route("PUT", "/api/members/:id/password", (ctx) => {
+  const me = requireMember(ctx);
+  if (!me || me.id !== ctx.params.id) requireLead(ctx);
+  const pw = ctx.body.password;
+  return setMemberPassword(ctx.params.id, typeof pw === "string" && pw ? str(pw, 200) : null);
+});
+
+// Hiện diện "Đang được sửa bởi …" (server/presence.ts). Chế độ demo: người gửi lấy từ actorId.
+function presenceTarget(src: { kind?: unknown; id?: unknown; sub?: unknown }): PresenceTarget {
+  const kind = String(src.kind ?? "") as PresenceKind;
+  const id = str(src.id, 200);
+  if (!PRESENCE_KINDS.includes(kind) || !id) throw new HttpError("kind/id không hợp lệ", 400);
+  const sub = str(src.sub, 40);
+  return { kind, id, ...(sub ? { sub } : {}) };
+}
+route("POST", "/api/presence", (ctx) => {
+  const t = presenceTarget(ctx.body);
+  const me = requireMember(ctx);
+  if (me) touchPresence(t, me);
+  return listPresence(t, me?.id);
+});
+route("GET", "/api/presence", (ctx) => {
+  const t = presenceTarget({ kind: ctx.query.get("kind"), id: ctx.query.get("id"), sub: ctx.query.get("sub") });
+  return listPresence(t, requireMember(ctx)?.id);
+});
+route("DELETE", "/api/presence", (ctx) => {
+  const t = presenceTarget(ctx.body);
+  const me = requireMember(ctx);
+  if (me) leavePresence(t, me.id);
+  return { ok: true };
+});
 
 route("GET", "/api/projects", () => repo.listProjects());
 route("POST", "/api/projects", ({ body }) => {
@@ -68,14 +133,34 @@ route("PATCH", "/api/modules/:id", ({ params, body }) => {
 route("DELETE", "/api/modules/:id", ({ params }) => (repo.deleteModule(params.id), { ok: true }));
 route("GET", "/api/modules/:id/model", ({ params }) => svc.getDesignModel(params.id));
 route("GET", "/api/modules/:id/runs", ({ params }) => repo.listRuns(params.id));
+// Đợt 5: nhật ký AI cấp dự án (màn #/p/:pid/logs của C3), lọc ?moduleId=. Mới nhất trước.
+route("GET", "/api/projects/:id/runs", ({ params, query }) => {
+  if (!repo.getProject(params.id)) throw new BizError("Không tìm thấy dự án", 404);
+  const only = query.get("moduleId");
+  const runs: PromptRun[] = repo.listModules(params.id).filter((m) => !only || m.id === only).flatMap((m) => repo.listRuns(m.id));
+  return runs.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+});
+
+// Đợt 5 – chặn đè cho màn: nhận `baseRev`, lệch → 409 CONFLICT; ghi xong tăng `screens.rev` + người/lúc sửa.
+// (Kiểm tra trước khi gọi AI; hai lệnh cùng lúc vẫn có thể cùng qua – chấp nhận, đây là chặn đè lạc quan.)
+async function screenWrite<T>(ctx: HandlerCtx, fn: () => T | Promise<T>): Promise<T> {
+  const ref = { kind: "screen" as const, id: ctx.params.id, moduleId: "" };
+  const st = getArtifactState(ref);
+  if (st) assertRev(st.rev, baseRevOf(ctx.body));
+  const out = await fn();
+  if (st) bumpRev(ref, actor(ctx.body));
+  return out;
+}
 
 // Design Studio
 route("POST", "/api/modules/:id/screens", ({ params, body }) => svc.createScreenFromPrompt(params.id, str(body.prompt), str(body.name, 120), actor(body)));
-route("PATCH", "/api/screens/:id", ({ params, body }) => (repo.updateScreen(params.id, { name: str(body.name, 120) }), repo.getScreen(params.id)));
+route("PATCH", "/api/screens/:id", (ctx) => screenWrite(ctx, () => (repo.updateScreen(ctx.params.id, { name: str(ctx.body.name, 120) }), repo.getScreen(ctx.params.id))));
 route("DELETE", "/api/screens/:id", ({ params }) => (repo.deleteScreen(params.id), { ok: true }));
 route("GET", "/api/screens/:id/versions", ({ params }) => repo.listVersions(params.id));
-route("POST", "/api/screens/:id/edit", ({ params, body }) => svc.editScreenWithPrompt(params.id, { prompt: str(body.prompt), nodeIds: arr(body.nodeIds), annotationIds: arr(body.annotationIds) }, actor(body)));
-route("POST", "/api/screens/:id/revert", ({ params, body }) => svc.revertScreen(params.id, str(body.versionId), actor(body)));
+route("POST", "/api/screens/:id/edit", (ctx) =>
+  screenWrite(ctx, () => svc.editScreenWithPrompt(ctx.params.id, { prompt: str(ctx.body.prompt), nodeIds: arr(ctx.body.nodeIds), annotationIds: arr(ctx.body.annotationIds) }, actor(ctx.body))),
+);
+route("POST", "/api/screens/:id/revert", (ctx) => screenWrite(ctx, () => svc.revertScreen(ctx.params.id, str(ctx.body.versionId), actor(ctx.body))));
 route("POST", "/api/screens/:id/approve", ({ params, body }) => svc.setScreenApproval(params.id, body.approved !== false, actor(body)));
 route("POST", "/api/screens/:id/annotations", ({ params, body }) => {
   const s = repo.getScreen(params.id);
@@ -103,13 +188,15 @@ route("POST", "/api/screens/:id/suggestions", ({ params, body }) => {
   for (const [k, v] of Object.entries(layout?.boxes ?? {})) if (Array.isArray(v) && v.length === 4 && v.every((x) => Number.isFinite(x))) boxes[String(k).slice(0, 120)] = v.map(Number) as [number, number, number, number];
   return svc.layoutSuggestions(params.id, { layout: layout ? { pageWidth: Number(layout.pageWidth) || 0, boxes } : undefined, nodeIds: arr(body.nodeIds), mode: body.mode === "complete" ? "complete" : "next" });
 });
-route("POST", "/api/screens/:id/layout/accept", ({ params, body }) => {
+route("POST", "/api/screens/:id/layout/accept", (ctx) => {
+  const { params, body } = ctx;
   const items = (Array.isArray(body.items) ? body.items : []).slice(0, 100).map((x: Record<string, unknown>) => ({ ref: str(x?.ref, 60), parentId: str(x?.parentId, 120), index: Math.max(0, Math.floor(Number(x?.index) || 0)), type: str(x?.type, 30) }));
-  return svc.acceptLayout(params.id, { versionId: str(body.versionId, 100), items }, actor(body));
+  return screenWrite(ctx, () => svc.acceptLayout(params.id, { versionId: str(body.versionId, 100), items }, actor(body)));
 });
-route("POST", "/api/screens/:id/manual", ({ params, body }) => {
+route("POST", "/api/screens/:id/manual", (ctx) => {
+  const { params, body } = ctx;
   if (!["remove", "up", "down"].includes(body.op)) throw new svc.BizError("Thao tác không hợp lệ");
-  return svc.manualEdit(params.id, { op: body.op, id: str(body.id, 120) }, actor(body));
+  return screenWrite(ctx, () => svc.manualEdit(params.id, { op: body.op, id: str(body.id, 120) }, actor(body)));
 });
 route("POST", "/api/suggestions/events", ({ body }) => {
   const action = body.action;
@@ -176,6 +263,9 @@ function fileSafe(s: string) {
 }
 
 // ---------------------------------------------------------------- HTTP plumbing
+/** API gọi được khi chưa có phiên thành viên (chế độ member). */
+const PUBLIC_API = new Set(["/api/login", "/api/logout", "/api/me", "/api/settings"]);
+
 async function readBody(req: IncomingMessage): Promise<any> {
   if (req.method === "GET" || req.method === "HEAD") return {};
   const isUpload = req.method === "POST" && /^\/api\/projects\/[^/]+\/files(\?.*)?$/.test(req.url ?? "");
@@ -227,16 +317,21 @@ export function createApp(opts: { publicDir: string }): Server {
     try {
       // Kiểm tra sống cho nền tảng deploy (không cần đăng nhập)
       if (url.pathname === "/health") return send(res, 200, { ok: true });
-      // Bắt buộc đăng nhập khi đặt APP_PASSWORD
-      if (!isAuthenticated(req) && url.pathname !== "/api/login") {
-        if (url.pathname.startsWith("/api/")) return send(res, 401, { error: "Chưa đăng nhập" });
+      // Bắt buộc đăng nhập khi đặt APP_PASSWORD (phiên thành viên hợp lệ cũng qua cổng này – đợt 5)
+      const member = sessionMember(req);
+      if (!isAuthenticated(req) && !member && url.pathname !== "/api/login") {
+        if (url.pathname.startsWith("/api/")) return send(res, 401, { error: "Chưa đăng nhập", code: "UNAUTHENTICATED", mode: "app" });
         res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" });
         return res.end(LOGIN_HTML);
       }
       if (url.pathname.startsWith("/api/")) {
+        // Đợt 5: có thành viên đặt mật khẩu (chế độ member) → mọi API cần phiên thành viên, trừ đăng nhập/đăng xuất/me/settings.
+        if (!member && !PUBLIC_API.has(url.pathname) && memberAuthEnabled()) return send(res, 401, { error: "Chưa đăng nhập", code: "UNAUTHENTICATED", mode: "member" });
         const hit = matchRoute(req.method ?? "GET", url.pathname);
         if (!hit) return send(res, 404, { error: "API không tồn tại" });
         const body = await readBody(req);
+        // Actor lấy từ phiên, không tin actorId client gửi (chế độ member). Chế độ demo giữ actorId như cũ.
+        if (member && body && typeof body === "object" && !Array.isArray(body)) body.actorId = member.id;
         const out = await hit.route.handler({ req, res, params: hit.params, body, query: url.searchParams });
         if (out instanceof FileResponse) {
           res.writeHead(200, {
@@ -257,7 +352,8 @@ export function createApp(opts: { publicDir: string }): Server {
       if (st?.isFile()) return serveFile(res, file);
       return serveFile(res, join(opts.publicDir, "index.html"));
     } catch (e) {
-      if (e instanceof BizError || e instanceof HttpError) return send(res, e.status, { error: e.message });
+      if (e instanceof HttpError) return send(res, e.status, { error: e.message, ...(e.code ? { code: e.code } : {}), ...(e.data ?? {}) });
+      if (e instanceof BizError) return send(res, e.status, { error: e.message });
       if (e instanceof AIError) return send(res, 502, { error: e.message, details: e.details });
       console.error(e);
       return send(res, 500, { error: `Lỗi máy chủ: ${(e as Error).message}` });

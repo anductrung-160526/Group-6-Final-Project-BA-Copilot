@@ -1,10 +1,61 @@
-import type { ArtifactKind, ArtifactOption, FileItem, Member, MemberRole, ModuleQus, ScreenSuggestions, Task, TaskDetail, TaskPriority, TaskStatus, UcDiagram } from "../shared/types.ts";
+import type {
+  ApiErrorCode,
+  ApprovalResult,
+  ArtifactKind,
+  ArtifactOption,
+  ArtifactState,
+  DiagramKind,
+  DiagramPart,
+  DocKind,
+  FileItem,
+  GitHistory,
+  GitTestResult,
+  LoginInput,
+  MeInfo,
+  Member,
+  MemberRole,
+  ModuleDiagram,
+  ModuleDoc,
+  ModuleDocData,
+  ModuleQus,
+  PresenceEntry,
+  PresenceTarget,
+  ProjectGit,
+  ProjectGitInput,
+  PromptRun,
+  ScreenSuggestions,
+  Task,
+  TaskDetail,
+  TaskPriority,
+  TaskStatus,
+  UcDiagram,
+  UserStory,
+  UserStoryInput,
+} from "../shared/types.ts";
 
+/**
+ * Lỗi API. `code` lấy từ body lỗi của server:
+ * - "CONFLICT" (409): bản đã bị người khác sửa – hiện `ConflictNotice` và tải lại; `data.rev` = rev hiện tại.
+ * - "UNAUTHENTICATED" (401), "FORBIDDEN" (403, không phải BA Lead).
+ * 409 không có `code` là xung đột nghiệp vụ khác (vd xoá thành viên đang giữ task) – không phải chặn đè.
+ */
 export class ApiError extends Error {
-  constructor(message: string, public status: number, public details?: string[]) {
+  constructor(
+    message: string,
+    public status: number,
+    public details?: string[],
+    public code?: ApiErrorCode,
+    public data?: Record<string, unknown>,
+  ) {
     super(message);
   }
 }
+
+/** true khi lỗi là chặn đè (409 CONFLICT). */
+export const isConflict = (e: unknown): e is ApiError => e instanceof ApiError && e.code === "CONFLICT";
+
+/** Đường dẫn màn đăng nhập thành viên (C3 làm LoginView). */
+export const LOGIN_HASH = "#/login";
 
 export async function api<T = any>(method: string, path: string, body?: unknown): Promise<T> {
   const res = await fetch(path, {
@@ -14,9 +65,15 @@ export async function api<T = any>(method: string, path: string, body?: unknown)
   });
   const data = await res.json().catch(() => ({}));
   if (res.status === 401 && path !== "/api/login") {
-    window.location.reload(); // phiên hết hạn → hiện trang đăng nhập
+    // mode "member": chưa đăng nhập thành viên → màn đăng nhập trong app; còn lại (APP_PASSWORD) → tải lại để hiện trang mật khẩu.
+    if (data?.mode === "member") {
+      if (window.location.hash !== LOGIN_HASH) window.location.hash = LOGIN_HASH;
+    } else window.location.reload();
   }
-  if (!res.ok) throw new ApiError(data.error ?? `Lỗi ${res.status}`, res.status, data.details);
+  if (!res.ok) {
+    const { error, details, code, ...rest } = data ?? {};
+    throw new ApiError(error ?? `Lỗi ${res.status}`, res.status, details, code, rest);
+  }
   return data as T;
 }
 
@@ -104,3 +161,60 @@ export const getModuleQus = (moduleId: string) => get<ModuleQus>(`/api/modules/$
 export const getScreenSuggestions = (moduleId: string) => get<ScreenSuggestions>(`/api/modules/${enc(moduleId)}/suggestions`);
 export const dismissSuggestion = (moduleId: string, key: string) => post<{ ok: true }>(`/api/modules/${enc(moduleId)}/suggestions/${enc(key)}/dismiss`);
 export const restoreSuggestion = (moduleId: string, key: string) => del<{ ok: true }>(`/api/modules/${enc(moduleId)}/suggestions/${enc(key)}/dismiss`);
+
+// =============================================================== Đợt 5 – docs/api.md mục "Đợt 5"
+// Endpoint ghi sản phẩm nhận `baseRev` (rev client đang sửa); lệch → ApiError code "CONFLICT" (isConflict).
+// Endpoint đánh dấu 501 trả lỗi cho tới khi agent sở hữu làm xong.
+
+// Đăng nhập, phiên – C2 (đã chạy); màn đăng nhập/quản trị – C3
+export const login = (b: LoginInput) => post<{ ok: true; member: Member }>("/api/login", b);
+export const logout = () => post<{ ok: true }>("/api/logout");
+export const getMe = () => get<MeInfo>("/api/me");
+/** password rỗng = xoá mật khẩu. BA Lead đặt cho mọi người; thành viên tự đổi của mình. */
+export const setMemberPassword = (id: string, password: string) => put<Member>(`/api/members/${enc(id)}/password`, { password });
+
+// Hiện diện "Đang được sửa bởi …" – C2 (đã chạy); dùng qua hook usePresence() trong client/presence.ts
+export const touchPresence = (t: PresenceTarget, actorId?: string) => post<PresenceEntry[]>("/api/presence", { ...t, actorId });
+export const listPresence = (t: PresenceTarget, actorId?: string) => get<PresenceEntry[]>(`/api/presence${qs({ kind: t.kind, id: t.id, sub: t.sub, actorId })}`);
+export const leavePresence = (t: PresenceTarget, actorId?: string) => api<{ ok: true }>("DELETE", "/api/presence", { ...t, actorId });
+
+// Nhật ký AI cấp dự án – C2 (đã chạy); màn – C3
+export const listProjectRuns = (projectId: string, q: { moduleId?: string } = {}) => get<PromptRun[]>(`/api/projects/${enc(projectId)}/runs${qs(q)}`);
+
+// User story – C4 (501)
+export const listStories = (projectId: string, q: { moduleId?: string } = {}) => get<UserStory[]>(`/api/projects/${enc(projectId)}/stories${qs(q)}`);
+export const createStory = (projectId: string, b: UserStoryInput) => post<UserStory>(`/api/projects/${enc(projectId)}/stories`, b);
+export const reorderStories = (projectId: string, ids: string[]) => post<UserStory[]>(`/api/projects/${enc(projectId)}/stories/reorder`, { ids });
+export const getStory = (id: string) => get<UserStory>(`/api/stories/${enc(id)}`);
+export const updateStory = (id: string, b: UserStoryInput & { baseRev?: number }) => patch<UserStory>(`/api/stories/${enc(id)}`, b);
+export const deleteStory = (id: string) => del<{ ok: true }>(`/api/stories/${enc(id)}`);
+
+// Tài liệu theo bước – C5 (501)
+export const listModuleDocs = (moduleId: string) => get<ModuleDoc[]>(`/api/modules/${enc(moduleId)}/docs`);
+export const getModuleDoc = (moduleId: string, kind: DocKind) => get<ModuleDoc>(`/api/modules/${enc(moduleId)}/docs/${kind}`);
+export const saveModuleDoc = (moduleId: string, kind: DocKind, b: { content: string; data?: ModuleDocData | null; baseRev?: number }) => put<ModuleDoc>(`/api/modules/${enc(moduleId)}/docs/${kind}`, b);
+export const generateModuleDoc = (moduleId: string, kind: DocKind, b: { baseRev?: number } = {}) => post<ModuleDoc>(`/api/modules/${enc(moduleId)}/docs/${kind}/generate`, b);
+export const refineModuleDoc = (moduleId: string, kind: DocKind, b: { instruction: string; section?: string; baseRev?: number }) => post<ModuleDoc>(`/api/modules/${enc(moduleId)}/docs/${kind}/refine`, b);
+
+// Sơ đồ theo bước – C6 (501)
+export const listModuleDiagrams = (moduleId: string) => get<ModuleDiagram[]>(`/api/modules/${enc(moduleId)}/diagrams`);
+export const getModuleDiagram = (moduleId: string, kind: DiagramKind) => get<ModuleDiagram>(`/api/modules/${enc(moduleId)}/diagrams/${kind}`);
+export const saveModuleDiagram = (moduleId: string, kind: DiagramKind, b: { code: string; parts?: DiagramPart[]; baseRev?: number }) => put<ModuleDiagram>(`/api/modules/${enc(moduleId)}/diagrams/${kind}`, b);
+export const generateModuleDiagram = (moduleId: string, kind: DiagramKind, b: { baseRev?: number } = {}) => post<ModuleDiagram>(`/api/modules/${enc(moduleId)}/diagrams/${kind}/generate`, b);
+
+// Xong / Duyệt / Yêu cầu sửa – C7 (state đã chạy; 3 lệnh còn 501). kind: "screen" | "doc" | "diagram" | "tests"; sub cho doc/diagram.
+type ArtifactKindV5 = Exclude<ArtifactKind, "docs">;
+const artifactPath = (kind: ArtifactKindV5, id: string, action: string) => `/api/artifacts/${kind}/${enc(id)}/${action}`;
+export const getArtifactState = (kind: ArtifactKindV5, id: string, sub?: DocKind | DiagramKind) => get<ArtifactState>(`${artifactPath(kind, id, "state")}${qs({ sub })}`);
+export const markArtifactDone = (kind: ArtifactKindV5, id: string, b: { sub?: DocKind | DiagramKind; baseRev?: number } = {}) => post<ApprovalResult>(artifactPath(kind, id, "done"), b);
+export const approveArtifact = (kind: ArtifactKindV5, id: string, b: { sub?: DocKind | DiagramKind; baseRev?: number } = {}) => post<ApprovalResult>(artifactPath(kind, id, "approve"), b);
+export const requestArtifactChange = (kind: ArtifactKindV5, id: string, b: { sub?: DocKind | DiagramKind } = {}) => post<ApprovalResult>(artifactPath(kind, id, "request-change"), b);
+
+// GitHub – C8 (501)
+export const getProjectGit = (projectId: string) => get<ProjectGit | null>(`/api/projects/${enc(projectId)}/git`);
+export const saveProjectGit = (projectId: string, b: ProjectGitInput) => put<ProjectGit>(`/api/projects/${enc(projectId)}/git`, b);
+export const testProjectGit = (projectId: string, b: Partial<ProjectGitInput> = {}) => post<GitTestResult>(`/api/projects/${enc(projectId)}/git/test`, b);
+export const getGitHistory = (projectId: string) => get<GitHistory>(`/api/projects/${enc(projectId)}/git/history`);
+
+// Prototype – C9 (501)
+export const screenHtmlUrl = (screenId: string) => `/api/screens/${enc(screenId)}/export/html`;

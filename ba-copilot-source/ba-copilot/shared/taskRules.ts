@@ -28,6 +28,7 @@ export function nextStatus(current: TaskStatus, event: ArtifactEventType): TaskS
 
 const KIND_LABEL: Record<ArtifactKind, string> = {
   screen: "Màn hình",
+  doc: "Tài liệu", // đợt 5 (C2 thêm để biên dịch, R-031) – C7 thay cả tệp
   docs: "Tài liệu",
   diagram: "Sơ đồ UC",
   tests: "Bộ test",
@@ -44,6 +45,11 @@ export function statusReason(event: ArtifactEventType, kind: ArtifactKind, name 
       return kind === "tests" ? `${what} vừa được sinh` : `${what} có bản nháp mới`;
     case "artifact.approved":
       return `${what} đã được duyệt`;
+    // đợt 5 (C2 thêm để biên dịch, R-031) – C7 thay
+    case "artifact.done":
+      return `${what} đã Xong`;
+    case "artifact.revision_requested":
+      return `${what} bị yêu cầu sửa`;
     case "artifact.unapproved":
       return `${what} bị bỏ duyệt`;
     case "artifact.stale":
