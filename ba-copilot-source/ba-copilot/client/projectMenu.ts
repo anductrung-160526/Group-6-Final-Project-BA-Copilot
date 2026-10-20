@@ -13,6 +13,7 @@ import { Empty } from "./components/ui.tsx";
 import { DocsView } from "./views/DocsView.tsx";
 import { FilesView } from "./views/FilesView.tsx";
 import { LogsTab } from "./views/LogsTab.tsx";
+import { StoriesView } from "./views/StoriesView.tsx";
 import { TasksView } from "./views/TasksView.tsx";
 
 /** Mục cấp 1 của menu trái. */
@@ -83,7 +84,7 @@ export const WORK_STEPS: WorkStepItem[] = [
 export const PROJECT_MENU: ProjectMenuItem[] = [
   // tasks: tạm dùng TasksView v2 (đang chạy) để app không mất màn khi C3 gộp trước C7; C7 thay bằng Kanban 4 cột.
   { key: "tasks", label: "Quản lý công việc", icon: "SquareKanban", owner: "C7", component: TasksView },
-  { key: "stories", label: "Yêu cầu nghiệp vụ", icon: "BookText", owner: "C4", component: placeholder<ProjectPageProps>("Yêu cầu nghiệp vụ", "C4") },
+  { key: "stories", label: "Yêu cầu nghiệp vụ", icon: "BookText", owner: "C4", component: StoriesView },
   { key: "work", label: "Thực hiện công việc", icon: "Workflow", owner: "C3", steps: WORK_STEPS },
   { key: "files", label: "Kho tài liệu", icon: "FolderOpen", owner: "A4", component: FilesView },
   { key: "logs", label: "Nhật ký AI", icon: "ScrollText", owner: "C3", component: LogsTab },

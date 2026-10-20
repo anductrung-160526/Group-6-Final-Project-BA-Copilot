@@ -5,12 +5,16 @@
 import type { DesignModel, ScreenModel } from "./extract.ts";
 import { slug } from "./extract.ts";
 import type { Requirement, ScreenSuggestion } from "./types.ts";
-import { parseStory } from "./qus.ts";
+import { isBlankStructured, parseStory, storySentence, type StructuredStory } from "./qus.ts";
 
 export interface SuggestInput {
   model: DesignModel;
   requirements: Requirement[];
-  stories: string[];
+  /**
+   * User story của module. Đợt 5 (C4): story có cấu trúc (bảng user_stories – mã US-xx, As a / I want / So that),
+   * được ghép thành câu bằng storySentence(). Chuỗi tự do (requirementInput cũ đã tách bằng splitStories) vẫn nhận.
+   */
+  stories: (string | StructuredStory)[];
   dismissed?: string[];
 }
 
@@ -148,7 +152,10 @@ export function suggestNextScreens(input: SuggestInput): ScreenSuggestion[] {
       });
     }
   } else {
-    for (const story of stories) {
+    for (const item of stories) {
+      if (typeof item !== "string" && isBlankStructured(item)) continue;
+      const story = typeof item === "string" ? item : storySentence(item);
+      const code = typeof item === "string" ? undefined : item.code;
       const means = parseStory(story).means ?? story;
       const name = screenName(means);
       if (!uncovered(means, name)) continue;
@@ -156,9 +163,9 @@ export function suggestNextScreens(input: SuggestInput): ScreenSuggestion[] {
         key: storyKey(story),
         kind: "uncovered-story",
         name,
-        reason: "User story chưa có màn nào phủ",
-        source: story,
-        prompt: `Màn hình ${name} đáp ứng user story: ${story}`,
+        reason: code ? `User story ${code} chưa có màn nào phủ` : "User story chưa có màn nào phủ",
+        source: code ?? story,
+        prompt: `Màn hình ${name} đáp ứng user story${code ? ` ${code}` : ""}: ${story}`,
       });
     }
   }

@@ -5,6 +5,8 @@ import type { AddressInfo } from "node:net";
 import {
   splitStories,
   scoreStories,
+  scoreStructured,
+  storySentence,
   storyScore,
   qusRating,
   RATING_LABEL,
@@ -355,6 +357,51 @@ test("DUPLICATE (G1): chỉ so trong cùng module khi không truyền module kh�
   assert.ok(!has(scoreStories(text, { others: [] }), 0, "DUPLICATE"));
 });
 
+// ---------------------------------------------------------------- Đợt 5 – story có cấu trúc (C4)
+
+const AC = ["Hiện 20 đơn mới nhất"];
+
+test("storySentence: ghép As a / I want / So that, bỏ cụm mở đầu gõ lại và dấu câu cuối", () => {
+  assert.equal(storySentence({ asA: "Khách hàng", iWant: "xem đơn hàng", soThat: "theo dõi giao hàng" }), "As a Khách hàng, I want xem đơn hàng, so that theo dõi giao hàng.");
+  assert.equal(storySentence({ asA: "As a Khách hàng,", iWant: "I want xem đơn hàng.", soThat: "so that theo dõi" }), "As a Khách hàng, I want xem đơn hàng, so that theo dõi.");
+  assert.equal(storySentence({ asA: "Là thủ kho", iWant: "tôi muốn in phiếu", soThat: "để lưu hồ sơ" }), "As a thủ kho, I want in phiếu, so that lưu hồ sơ.");
+  assert.equal(storySentence({ iWant: "xuất hoá đơn" }), "I want xuất hoá đơn.");
+  assert.equal(storySentence({ asA: " ", iWant: "", soThat: "" }), "");
+});
+
+test("scoreStructured: chấm từng story theo câu ghép + tiêu chí chấp nhận, gắn id/mã, bỏ story trống", () => {
+  const res = scoreStructured([
+    { id: "a", code: "US-01", asA: "Khách hàng", iWant: "xem lịch sử đơn hàng", soThat: "theo dõi giao hàng", acceptanceCriteria: AC },
+    { id: "blank", code: "US-02", asA: "", iWant: "", soThat: "" },
+    { id: "b", code: "US-03", asA: "Khách hàng", iWant: "đặt hàng", soThat: "", acceptanceCriteria: AC },
+    { id: "c", code: "US-04", iWant: "xuất hoá đơn PDF ra máy", soThat: "lưu hồ sơ", acceptanceCriteria: AC },
+    { id: "d", code: "US-05", asA: "Thủ kho", iWant: "in phiếu nhập", soThat: "lưu hồ sơ" },
+    { id: "e", code: "US-06", asA: "Thủ kho", iWant: "tìm phiếu", soThat: "đối chiếu tồn kho", acceptanceCriteria: ["Kết quả hiện nhanh", "Lọc theo ngày", "Giao diện thân thiện"] },
+  ]);
+  assert.deepEqual(res.stories.map((s) => s.code), ["US-01", "US-03", "US-04", "US-05", "US-06"], "story trống không được chấm");
+  assert.deepEqual(res.stories.map((s) => s.id), ["a", "b", "c", "d", "e"]);
+  const codes = res.stories.map((s) => s.issues.map((i) => i.code).sort());
+  // US-01 đạt chuẩn · US-03 thiếu lợi ích · US-04 thiếu vai trò (+ lệch khuôn mẫu) · US-05 chưa có tiêu chí ·
+  // US-06 tiêu chí có từ mơ hồ (gộp một lỗi, nêu số dòng)
+  assert.deepEqual(codes, [[], ["NO_END"], ["NOT_UNIFORM", "WELL_FORMED"], ["NO_CRITERIA"], ["AMBIGUOUS"]]);
+  assert.deepEqual(res.stories.map((s) => s.score), [100, 85, 65, 95, 85]);
+  assert.equal(res.total, Math.round((100 + 85 + 65 + 95 + 85) / 5));
+  const amb = res.stories[4].issues[0];
+  assert.match(amb.message, /dòng 1, 3/);
+  assert.match(amb.message, /nhanh, thân thiện/);
+});
+
+test("scoreStructured: trùng trong module nêu mã story, trùng chéo module dùng danh sách câu đã ghép", () => {
+  const s = { asA: "Khách hàng", iWant: "xem lịch sử đơn hàng", soThat: "theo dõi giao hàng", acceptanceCriteria: AC };
+  const dup = scoreStructured([{ ...s, code: "US-01" }, { ...s, code: "US-07" }]);
+  assert.ok(!has(dup, 0, "DUPLICATE"));
+  assert.match(dup.stories[1].issues.find((i) => i.code === "DUPLICATE")!.message, /US-01/);
+
+  const cross = scoreStructured([{ ...s, code: "US-02" }], { others: [{ moduleName: "Đơn hàng", stories: [storySentence(s)] }] });
+  assert.match(cross.stories[0].issues.find((i) => i.code === "DUPLICATE")!.message, /Đơn hàng/);
+  assert.equal(scoreStructured([]).total, 0);
+});
+
 // ---------------------------------------------------------------- API (FN-56, BR-05)
 
 let server: Server;
@@ -387,30 +434,35 @@ test("BR-05: lưu module có điểm QUS thấp vẫn thành công", async () =>
   assert.match(saved.data.requirementInput, /báo cáo tốt/);
 });
 
-test("GET /api/modules/:id/qus: chấm lại nội dung hiện tại, trả điểm đã lưu, 404 khi không có module", async () => {
+test("GET /api/modules/:id/qus: chấm user story có cấu trúc của module, trả điểm đã lưu, 404 khi không có module", async () => {
   const p = (await api("POST", "/api/projects", { name: "QUS 2" })).data;
-  const m = (await api("POST", `/api/projects/${p.id}/modules`, { name: "Đơn hàng", requirementInput: "Là khách hàng, tôi muốn xem đơn hàng để theo dõi." })).data;
-  const m2 = (await api("POST", `/api/projects/${p.id}/modules`, { name: "Trùng", requirementInput: "Là khách hàng, tôi muốn xem đơn hàng để theo dõi." })).data;
+  const m = (await api("POST", `/api/projects/${p.id}/modules`, { name: "Đơn hàng" })).data;
+  const m2 = (await api("POST", `/api/projects/${p.id}/modules`, { name: "Trùng" })).data;
+  const story = { asA: "khách hàng", iWant: "xem đơn hàng", soThat: "theo dõi", acceptanceCriteria: ["Hiện 20 đơn mới nhất"] };
+  await api("POST", `/api/projects/${p.id}/stories`, { ...story, moduleId: m.id });
+  const s2 = (await api("POST", `/api/projects/${p.id}/stories`, { ...story, moduleId: m2.id })).data;
 
   const fresh = await api("GET", `/api/modules/${m.id}/qus`);
   assert.equal(fresh.status, 200);
   assert.equal(fresh.data.moduleId, m.id);
   assert.equal(fresh.data.result.stories.length, 1);
+  assert.equal(fresh.data.result.stories[0].code, "US-01");
   // Trùng với story của module "Trùng" cùng dự án (G1) → −15
   assert.equal(fresh.data.result.total, 85);
   assert.match(fresh.data.result.stories[0].issues[0].message, /Trùng/);
 
-  // Lưu điểm (FN-56) rồi đọc lại
+  // Điểm đã được lưu khi thêm story (FN-56); đọc lại
   assert.equal(saveModuleQus(m2.id), 85);
   const stored = (await api("GET", `/api/modules/${m2.id}/qus`)).data;
   assert.equal(stored.score, 85);
   assert.ok(stored.checkedAt);
 
-  // Yêu cầu trống → không có story, lưu NULL
-  await api("PATCH", `/api/modules/${m2.id}`, { requirementInput: "" });
-  assert.equal(saveModuleQus(m2.id), null);
+  // Xoá hết story của module → không có story, lưu NULL
+  await api("DELETE", `/api/stories/${s2.id}`);
   const empty = (await api("GET", `/api/modules/${m2.id}/qus`)).data;
   assert.deepEqual({ score: empty.score, checkedAt: empty.checkedAt, stories: empty.result.stories }, { score: null, checkedAt: null, stories: [] });
+  // Module "Đơn hàng" hết trùng → được chấm lại 100
+  assert.equal((await api("GET", `/api/modules/${m.id}/qus`)).data.score, 100);
 
   assert.equal((await api("GET", "/api/modules/khong-co/qus")).status, 404);
 });

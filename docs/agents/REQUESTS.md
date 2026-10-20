@@ -281,4 +281,22 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Tệp: `server/service.ts`, `server/repo.ts`, `shared/trace.ts` · Chủ tệp: C9
 - Thông tin: `module_docs.data` của UC_SPEC là `{ useCases: UseCase[] }`, của FRD_NFR là `{ requirements: Requirement[] }`, của SRS là `{ srs: SrsDoc }` (đúng hợp đồng C2). Mỗi UC do C5 sinh có thêm trường **`storyCodes: string[]`** (mã US-xx nguồn, ngoài kiểu `UseCase`) – dùng cho cột Story → UC của truy vết. UC sinh từ story nên `screenIds` rỗng (không còn BR-01).
 - Khi UC_SPEC…FRD_NFR được ghi, C5 đã đặt bộ test (`kind "tests"`) đang có thành `outdated` + phát `artifact.stale`; C9 không cần làm lại việc này. Sinh test case nên kiểm FRD_NFR `done`/`approved` (quyết định 8) thay cho `modules.docs_status`.
+### R-050 – C9 / C0: route gợi ý màn và SuggestionsPanel đọc user story có cấu trúc
+- Đợt / agent yêu cầu: 5 – đợt 2 / C4
+- Tệp: `server/routes/suggest.ts` (A9, chưa có chủ đợt 5), `client/components/SuggestionsPanel.tsx` (C9) · `scripts/seed.ts` (C11)
+- Lý do: `shared/suggest.ts` (C4) đã nhận story có cấu trúc (`SuggestInput.stories: (string | StructuredStory)[]`, nguồn gợi ý = mã US-xx), nhưng route vẫn truyền `splitStories(m.requirementInput)`.
+- Thay đổi đề xuất: trong `getScreenSuggestions` đổi `stories: splitStories(m.requirementInput)` → `stories: moduleStories(m.id)` (`import { moduleStories } from "../repo/stories.ts"`). `SuggestionsPanel` điều kiện hiện khối: thay `splitStories(m.requirementInput).length > 0` bằng "module có story" (đọc `listStories(pid, { moduleId })`). `scripts/seed.ts` nên tạo story bằng `POST /api/projects/:id/stories` (hoặc chèn bảng `user_stories`) thay cho `requirementInput`, vì bước chuyển `d5.stories` chỉ chạy một lần lúc mở DB rỗng.
+- Trạng thái: Mở
+
+### R-051 – C0 (sau gộp): AI dùng `storiesText(moduleId)` thay `requirementInput`
+- Đợt / agent yêu cầu: 5 – đợt 2 / C4
+- Tệp: `server/service.ts`, `server/ai/pipelines.ts` (C9), `server/ai/docsPipelines.ts` (C5)
+- Thay đổi đề xuất: đầu vào AI lấy từ `storiesText(moduleId)` trong `server/repo/stories.ts` (mỗi story: `US-01 (High): As a …, I want …, so that ….` + tiêu chí chấp nhận). C5/C9 hiện đọc thẳng bảng – sau khi gộp nên đổi về hàm này cho thống nhất.
+- Trạng thái: Mở
+
+### R-052 – C2/C0: `deleteStory` trong `client/api.ts` nhận `baseRev`, `actorId`
+- Đợt / agent yêu cầu: 5 – đợt 2 / C4
+- Tệp: `client/api.ts` (khoá)
+- Lý do: `deleteStory(id)` không gửi được `baseRev`/`actorId` (DELETE không có body). Server đã đọc `baseRev`/`actorId` ở query. Tạm thời `StoriesView` gọi `del("/api/stories/:id?baseRev=…&actorId=…")`.
+- Thay đổi đề xuất: `deleteStory = (id, q: { baseRev?: number; actorId?: string } = {}) => del(`/api/stories/${enc(id)}${qs(...)}`)`.
 - Trạng thái: Mở
