@@ -33,6 +33,7 @@ File `.env` (chứa API key) đã nằm trong `.gitignore`, nên sẽ **không**
    | `ANTHROPIC_MODEL` | `claude-sonnet-4-5` (hoặc model mới hơn) |
    | `APP_PASSWORD` | mật khẩu đủ dài để chia sẻ cho giảng viên hoặc hội đồng |
    | `MAX_AI_CALLS_PER_DAY` | ví dụ `200` |
+   | `GITHUB_TOKEN` | (tuỳ chọn) token GitHub mặc định khi dự án chưa nhập token trong *Lịch sử GitHub → Cài đặt* |
 
    Railway tự cấp biến `PORT`, cậu không cần đặt. `DB_FILE=/data/ba-copilot.db` đã được khai báo sẵn trong Dockerfile.
 5. Vào **Settings → Networking → Generate Domain** để lấy link công khai.

@@ -223,7 +223,7 @@ route("POST", "/api/modules/:id/docs/approve", ({ params, body }) => svc.approve
 route("PUT", "/api/modules/:id/requirements", ({ params, body }) => svc.updateRequirements(params.id, Array.isArray(body.requirements) ? body.requirements : []));
 
 // Tests & trace
-route("POST", "/api/modules/:id/tests/generate", ({ params, body }) => svc.generateTests(params.id, actor(body)));
+// POST /api/modules/:id/tests/generate: chuyển sang server/routes/prototype.ts (C9, nhận baseRev) – R-101.
 route("GET", "/api/modules/:id/trace", ({ params }) => svc.trace(params.id));
 
 // Export

@@ -19,29 +19,29 @@ Mở trình duyệt tại **http://localhost:3000**.
 - `npm run seed` tạo sẵn dự án mẫu gồm 3 màn hình đã duyệt, tài liệu và test case.
 - `npm run dev` chạy chế độ phát triển, tự build lại khi sửa code.
 
-## 2. Cách dùng (theo đúng flow của luận án)
+## 2. Cách dùng (đợt 5)
 
-1. **Dự án → Module**: tạo module và dán user story hoặc function list vào mục *Yêu cầu nghiệp vụ*. Phần này là không bắt buộc.
-2. **Thiết kế** (Design Studio)
-   - Bấm `+ Mới`, nhập prompt mô tả màn hình, AI sẽ sinh giao diện.
-   - **Khoanh vùng**: dùng chế độ *Chọn* (click, Shift+click để chọn nhiều) hoặc *Khoanh vùng* (kéo khung). Tab *Thành phần* cho phép chọn theo cây.
-   - **Bình luận**: gắn bình luận vào vùng đã chọn. Bình luận hiện thành ghim đánh số trên canvas.
-   - **Gửi bình luận vào prompt**: tick các bình luận cần xử lý, nhập thêm yêu cầu nếu muốn, rồi bấm *Sửa vùng đã khoanh*. AI chỉ được sửa trong vùng; thao tác ra ngoài vùng sẽ bị server chặn.
-   - Mỗi lần sửa tạo ra một **phiên bản** mới. Có thể xem lại, khôi phục, và phần thay đổi được tô xanh.
-   - Chế độ *Xem thử* dùng để bấm nút hoặc link chuyển màn hình như một prototype.
-   - **Gợi ý bố cục** (tab *Gợi ý*): sau mỗi thay đổi, khung mờ tím trên canvas cho biết phần tử nên đặt tiếp theo (loại, vị trí, kích thước). **Tab** để chấp nhận, **Esc** để bỏ qua, hoặc chọn loại khác trong top-3. Chọn một container để hỏi riêng chỗ đó. Nút **Hoàn thành bố cục** sinh toàn bộ phần còn thiếu (trong vùng chọn hoặc cả màn) thành khung mờ để chấp nhận từng phần.
-   - **Sửa tay**: chọn phần tử rồi nhấn **Delete** để xóa; tab *Thành phần* có nút ↑/↓ để đổi thứ tự. Nội dung chữ vẫn đổi bằng *Prompt sửa thiết kế*.
-   - Bấm **Duyệt thiết kế** khi hoàn tất.
-3. **Tài liệu**: bấm *Sinh tài liệu* để tạo Use Case, SRS (ISO/IEC/IEEE 29148), Sequence diagram (Mermaid) và danh sách yêu cầu FR/NFR. Mỗi mục có thể chỉnh lại bằng prompt. Sau đó **Duyệt tài liệu** và xuất ra **Word**.
-4. **Test case**: sinh test theo kịch bản (luồng chính, luồng thay thế, ngoại lệ) và giá trị biên. Xuất ra **Excel** gồm 2 sheet: Test case và Truy vết.
-5. **Truy vết**: ma trận Yêu cầu ↔ UC ↔ Màn hình ↔ Test, kèm chỉ số bao phủ.
-6. **Nhật ký AI**: ghi lại mọi lần gọi AI (prompt, kết quả, token, độ trễ, lỗi và số lần tự sửa) để làm số liệu cho chương đánh giá.
+Không có màn đăng nhập: chọn tên mình ở ô **"Tôi là…"** trên thanh trên. Quyền BA Lead (Duyệt, Yêu cầu sửa, Quản trị hệ thống, cài đặt GitHub) xét theo người đang chọn.
+
+1. **Trang chủ** – danh sách dự án. **Quản trị hệ thống** (chỉ BA Lead): thành viên và vai BA / BA Lead.
+2. Bấm vào dự án → khung dự án với **menu trái**:
+   - **Quản lý công việc** – Kanban 4 cột *Cần làm → Đang làm → Xong → Đã duyệt*, tag *Yêu cầu sửa*.
+   - **Yêu cầu nghiệp vụ** – mỗi user story một dòng: mã US-xx, *As a / I want / So that*, tiêu chí chấp nhận, ưu tiên; nút *+ Thêm user story*; chấm QUS theo từng dòng.
+   - **Thực hiện công việc** (chọn module ở đầu trang):
+     1. *Tài liệu*: BRD → UC Specification → SRS → FRD-NFR → API Spec (bước sau mở khi bước trước *Xong*).
+     2. *Sơ đồ*: Context → Use Case → Sequence → BPMN (mô phỏng bằng Mermaid) → ERD.
+     3. *Prototype*: Design Studio (khoanh vùng, bình luận, phiên bản, gợi ý bố cục, xuất HTML).
+     4. *Test case*, 5. *Truy vết* (Story → UC → FR → Màn → TC).
+   - **Kho tài liệu**, **Nhật ký AI**, **Lịch sử GitHub**.
+3. **Trạng thái và duyệt** – trên mọi sản phẩm: BA bấm **Xong**; BA Lead bấm **Duyệt** hoặc **Yêu cầu sửa** (không cần lý do – góp ý bằng bình luận trên prototype). Yêu cầu sửa → sản phẩm và task về *Đang làm* + tag. Sửa nội dung sản phẩm đã Xong/Đã duyệt → về *Đang làm*.
+4. **GitHub** – BA Lead nhập link repo, token và tên nhánh (mặc định `main`) ở trang *Lịch sử GitHub → Cài đặt*. Mỗi lần **Duyệt**, app commit đúng các tệp của sản phẩm đó (`.md`, prototype `.html`) lên nhánh; Dev/Tester đọc từ repo. *Xong* không đụng GitHub.
+5. **Chống ghi đè** – hai người cùng sửa một sản phẩm: người lưu sau nhận "Bản đã thay đổi – tải lại"; màn đang có người sửa hiện "Đang được sửa bởi …".
 
 ### Quy tắc nghiệp vụ được cài đặt
 
 | Mã | Quy tắc |
 | --- | --- |
-| BR-01 | Chỉ sinh tài liệu khi module có ít nhất 1 màn hình *Đã duyệt*. Tài liệu chỉ dựa trên các màn hình đã duyệt. |
+| BR-01 | *(Bỏ ở đợt 5)* Tài liệu sinh từ user story, không cần màn hình đã duyệt. Bước tài liệu sau chỉ sinh khi bước trước *Xong*. |
 | BR-02 | Khi sửa, khôi phục hoặc bỏ duyệt một thiết kế đã duyệt, tài liệu và test hiện có chuyển sang *Lỗi thời*. |
 | BR-03 | Nội dung AI phải suy diễn được gắn nhãn *Giả định* (trường `assumptions`, `isAssumption`). |
 | BR-04 | Mỗi test case phải tham chiếu ít nhất 1 yêu cầu. Kết quả AI vi phạm quy tắc này sẽ bị trả về để AI tự sửa. |
@@ -258,10 +258,13 @@ npm run e2e                       # chạy trình duyệt qua toàn luồng, ả
 | `PORT` | Cổng server, mặc định 3000. |
 | `DB_FILE` | Đường dẫn file SQLite, mặc định `data/ba-copilot.db`. |
 | `RECURSIVE_FILE` | Đường dẫn mô hình gợi ý bố cục, mặc định `model/recursive-layout.json`. |
+| `GITHUB_TOKEN` | (Tuỳ chọn) Token GitHub mặc định cho dự án chưa nhập token riêng. Nên dùng token chỉ có quyền ghi đúng repo. |
+| `GITHUB_API_URL` | (Tuỳ chọn) Địa chỉ API GitHub, mặc định `https://api.github.com`. |
 
 ## 6. Chưa làm trong bản MVP (theo lộ trình)
 
-- Đăng nhập và phân quyền BA / Reviewer / Admin. Hiện tại là bản 1 người dùng chạy local.
-- Nhập user story kèm chấm chất lượng theo QUS (E2) và ma trận Actor.
+- Đăng nhập thật (đợt 5 chọn người dùng bằng ô "Tôi là…"; mã đăng nhập thành viên đã có ở server nhưng chưa bật giao diện).
+- Bình luận trực tiếp trên tài liệu (như Google Docs).
+- Mã hoá token GitHub lưu trong DB.
 - Chuyển sang PostgreSQL để deploy. Tầng `repo.ts` đã tách riêng nên chỉ cần thay phần này.
 - Xuất sang Figma và sinh script Playwright từ test case.
