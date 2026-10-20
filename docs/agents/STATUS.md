@@ -10,7 +10,7 @@ Người cập nhật: **A0**. Mỗi agent dán kết quả `npm test` / `npm ru
 | A1 | Design System | 1 | `chi_task` (`336c9e2`) | ✅ Đã gộp vào `v2-contract` | ✅ | ✅ | Làm thẳng trên `chi_task`, không có nhánh agent riêng. Route `#/_gallery` chuyển sang `client/routes.ts` |
 | A2 | Nền tảng dữ liệu & hợp đồng | 1 | `agent/a2-nen-tang` | ✅ Đã gộp vào `v2-contract`; `api.md`/`erd.md` đã duyệt và **khoá** | 59/59 ✅ | ✅ | Xem nhật ký đợt 1 – A0 |
 | A3 | Thành viên & thanh trên | 2 | `agent/a3-thanh-vien` | ⏳ Sẵn sàng | — | — | |
-| A4 | Kho tài liệu | 2 | `agent/a4-kho-tai-lieu` | ⏳ Sẵn sàng | — | — | Code C4 đã có trên `v2-base` |
+| A4 | Kho tài liệu | 2 | `agent/a4-kho-tai-lieu` | ✅ Xong, chờ A0 gộp | 75/75 ✅ | ✅ | FN-04 → FN-10 đạt (kể cả FN-08). Xem nhật ký đợt 2 – A4; yêu cầu R-005, R-006 |
 | A5 | Sơ đồ UC | 2 | `agent/a5-so-do-uc` | ⏳ Sẵn sàng | — | — | |
 | A6 | Công việc Kanban | 2 | `agent/a6-kanban` | ⏳ Sẵn sàng | — | — | |
 | A7 | Tự cập nhật trạng thái task | 2 | `agent/a7-tu-cap-nhat` | ⏳ Sẵn sàng | — | — | Gộp sau A6 |
@@ -134,3 +134,39 @@ Ba lựa chọn A2 tự chốt, A0 **xác nhận** (tài liệu v2 không quy đ
 
 **A8, A9:** mục A8 và A9 trong `docs/Ke_hoach_Agent_BA_Copilot_v2.md` đã có khung "Hiện trạng trên `v2-contract`", ghi rõ phần đã có, việc còn lại và 2 chỗ lệch hợp đồng của `suggest.ts`. Khi khởi chạy A8, A9, phải giữ nguyên khung đó trong prompt.
 
+
+---
+
+## Nhật ký đợt 2 – A4 (2026-10-20)
+
+**Nhánh:** `agent/a4-kho-tai-lieu`, tạo từ `v2-contract` @ `1aabff2`.
+
+### Đã làm
+
+| Hạng mục | Kết quả |
+|---|---|
+| Lưu tệp | `DATA_DIR/files` (mặc định `DATA_DIR` = thư mục chứa DB; `UPLOAD_DIR` ghi đè cho test). Tệp cũ ở `DATA_DIR/uploads` (nhánh htrung-c4) vẫn đọc/xoá được |
+| Loại, kích thước | Chỉ Word (`.docx .doc`), PDF, Excel (`.xlsx .xls`), ảnh (`.png .jpg .jpeg .gif .webp`), kiểm chữ ký nội dung; tối đa 10 MB/tệp (`413`) |
+| FN-04, FN-05 | `FileDrop` nhiều tệp → hộp thoại tải lên với module, stakeholder gửi, ngày nhận, ghi chú; gửi song song, tệp lỗi giữ lại để thử lại |
+| FN-06 | `PATCH /api/files/:id`: đổi tên (giữ đuôi, chặn `../`), chuyển module, sửa thông tin nguồn |
+| FN-07 | Bảng tệp xếp theo module (Cấp dự án trước); xoá có hộp thoại xác nhận, xoá luôn tệp vật lý |
+| FN-08 | Ô tìm theo tên (không phân biệt dấu) + lọc module; server hỗ trợ `?q=` và `?moduleId=` |
+| FN-09, FN-10 | `FileDrawer` (`Drawer` lg): PDF bằng `<iframe>`, ảnh bằng `<img>`, loại khác "Tải về để xem"; nút Tải về; `GET /api/files/:id`, `/preview` (`inline`, `415` với loại khác), `/download` giữ tên tiếng Việt |
+
+### Kiểm tra (`ba-copilot-source/ba-copilot`, Node v24.16.0)
+
+| Lệnh | Kết quả |
+|---|---|
+| `npm test` | ✅ `tests 75 · pass 75 · fail 0` (66 cũ + 9 test A4 mới trong `tests/files.test.ts`), `duration_ms 12012` |
+| `npm run build` | ✅ `public/app.js 347.4kb`, `public/app-style.css 41.2kb`, `Done` |
+| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+| Chạy app (Mock, DB mới) + Chrome | ✅ Thả 3 tệp (PDF, PNG, XLSX) + 1 `.txt` cùng lúc: `.txt` bị chặn, 3 tệp lên đủ, đúng module và nguồn. Xem PDF trong ngăn phải, Word hiện "Tải về để xem", tìm "bang gia", đổi tên, xoá có xác nhận, link `#/p/:id/files/:moduleId` lọc đúng module. 0 lỗi console |
+
+`public/app.js`, `public/app-style.css` **không** commit (sản phẩm build) – A0 sinh lại sau khi gộp.
+
+### Điểm A0 xử lý khi gộp
+
+- **R-006:** xoá `LegacyFilesPage` trong `client/routes.ts`, bỏ tab "files" + import `FilesTab` trong `ProjectView.tsx`, rồi xoá `client/views/FilesTab.tsx`.
+- **R-005 (A2):** hỗ trợ `inline` và tên tệp tiếng Việt trong `FileResponse`; tới lúc đó `server/routes/files.ts` tự ghi đè header.
+- **Sau khi gộp A3:** `FilesView` chưa gửi `actorId` (chưa có `useCurrentMember()`). Server đã nhận và lưu `uploaded_by` nếu thành viên tồn tại; chỉ cần thêm `actorId: me?.id` vào lời gọi `uploadFile` trong `FilesView.tsx` (A4 làm nếu được giao lại).
+- Đổi danh sách loại tệp: `.pptx`, `.txt`, `.md`, `.csv` **không còn tải lên được** (theo yêu cầu "Word, PDF, Excel, ảnh"). Tệp loại đó đã có trong kho vẫn xem danh sách, tải về và xoá được.

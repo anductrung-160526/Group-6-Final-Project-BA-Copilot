@@ -3,11 +3,12 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { Server } from "node:http";
 import type { AddressInfo } from "node:net";
-import { mkdtempSync, rmSync, existsSync } from "node:fs";
+import { mkdtempSync, rmSync, existsSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { openDb } from "../server/db.ts";
 import { createApp } from "../server/app.ts";
+import { safePath, filesDir, renameKeepExt } from "../server/files.ts";
 
 let server: Server;
 let base = "";
@@ -244,5 +245,221 @@ test("tự lưu bản xuất Word/Excel vào kho tài liệu và thay thế bả
   await api("POST", `/api/modules/${mNew.data.id}/docs/generate`);
   const docxNew = await api("GET", `/api/modules/${mNew.data.id}/export/docx`);
   assert.equal(docxNew.status, 200);
+});
+
+// ---------------------------------------------------------------- v2 – A4 (FN-04 → FN-10)
+
+const PDF = Buffer.from("%PDF-1.4\n% bản thử\n");
+const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
+const DOCX = Buffer.from("PK\x03\x04noi dung word");
+const XLSX = Buffer.from("PK\x03\x04noi dung excel");
+const b64 = (b: Buffer) => b.toString("base64");
+/** Tệp vật lý của một FileItem trong thư mục lưu (tên lưu = <id><đuôi>). */
+const onDisk = (id: string) => readdirSync(tmpUploadDir).filter((n) => n.startsWith(id));
+
+async function newProject(name: string) {
+  const p = await api("POST", "/api/projects", { name });
+  assert.equal(p.status, 200);
+  return p.data.id as string;
+}
+
+test("A4: safePath chặn '../', đường dẫn tuyệt đối và thoát khỏi thư mục lưu", () => {
+  const root = tmpUploadDir;
+  assert.ok(safePath(root, "abc.pdf").startsWith(root));
+  for (const bad of ["../x.pdf", "..\\x.pdf", "../../etc/passwd", "a/../../x.pdf", "/etc/passwd", ".", ".."]) {
+    assert.throws(() => safePath(root, bad), /path traversal/, bad);
+  }
+});
+
+test("A4: id chứa '../' trên URL không đọc được tệp ngoài kho", async () => {
+  for (const id of ["..%2F..%2Fpackage.json", "..%2Fba-copilot.db", "%2E%2E%2Fpackage.json"]) {
+    for (const suffix of ["/download", "/preview", ""]) {
+      const r = await api("GET", `/api/files/${id}${suffix}`);
+      assert.equal(r.status, 404, `${id}${suffix}`);
+    }
+  }
+});
+
+test("A4: tệp lưu ở DATA_DIR/files khi không đặt UPLOAD_DIR", () => {
+  const saved = process.env.UPLOAD_DIR;
+  const dir = mkdtempSync(join(tmpdir(), "ba-test-data-"));
+  try {
+    delete process.env.UPLOAD_DIR;
+    process.env.DATA_DIR = dir;
+    assert.equal(filesDir(), join(dir, "files"));
+    assert.ok(existsSync(join(dir, "files")));
+  } finally {
+    process.env.UPLOAD_DIR = saved;
+    delete process.env.DATA_DIR;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("A4: chặn sai loại tệp – chỉ nhận Word, PDF, Excel, ảnh", async () => {
+  const pid = await newProject("Dự án loại tệp");
+  const bad = [
+    { name: "ghi_chu.txt", buf: Buffer.from("text") },
+    { name: "slide.pptx", buf: DOCX },
+    { name: "logo.svg", buf: Buffer.from("<svg onload=alert(1)></svg>") },
+    { name: "trang.html", buf: Buffer.from("<script>alert(1)</script>") },
+    { name: "khong_duoi", buf: PDF },
+    { name: "anh.png", buf: PDF }, // đuôi ảnh nhưng nội dung PDF
+    { name: "bang.xls", buf: XLSX }, // .xls phải là OLE, không phải PK
+  ];
+  for (const f of bad) {
+    const r = await api("POST", `/api/projects/${pid}/files`, { name: f.name, contentBase64: b64(f.buf) });
+    assert.equal(r.status, 400, f.name);
+  }
+  const ok = [
+    { name: "a.pdf", buf: PDF },
+    { name: "b.png", buf: PNG },
+    { name: "c.docx", buf: DOCX },
+    { name: "d.xlsx", buf: XLSX },
+    { name: "e.doc", buf: Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]) },
+    { name: "f.JPG", buf: Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0]) },
+  ];
+  for (const f of ok) {
+    const r = await api("POST", `/api/projects/${pid}/files`, { name: f.name, contentBase64: b64(f.buf) });
+    assert.equal(r.status, 200, `${f.name}: ${JSON.stringify(r.data)}`);
+  }
+  const list = await api("GET", `/api/projects/${pid}/files`);
+  assert.equal(list.data.length, ok.length);
+});
+
+test("A4: tải lên 3 tệp cùng lúc kèm thông tin nguồn (FN-04, FN-05)", async () => {
+  const pid = await newProject("Dự án tải nhiều tệp");
+  const m = await api("POST", `/api/projects/${pid}/modules`, { name: "Đặt hàng" });
+  const src = { moduleId: m.data.id, sender: "Chị Lan – Phòng KD", receivedAt: "2026-10-18", note: "Bản yêu cầu đợt 1" };
+  const results = await Promise.all(
+    [
+      { name: "Yêu cầu.pdf", buf: PDF },
+      { name: "Mẫu đơn.docx", buf: DOCX },
+      { name: "Ảnh chụp.png", buf: PNG },
+    ].map((f) => api("POST", `/api/projects/${pid}/files`, { ...src, name: f.name, contentBase64: b64(f.buf), actorId: "khong-ton-tai" })),
+  );
+  for (const r of results) {
+    assert.equal(r.status, 200, JSON.stringify(r.data));
+    assert.equal(r.data.moduleId, m.data.id);
+    assert.equal(r.data.sender, src.sender);
+    assert.equal(r.data.receivedAt, src.receivedAt);
+    assert.equal(r.data.note, src.note);
+    assert.equal(r.data.uploadedBy, null); // thành viên không tồn tại → bỏ qua, không lỗi
+    assert.equal(onDisk(r.data.id).length, 1);
+  }
+  const list = await api("GET", `/api/projects/${pid}/files`);
+  assert.equal(list.data.length, 3);
+  assert.deepEqual(new Set(list.data.map((f: any) => f.name)), new Set(["Yêu cầu.pdf", "Mẫu đơn.docx", "Ảnh chụp.png"]));
+
+  const one = await api("GET", `/api/files/${results[0].data.id}`);
+  assert.equal(one.status, 200);
+  assert.equal(one.data.sender, src.sender);
+  assert.equal(one.data.storedName, undefined);
+
+  const badDate = await api("POST", `/api/projects/${pid}/files`, { name: "x.pdf", contentBase64: b64(PDF), receivedAt: "2026-02-30" });
+  assert.equal(badDate.status, 400);
+  assert.match(badDate.data.error, /Ngày nhận/);
+});
+
+test("A4: xem trước PDF/ảnh inline, loại khác 415; tải về giữ tên tiếng Việt (FN-09, FN-10)", async () => {
+  const pid = await newProject("Dự án xem trước");
+  const pdf = await api("POST", `/api/projects/${pid}/files`, { name: "Tài liệu đặc tả.pdf", contentBase64: b64(PDF) });
+  const png = await api("POST", `/api/projects/${pid}/files`, { name: "sơ đồ.png", contentBase64: b64(PNG) });
+  const docx = await api("POST", `/api/projects/${pid}/files`, { name: "Biên bản.docx", contentBase64: b64(DOCX) });
+
+  const pv = await api("GET", `/api/files/${pdf.data.id}/preview`);
+  assert.equal(pv.status, 200);
+  assert.equal(pv.headers.get("content-type"), "application/pdf");
+  assert.match(pv.headers.get("content-disposition")!, /^inline;/);
+  assert.equal(Buffer.compare(pv.data, PDF), 0);
+
+  const pvImg = await api("GET", `/api/files/${png.data.id}/preview`);
+  assert.equal(pvImg.status, 200);
+  assert.equal(pvImg.headers.get("content-type"), "image/png");
+
+  const pvDoc = await api("GET", `/api/files/${docx.data.id}/preview`);
+  assert.equal(pvDoc.status, 415);
+
+  const dl = await api("GET", `/api/files/${pdf.data.id}/download`);
+  assert.equal(dl.status, 200);
+  const cd = dl.headers.get("content-disposition")!;
+  assert.match(cd, /^attachment;/);
+  assert.match(cd, /filename="tai lieu dac ta\.pdf"/i);
+  assert.ok(cd.includes(`filename*=UTF-8''${encodeURIComponent("Tài liệu đặc tả.pdf")}`));
+  assert.equal(Buffer.compare(dl.data, PDF), 0);
+});
+
+test("A4: đổi tên giữ đuôi, chặn '../', sửa nguồn và chuyển module (FN-06)", async () => {
+  const pid = await newProject("Dự án đổi tên");
+  const other = await newProject("Dự án khác");
+  const m = await api("POST", `/api/projects/${pid}/modules`, { name: "Kho" });
+  const mOther = await api("POST", `/api/projects/${other}/modules`, { name: "Lạ" });
+  const up = await api("POST", `/api/projects/${pid}/files`, { name: "ban_dau.pdf", contentBase64: b64(PDF) });
+  const id = up.data.id;
+
+  let r = await api("PATCH", `/api/files/${id}`, { name: "Biên bản họp.pdf" });
+  assert.equal(r.status, 200);
+  assert.equal(r.data.name, "Biên bản họp.pdf");
+
+  r = await api("PATCH", `/api/files/${id}`, { name: "Không đuôi" });
+  assert.equal(r.data.name, "Không đuôi.pdf");
+
+  r = await api("PATCH", `/api/files/${id}`, { name: "../../ra_ngoai.pdf" });
+  assert.equal(r.status, 200);
+  assert.equal(r.data.name, "ra_ngoai.pdf");
+
+  r = await api("PATCH", `/api/files/${id}`, { name: "doi_loai.docx" });
+  assert.equal(r.status, 400);
+  r = await api("PATCH", `/api/files/${id}`, { name: "   " });
+  assert.equal(r.status, 400);
+
+  r = await api("PATCH", `/api/files/${id}`, { moduleId: m.data.id, sender: "Anh Minh", receivedAt: "2026-10-01", note: "Đã xác nhận" });
+  assert.equal(r.status, 200);
+  assert.equal(r.data.moduleId, m.data.id);
+  assert.equal(r.data.sender, "Anh Minh");
+  assert.equal(r.data.receivedAt, "2026-10-01");
+  assert.equal(r.data.name, "ra_ngoai.pdf"); // trường không gửi thì giữ nguyên
+
+  r = await api("PATCH", `/api/files/${id}`, { moduleId: mOther.data.id });
+  assert.equal(r.status, 400);
+  r = await api("PATCH", `/api/files/${id}`, { moduleId: null, receivedAt: "" });
+  assert.equal(r.data.moduleId, null);
+  assert.equal(r.data.receivedAt, null);
+  assert.equal(r.data.sender, "Anh Minh");
+
+  // Tệp vật lý không đổi khi đổi tên, tải về vẫn đúng nội dung
+  assert.equal(onDisk(id).length, 1);
+  const dl = await api("GET", `/api/files/${id}/download`);
+  assert.equal(Buffer.compare(dl.data, PDF), 0);
+
+  assert.equal((await api("PATCH", `/api/files/khong-co`, { name: "a.pdf" })).status, 404);
+  assert.equal(renameKeepExt("a.xlsx", "Bang v1.2"), "Bang v1.2.xlsx");
+});
+
+test("A4: xoá tệp thì xoá luôn tệp vật lý (FN-07)", async () => {
+  const pid = await newProject("Dự án xoá");
+  const up = await api("POST", `/api/projects/${pid}/files`, { name: "xoa.png", contentBase64: b64(PNG) });
+  const id = up.data.id;
+  assert.equal(onDisk(id).length, 1);
+  const del = await api("DELETE", `/api/files/${id}`);
+  assert.equal(del.status, 200);
+  assert.equal(onDisk(id).length, 0);
+  assert.equal((await api("GET", `/api/files/${id}`)).status, 404);
+  assert.equal((await api("DELETE", `/api/files/${id}`)).status, 404);
+});
+
+test("A4: tìm theo tên (không phân biệt dấu) và lọc theo module (FN-08)", async () => {
+  const pid = await newProject("Dự án tìm kiếm");
+  const m1 = await api("POST", `/api/projects/${pid}/modules`, { name: "M1" });
+  const m2 = await api("POST", `/api/projects/${pid}/modules`, { name: "M2" });
+  await api("POST", `/api/projects/${pid}/files`, { name: "Tài liệu yêu cầu.pdf", contentBase64: b64(PDF), moduleId: m1.data.id });
+  await api("POST", `/api/projects/${pid}/files`, { name: "Biên bản.docx", contentBase64: b64(DOCX), moduleId: m2.data.id });
+  await api("POST", `/api/projects/${pid}/files`, { name: "tai lieu chung.xlsx", contentBase64: b64(XLSX) });
+
+  const names = async (q: string) => (await api("GET", `/api/projects/${pid}/files${q}`)).data.map((f: any) => f.name).sort();
+  assert.deepEqual(await names(`?q=${encodeURIComponent("tai lieu")}`), ["Tài liệu yêu cầu.pdf", "tai lieu chung.xlsx"].sort());
+  assert.deepEqual(await names(`?q=${encodeURIComponent("BIÊN")}`), ["Biên bản.docx"]);
+  assert.deepEqual(await names(`?moduleId=${m1.data.id}`), ["Tài liệu yêu cầu.pdf"]);
+  assert.deepEqual(await names(`?moduleId=${m2.data.id}&q=tai`), []);
+  assert.equal((await names("")).length, 3);
 });
 
