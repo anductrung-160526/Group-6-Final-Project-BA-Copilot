@@ -10,6 +10,7 @@
 import { createElement, type ComponentType } from "react";
 import { DIAGRAM_KINDS, DIAGRAM_KIND_LABEL, DOC_KINDS, DOC_KIND_LABEL } from "../shared/types.ts";
 import { Empty } from "./components/ui.tsx";
+import { DocsView } from "./views/DocsView.tsx";
 import { FilesView } from "./views/FilesView.tsx";
 import { TasksView } from "./views/TasksView.tsx";
 
@@ -71,7 +72,7 @@ export const DOC_SUBS: MenuSub[] = DOC_KINDS.map((k) => ({ key: k, label: DOC_KI
 export const DIAGRAM_SUBS: MenuSub[] = DIAGRAM_KINDS.map((k) => ({ key: k, label: DIAGRAM_KIND_LABEL[k] }));
 
 export const WORK_STEPS: WorkStepItem[] = [
-  { key: "docs", no: 1, label: "Tài liệu", icon: "FileText", owner: "C5", component: placeholder<WorkStepProps>("Tài liệu", "C5"), subs: DOC_SUBS },
+  { key: "docs", no: 1, label: "Tài liệu", icon: "FileText", owner: "C5", component: DocsView, subs: DOC_SUBS },
   { key: "diagrams", no: 2, label: "Sơ đồ", icon: "Network", owner: "C6", component: placeholder<WorkStepProps>("Sơ đồ", "C6"), subs: DIAGRAM_SUBS },
   { key: "prototype", no: 3, label: "Prototype", icon: "LayoutTemplate", owner: "C9", component: placeholder<WorkStepProps>("Prototype", "C9") },
   { key: "tests", no: 4, label: "Test case", icon: "FlaskConical", owner: "C9", component: placeholder<WorkStepProps>("Test case", "C9") },
