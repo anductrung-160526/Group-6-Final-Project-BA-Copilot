@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { get } from "../api.ts";
 import { PAGES, pageHref } from "../routes.ts";
 import { ROLE_LABEL, useCurrentMember } from "../currentMember.ts";
-import { MemberPicker, Tabs } from "./ui.tsx";
+import { MemberPicker } from "./ui.tsx";
 
 function useHash() {
   const [hash, setHash] = useState(window.location.hash || "#/");
@@ -63,7 +63,20 @@ export function TopBar() {
           BA Copilot<span className="brand-sub">Prompt → Thiết kế → Tài liệu → Test</span>
         </span>
       </a>
-      <Tabs items={menu.map((p) => ({ key: p.key, label: p.label, href: pageHref(p, projectId), testId: `nav-${p.key}` }))} active={active} />
+      {/* Menu dạng pill: mục đang chọn nền mint nhạt, chữ mint-700 đậm (dùng .chip / .chip-sel có sẵn) */}
+      <nav className="tpl-row" aria-label="Menu chính">
+        {menu.map((p) =>
+          p.key === active ? (
+            <a key={p.key} href={pageHref(p, projectId)} className="chip chip-sel" aria-current="page" data-testid={`nav-${p.key}`}>
+              <strong>{p.label}</strong>
+            </a>
+          ) : (
+            <a key={p.key} href={pageHref(p, projectId)} className="chip muted" data-testid={`nav-${p.key}`}>
+              {p.label}
+            </a>
+          ),
+        )}
+      </nav>
       <span className="spacer" />
       <label className="member-picker" title="Tên của bạn được ghi lên bình luận, phiên bản thiết kế và công việc">
         <span className="muted small">Tôi là</span>
