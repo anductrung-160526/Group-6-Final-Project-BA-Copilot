@@ -268,4 +268,17 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Tệp: `e2e/demo-flow.mjs`, `e2e/e2e.mjs`, `scripts/seed.ts` · Chủ tệp: C11
 - Lý do: URL và màn đổi: `#/members` → `#/admin` (vẫn chuyển hướng; `data-testid="members-view"` giữ nguyên; nút Sửa/Xoá thành viên giờ là `RowActions` – testid `member-<id>-edit` / `member-<id>-delete`, xoá hỏi bằng `confirm-ok`); thanh trên chỉ còn "Dự án" + "Quản trị hệ thống" (BA Lead) – bỏ `nav-tasks`, `nav-files`, `nav-members`; `#/p/:id` → `#/p/:id/tasks`; `#/m/:id/<tab>` → `#/p/:pid/work/:mid/<bước>`. Thêm / sửa / xoá thành viên cần `actorId` là BA Lead khi hệ thống đã có BA Lead (server trả 403). Menu trái: `pnav-<mục>`, `pnav-work-<bước>[-<loại>]`; bộ chọn module `module-picker`, tạo module `new-module` → `module-name` → `create-module`.
 - Thay đổi đề xuất: cập nhật kịch bản e2e theo testid trên; seed không cần đổi (ghi thẳng DB).
+
+### R-060 – C1: icon "download" cho nút tải tệp
+- Đợt / agent yêu cầu: 5 – đợt 2 / C5
+- Tệp: `client/components/ui.tsx`, `docs/design-system.md` mục 3.1 · Chủ tệp: C1 (đợt 3: C10)
+- Lý do: màn Tài liệu có nút "Tải .md"; bảng `ICONS` chưa có icon tải về (chỉ có `upload`). C5 tạm để nút chữ không icon.
+- Thay đổi đề xuất: thêm `download: Download` (Lucide) vào `ICONS` + dòng bảng 3.1; C10 gắn `<Icon name="download" />` vào nút `doc-download` trong `client/views/DocsView.tsx`.
+- Trạng thái: Mở
+
+### R-061 – C9: đọc UC / FR từ `module_docs` của C5 cho test case và truy vết
+- Đợt / agent yêu cầu: 5 – đợt 2 / C5
+- Tệp: `server/service.ts`, `server/repo.ts`, `shared/trace.ts` · Chủ tệp: C9
+- Thông tin: `module_docs.data` của UC_SPEC là `{ useCases: UseCase[] }`, của FRD_NFR là `{ requirements: Requirement[] }`, của SRS là `{ srs: SrsDoc }` (đúng hợp đồng C2). Mỗi UC do C5 sinh có thêm trường **`storyCodes: string[]`** (mã US-xx nguồn, ngoài kiểu `UseCase`) – dùng cho cột Story → UC của truy vết. UC sinh từ story nên `screenIds` rỗng (không còn BR-01).
+- Khi UC_SPEC…FRD_NFR được ghi, C5 đã đặt bộ test (`kind "tests"`) đang có thành `outdated` + phát `artifact.stale`; C9 không cần làm lại việc này. Sinh test case nên kiểm FRD_NFR `done`/`approved` (quyết định 8) thay cho `modules.docs_status`.
 - Trạng thái: Mở
