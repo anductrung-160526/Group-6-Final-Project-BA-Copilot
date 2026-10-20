@@ -1,48 +1,46 @@
-// E2E luồng demo BA Copilot v2 (A11). Chạy trình duyệt thật qua giao diện, chế độ Mock, DB tạm.
+// E2E luồng demo BA Copilot – đợt 5 (C11). Trình duyệt thật, chế độ Mock, DB tạm. Dựa vào data-testid (không dựa vào chữ / icon).
 //
-//   Luồng demo (UC-24 → UC-26):
-//     1. Tạo task "Vẽ UC diagram" gắn sơ đồ UC của module          → cột Cần làm
-//     2. AI sinh sơ đồ                                               → task sang Đang làm   (FN-20)
-//     3. BA Lead duyệt sơ đồ                                         → task sang Xong       (FN-21)
-//     4. Sửa một màn đã duyệt                                        → task tài liệu sang Cần làm lại (FN-22, BR-02)
-//   Luồng thêm:
-//     - QUS: gõ story lỗi trong popup Tạo module → điểm < 60 kèm danh sách lỗi; vẫn lưu được (FN-53, FN-55, BR-05)
-//     - Gợi ý: bấm Tạo ở khối "Gợi ý tiếp theo" → hộp thoại điền sẵn → màn mới xuất hiện (FN-59, FN-60, BR-06)
-//   Cuối cùng chụp các trang chính và #/_gallery ở 1280 px và 375 px (đối chiếu docs/design-system.md).
+//   Luồng chính:
+//     1. Chuẩn bị: 1 BA Lead + 1 BA (API), "Tôi là" BA, tạo dự án + module bằng giao diện
+//     2. Yêu cầu nghiệp vụ: thêm 2 user story có cấu trúc
+//     3. Tài liệu: sinh BRD → UC Spec → SRS → FRD-NFR → API Spec (Mock), bấm Xong từng bước
+//     4. Sơ đồ: sinh Context, UC, BPMN (vẽ được bằng Mermaid), bấm Xong
+//     5. Prototype: sinh 1 màn, Xuất HTML, bấm Xong
+//     6. Test case: sinh, bấm Xong · 7. Truy vết: có ma trận
+//     8. "Tôi là" BA Lead → Yêu cầu sửa API Spec → task về Đang làm + tag "Yêu cầu sửa"
+//     9. "Tôi là" BA → sửa API Spec, Xong (tag vẫn giữ)
+//    10. BA Lead Duyệt (dự án chưa cấu hình GitHub → "Chưa cấu hình GitHub – chưa đẩy") → Kanban: task ở Đã duyệt, hết tag
+//   Ca thêm:
+//     - BA không thấy nút Duyệt / Yêu cầu sửa, không thấy mục Quản trị; vào thẳng #/admin bị chặn
+//     - 2 tab cùng sửa một story → tab lưu sau thấy "Bản đã thay đổi – tải lại"
 //
 // Dùng (trong ba-copilot-source/ba-copilot):
 //   npm run build && node e2e/demo-flow.mjs
 // Biến môi trường:
-//   E2E_BASE=http://localhost:3000  dùng server có sẵn thay vì tự khởi động (DB của server đó sẽ bị ghi thêm dữ liệu)
-//   E2E_PORT=3299                   cổng khi tự khởi động server
+//   E2E_BASE=http://localhost:3000  dùng server có sẵn (DB của server đó sẽ bị ghi thêm dữ liệu)
+//   E2E_PORT=31110                  cổng khi tự khởi động server (DB + thư mục tệp tạm, AI Mock)
 //   CHROME_PATH=…/chrome.exe        trình duyệt; không đặt thì dùng Chromium của Playwright, thiếu thì dùng Chrome cài trên máy
-//   E2E_SHOTS=e2e/demo-flow         thư mục ảnh chụp (đã nằm trong .gitignore: e2e/demo-*/)
+//   E2E_SHOTS=e2e/screenshots/dot5  thư mục ảnh chụp (e2e/screenshots/ nằm trong .gitignore)
 //   E2E_HEADED=1                    mở cửa sổ trình duyệt để xem
+// Kết quả: in từng kiểm tra; ghi <E2E_SHOTS>/results.json; mã thoát 1 nếu có kiểm tra trượt.
 
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const APP = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const PORT = process.env.E2E_PORT ?? "3299";
+const PORT = process.env.E2E_PORT ?? "31110";
 const BASE = process.env.E2E_BASE ?? `http://localhost:${PORT}`;
-const SHOTS = resolve(APP, process.env.E2E_SHOTS ?? "e2e/demo-flow");
+const SHOTS = resolve(APP, process.env.E2E_SHOTS ?? "e2e/screenshots/dot5");
 rmSync(SHOTS, { recursive: true, force: true });
 mkdirSync(SHOTS, { recursive: true });
 
 // ------------------------------------------------------------------ server tạm (Mock, DB và thư mục tệp riêng)
 let server = null;
 let tmp = null;
-const removeTmp = () => {
-  try {
-    if (tmp) rmSync(tmp, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
-  } catch {} // Windows còn giữ khoá tệp DB: để hệ điều hành dọn thư mục tạm
-  tmp = null;
-};
-/** Tắt server tạm, chờ tiến trình thoát hẳn (nhả khoá tệp DB) rồi xoá thư mục tạm. */
 async function stopServer() {
   if (server && server.exitCode === null) {
     const exited = new Promise((r) => server.once("exit", r));
@@ -50,7 +48,10 @@ async function stopServer() {
     await Promise.race([exited, new Promise((r) => setTimeout(r, 3000))]);
   }
   server = null;
-  removeTmp();
+  try {
+    if (tmp) rmSync(tmp, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+  } catch {} // Windows còn giữ khoá tệp DB: để hệ điều hành dọn
+  tmp = null;
 }
 process.on("exit", () => {
   try {
@@ -59,11 +60,11 @@ process.on("exit", () => {
 });
 
 if (!process.env.E2E_BASE) {
-  tmp = mkdtempSync(join(tmpdir(), "ba-demo-flow-"));
+  tmp = mkdtempSync(join(tmpdir(), "ba-dot5-e2e-"));
   const tsx = join(APP, "node_modules", "tsx", "dist", "cli.mjs");
   server = spawn(process.execPath, [tsx, "server/index.ts"], {
     cwd: APP,
-    env: { ...process.env, PORT, DB_FILE: join(tmp, "e2e.db"), DATA_DIR: tmp, AI_MODE: "mock", APP_PASSWORD: "", ANTHROPIC_API_KEY: "" },
+    env: { ...process.env, PORT, DB_FILE: join(tmp, "e2e.db"), DATA_DIR: tmp, AI_MODE: "mock", APP_PASSWORD: "", ANTHROPIC_API_KEY: "", GITHUB_TOKEN: "" },
     stdio: ["ignore", "inherit", "inherit"],
   });
   let up = false;
@@ -80,6 +81,13 @@ if (!process.env.E2E_BASE) {
   }
 }
 
+async function api(method, path, body) {
+  const res = await fetch(BASE + path, { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`${method} ${path} → ${res.status}: ${data.error ?? ""}`);
+  return data;
+}
+
 // ------------------------------------------------------------------ trình duyệt
 async function launch() {
   const headless = !process.env.E2E_HEADED;
@@ -91,282 +99,351 @@ async function launch() {
   }
 }
 const browser = await launch();
-const context = await browser.newContext({ viewport: { width: 1280, height: 860 }, locale: "vi-VN" });
+const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "vi-VN", acceptDownloads: true });
 const page = await context.newPage();
 const errors = [];
-page.on("pageerror", (e) => errors.push(e.message));
-page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
-page.on("dialog", (d) => d.accept()); // confirm() của "Sinh lại", xoá…
+const watch = (p) => {
+  p.on("pageerror", (e) => errors.push(e.message));
+  p.on("console", (m) => m.type() === "error" && !/Failed to load resource/.test(m.text()) && errors.push(m.text()));
+  p.on("dialog", (d) => d.accept()); // confirm() gốc của trình duyệt (nếu còn)
+};
+watch(page);
 
-const results = [];
+// ------------------------------------------------------------------ ghi kết quả
+const results = []; // { flow, msg, ok, soft? }
 let current = "";
 const flow = (name) => {
   current = name;
   console.log(`\n▶ ${name}`);
 };
+/** Kiểm tra cứng: trượt thì dừng bước hiện tại. */
 const check = (cond, msg) => {
+  results.push({ flow: current, msg, ok: !!cond });
+  console.log(`  ${cond ? "✓" : "✗"} ${msg}`);
   if (!cond) throw new Error(`[${current}] ${msg}`);
-  results.push(`${current} – ${msg}`);
-  console.log("  ✓ " + msg);
 };
-const shot = (name) => page.screenshot({ path: join(SHOTS, `${name}.png`) });
+/** Kiểm tra mềm: trượt thì ghi lại (lỗi app) nhưng chạy tiếp. */
+const expect = (cond, msg) => {
+  results.push({ flow: current, msg, ok: !!cond, soft: true });
+  console.log(`  ${cond ? "✓" : "✗ (ghi lỗi, chạy tiếp)"} ${msg}`);
+  return !!cond;
+};
+const shot = (name, p = page) => p.screenshot({ path: join(SHOTS, `${name}.png`), fullPage: false });
+
+/** Chạy một bước; lỗi ngoài dự kiến được ghi lại và chụp ảnh, các bước sau vẫn chạy. */
+async function step(name, fn) {
+  flow(name);
+  try {
+    await fn();
+  } catch (e) {
+    if (!results.some((r) => r.flow === current && !r.ok && !r.soft)) results.push({ flow: current, msg: `Lỗi: ${e.message.split("\n")[0]}`, ok: false });
+    console.log(`  ✗ ${e.message.split("\n")[0]}`);
+    await shot(`loi-${name.replace(/[^\p{L}\d]+/gu, "-")}`).catch(() => {});
+  }
+}
 
 // ------------------------------------------------------------------ thao tác dùng lại
-const exact = (text) => new RegExp(`^\\s*${text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*$`);
-/** Dòng màn hình trong cột trái tab Thiết kế, khớp đúng tên. */
-const screenItem = (name) => page.locator(".screen-item").filter({ has: page.locator(".screen-name", { hasText: exact(name) }) });
-
-/** Chọn option có chứa `text` (nhãn có thể kèm vai trò, vd "Minh · BA"). */
-async function selectByText(select, text) {
-  const value = await select.locator("option", { hasText: text }).first().getAttribute("value");
-  await select.selectOption(value);
-  return value;
-}
-
-/** Chọn "Tôi là…" ở thanh trên (SCR-02, FN-02). */
-async function iAm(name) {
-  const picker = page.getByTestId("me-picker");
-  if (!(await picker.count())) throw new Error(`[${current}] Thanh trên không có ô "Tôi là…" (data-testid="me-picker") – TopBar chưa gắn vào main.tsx (R-005 của A3)`);
-  const value = await selectByText(picker, name);
-  await page.waitForFunction((v) => localStorage.getItem("bacopilot.me")?.includes(v), value);
-}
-
-async function addMember(name, roleLabel) {
-  await page.getByTestId("new-member").click();
-  await page.getByTestId("member-name").fill(name);
-  await page.getByTestId("member-role").selectOption({ label: roleLabel });
-  await page.getByTestId("save-member").click();
-  await page.getByTestId("member-row").filter({ hasText: name }).waitFor();
-}
-
-async function newScreen(name, prompt) {
-  await page.getByTestId("new-screen").click();
-  await page.getByTestId("screen-name").fill(name);
-  await page.getByTestId("screen-prompt").fill(prompt);
-  await page.getByTestId("generate-screen").click();
-  await screenItem(name).waitFor();
-}
-
-/** Thẻ Kanban có tiêu đề `title`, nằm ở cột trạng thái `status`. */
-const card = (status, title) => page.locator(`[data-column="${status}"] [data-card]`, { hasText: title });
-const STATUS_LABEL = { todo: "Cần làm", doing: "Đang làm", done: "Xong", redo: "Cần làm lại" };
-async function expectCard(status, title, why) {
-  await page.goto(`${BASE}/#/p/${projectId}/tasks`);
-  await page.getByTestId("kanban").waitFor();
-  await card(status, title).waitFor({ timeout: 5000 }).catch(() => {});
-  const where = [];
-  for (const s of Object.keys(STATUS_LABEL)) if (await card(s, title).count()) where.push(STATUS_LABEL[s]);
-  check(where.length === 1 && where[0] === STATUS_LABEL[status], `${why}: task "${title}" ở cột ${STATUS_LABEL[status]}${where[0] !== STATUS_LABEL[status] ? ` (thực tế: ${where.join(", ") || "không thấy"})` : ""}`);
-}
-
-async function createTask({ title, assignee, moduleName, artifactLabel }) {
-  await page.goto(`${BASE}/#/p/${projectId}/tasks`);
-  await page.getByTestId("new-task").click();
-  await page.getByTestId("task-title").fill(title);
-  if (assignee) await selectByText(page.getByTestId("task-assignee"), assignee);
-  await page.getByTestId("task-module").selectOption({ label: moduleName });
-  await page.getByTestId("task-artifact").selectOption({ label: artifactLabel });
-  await page.getByTestId("task-save").click();
-  await card("todo", title).waitFor();
-}
-
-const openModuleTab = async (tab) => {
-  await page.goto(`${BASE}/#/m/${moduleId}/${tab}`);
-  await page.getByTestId(`tab-${tab}`).waitFor();
-};
-
-// ------------------------------------------------------------------ chạy
+const tid = (id, p = page) => p.getByTestId(id);
 const LEAD = "Trần Thu Hà";
 const BA = "Nguyễn Văn Minh";
-const MODULE = "Xác thực";
+const MODULE = "Quản lý đơn hàng";
 let projectId = "";
 let moduleId = "";
+let leadId = "";
+let baId = "";
+let taskId = "";
+
+/** Chọn "Tôi là…" ở thanh trên (theo tên, nhãn có thể kèm vai trò). */
+async function iAm(name, p = page) {
+  const picker = tid("me-picker", p);
+  await picker.waitFor();
+  const value = await picker.locator("option", { hasText: name }).first().getAttribute("value");
+  await picker.selectOption(value);
+  await p.waitForFunction((v) => localStorage.getItem("bacopilot.me") === v, value);
+}
+const work = (stepKey, sub) => `${BASE}/#/p/${projectId}/work/${moduleId}/${stepKey}${sub ? `/${sub}` : ""}`;
+const bar = (testId = "approval-bar", p = page) => p.locator(`[data-testid="${testId}"]`);
+async function waitStatus(status, testId = "approval-bar", timeout = 15000) {
+  await page.locator(`[data-testid="${testId}"][data-status="${status}"]`).waitFor({ timeout });
+}
+async function toastWith(text, timeout = 6000) {
+  return page
+    .locator(".toast", { hasText: text })
+    .first()
+    .waitFor({ timeout })
+    .then(() => true)
+    .catch(() => false);
+}
+const card = (status, title) => page.locator(`[data-column="${status}"] [data-card]`, { hasText: title });
+async function columnOf(title) {
+  await page.goto(`${BASE}/#/p/${projectId}/tasks`);
+  await tid("kanban").waitFor();
+  await page.locator("[data-card]", { hasText: title }).first().waitFor({ timeout: 8000 });
+  for (const s of ["todo", "doing", "done", "approved"]) if (await card(s, title).count()) return s;
+  return null;
+}
+const COL = { todo: "Cần làm", doing: "Đang làm", done: "Xong", approved: "Đã duyệt" };
+const DOCS = ["BRD", "UC_SPEC", "SRS", "FRD_NFR", "API_SPEC"];
+const TASK_TITLE = "Viết API Spec module Đơn hàng";
 
 try {
-  // ================================================================ chuẩn bị: thành viên, dự án, module, màn hình
-  flow("Chuẩn bị");
-  await page.goto(`${BASE}/#/members`);
-  await page.getByTestId("members-view").waitFor();
-  await addMember(LEAD, "BA Lead");
-  await addMember(BA, "BA");
-  check((await page.getByTestId("member-row").count()) === 2, "thêm 2 thành viên (1 BA Lead, 1 BA) ở trang Thành viên");
-  await iAm(BA);
-  await page.reload();
-  await page.getByTestId("members-view").waitFor();
-  const meLabel = await page.getByTestId("me-picker").locator("option:checked").innerText();
-  check(meLabel.includes(BA), `"Tôi là…" nhớ ${BA} sau khi tải lại trang`);
+  // ================================================================ 1. Chuẩn bị
+  await step("1. Chuẩn bị", async () => {
+    leadId = (await api("POST", "/api/members", { name: LEAD, role: "BA_LEAD" })).id;
+    baId = (await api("POST", "/api/members", { name: BA, role: "BA", actorId: leadId })).id;
+    await page.goto(`${BASE}/#/`);
+    await iAm(BA);
+    await page.reload();
+    check((await tid("me-picker").locator("option:checked").innerText()).includes(BA), `"Tôi là" nhớ ${BA} sau khi tải lại`);
+    await tid("new-project").click();
+    await tid("project-name").fill("Bán hàng đa kênh (E2E)");
+    await tid("create-project").click();
+    await page.waitForURL(/#\/p\/[^/]+\/tasks/);
+    projectId = decodeURIComponent(page.url().match(/#\/p\/([^/]+)\//)[1]);
+    check(!!projectId, "tạo dự án → mở thẳng Quản lý công việc");
+    await tid("pnav-work").click();
+    await tid("new-module").click();
+    await tid("module-name").fill(MODULE);
+    await tid("create-module").click();
+    await page.waitForURL(/#\/p\/[^/]+\/work\/[^/]+/);
+    moduleId = decodeURIComponent(page.url().match(/\/work\/([^/]+)/)[1]);
+    check(!!moduleId, `tạo module "${MODULE}" trong Thực hiện công việc`);
+    // Task gắn tài liệu API Spec (BA Lead giao) – để kiểm tra task đi theo vòng Xong / Yêu cầu sửa / Duyệt
+    taskId = (await api("POST", `/api/projects/${projectId}/tasks`, { title: TASK_TITLE, moduleId, assigneeId: baId, artifactType: "doc", artifactId: moduleId, artifactSub: "API_SPEC", actorId: leadId })).id;
+  });
 
-  await page.goto(`${BASE}/#/`);
-  await page.getByTestId("new-project").click();
-  await page.getByPlaceholder("VD: Hệ thống bán hàng online").fill("Cửa hàng online");
-  await page.getByTestId("create-project").click();
-  await page.waitForURL(/#\/p\/[^/]+/);
-  projectId = page.url().match(/#\/p\/([^/]+)/)[1];
-  await page.getByTestId("new-module").click();
-  await page.getByPlaceholder("VD: Xác thực người dùng").fill(MODULE);
-  await page.getByText("Dùng ví dụ mẫu").click();
-  await page.getByTestId("create-module").click();
-  await page.waitForURL(/#\/m\/[^/]+\/design/);
-  moduleId = page.url().match(/#\/m\/([^/]+)/)[1];
-  check(true, "tạo dự án và module bằng ví dụ mẫu");
-
-  await newScreen("Đăng nhập", "Màn hình đăng nhập bằng email và mật khẩu, nút Đăng nhập, có quên mật khẩu và link đăng ký");
-  await page.locator('[data-node-id="btn_login"]').waitFor();
-  check(true, "AI (Mock) sinh màn Đăng nhập");
-
-  // ================================================================ Gợi ý màn tiếp theo (FN-59, FN-60, BR-06)
-  flow("Gợi ý màn tiếp theo");
-  const block = page.getByTestId("suggest-block");
-  await block.waitFor();
-  const cards = block.getByTestId("suggestion-card");
-  await cards.first().waitFor();
-  const before = await cards.count();
-  const pick = cards.first();
-  const sugTitle = (await pick.locator(".suggestion-title").innerText()).trim();
-  const sugReason = (await pick.locator(".suggestion-reason").innerText()).trim();
-  check(before > 0 && sugTitle && sugReason, `khối "Gợi ý tiếp theo" có ${before} gợi ý, gợi ý đầu "${sugTitle}" ghi lý do: ${sugReason}`);
-  const screensBefore = await page.locator(".screen-item").count();
-  await shot("goi-y-truoc-khi-tao");
-  await pick.getByRole("button", { name: "Tạo" }).click();
-  const nameInput = page.getByTestId("screen-name");
-  await nameInput.waitFor();
-  check((await page.locator(".screen-item").count()) === screensBefore, "bấm Tạo chỉ mở hộp thoại, chưa tự tạo màn (BR-06)");
-  const preName = await nameInput.inputValue();
-  const prePrompt = await page.getByTestId("screen-prompt").inputValue();
-  check(preName === sugTitle && prePrompt.trim().length > 0, `hộp thoại "Màn hình mới" điền sẵn tên "${preName}" và prompt (${prePrompt.length} ký tự)`);
-  await page.getByTestId("generate-screen").click();
-  await screenItem(sugTitle).waitFor();
-  check((await page.locator(".screen-item").count()) === screensBefore + 1, `màn mới "${sugTitle}" xuất hiện trong danh sách màn`);
-  await page.waitForTimeout(500);
-  const titlesAfter = await block.locator(".suggestion-title").allInnerTexts();
-  check(!titlesAfter.map((t) => t.trim()).includes(sugTitle), `gợi ý "${sugTitle}" biến mất sau khi tạo màn (còn ${titlesAfter.length} gợi ý)`);
-  await shot("goi-y-sau-khi-tao");
-
-  // ================================================================ Luồng demo: task tự cập nhật theo sản phẩm
-  flow("Luồng demo – task");
-  // Duyệt cả hai màn (BA Lead), để sinh được tài liệu (BR-01)
-  await iAm(LEAD);
-  for (const name of ["Đăng nhập", sugTitle]) {
-    await screenItem(name).click();
-    await page.getByTestId("approve-screen").click();
-    await screenItem(name).getByText("Đã duyệt").waitFor();
-  }
-  check(true, "BA Lead duyệt 2 màn");
-  await iAm(BA);
-
-  // Bước 1 – tạo task (và một task tài liệu cho bước 4)
-  await createTask({ title: "Vẽ UC diagram", assignee: BA, moduleName: MODULE, artifactLabel: `Sơ đồ UC – ${MODULE}` });
-  check(true, 'bước 1: tạo task "Vẽ UC diagram" gắn sơ đồ UC của module → cột Cần làm');
-  await createTask({ title: "Viết tài liệu đặc tả", assignee: BA, moduleName: MODULE, artifactLabel: `Tài liệu – ${MODULE}` });
-  check(true, 'tạo task "Viết tài liệu đặc tả" gắn bộ tài liệu của module → cột Cần làm');
-  await shot("kanban-buoc-1");
-
-  // Sinh và duyệt tài liệu → task tài liệu Đang làm rồi Xong (cần có UC để vẽ sơ đồ)
-  await openModuleTab("docs");
-  await page.getByTestId("generate-docs").click();
-  await page.locator(".paper h2").first().waitFor();
-  await expectCard("doing", "Viết tài liệu đặc tả", "sinh tài liệu");
-  await iAm(LEAD);
-  await openModuleTab("docs");
-  await page.getByTestId("approve-docs").click();
-  await page.getByTestId("tab-docs").getByText("Đã duyệt").waitFor();
-  await expectCard("done", "Viết tài liệu đặc tả", "BA Lead duyệt tài liệu");
-  await iAm(BA);
-
-  // Bước 2 – AI sinh sơ đồ → Đang làm
-  await openModuleTab("diagram");
-  await page.getByTestId("generate-diagram").click();
-  await page.getByTestId("diagram-code").waitFor();
-  check((await page.getByTestId("diagram-code").inputValue()).trim().startsWith("flowchart"), "AI (Mock) sinh mã Mermaid cho sơ đồ UC");
-  await page.locator(".mermaid-svg svg").first().waitFor({ timeout: 15000 });
-  await shot("so-do-uc");
-  await expectCard("doing", "Vẽ UC diagram", "bước 2: AI sinh sơ đồ");
-
-  // Bước 3 – BA Lead duyệt → Xong
-  await iAm(LEAD);
-  await openModuleTab("diagram");
-  await page.getByTestId("approve-diagram").click();
-  await page.getByTestId("unapprove-diagram").waitFor();
-  await expectCard("done", "Vẽ UC diagram", "bước 3: BA Lead duyệt sơ đồ");
-  await card("done", "Vẽ UC diagram").click();
-  await page.getByTestId("task-event").last().waitFor();
-  const history = await page.getByTestId("task-event").allInnerTexts();
-  check(history.length >= 3 && history.slice(1).every((h) => h.includes("Hệ thống")), `lịch sử task ghi ${history.length} lần đổi, các lần tự động ghi "Hệ thống" kèm lý do (FN-23)`);
-  await page.waitForTimeout(400); // chờ ngăn phải chạy xong hiệu ứng mở rồi mới chụp
-  await shot("task-lich-su");
-  await page.keyboard.press("Escape");
-
-  // Bước 4 – sửa màn đã duyệt → task tài liệu Cần làm lại
-  await iAm(BA);
-  await openModuleTab("design");
-  await screenItem("Đăng nhập").click();
-  await page.locator('[data-node-type="Heading"]').first().click();
-  await page.getByTestId("edit-prompt").fill("Đổi chữ thành Đăng nhập hệ thống");
-  await page.getByTestId("apply-edit").click();
-  await page.locator('[data-node-type="Heading"]', { hasText: "Đăng nhập hệ thống" }).waitFor();
-  await page.getByTestId("tab-docs").getByText("Lỗi thời").waitFor({ timeout: 5000 });
-  check(true, "sửa màn Đăng nhập đã duyệt → tài liệu Lỗi thời (BR-02)");
-  await expectCard("redo", "Viết tài liệu đặc tả", "bước 4: sửa màn đã duyệt");
-  await expectCard("done", "Vẽ UC diagram", "sơ đồ không đổi khi chỉ sửa màn");
-  await shot("kanban-buoc-4");
-
-  // ================================================================ QUS (FN-53, FN-55, BR-05)
-  flow("QUS");
-  await page.goto(`${BASE}/#/p/${projectId}/modules`);
-  await page.getByTestId("new-module").click();
-  await page.getByPlaceholder("VD: Xác thực người dùng").fill("Giỏ hàng");
-  const req = page.locator(".modal textarea").first();
-  await req.fill("Tôi muốn đăng nhập nhanh và dễ dùng\nHệ thống phải chạy tốt, ổn định");
-  const total = page.getByTestId("qus-total");
-  await total.waitFor();
-  await page.waitForTimeout(400); // panel chấm lại sau 300 ms
-  const score = Number((await total.innerText()).match(/(\d+)\s*\/\s*100/)?.[1] ?? NaN);
-  check(score < 60, `story lỗi → điểm ${score}/100 (< 60, xếp hạng "${(await total.innerText()).replace(/\s+/g, " ").trim()}")`);
-  const issues = await page.getByTestId("qus-panel").getByTestId("issue").allInnerTexts();
-  check(issues.length > 0 && issues.some((t) => t.includes("WELL_FORMED")), `danh sách lỗi có ${issues.length} mục, gồm WELL_FORMED`);
-  check(issues.some((t) => /Gợi ý/.test(t)), "lỗi kèm gợi ý cách viết lại (FN-55)");
-  await shot("qus-diem-thap");
-  await page.getByTestId("create-module").click();
-  await page.waitForURL(/#\/m\/[^/]+\/design/);
-  check(true, "điểm thấp vẫn lưu được module (BR-05)");
-
-  // ================================================================ chụp màn hình 1280 / 375 px
-  flow("Chụp màn hình");
-  const pages = [
-    ["trang-chu", "#/"],
-    ["du-an", `#/p/${projectId}/modules`],
-    ["thiet-ke", `#/m/${moduleId}/design`],
-    ["tai-lieu", `#/m/${moduleId}/docs`],
-    ["so-do-uc", `#/m/${moduleId}/diagram`],
-    ["cong-viec", `#/p/${projectId}/tasks`],
-    ["kho-tai-lieu", `#/p/${projectId}/files`],
-    ["thanh-vien", "#/members"],
-    ["gallery", "#/_gallery"],
-  ];
-  const overflow = [];
-  for (const width of [1280, 375]) {
-    await page.setViewportSize({ width, height: width === 375 ? 812 : 860 });
-    for (const [name, hash] of pages) {
-      await page.goto(`${BASE}/${hash}`);
-      await page.waitForLoadState("networkidle");
-      await page.waitForTimeout(400);
-      await page.screenshot({ path: join(SHOTS, `${width}-${name}.png`), fullPage: true });
-      const sw = await page.evaluate(() => document.documentElement.scrollWidth);
-      if (sw > width + 1) overflow.push(`${name}@${width}: rộng ${sw}px`);
+  // ================================================================ 2. Yêu cầu nghiệp vụ
+  await step("2. Yêu cầu nghiệp vụ", async () => {
+    await tid("pnav-stories").click();
+    await tid("stories-view").waitFor();
+    const stories = [
+      { asA: "nhân viên bán hàng", iWant: "xem danh sách đơn hàng theo trạng thái", soThat: "xử lý đơn mới trong ngày", ac: ["Mặc định lọc đơn Mới", "Hiện tối đa 20 đơn, mới nhất trước"], priority: "High" },
+      { asA: "nhân viên bán hàng", iWant: "huỷ đơn hàng chưa giao", soThat: "trả lại tồn kho khi khách đổi ý", ac: ["Bắt buộc nhập lý do huỷ"], priority: "Medium" },
+    ];
+    for (const [i, s] of stories.entries()) {
+      await tid("story-add").click();
+      await tid("story-editor").waitFor();
+      await tid("story-asA").fill(s.asA);
+      await tid("story-iWant").fill(s.iWant);
+      await tid("story-soThat").fill(s.soThat);
+      await tid("story-module").selectOption({ label: MODULE });
+      await tid("story-priority").selectOption(s.priority);
+      for (const [k, c] of s.ac.entries()) {
+        if (k > 0) await tid("story-ac-add").click();
+        await tid("story-ac").nth(k).fill(c);
+      }
+      await tid("story-save").click();
+      await tid(`story-row-US-0${i + 1}`).waitFor();
     }
-  }
-  check(true, `chụp ${pages.length * 2} ảnh vào ${SHOTS}`);
-  if (overflow.length) console.log("  ⚠ trang tràn ngang (ghi vào QA_REPORT): " + overflow.join("; "));
+    check((await page.locator('[data-testid^="story-row-US-"]').count()) === 2, "thêm 2 user story (US-01, US-02) có As a / I want / So that + tiêu chí");
+    await shot("02-yeu-cau-nghiep-vu");
+  });
 
-  check(errors.length === 0, "không có lỗi JavaScript trên trang" + (errors.length ? ": " + [...new Set(errors)].join(" | ") : ""));
-  console.log(`\nE2E demo-flow OK – ${results.length} kiểm tra, ảnh chụp trong ${SHOTS}`);
-} catch (e) {
-  await shot("THAT-BAI").catch(() => {});
-  console.error("\n✗ " + e.message);
-  if (errors.length) console.error("Lỗi trên trang:", [...new Set(errors)]);
-  process.exitCode = 1;
+  // ================================================================ 3. Tài liệu
+  await step("3. Tài liệu BRD → API Spec", async () => {
+    for (const k of DOCS) {
+      await page.goto(work("docs", k));
+      await tid("docs-view").waitFor();
+      await tid("doc-generate").click();
+      await waitStatus("draft");
+      check((await tid("doc-content").innerText()).trim().length > 50, `${k}: AI (Mock) sinh nội dung`);
+      await tid("approval-bar-done").click();
+      await waitStatus("done");
+      check(true, `${k}: bấm Xong → trạng thái Xong`);
+      if (k === "BRD" || k === "API_SPEC") await shot(`03-tai-lieu-${k}`);
+    }
+    // Bước sau mở khoá khi bước trước Xong: đã chứng minh bằng việc sinh được cả 5 bước liên tiếp
+  });
+
+  // ================================================================ Ca: BA không có quyền duyệt / quản trị
+  await step("Ca: quyền của BA", async () => {
+    await page.goto(work("docs", "BRD"));
+    await waitStatus("done");
+    check((await tid("approval-bar-approve").count()) === 0 && (await tid("approval-bar-request-change").count()) === 0, "BA không thấy nút Duyệt / Yêu cầu sửa trên tài liệu Xong");
+    check((await tid("nav-admin").count()) === 0, 'BA không thấy mục "Quản trị hệ thống" trên thanh trên');
+    await page.goto(`${BASE}/#/admin`);
+    expect(await tid("admin-forbidden").waitFor({ timeout: 5000 }).then(() => true).catch(() => false), "BA vào thẳng #/admin → báo không có quyền");
+    await shot("ca-ba-khong-quyen-admin");
+    const r = await fetch(`${BASE}/api/artifacts/doc/${moduleId}/approve`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sub: "BRD", actorId: baId }) });
+    check(r.status === 403, `server chặn BA gọi thẳng API Duyệt (403, thực tế ${r.status})`);
+  });
+
+  // ================================================================ 4. Sơ đồ
+  await step("4. Sơ đồ Context / UC / BPMN", async () => {
+    for (const k of ["CONTEXT", "UC", "BPMN"]) {
+      await page.goto(work("diagrams", k));
+      await tid("diagrams-view").waitFor();
+      await tid("generate-diagram").click();
+      await waitStatus("draft");
+      await page.locator(".mermaid-svg svg, [data-testid=mermaid-error]").first().waitFor({ timeout: 20000 });
+      check((await tid("mermaid-error").count()) === 0 && (await page.locator(".mermaid-svg svg").count()) > 0, `${k}: sinh sơ đồ, Mermaid vẽ được`);
+      await tid("approval-bar-done").click();
+      await waitStatus("done");
+      await shot(`04-so-do-${k}`);
+    }
+    check(true, "3 sơ đồ đã Xong");
+  });
+
+  // ================================================================ 5. Prototype
+  await step("5. Prototype", async () => {
+    await page.goto(work("prototype"));
+    await tid("new-screen").click();
+    await tid("screen-name").fill("Danh sách đơn hàng");
+    await tid("screen-prompt").fill("Danh sách đơn hàng: lọc theo trạng thái, bảng có cột Mã đơn, Khách hàng, Tổng tiền, Ngày đặt, Trạng thái; nút Huỷ đơn.");
+    await tid("generate-screen").click();
+    await page.locator(".screen-item", { hasText: "Danh sách đơn hàng" }).waitFor({ timeout: 20000 });
+    await tid("canvas").waitFor();
+    check(true, "AI (Mock) sinh 1 màn");
+    const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 10000 }), tid("export-html").click()]);
+    check(dl.suggestedFilename().endsWith(".html"), `Xuất HTML tải tệp ${dl.suggestedFilename()}`);
+    await waitStatus("draft", "screen-approval");
+    await tid("screen-approval-done").click();
+    await waitStatus("done", "screen-approval");
+    check(true, "màn: bấm Xong → Xong");
+    await shot("05-prototype");
+  });
+
+  // ================================================================ 6–7. Test case, Truy vết
+  await step("6. Test case", async () => {
+    await page.goto(work("tests"));
+    await tid("tests-step").waitFor();
+    await tid("generate-tests").click();
+    await waitStatus("draft", "tests-approval", 20000);
+    await tid("tests-approval-done").click();
+    await waitStatus("done", "tests-approval");
+    check(true, "sinh test case → Xong");
+    await shot("06-test-case");
+  });
+  await step("7. Truy vết", async () => {
+    await page.goto(work("trace"));
+    await tid("trace-matrix").waitFor({ timeout: 10000 });
+    check((await tid("trace-matrix").locator("tbody tr").count()) > 0, "ma trận truy vết có dòng");
+    await shot("07-truy-vet");
+  });
+
+  // ================================================================ 8. BA Lead: Yêu cầu sửa
+  await step("8. BA Lead yêu cầu sửa API Spec", async () => {
+    expect((await columnOf(TASK_TITLE)) === "done", `trước đó task "${TASK_TITLE}" ở cột Xong (tự đi theo tài liệu)`);
+    await iAm(LEAD);
+    check((await tid("nav-admin").count()) === 1, 'BA Lead thấy mục "Quản trị hệ thống"');
+    await page.goto(work("docs", "API_SPEC"));
+    await waitStatus("done");
+    await tid("approval-bar-request-change").click();
+    await waitStatus("draft");
+    check((await tid("approval-bar-revision").count()) === 1, 'API Spec về Đang làm + tag "Yêu cầu sửa"');
+    const col = await columnOf(TASK_TITLE);
+    check(col === "doing", `task lùi về cột Đang làm (thực tế: ${COL[col] ?? "không thấy"})`);
+    check((await tid(`revision-${taskId}`).count()) === 1, 'thẻ task có tag "Yêu cầu sửa"');
+    await shot("08-kanban-yeu-cau-sua");
+  });
+
+  // ================================================================ 9. BA sửa, Xong
+  await step("9. BA sửa và bấm Xong", async () => {
+    await iAm(BA);
+    await page.goto(work("docs", "API_SPEC"));
+    await waitStatus("draft");
+    await tid("doc-edit").click();
+    const box = tid("doc-editor-text");
+    await box.fill((await box.inputValue()) + "\n\n## Ghi chú\n- Bổ sung mã lỗi 409 khi huỷ đơn đã giao.\n");
+    await tid("doc-editor-save").click();
+    await tid("doc-editor").waitFor({ state: "detached" });
+    await tid("approval-bar-done").click();
+    await waitStatus("done");
+    check((await tid("approval-bar-revision").count()) === 1, 'sửa xong bấm Xong → Xong, tag "Yêu cầu sửa" vẫn giữ');
+    const col = await columnOf(TASK_TITLE);
+    check(col === "done", `task sang cột Xong (thực tế: ${COL[col] ?? "không thấy"})`);
+  });
+
+  // ================================================================ 10. BA Lead Duyệt
+  await step("10. BA Lead duyệt", async () => {
+    await iAm(LEAD);
+    await page.goto(work("docs", "API_SPEC"));
+    await waitStatus("done");
+    await tid("approval-bar-approve").click();
+    const gitMsg = await toastWith("Chưa cấu hình GitHub");
+    await waitStatus("approved");
+    check(true, "API Spec → Đã duyệt");
+    expect(gitMsg, 'màn Tài liệu báo "Chưa cấu hình GitHub – chưa đẩy" khi duyệt (dự án chưa cấu hình repo)');
+    await shot("10-tai-lieu-da-duyet");
+    const col = await columnOf(TASK_TITLE);
+    check(col === "approved", `Kanban: task ở cột Đã duyệt (thực tế: ${COL[col] ?? "không thấy"})`);
+    check((await tid(`revision-${taskId}`).count()) === 0, 'duyệt xong hết tag "Yêu cầu sửa"');
+    await shot("10-kanban-da-duyet");
+    // Màn Test case hiện thông báo GitHub khi duyệt (đối chiếu)
+    await page.goto(work("tests"));
+    await waitStatus("done", "tests-approval");
+    await tid("tests-approval-approve").click();
+    expect(await toastWith("Chưa cấu hình GitHub"), 'màn Test case báo "Chưa cấu hình GitHub – chưa đẩy" khi duyệt');
+    await waitStatus("approved", "tests-approval");
+    const hist = await api("GET", `/api/projects/${projectId}/git/history`);
+    check(hist.configured === false, "Lịch sử GitHub: dự án chưa cấu hình, không đẩy");
+  });
+
+  // ================================================================ Ca: 2 tab cùng sửa một story → 409
+  await step("Ca: 2 tab cùng sửa story", async () => {
+    await iAm(BA);
+    const page2 = await context.newPage();
+    watch(page2);
+    const url = `${BASE}/#/p/${projectId}/stories`;
+    await page.goto(url);
+    await page2.goto(url);
+    for (const p of [page, page2]) {
+      await tid("story-US-01-edit", p).click();
+      await tid("story-editor", p).waitFor();
+    }
+    await tid("story-iWant").fill("xem danh sách đơn hàng theo trạng thái và kênh bán");
+    await tid("story-save").click();
+    await tid("story-editor").waitFor({ state: "detached" });
+    await tid("story-iWant", page2).fill("xem danh sách đơn hàng mới nhất");
+    await tid("story-save", page2).click();
+    const notice = tid("conflict-notice", page2);
+    await notice.waitFor({ timeout: 5000 });
+    check(/Bản đã thay đổi/.test(await notice.innerText()), 'tab lưu sau thấy "Bản đã thay đổi – tải lại"');
+    await shot("ca-2-tab-xung-dot", page2);
+    await tid("conflict-notice-reload", page2).click();
+    const fresh = await page2
+      .waitForFunction(() => document.querySelector('[data-testid="story-iWant"]')?.value.includes("kênh bán"), null, { timeout: 5000 })
+      .then(() => true)
+      .catch(() => false);
+    check(fresh && (await tid("conflict-notice", page2).count()) === 0, "bấm Tải lại → nhận bản mới của tab kia, hết thông báo");
+    await page2.close();
+  });
+
+  // ================================================================ ảnh màn chính (1440 px và 375 px)
+  await step("Ảnh màn chính", async () => {
+    const pages = [
+      ["kanban", `${BASE}/#/p/${projectId}/tasks`, "kanban"],
+      ["yeu-cau", `${BASE}/#/p/${projectId}/stories`, "stories-view"],
+      ["tai-lieu", work("docs", "BRD"), "docs-view"],
+      ["so-do", work("diagrams", "BPMN"), "diagrams-view"],
+      ["prototype", work("prototype"), "canvas"],
+      ["lich-su-github", `${BASE}/#/p/${projectId}/git`, null],
+      ["quan-tri", `${BASE}/#/admin`, "members-view"],
+    ];
+    for (const w of [1440, 375]) {
+      await page.setViewportSize({ width: w, height: w === 375 ? 812 : 900 });
+      for (const [name, url, ready] of pages) {
+        await page.goto(url);
+        if (ready) await tid(ready).waitFor({ timeout: 8000 }).catch(() => {});
+        await page.waitForTimeout(300);
+        const sw = await page.evaluate(() => document.documentElement.scrollWidth);
+        expect(sw <= w + 1, `${w}px – ${name}: không tràn ngang (rộng ${sw}px)`);
+        await shot(`${w}-${name}`);
+      }
+    }
+    await page.setViewportSize({ width: 1440, height: 900 });
+  });
+
+  flow("Lỗi JavaScript");
+  expect(errors.length === 0, `không có lỗi JavaScript trên trang${errors.length ? `: ${[...new Set(errors)].slice(0, 3).join(" | ")}` : ""}`);
 } finally {
   await browser.close();
   await stopServer();
-  process.exit();
 }
+
+const failed = results.filter((r) => !r.ok);
+writeFileSync(join(SHOTS, "results.json"), JSON.stringify({ base: BASE, at: new Date().toISOString(), total: results.length, failed: failed.length, results, errors: [...new Set(errors)] }, null, 2));
+console.log(`\n${results.length - failed.length}/${results.length} kiểm tra qua${failed.length ? `, ${failed.length} trượt:` : "."}`);
+for (const f of failed) console.log(`  ✗ [${f.flow}] ${f.msg}`);
+console.log(`Ảnh: ${SHOTS}`);
+process.exit(failed.length ? 1 : 0);

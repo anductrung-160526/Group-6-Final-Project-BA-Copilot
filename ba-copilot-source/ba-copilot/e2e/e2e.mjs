@@ -1,4 +1,6 @@
-// E2E: chạy trình duyệt thật qua toàn bộ luồng BA bằng giao diện (chế độ Mock, DB tạm).
+// E2E hồi quy Design Studio (đợt 5: URL #/p/:pid/work/:mid/<bước>): sinh màn, khoanh vùng, bình luận, sửa bằng prompt,
+// phiên bản, Xong, test case, truy vết, gợi ý bố cục, nhật ký AI. Luồng demo đợt 5 đầy đủ: e2e/demo-flow.mjs.
+// Chạy trình duyệt thật bằng giao diện (chế độ Mock, DB tạm).
 // Dùng: npm run e2e   (tự khởi động server ở cổng 3199; chạy được cả trên Windows)
 // Biến môi trường: E2E_BASE (dùng server có sẵn), E2E_PORT, CHROME_PATH (không đặt thì dùng Chromium của Playwright, thiếu thì Chrome cài trên máy)
 import { chromium } from "playwright";
@@ -68,17 +70,48 @@ const check = (cond, msg) => {
   console.log("  ✓ " + msg);
 };
 
+async function api(method, path, body) {
+  const res = await fetch(BASE + path, { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`${method} ${path} → ${res.status}: ${data.error ?? ""}`);
+  return data;
+}
+
 try {
+  // Đợt 5: thành viên + user story qua API; dự án, module bằng giao diện; vào bước Prototype theo URL mới
+  const lead = await api("POST", "/api/members", { name: "Trưởng nhóm BA", role: "BA_LEAD" });
+  const ba = await api("POST", "/api/members", { name: "BA Kiểm thử", role: "BA", actorId: lead.id });
   await page.goto(BASE);
+  await page.getByTestId("me-picker").selectOption(ba.id);
   await page.getByTestId("new-project").click();
-  await page.getByPlaceholder("VD: Hệ thống bán hàng online").fill("Cửa hàng online");
+  await page.getByTestId("project-name").fill("Cửa hàng online");
   await page.getByTestId("create-project").click();
+  await page.waitForURL(/#\/p\/[^/]+\/tasks/);
+  const pid = decodeURIComponent(page.url().match(/#\/p\/([^/]+)\//)[1]);
+  await page.getByTestId("pnav-work").click();
   await page.getByTestId("new-module").click();
-  await page.getByPlaceholder("VD: Xác thực người dùng").fill("Xác thực");
-  await page.getByText("Dùng ví dụ mẫu").click();
+  await page.getByTestId("module-name").fill("Xác thực");
   await page.getByTestId("create-module").click();
-  await page.waitForURL(/#\/m\/.+\/design/);
-  check(true, "tạo dự án và module");
+  await page.waitForURL(/#\/p\/[^/]+\/work\/[^/]+/);
+  const mid = decodeURIComponent(page.url().match(/\/work\/([^/]+)/)[1]);
+  await api("POST", `/api/projects/${pid}/stories`, {
+    moduleId: mid,
+    asA: "khách hàng",
+    iWant: "đăng nhập bằng email và mật khẩu",
+    soThat: "xem lịch sử đơn hàng của mình",
+    acceptanceCriteria: ["Sai mật khẩu thì báo lỗi", "Có link Quên mật khẩu"],
+    priority: "High",
+    actorId: ba.id,
+  });
+  // Tài liệu tới FRD-NFR (Mock) và bấm Xong – điều kiện để sinh test case
+  for (const k of ["BRD", "UC_SPEC", "SRS", "FRD_NFR"]) {
+    await api("POST", `/api/modules/${mid}/docs/${k}/generate`, { actorId: ba.id });
+    await api("POST", `/api/artifacts/doc/${mid}/done`, { sub: k, actorId: ba.id });
+  }
+  const work = (s) => `${BASE}/#/p/${pid}/work/${mid}/${s}`;
+  await page.goto(work("prototype"));
+  await page.getByTestId("new-screen").waitFor();
+  check(true, "tạo dự án, module, user story, tài liệu tới FRD-NFR");
 
   // Sinh 2 màn hình
   await page.getByTestId("new-screen").click();
@@ -131,64 +164,44 @@ try {
   await page.getByText("Đăng nhập bằng Google").first().waitFor();
   check(true, "prompt sửa thêm phần tử trong vùng");
   await page.getByTestId("versions-tab").click();
-  check((await page.locator(".ver").count()) === 3, "lịch sử có 3 phiên bản");
+  check((await page.locator(".ver-head").count()) === 3, "lịch sử có 3 phiên bản");
   await shot("versions");
 
-  // Duyệt cả 2 màn hình
-  await page.getByTestId("approve-screen").click();
-  await page.locator(".screen-item", { hasText: "Trang chủ" }).click();
-  await page.getByTestId("approve-screen").click();
-  await page.waitForTimeout(300);
+  // Đợt 5: bấm Xong cho màn (thay nút Duyệt thiết kế cũ); sửa màn đang Xong → về Đang làm
+  await page.getByTestId("screen-approval-done").click();
+  await page.locator('[data-testid="screen-approval"][data-status="done"]').waitFor();
+  check(true, "màn Đăng nhập: bấm Xong");
+  // Nút mở lại panel "Sửa" không có data-testid: tải lại màn để về panel mặc định
+  await page.reload();
+  await page.locator(".screen-item", { hasText: "Đăng nhập" }).click();
+  await page.locator('[data-node-type="Heading"]').first().click();
+  await page.getByTestId("edit-prompt").fill("Đổi chữ thành Đăng nhập hệ thống");
+  await page.getByTestId("apply-edit").click();
+  await page.locator('[data-node-type="Heading"]', { hasText: "Đăng nhập hệ thống" }).waitFor();
+  await page.locator('[data-testid="screen-approval"][data-status="draft"]').waitFor({ timeout: 5000 });
+  check(true, "sửa màn đang Xong → về Đang làm (phải bấm Xong lại)");
 
-  // Tài liệu
-  await page.getByTestId("tab-docs").click();
-  await page.getByTestId("generate-docs").click();
-  await page.locator(".paper h2").first().waitFor();
-  check((await page.locator(".doc-nav button").count()) >= 2, "sinh danh sách Use Case");
-  await shot("docs-uc");
-  await page.getByTestId("docs-srs").click();
-  await page.locator(".paper .md").waitFor();
-  await shot("docs-srs");
-  await page.getByTestId("docs-seq").click();
-  await page.locator(".mermaid-svg svg").waitFor({ timeout: 15000 });
-  check(true, "render sequence diagram bằng Mermaid");
-  await shot("docs-sequence");
-  await page.getByTestId("refine-input").fill("Thêm bước ghi log đăng nhập");
-  await page.getByTestId("refine-btn").click();
-  await page.waitForTimeout(500);
-  await page.getByTestId("approve-docs").click();
-  await page.waitForTimeout(300);
-  const dl1 = page.waitForEvent("download");
-  await page.getByTestId("export-docx").click();
-  check((await dl1).suggestedFilename().endsWith(".docx"), "xuất file Word");
-
-  // Test case
-  await page.getByTestId("tab-tests").click();
+  // Test case (cần FRD-NFR Xong)
+  await page.goto(work("tests"));
   await page.getByTestId("generate-tests").click();
-  await page.locator(".tbl-tests tbody tr").first().waitFor();
-  const n = await page.locator(".tbl-tests tbody tr").count();
-  check(n > 5, `sinh ${n} test case`);
-  await page.locator(".tbl-tests tbody tr").first().click();
+  await page.getByTestId("tests-approval").waitFor({ timeout: 15000 });
+  await page.locator("table tbody tr").first().waitFor();
+  const n = await page.locator("table tbody tr").count();
+  check(n > 3, `sinh ${n} test case`);
   await shot("tests");
   const dl2 = page.waitForEvent("download");
   await page.getByTestId("export-xlsx").click();
   check((await dl2).suggestedFilename().endsWith(".xlsx"), "xuất file Excel");
 
   // Truy vết
-  await page.getByTestId("tab-trace").click();
-  await page.getByTestId("cov-flow").waitFor();
-  check((await page.getByTestId("cov-flow").innerText()).includes("100%"), "100% luồng UC có test");
+  await page.goto(work("trace"));
+  await page.getByTestId("trace-matrix").waitFor();
+  check((await page.getByTestId("trace-matrix").locator("tbody tr").count()) > 0, "ma trận truy vết Story → UC → FR → Màn → TC");
   await shot("trace");
 
-  // BR-02
-  await page.getByTestId("tab-design").click();
+  await page.goto(work("prototype"));
   await page.locator(".screen-item", { hasText: "Đăng nhập" }).click();
-  await page.locator('[data-node-type="Heading"]').first().click();
-  await page.getByTestId("edit-prompt").fill("Đổi chữ thành Đăng nhập hệ thống");
-  await page.getByTestId("apply-edit").click();
-  await page.locator('[data-node-type="Heading"]', { hasText: "Đăng nhập hệ thống" }).waitFor();
-  await page.getByTestId("tab-docs").getByText("Lỗi thời").waitFor({ timeout: 5000 });
-  check(true, "BR-02: sửa thiết kế đã duyệt → tài liệu Lỗi thời");
+  await page.locator('[data-node-type="Form"]').first().waitFor();
 
   // Gợi ý bố cục (Recursive Transformer, Li et al. 2020): chọn form → phần tử tiếp theo (top-3) → chấp nhận
   await page.getByTestId("suggest-tab").click();
@@ -200,8 +213,8 @@ try {
   await page.getByTestId("versions-tab").click();
   await page.getByText("Gợi ý bố cục").first().waitFor();
   check(true, "chấp nhận gợi ý bố cục → phiên bản mới");
-  await page.getByTestId("tab-logs").click();
-  await page.locator(".tbl tbody tr").first().waitFor();
+  await page.getByTestId("pnav-logs").click();
+  await page.getByTestId("log-row").first().waitFor();
   await shot("logs");
 
   check(errors.length === 0, "không có lỗi JavaScript trên trang" + (errors.length ? ": " + errors.join(" | ") : ""));

@@ -144,3 +144,71 @@ Ngoài danh sách: khối "Công việc liên quan" ở cột trái Design Studi
 | `npm run seed` 2 lần trên DB mới | ✅ không lỗi; module Sản phẩm còn 1 gợi ý (link gãy) và 4 đã bỏ qua (trước là 7, vì FR kiểm tra dữ liệu không còn thành gợi ý) |
 
 **Kết luận:** danh sách lỗi Q-01 → Q-13 đã đóng hết.
+
+---
+
+# Đợt 5 – C11 (dữ liệu demo, E2E, QA)
+
+Người lập: **C11**. Ngày: 2026-10-20. Bản kiểm thử: nhánh `agent/c11-seed-e2e` (từ `v2-demo` @ `8d39bb5`, đã gộp C1–C9), **không sửa mã app**. Node v24.16.0, Playwright 1.64, chế độ Mock, DB tạm. Server thử riêng ở cổng 31110 (demo-flow), 31111 (e2e), 31112 (soát seed).
+
+## 1. Kết quả chạy
+
+| Hạng mục | Kết quả |
+|---|---|
+| `npx tsc --noEmit` | ✅ |
+| `npm test` | ✅ 228/228 |
+| `npm run build` | ✅ (đã trả `public/` về như cũ) |
+| `npm run seed` 2 lần liên tiếp trên DB mới | ✅ không lỗi, không nhân đôi; soát giao diện trên DB seed: Kanban 2 / 4 / 4 / 4 thẻ, 1 tag "Yêu cầu sửa", SRS Đang làm + tag, ERD vẽ được, 9 story |
+| `node e2e/demo-flow.mjs` (luồng demo đợt 5) | **55/57** kiểm tra qua – 2 trượt là lỗi app (Q5-01, Q5-02), không chặn luồng; 0 lỗi JavaScript |
+| `npm run e2e` (`e2e/e2e.mjs`, hồi quy Design Studio theo URL mới) | ✅ 16/16 |
+
+## 2. Dữ liệu demo (`scripts/seed.ts`)
+
+Seed bật app ngay trong tiến trình (`createApp`, cổng ngẫu nhiên) và **gọi đúng API giao diện dùng** (pipeline Mock thật, Xong / Duyệt / Yêu cầu sửa thật, task tự đi theo sản phẩm) – chỉ thành viên, dự án, module ghi thẳng DB để giữ mã cố định. Story tạo qua `POST /api/projects/:id/stories` (đóng phần seed của R-050).
+
+| Nhóm | Nội dung |
+|---|---|
+| Thành viên | Nguyễn Thị Lan (BA Lead), Trần Minh Đức (BA), Lê Hoàng Anh (BA) – không mật khẩu. Thành viên demo cũ `demo-mem-ha`, `demo-mem-huy` bị xoá nếu không còn giữ việc |
+| Dự án | "Cửa hàng điện tử (mẫu)", mã giữ nguyên `demo-shop`; module Quản lý sản phẩm (`demo-mod-products`), Quản lý đơn hàng (`demo-mod-orders`) |
+| User story | 5 + 4 story US-01 → US-09, đủ As a / I want / So that, 1–3 tiêu chí, ưu tiên High/Medium/Low |
+| Tài liệu (module 1) | BRD Đã duyệt · UC Spec Đã duyệt · SRS Đang làm + **Yêu cầu sửa** · FRD-NFR Xong · API Spec Đang làm |
+| Sơ đồ (module 1) | Context Đã duyệt · UC Đã duyệt · Sequence Xong · BPMN Xong · ERD Đang làm (Mermaid do `shared/diagrams.ts` dựng) |
+| Prototype | Danh sách sản phẩm Đã duyệt · Thêm sản phẩm Xong (có bình luận của BA Lead) · Quản lý danh mục Đang làm |
+| Test case | Bộ test module 1 sinh từ UC Spec + FRD-NFR, Xong |
+| Công việc | 14 task: Cần làm 2, Đang làm 4, Xong 4, Đã duyệt 4; "Viết SRS" có tag Yêu cầu sửa; task gắn tài liệu (có loại), sơ đồ (có loại), màn, bộ test và task không gắn sản phẩm |
+
+Bỏ so với seed cũ: 4 tệp mẫu trong Kho tài liệu và dữ liệu gợi ý màn bỏ qua (không thuộc phạm vi đợt 5).
+
+## 3. Các kiểm tra trong `e2e/demo-flow.mjs`
+
+Dựa hoàn toàn vào `data-testid` (C10 đổi icon/chữ không ảnh hưởng). Ảnh ở `e2e/screenshots/dot5/` (nằm trong `.gitignore`), kết quả máy đọc ở `e2e/screenshots/dot5/results.json`. Mã thoát 1 khi có kiểm tra trượt.
+
+| Bước | Kiểm tra | Kết quả |
+|---|---|---|
+| 1. Chuẩn bị | Thành viên (API), "Tôi là" BA nhớ sau tải lại, tạo dự án → mở Quản lý công việc, tạo module ở Thực hiện công việc | ✅ 3/3 |
+| 2. Yêu cầu nghiệp vụ | "+ Thêm user story" 2 lần, đủ 3 ô + tiêu chí + module + ưu tiên → US-01, US-02 | ✅ |
+| 3. Tài liệu | BRD → UC Spec → SRS → FRD-NFR → API Spec: Sinh bằng AI, có nội dung, bấm Xong (bước sau mở khoá) | ✅ 10/10 |
+| Ca quyền BA | Không có nút Duyệt / Yêu cầu sửa; không có mục Quản trị; vào thẳng `#/admin` bị chặn; API Duyệt với `actorId` BA → 403 | ✅ 4/4 |
+| 4. Sơ đồ | Context, UC, BPMN: sinh, Mermaid vẽ được, Xong | ✅ 4/4 |
+| 5. Prototype | Sinh 1 màn, Xuất HTML (tải `.html`), Xong | ✅ 3/3 |
+| 6–7. Test case, Truy vết | Sinh test → Xong; ma trận truy vết có dòng | ✅ 2/2 |
+| 8. BA Lead Yêu cầu sửa | Task gắn API Spec đang ở Xong; BA Lead thấy Quản trị; Yêu cầu sửa → tài liệu Đang làm + tag; task về Đang làm + tag trên thẻ | ✅ 5/5 |
+| 9. BA sửa, Xong | Sửa tay API Spec, Xong → Xong, tag giữ; task sang Xong | ✅ 2/2 |
+| 10. BA Lead Duyệt | Đã duyệt; Kanban: cột Đã duyệt, hết tag; Test case báo "Chưa cấu hình GitHub – chưa đẩy"; lịch sử GitHub `configured: false` | ✅ 5/6 – **màn Tài liệu không báo "Chưa cấu hình GitHub – chưa đẩy"** (Q5-01) |
+| Ca 2 tab | Hai tab cùng sửa US-01, tab lưu sau thấy "Bản đã thay đổi – tải lại"; bấm Tải lại nhận bản mới | ✅ 2/2 |
+| Ảnh | 7 trang × 1440 / 375 px, đo tràn ngang | 13/14 – **Tài liệu ở 375 px rộng 434 px** (Q5-02) |
+| Lỗi JavaScript | Không có lỗi trên mọi trang đã mở | ✅ |
+
+Cách chạy: `npm run build && node e2e/demo-flow.mjs` (tự bật server Mock cổng 31110, DB + thư mục tệp tạm; `E2E_PORT`, `E2E_BASE`, `CHROME_PATH`, `E2E_HEADED` như cũ).
+
+## 4. Danh sách lỗi đợt 5
+
+Mức độ như mục 3 phía trên. C0 sửa (C11 không sửa mã app).
+
+| Mã | Mức | Agent sở hữu tệp | Màn / tệp | Mô tả | Cách tái hiện | Hướng xử lý |
+|---|---|---|---|---|---|---|
+| Q5-01 | Trung bình | C5 (`DocsView.tsx`), C6 (`DiagramsView.tsx`) | Tài liệu, Sơ đồ | BA Lead bấm **Duyệt** chỉ thấy "Đã duyệt …"/"Đã duyệt sơ đồ", không thấy kết quả GitHub (`ApprovalResult.git.message`: "Chưa cấu hình GitHub – chưa đẩy" hoặc đã đẩy commit nào). Trái quyết định 10 và mục C7 của kế hoạch. Màn Prototype, Test case và ngăn chi tiết task đã báo đúng | Dự án chưa cấu hình GitHub → `#/p/<id>/work/<mid>/docs/API_SPEC` ở trạng thái Xong, chọn BA Lead, bấm Duyệt → toast không có dòng GitHub (e2e bước 10) | Trong `flow`/`approval` của hai màn, dùng kết quả `approveArtifact(...)`: `if (r.git) toast(r.git.message, r.git.pushed ? "ok" : "info")` như `TestsTab.tsx` dòng 109 |
+| Q5-02 | Thấp | C5 (`DocsView.tsx`) · C10 / C1 (`styles.css` `.refine-row`) | Tài liệu (375 px) | Hàng nút đầu trang (Sinh lại · Sửa · Chỉnh bằng AI · Tải .md) không xuống dòng → trang rộng 434 px, nút "Tải .md" bị cắt | Mở `#/p/<id>/work/<mid>/docs/BRD` ở 375 px khi tài liệu đã có nội dung (ảnh `375-tai-lieu.png`) | Cho `.refine-row` `flex-wrap: wrap` (hoặc dùng `.page-head` đã xuống dòng) |
+| Q5-03 | Thấp | C9 (`DesignTab.tsx`) | Prototype – panel phải | Nút mở panel "Sửa" (cạnh Thành phần / Phiên bản / Gợi ý) không có `data-testid` → kịch bản tự động không quay lại được panel Sửa sau khi mở Phiên bản (e2e phải tải lại trang) | `e2e/e2e.mjs`: sau `versions-tab` không tìm được nút quay về panel Sửa bằng testid | Thêm `data-testid="edit-tab"` (và `layers-tab`) |
+
+Ghi nhận (không phải lỗi): sửa một user story làm mọi tài liệu của module thành **Lỗi thời**, kể cả tài liệu đã duyệt (thấy ở cuối luồng demo sau ca 2 tab) – đúng thiết kế của C4 (`markModuleDocsOutdated`), nhưng khi demo nên sửa story trước khi đi tới bước Tài liệu.

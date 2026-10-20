@@ -1,28 +1,28 @@
-// Dữ liệu demo BA Copilot v2 (A10): 5 thành viên, 1 dự án, 2 module, story tốt + story lỗi (QUS),
-// 3 màn đã duyệt + 1 màn nháp có link gãy (gợi ý màn), 4 tệp trong kho, 1 sơ đồ UC, 8 task đủ 4 cột.
-// Dùng: npm run seed
+// Dữ liệu demo BA Copilot – đợt 5 (C11).
+//   - 3 thành viên: 1 BA Lead + 2 BA (không mật khẩu – app không có màn đăng nhập, chọn ở ô "Tôi là…")
+//   - Dự án "Cửa hàng điện tử (mẫu)" (mã cố định demo-shop), 2 module
+//   - User story có cấu trúc (US-xx, As a / I want / So that, tiêu chí, ưu tiên) cho cả 2 module
+//   - Module 1: đủ 5 tài liệu BRD → API Spec, đủ 5 sơ đồ Context → ERD, 3 màn prototype (+ bình luận BA Lead), bộ test case;
+//     sản phẩm ở nhiều trạng thái: Đã duyệt, Xong, Đang làm, 1 tài liệu có cờ "Yêu cầu sửa"
+//   - Task ở đủ 4 cột Cần làm / Đang làm / Xong / Đã duyệt, 1 task có tag "Yêu cầu sửa", task gắn tài liệu, sơ đồ, màn, bộ test
 //
-// Chạy lại được nhiều lần: dữ liệu demo dùng mã cố định (DEMO); lần chạy sau xoá dự án demo cũ (kèm tệp trên đĩa)
-// rồi tạo lại, thành viên demo được ghi đè theo mã. Không đụng tới dự án, thành viên khác trong DB.
+// Dùng: npm run seed            (DB mặc định data/ba-copilot.db, hoặc DB_FILE=…)
 //
-// Mặc định sinh màn bằng chế độ Mock để dữ liệu demo luôn giống nhau (link gãy, điểm QUS cố định).
-// Muốn dùng Claude (cần ANTHROPIC_API_KEY): SEED_AI=claude npm run seed
+// Cách làm: mở DB rồi bật app ngay trong tiến trình này (createApp, cổng ngẫu nhiên) và gọi đúng các API mà giao diện gọi
+// (story, sinh tài liệu / sơ đồ / màn / test bằng pipeline Mock, Xong / Duyệt / Yêu cầu sửa, task). Nhờ vậy dữ liệu luôn
+// khớp quy tắc của app (rev, trạng thái, task tự đi theo sản phẩm, lịch sử task) và Mermaid do bộ dựng của shared/diagrams.ts sinh.
+// Chỉ thành viên, dự án, module được ghi thẳng DB (để giữ mã cố định).
 //
-// Bảng thành viên, task, sơ đồ UC được ghi thẳng theo docs/erd.md (không qua route), nên seed không phụ thuộc thứ tự gộp đợt 2.
+// Chạy lại được nhiều lần: xoá dự án demo cũ (theo mã hoặc cùng tên, kèm tệp trên đĩa) rồi tạo lại; thành viên demo ghi đè theo mã.
+// Không đụng tới dự án, thành viên khác trong DB. Mặc định chế độ Mock; SEED_AI=claude để dùng Claude (cần ANTHROPIC_API_KEY).
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { randomUUID } from "node:crypto";
-import { deflateSync } from "node:zlib";
-import { Document, HeadingLevel, Packer, Paragraph, TextRun } from "docx";
-import JSZip from "jszip";
+import type { AddressInfo } from "node:net";
 import { getDb, openDb, tx } from "../server/db.ts";
 import * as repo from "../server/repo.ts";
-import * as svc from "../server/service.ts";
-import { removeFileFromDisk, saveBuffer } from "../server/files.ts";
-import { qusRating, RATING_LABEL, scoreStories, splitStories } from "../shared/qus.ts";
-import { suggestNextScreens } from "../shared/suggest.ts";
-import { extractModel } from "../shared/extract.ts";
-import type { UseCase } from "../shared/types.ts";
+import { removeFileFromDisk } from "../server/files.ts";
+import { createApp } from "../server/app.ts";
+import { DOC_KINDS, DIAGRAM_KINDS, type DocKind, type DiagramKind } from "../shared/types.ts";
 
 const root = join(import.meta.dirname, "..");
 const envFile = join(root, ".env");
@@ -31,528 +31,317 @@ if (existsSync(envFile))
     const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
     if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
   }
-if (process.env.SEED_AI?.trim().toLowerCase() !== "claude") process.env.AI_MODE = "mock";
+if (process.env.SEED_AI?.trim().toLowerCase() !== "claude") {
+  process.env.AI_MODE = "mock";
+  delete process.env.ANTHROPIC_API_KEY;
+}
+delete process.env.APP_PASSWORD; // app trong tiến trình seed không cần cổng mật khẩu
 openDb(process.env.DB_FILE ?? join(root, "data", "ba-copilot.db"));
 const db = getDb();
 
-// ------------------------------------------------------------- Mã cố định của dữ liệu demo
+// ------------------------------------------------------------- Mã cố định
 const DEMO = {
   project: "demo-shop",
   projectName: "Cửa hàng điện tử (mẫu)",
   products: "demo-mod-products",
   orders: "demo-mod-orders",
 };
+const LAN = "demo-mem-lan"; // BA Lead
+const DUC = "demo-mem-duc"; // BA
+const ANH = "demo-mem-anh"; // BA
 const MEMBERS = [
-  { id: "demo-mem-lan", name: "Nguyễn Thị Lan", role: "BA_LEAD" },
-  { id: "demo-mem-duc", name: "Trần Minh Đức", role: "BA" },
-  { id: "demo-mem-anh", name: "Lê Hoàng Anh", role: "BA" },
-  { id: "demo-mem-ha", name: "Phạm Thu Hà", role: "BA" },
-  { id: "demo-mem-huy", name: "Vũ Quang Huy", role: "BA" },
+  { id: LAN, name: "Nguyễn Thị Lan", role: "BA_LEAD" },
+  { id: DUC, name: "Trần Minh Đức", role: "BA" },
+  { id: ANH, name: "Lê Hoàng Anh", role: "BA" },
 ] as const;
-type MemberKey = "lan" | "duc" | "anh" | "ha" | "huy";
-const mem = (k: MemberKey) => MEMBERS.find((m) => m.id === `demo-mem-${k}`)!;
+const OLD_DEMO_MEMBERS = ["demo-mem-ha", "demo-mem-huy"]; // seed bản cũ (5 người)
 
 const iso = (d: Date) => d.toISOString();
-const ago = (days: number, hours = 0) => iso(new Date(Date.now() - (days * 24 + hours) * 3600_000));
+const ago = (days: number) => iso(new Date(Date.now() - days * 24 * 3600_000));
 const dayOffset = (days: number) => iso(new Date(Date.now() + days * 24 * 3600_000)).slice(0, 10);
 
 // ------------------------------------------------------------- 1. Dọn dữ liệu demo cũ
-// Gồm dự án demo theo mã cố định và dự án mẫu do seed bản cũ tạo (cùng tên, mã ngẫu nhiên).
-function cleanup(): number {
-  const old = db.prepare("SELECT id FROM projects WHERE id = ? OR name = ?").all(DEMO.project, DEMO.projectName) as { id: string }[];
-  for (const { id } of old) {
-    const files = db.prepare("SELECT stored_name FROM files WHERE project_id = ?").all(id) as { stored_name: string }[];
-    for (const f of files) removeFileFromDisk(f.stored_name);
-    tx(() => {
-      // prompt_runs và suggestion_events chỉ tham chiếu logic (không có khoá ngoại) nên xoá tay
-      db.prepare("DELETE FROM prompt_runs WHERE module_id IN (SELECT id FROM modules WHERE project_id = ?)").run(id);
-      db.prepare("DELETE FROM suggestion_events WHERE screen_id IN (SELECT s.id FROM screens s JOIN modules m ON m.id = s.module_id WHERE m.project_id = ?)").run(id);
-      repo.deleteProject(id); // CASCADE: module, màn, tài liệu, test, tệp, sơ đồ, task, lịch sử task, gợi ý đã bỏ qua
-    });
-  }
-  return old.length;
+const old = db.prepare("SELECT id FROM projects WHERE id = ? OR name = ?").all(DEMO.project, DEMO.projectName) as { id: string }[];
+for (const { id } of old) {
+  for (const f of db.prepare("SELECT stored_name FROM files WHERE project_id = ?").all(id) as { stored_name: string }[]) removeFileFromDisk(f.stored_name);
+  tx(() => {
+    // prompt_runs, suggestion_events chỉ tham chiếu logic (không có khoá ngoại) nên xoá tay
+    db.prepare("DELETE FROM prompt_runs WHERE module_id IN (SELECT id FROM modules WHERE project_id = ?)").run(id);
+    db.prepare("DELETE FROM suggestion_events WHERE screen_id IN (SELECT s.id FROM screens s JOIN modules m ON m.id = s.module_id WHERE m.project_id = ?)").run(id);
+    repo.deleteProject(id); // CASCADE: module, story, tài liệu, sơ đồ, màn, test, task, lịch sử task, git_pushes…
+  });
 }
-const removed = cleanup();
-if (removed) console.log(`Đã xoá ${removed} dự án demo cũ.`);
+if (old.length) console.log(`Đã xoá ${old.length} dự án demo cũ.`);
 
-// ------------------------------------------------------------- 2. Thành viên (FN-01)
+// ------------------------------------------------------------- 2. Thành viên, dự án, module (ghi thẳng để giữ mã cố định)
 tx(() => {
+  // Thành viên demo cũ không còn dùng: chỉ xoá khi không còn giữ việc ở dự án khác
+  for (const id of OLD_DEMO_MEMBERS) {
+    const busy = db.prepare("SELECT 1 FROM tasks WHERE assignee_id = ? LIMIT 1").get(id);
+    if (!busy) db.prepare("DELETE FROM members WHERE id = ?").run(id);
+  }
   const st = db.prepare(
     `INSERT INTO members (id, name, role, created_at) VALUES (?, ?, ?, ?)
      ON CONFLICT(id) DO UPDATE SET name = excluded.name, role = excluded.role`,
   );
   MEMBERS.forEach((m, i) => st.run(m.id, m.name, m.role, ago(30 - i)));
-});
-console.log(`Thành viên: ${MEMBERS.map((m) => `${m.name}${m.role === "BA_LEAD" ? " (BA Lead)" : ""}`).join(", ")}`);
-
-// ------------------------------------------------------------- 3. Dự án và 2 module
-// Module Sản phẩm: story viết tốt (điểm QUS cao). Module Đơn hàng: trộn story tốt và story lỗi để demo QUS.
-const PRODUCT_STORIES = `- Là quản trị viên, tôi muốn tìm kiếm sản phẩm theo tên để kiểm tra tồn kho trước khi nhập hàng.
-- Là quản trị viên, tôi muốn lọc sản phẩm theo danh mục để rà soát giá bán của từng nhóm hàng.
-- Là quản trị viên, tôi muốn thêm sản phẩm mới với tên, mã SKU, giá bán để mở bán sản phẩm trên website.
-- Là quản trị viên, tôi muốn sắp xếp danh mục sản phẩm để khách hàng tìm đúng nhóm hàng.
-- Là quản trị viên, tôi muốn đăng nhập bằng email để bảo vệ dữ liệu cửa hàng.`;
-const ORDER_STORIES = `- Là nhân viên bán hàng, tôi muốn xem danh sách đơn hàng theo trạng thái để xử lý đơn mới trong ngày.
-- Là nhân viên bán hàng, tôi muốn tạo đơn hàng và in hóa đơn cho khách.
-- Hệ thống phải xử lý đơn hàng nhanh và thân thiện với người dùng.
-- Hủy đơn.
-- Là nhân viên bán hàng, tôi muốn xem danh sách các đơn hàng theo trạng thái để xử lý đơn mới trong ngày.
-- Là kế toán, tôi muốn xuất danh sách đơn hàng ra Excel (ví dụ: theo tháng, theo kênh bán) để đối soát doanh thu.`;
-
-tx(() => {
   db.prepare("INSERT INTO projects (id, name, description, created_at) VALUES (?, ?, ?, ?)").run(
     DEMO.project,
     DEMO.projectName,
     "Dự án mẫu cho buổi demo: website bán hàng điện tử – quản lý sản phẩm và đơn hàng.",
     ago(14),
   );
-  const st = db.prepare("INSERT INTO modules (id, project_id, name, requirement_input, created_at) VALUES (?, ?, ?, ?, ?)");
-  st.run(DEMO.products, DEMO.project, "Quản lý sản phẩm", PRODUCT_STORIES, ago(14));
-  st.run(DEMO.orders, DEMO.project, "Quản lý đơn hàng", ORDER_STORIES, ago(13));
+  const mod = db.prepare("INSERT INTO modules (id, project_id, name, created_at) VALUES (?, ?, ?, ?)");
+  mod.run(DEMO.products, DEMO.project, "Quản lý sản phẩm", ago(14));
+  mod.run(DEMO.orders, DEMO.project, "Quản lý đơn hàng", ago(13));
 });
+console.log(`Thành viên: ${MEMBERS.map((m) => `${m.name}${m.role === "BA_LEAD" ? " (BA Lead)" : " (BA)"}`).join(", ")}`);
 
-// ------------------------------------------------------------- 4. Màn hình: 3 đã duyệt + 1 nháp có link gãy
-async function screen(name: string, prompt: string, author: MemberKey, approvedBy?: MemberKey) {
-  console.log(`Sinh màn hình: ${name}`);
-  const a = mem(author);
-  const r = await svc.createScreenFromPrompt(DEMO.products, prompt, name, a.id);
-  // FN-03: ghi tên người tạo vào phiên bản (seed ghi thẳng, không chờ route của A3)
-  db.prepare("UPDATE screen_versions SET author = ?, author_id = ? WHERE screen_id = ?").run(a.name, a.id, r.screen!.id);
-  if (approvedBy) svc.setScreenApproval(r.screen!.id, true, mem(approvedBy).id);
-  return { id: r.screen!.id, versionId: r.version.id };
-}
-// Ba màn đã duyệt không có nút trỏ tới màn chưa tồn tại → không sinh gợi ý link gãy.
-const scrList = await screen(
-  "Quản lý sản phẩm",
-  "Quản lý sản phẩm: tìm kiếm theo tên, lọc theo danh mục, trạng thái, bảng danh sách có cột Mã, Tên sản phẩm, Giá bán, Tồn kho, Trạng thái, thao tác xem/sửa/xóa, nút Thêm mới, phân trang.",
-  "duc",
-  "lan",
-);
-await screen(
-  "Thêm sản phẩm",
-  "Form thêm sản phẩm: tên sản phẩm (bắt buộc, tối đa 100 ký tự), mã SKU, danh mục, giá bán, tồn kho, mô tả; nút Lưu và Hủy.",
-  "duc",
-  "lan",
-);
-await screen(
-  "Quản lý danh mục",
-  "Quản lý danh mục: tìm kiếm theo tên, bảng danh sách có cột Mã, Tên danh mục, Số sản phẩm, Trạng thái, thao tác sửa/xóa, nút Thêm mới.",
-  "anh",
-  "lan",
-);
+// ------------------------------------------------------------- 3. Bật app trong tiến trình, gọi API như giao diện
+const server = createApp({ publicDir: join(root, "public") });
+await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
+const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 
-// ------------------------------------------------------------- 5. Tài liệu (UC/SRS/Sequence) và test case
-console.log("Sinh tài liệu…");
-await svc.generateDocs(DEMO.products, mem("anh").id);
-svc.approveDocs(DEMO.products, true, mem("lan").id);
-console.log("Sinh test case…");
-await svc.generateTests(DEMO.products, mem("duc").id);
-// Tài liệu được chỉnh lại và duyệt sau khi sinh test → test Lỗi thời (BR-02), khớp task "Cần làm lại" bên dưới
-repo.updateModule(DEMO.products, { testsStatus: "outdated" });
+async function api<T = any>(method: string, path: string, body?: object): Promise<T> {
+  const res = await fetch(base + path, { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+  const data = (await res.json().catch(() => ({}))) as any;
+  if (!res.ok) throw new Error(`${method} ${path} → ${res.status}: ${data?.error ?? "lỗi"}`);
+  return data as T;
+}
+const done = (kind: string, id: string, sub?: string, by = DUC) => api("POST", `/api/artifacts/${kind}/${id}/done`, { sub, actorId: by });
+const approve = (kind: string, id: string, sub?: string) => api("POST", `/api/artifacts/${kind}/${id}/approve`, { sub, actorId: LAN });
+const requestChange = (kind: string, id: string, sub?: string) => api("POST", `/api/artifacts/${kind}/${id}/request-change`, { sub, actorId: LAN });
 
-// Màn nháp tạo sau khi duyệt tài liệu (tạo màn mới không làm tài liệu lỗi thời).
-// Link "Quên mật khẩu?" trỏ tới màn chưa có → gợi ý link gãy (FN-57).
-const scrLogin = await screen(
-  "Đăng nhập",
-  "Màn hình đăng nhập quản trị bằng email và mật khẩu, có ghi nhớ đăng nhập, nút Đăng nhập và link Quên mật khẩu?",
-  "ha",
-);
-const loginTree = repo.getVersion(scrLogin.versionId)!.tree;
-const forgotLink = JSON.stringify(loginTree).match(/"id":"([^"]+)","type":"Link"/)?.[1];
-if (forgotLink) {
-  const ann = repo.createAnnotation({
-    screenId: scrLogin.id,
-    versionId: scrLogin.versionId,
-    nodeIds: [forgotLink],
-    bbox: null,
-    comment: "Link này chưa có màn đích. Em làm thêm màn Quên mật khẩu nhé.",
-    author: mem("lan").name,
-  });
-  db.prepare("UPDATE annotations SET author_id = ? WHERE id = ?").run(mem("lan").id, ann.id);
-}
-
-// ------------------------------------------------------------- 6. Sơ đồ UC (FN-11), đã duyệt
-// Sau khi gộp A5 thì dùng buildUcMermaid (có dòng mã băm nguồn UC cho FN-14); trước đó dùng bản vẽ tối giản cùng quy ước.
-type UcBuilder = (ucs: UseCase[]) => string;
-async function ucBuilder(): Promise<UcBuilder> {
-  const path = "../shared/ucDiagram.ts"; // để trong biến: tsc không đòi tệp khi chưa gộp A5
-  try {
-    const mod = (await import(path)) as { buildUcMermaid: UcBuilder };
-    return (ucs) => mod.buildUcMermaid(ucs);
-  } catch {
-    return (ucs) => {
-      const label = (s: string) => s.replace(/["`<>]/g, "'").replace(/\s+/g, " ").trim();
-      const actors = [...new Set(ucs.flatMap((u) => u.actors).filter((a) => !/^hệ thống$/i.test(a)))];
-      return [
-        "flowchart LR",
-        ...actors.map((a, i) => `  A${i + 1}(("${label(a)}"))`),
-        `  subgraph SYS["Hệ thống"]`,
-        "    direction TB",
-        ...ucs.map((u, i) => `    UC${i + 1}(["${label(`${u.code}: ${u.name}`)}"])`),
-        "  end",
-        ...ucs.flatMap((u, i) => u.actors.filter((a) => actors.includes(a)).map((a) => `  A${actors.indexOf(a) + 1} --- UC${i + 1}`)),
-      ].join("\n");
-    };
-  }
-}
-const diagramCode = (await ucBuilder())(repo.getDocs(DEMO.products).useCases);
-db.prepare("INSERT INTO uc_diagrams (module_id, code, status, approved_at, updated_at) VALUES (?, ?, 'approved', ?, ?)").run(
-  DEMO.products,
-  diagramCode,
-  ago(1),
-  ago(1, 2),
-);
-
-// ------------------------------------------------------------- 7. Kho tài liệu: 4 tệp mẫu (FN-04, FN-05)
-const crcTable = Array.from({ length: 256 }, (_, n) => {
-  let c = n;
-  for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-  return c >>> 0;
-});
-const crc32 = (buf: Buffer) => {
-  let c = 0xffffffff;
-  for (const b of buf) c = crcTable[(c ^ b) & 0xff] ^ (c >>> 8);
-  return (c ^ 0xffffffff) >>> 0;
-};
-/** Ảnh PNG phác thảo màn đăng nhập (khung, 2 ô nhập, nút, link). */
-function wireframePng(w = 360, h = 260): Buffer {
-  const rects: [number, number, number, number, [number, number, number]][] = [
-    [0, 0, w, h, [244, 246, 248]],
-    [70, 30, 220, 200, [255, 255, 255]],
-    [90, 50, 120, 14, [60, 70, 80]],
-    [90, 85, 180, 26, [214, 219, 224]],
-    [90, 125, 180, 26, [214, 219, 224]],
-    [90, 170, 180, 30, [16, 163, 127]],
-    [90, 210, 80, 8, [16, 120, 200]],
-  ];
-  const row = w * 3 + 1;
-  const px = Buffer.alloc(h * row);
-  for (let y = 0; y < h; y++)
-    for (let x = 0; x < w; x++) {
-      let c: [number, number, number] = [0, 0, 0];
-      for (const [rx, ry, rw, rh, col] of rects) if (x >= rx && x < rx + rw && y >= ry && y < ry + rh) c = col;
-      px.set(c, y * row + 1 + x * 3);
-    }
-  const chunk = (type: string, data: Buffer) => {
-    const body = Buffer.concat([Buffer.from(type, "ascii"), data]);
-    const out = Buffer.alloc(body.length + 8);
-    out.writeUInt32BE(data.length, 0);
-    body.copy(out, 4);
-    out.writeUInt32BE(crc32(body), body.length + 4);
-    return out;
-  };
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(w, 0);
-  ihdr.writeUInt32BE(h, 4);
-  ihdr.set([8, 2, 0, 0, 0], 8); // 8 bit, RGB
-  return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk("IHDR", ihdr), chunk("IDAT", deflateSync(px)), chunk("IEND", Buffer.alloc(0))]);
-}
-/** PDF một trang, chữ không dấu (font chuẩn Helvetica không có tiếng Việt). */
-function simplePdf(lines: string[]): Buffer {
-  const text = lines.map((l, i) => `BT /F1 ${i ? 11 : 16} Tf 56 ${780 - i * 22} Td (${l.replace(/[()\\]/g, "\\$&")}) Tj ET`).join("\n");
-  const objs = [
-    "<< /Type /Catalog /Pages 2 0 R >>",
-    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
-    `<< /Length ${Buffer.byteLength(text)} >>\nstream\n${text}\nendstream`,
-    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
-  ];
-  let out = "%PDF-1.4\n";
-  const offsets: number[] = [];
-  objs.forEach((o, i) => {
-    offsets.push(Buffer.byteLength(out));
-    out += `${i + 1} 0 obj\n${o}\nendobj\n`;
-  });
-  const xref = Buffer.byteLength(out);
-  out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n${offsets.map((o) => `${String(o).padStart(10, "0")} 00000 n \n`).join("")}`;
-  out += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
-  return Buffer.from(out, "latin1");
-}
-async function kickoffDocx(): Promise<Buffer> {
-  const p = (text: string, bold = false) => new Paragraph({ children: [new TextRun({ text, bold })] });
-  const doc = new Document({
-    sections: [
+try {
+  // ----------------------------------------------------------- 4. User story có cấu trúc (R-050: qua API, không qua requirementInput)
+  type S = { asA: string; iWant: string; soThat: string; ac: string[]; priority: "High" | "Medium" | "Low" };
+  const STORIES: Record<string, S[]> = {
+    [DEMO.products]: [
       {
-        children: [
-          new Paragraph({ text: "Biên bản họp kickoff – Cửa hàng điện tử", heading: HeadingLevel.HEADING_1 }),
-          p("Thời gian: 09:00 thứ Hai. Địa điểm: phòng họp tầng 5."),
-          p("Thành phần: anh Tùng (chủ đầu tư), chị Lan (BA Lead), Đức, Hoàng Anh, Thu Hà, Quang Huy."),
-          p("Nội dung đã thống nhất", true),
-          p("1. Giai đoạn 1 làm 2 phân hệ: Quản lý sản phẩm và Quản lý đơn hàng."),
-          p("2. Quản trị viên đăng nhập bằng email, có chức năng quên mật khẩu."),
-          p("3. Đơn hàng xuất được ra Excel để kế toán đối soát cuối tháng."),
-          p("Việc tiếp theo", true),
-          p("BA hoàn thiện user story và màn hình phân hệ Sản phẩm trước buổi duyệt tuần sau."),
-        ],
+        asA: "quản trị viên",
+        iWant: "tìm kiếm sản phẩm theo tên hoặc mã SKU",
+        soThat: "kiểm tra tồn kho trước khi nhập hàng",
+        ac: ["Tìm theo một phần tên, không phân biệt hoa thường", "Không có kết quả thì hiện thông báo 'Không tìm thấy sản phẩm'", "Kết quả phân trang 20 dòng/trang"],
+        priority: "High",
+      },
+      {
+        asA: "quản trị viên",
+        iWant: "thêm sản phẩm mới với tên, mã SKU, danh mục, giá bán và tồn kho",
+        soThat: "mở bán sản phẩm trên website",
+        ac: ["Tên sản phẩm bắt buộc, tối đa 100 ký tự", "Mã SKU không được trùng", "Giá bán phải lớn hơn 0"],
+        priority: "High",
+      },
+      {
+        asA: "quản trị viên",
+        iWant: "sửa giá bán và tồn kho của sản phẩm",
+        soThat: "thông tin trên website luôn đúng",
+        ac: ["Lưu thành công thì hiện thông báo và cập nhật danh sách", "Tồn kho không được âm"],
+        priority: "Medium",
+      },
+      {
+        asA: "quản trị viên",
+        iWant: "lọc sản phẩm theo danh mục và trạng thái",
+        soThat: "rà soát giá bán của từng nhóm hàng",
+        ac: ["Lọc kết hợp được với ô tìm kiếm", "Có lựa chọn 'Tất cả danh mục'"],
+        priority: "Medium",
+      },
+      {
+        asA: "quản trị viên",
+        iWant: "ngừng bán một sản phẩm",
+        soThat: "khách không đặt được hàng đã hết mẫu",
+        ac: ["Hỏi xác nhận trước khi ngừng bán", "Sản phẩm ngừng bán không hiện trên website"],
+        priority: "Low",
       },
     ],
-  });
-  return Buffer.from(await Packer.toBuffer(doc));
-}
-/** Bảng Excel một trang tính (chuỗi inline, không cần sharedStrings). */
-async function simpleXlsx(rows: (string | number)[][]): Promise<Buffer> {
-  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const col = (i: number) => String.fromCharCode(65 + i);
-  const cell = (v: string | number, ref: string) =>
-    typeof v === "number" ? `<c r="${ref}"><v>${v}</v></c>` : `<c r="${ref}" t="inlineStr"><is><t>${esc(v)}</t></is></c>`;
-  const sheet = rows.map((r, y) => `<row r="${y + 1}">${r.map((v, x) => cell(v, `${col(x)}${y + 1}`)).join("")}</row>`).join("");
-  const zip = new JSZip();
-  zip.file(
-    "[Content_Types].xml",
-    `<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>`,
-  );
-  zip.file(
-    "_rels/.rels",
-    `<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
-  );
-  zip.file(
-    "xl/workbook.xml",
-    `<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Sản phẩm" sheetId="1" r:id="rId1"/></sheets></workbook>`,
-  );
-  zip.file(
-    "xl/_rels/workbook.xml.rels",
-    `<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`,
-  );
-  zip.file("xl/worksheets/sheet1.xml", `<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheet}</sheetData></worksheet>`);
-  return zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
-}
-const productsXlsx = await simpleXlsx([
-  ["Mã SKU", "Tên sản phẩm", "Danh mục", "Giá bán", "Tồn kho"],
-  ["SP001", "Điện thoại Galaxy A55", "Điện thoại", 8990000, 42],
-  ["SP002", "Laptop Vivobook 15", "Máy tính", 15490000, 12],
-  ["SP003", "Tai nghe AirPods 3", "Phụ kiện", 4290000, 80],
-  ["SP004", "Màn hình Dell 24 inch", "Máy tính", 3890000, 25],
-]);
+    [DEMO.orders]: [
+      {
+        asA: "nhân viên bán hàng",
+        iWant: "xem danh sách đơn hàng theo trạng thái",
+        soThat: "xử lý đơn mới trong ngày",
+        ac: ["Mặc định lọc đơn 'Mới'", "Hiện mã đơn, khách hàng, tổng tiền, ngày đặt"],
+        priority: "High",
+      },
+      {
+        asA: "nhân viên bán hàng",
+        iWant: "tạo đơn hàng tại quầy và in hoá đơn",
+        soThat: "khách nhận hoá đơn ngay khi thanh toán",
+        ac: ["Chọn sản phẩm còn tồn kho", "Tổng tiền tự tính theo số lượng"],
+        priority: "High",
+      },
+      {
+        asA: "nhân viên bán hàng",
+        iWant: "huỷ đơn hàng chưa giao",
+        soThat: "trả lại tồn kho khi khách đổi ý",
+        ac: ["Bắt buộc nhập lý do huỷ", "Đơn đã giao thì không huỷ được"],
+        priority: "Medium",
+      },
+      {
+        asA: "kế toán",
+        iWant: "xuất danh sách đơn hàng ra Excel theo tháng",
+        soThat: "đối soát doanh thu cuối tháng",
+        ac: ["Tệp có cột mã đơn, ngày, kênh bán, tổng tiền"],
+        priority: "Low",
+      },
+    ],
+  };
+  for (const [moduleId, list] of Object.entries(STORIES))
+    for (const s of list)
+      await api("POST", `/api/projects/${DEMO.project}/stories`, {
+        moduleId,
+        asA: s.asA,
+        iWant: s.iWant,
+        soThat: s.soThat,
+        acceptanceCriteria: s.ac,
+        priority: s.priority,
+        actorId: ANH,
+      });
+  console.log(`User story: ${STORIES[DEMO.products].length} (Sản phẩm) + ${STORIES[DEMO.orders].length} (Đơn hàng)`);
 
-const FILES: { name: string; moduleId: string | null; buf: Buffer; sender: string; receivedDays: number; note: string; by: MemberKey }[] = [
-  { name: "Biên bản họp kickoff.docx", moduleId: null, buf: await kickoffDocx(), sender: "Anh Tùng – chủ đầu tư", receivedDays: 12, note: "Phạm vi giai đoạn 1 đã chốt", by: "lan" },
-  {
-    name: "Yêu cầu nghiệp vụ đơn hàng.pdf",
-    moduleId: DEMO.orders,
-    buf: simplePdf([
-      "Yeu cau nghiep vu - Quan ly don hang",
-      "1. Nhan vien ban hang xem danh sach don theo trang thai.",
-      "2. Tao don hang tai quay, in hoa don cho khach.",
-      "3. Huy don truoc khi giao, ghi ly do huy.",
-      "4. Ke toan xuat danh sach don ra Excel theo thang.",
-    ]),
-    sender: "Chị Mai – phòng kinh doanh",
-    receivedDays: 6,
-    note: "Bản gốc của khách, chưa tách story",
-    by: "huy",
-  },
-  { name: "Phác thảo màn đăng nhập.png", moduleId: DEMO.products, buf: wireframePng(), sender: "Anh Tùng – chủ đầu tư", receivedDays: 3, note: "Khách vẽ tay, có link Quên mật khẩu", by: "ha" },
-  { name: "Danh sách sản phẩm mẫu.xlsx", moduleId: DEMO.products, buf: productsXlsx, sender: "Kho hàng", receivedDays: 2, note: "Dữ liệu mẫu cho màn Quản lý sản phẩm", by: "duc" },
-];
-for (const f of FILES) {
-  const rec = saveBuffer(DEMO.project, f.moduleId, f.name, f.buf, "upload");
-  db.prepare("UPDATE files SET sender = ?, received_at = ?, note = ?, uploaded_by = ?, created_at = ? WHERE id = ?").run(
-    f.sender,
-    dayOffset(-f.receivedDays),
-    f.note,
-    mem(f.by).id,
-    ago(f.receivedDays - 0.5),
-    rec.id,
-  );
-}
-console.log(`Kho tài liệu: ${FILES.length} tệp`);
-
-// ------------------------------------------------------------- 8. Công việc: 8 task đủ 4 cột (FN-15 → FN-23)
-type Status = "todo" | "doing" | "done" | "redo";
-interface Step {
-  to: Status;
-  daysAgo: number;
-  by?: MemberKey; // người đổi; bỏ trống = hệ thống tự cập nhật (A7)
-  reason?: string;
-}
-interface DemoTask {
-  title: string;
-  description: string;
-  moduleId: string | null;
-  assignee: MemberKey;
-  due: number; // số ngày so với hôm nay, âm = đã qua
-  priority: "High" | "Medium" | "Low";
-  artifact?: { type: "screen" | "docs" | "diagram" | "tests"; id: string };
-  steps: Step[]; // bước đầu là lúc tạo (BA Lead tạo, luôn "todo")
-}
-// Không gắn task nào vào sơ đồ UC: luồng demo của A11 tự tạo task "Vẽ UC diagram" rồi cho AI sinh lại sơ đồ.
-const TASKS: DemoTask[] = [
-  {
-    title: "Tạo màn Quên mật khẩu",
-    description: 'Màn đích cho link "Quên mật khẩu?" ở màn Đăng nhập. Dùng gợi ý màn tiếp theo để tạo.',
-    moduleId: DEMO.products,
-    assignee: "ha",
-    due: 3,
-    priority: "High",
-    steps: [{ to: "todo", daysAgo: 0.2 }],
-  },
-  {
-    title: "Viết lại story module Đơn hàng theo khuôn mẫu",
-    description: "Điểm QUS đang thấp: có story thiếu vai trò, story trùng, story dùng từ mơ hồ. Sửa theo gợi ý trong panel QUS.",
-    moduleId: DEMO.orders,
-    assignee: "huy",
-    due: 5,
-    priority: "Medium",
-    steps: [{ to: "todo", daysAgo: 1 }],
-  },
-  {
-    title: "Thiết kế màn Đăng nhập",
-    description: "Đăng nhập quản trị bằng email và mật khẩu, có ghi nhớ đăng nhập.",
-    moduleId: DEMO.products,
-    assignee: "ha",
-    due: 1,
-    priority: "High",
-    artifact: { type: "screen", id: scrLogin.id },
-    steps: [
-      { to: "todo", daysAgo: 2 },
-      { to: "doing", daysAgo: 0.25, reason: "Màn hình có bản nháp mới" },
-    ],
-  },
-  {
-    title: "Rà soát yêu cầu nghiệp vụ đơn hàng với phòng kinh doanh",
-    description: 'Đối chiếu tệp "Yêu cầu nghiệp vụ đơn hàng.pdf" trong kho với story hiện có.',
-    moduleId: DEMO.orders,
-    assignee: "anh",
-    due: 2,
-    priority: "Medium",
-    steps: [
-      { to: "todo", daysAgo: 5 },
-      { to: "doing", daysAgo: 4, by: "anh" },
-    ],
-  },
-  {
-    title: "Thiết kế màn Quản lý sản phẩm",
-    description: "Danh sách sản phẩm có tìm kiếm, lọc theo danh mục, phân trang.",
-    moduleId: DEMO.products,
-    assignee: "duc",
-    due: -3,
-    priority: "High",
-    artifact: { type: "screen", id: scrList.id },
-    steps: [
-      { to: "todo", daysAgo: 9 },
-      { to: "doing", daysAgo: 8, reason: "Màn hình có bản nháp mới" },
-      { to: "done", daysAgo: 6, reason: "Màn hình đã được duyệt" },
-    ],
-  },
-  {
-    title: "Viết tài liệu UC/SRS module Sản phẩm",
-    description: "Sinh tài liệu từ các màn đã duyệt, rà soát rồi gửi BA Lead duyệt.",
-    moduleId: DEMO.products,
-    assignee: "anh",
-    due: -1,
-    priority: "Medium",
-    artifact: { type: "docs", id: DEMO.products },
-    steps: [
-      { to: "todo", daysAgo: 6 },
-      { to: "doing", daysAgo: 4, reason: "Tài liệu có bản nháp mới" },
-      { to: "done", daysAgo: 2, reason: "Tài liệu đã được duyệt" },
-    ],
-  },
-  {
-    title: "Viết test case module Sản phẩm",
-    description: "Sinh test case từ UC/SRS đã duyệt.",
-    moduleId: DEMO.products,
-    assignee: "duc",
-    due: 2,
-    priority: "Medium",
-    artifact: { type: "tests", id: DEMO.products },
-    steps: [
-      { to: "todo", daysAgo: 4 },
-      { to: "doing", daysAgo: 3, reason: "Test case có bản nháp mới" },
-      { to: "done", daysAgo: 2.5, by: "duc" },
-      { to: "redo", daysAgo: 1.5, reason: "Tài liệu thay đổi, test case lỗi thời" },
-    ],
-  },
-  {
-    title: "Bổ sung yêu cầu phi chức năng vào SRS",
-    description: "Thêm thời gian phản hồi tối đa của màn danh sách và giới hạn số lần đăng nhập sai.",
-    moduleId: DEMO.products,
-    assignee: "huy",
-    due: 1,
-    priority: "Low",
-    steps: [
-      { to: "todo", daysAgo: 5 },
-      { to: "doing", daysAgo: 4, by: "huy" },
-      { to: "done", daysAgo: 3, by: "huy" },
-      { to: "redo", daysAgo: 1, by: "lan", reason: "BA Lead trả lại: thiếu thời gian phản hồi tối đa" },
-    ],
-  },
-];
-
-tx(() => {
-  const insTask = db.prepare(
-    `INSERT INTO tasks (id, project_id, module_id, title, description, assignee_id, due_date, priority, status, artifact_type, artifact_id, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  );
-  const insEvent = db.prepare(
-    "INSERT INTO task_events (id, task_id, from_status, to_status, by_member_id, by_system, reason, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-  );
-  TASKS.forEach((t, i) => {
-    const id = `demo-task-${i + 1}`;
-    const last = t.steps[t.steps.length - 1];
-    insTask.run(
-      id,
-      DEMO.project,
-      t.moduleId,
-      t.title,
-      t.description,
-      mem(t.assignee).id,
-      dayOffset(t.due),
-      t.priority,
-      last.to,
-      t.artifact?.type ?? null,
-      t.artifact?.id ?? null,
-      ago(t.steps[0].daysAgo),
-      ago(last.daysAgo),
-    );
-    t.steps.forEach((s, k) => {
-      const by = k === 0 ? "lan" : s.by;
-      insEvent.run(randomUUID(), id, k === 0 ? null : t.steps[k - 1].to, s.to, by ? mem(by).id : null, by ? 0 : 1, s.reason ?? "", ago(s.daysAgo));
+  // ----------------------------------------------------------- 5. Task gắn sản phẩm (tạo trước để tự đi theo vòng đời sản phẩm)
+  type TaskSpec = {
+    key: string;
+    title: string;
+    description: string;
+    moduleId: string;
+    assigneeId: string;
+    due: number;
+    priority: "High" | "Medium" | "Low";
+    artifactType?: "doc" | "diagram" | "screen" | "tests";
+    artifactId?: string;
+    artifactSub?: string;
+  };
+  const taskIds: Record<string, string> = {};
+  async function createTask(t: TaskSpec) {
+    const r = await api("POST", `/api/projects/${DEMO.project}/tasks`, {
+      title: t.title,
+      description: t.description,
+      moduleId: t.moduleId,
+      assigneeId: t.assigneeId,
+      dueDate: dayOffset(t.due),
+      priority: t.priority,
+      artifactType: t.artifactType,
+      artifactId: t.artifactId,
+      artifactSub: t.artifactSub,
+      actorId: LAN,
     });
+    taskIds[t.key] = r.id;
+  }
+  const P = DEMO.products;
+  const docTask = (kind: DocKind, title: string, who: string, due: number): TaskSpec => ({
+    key: `doc-${kind}`,
+    title,
+    description: `Sinh và rà soát ${title.replace(/^Viết /, "")} của module Quản lý sản phẩm, bấm Xong để BA Lead duyệt.`,
+    moduleId: P,
+    assigneeId: who,
+    due,
+    priority: "High",
+    artifactType: "doc",
+    artifactId: P,
+    artifactSub: kind,
   });
-});
-const counts = { todo: 0, doing: 0, done: 0, redo: 0 };
-for (const t of TASKS) counts[t.steps[t.steps.length - 1].to]++;
-console.log(`Công việc: ${TASKS.length} task – Cần làm ${counts.todo}, Đang làm ${counts.doing}, Xong ${counts.done}, Cần làm lại ${counts.redo}`);
-
-// ------------------------------------------------------------- 9. Điểm QUS lưu sẵn (FN-56), chấm giống A8: kèm story module khác để bắt trùng chéo
-const modules = repo.listModules(DEMO.project);
-for (const m of modules) {
-  const others = modules.filter((x) => x.id !== m.id).map((x) => ({ moduleName: x.name, text: x.requirementInput }));
-  const r = scoreStories(m.requirementInput, { others });
-  const score = r.stories.length ? r.total : null;
-  db.prepare("UPDATE modules SET qus_score = ?, qus_checked_at = ? WHERE id = ?").run(score, score === null ? null : iso(new Date()), m.id);
-  const bad = r.stories.filter((s) => s.score < 60).length;
-  console.log(`QUS ${m.name}: ${score ?? "—"} (${score === null ? "chưa chấm" : RATING_LABEL[qusRating(score)]}), ${r.stories.length} story, ${bad} story dưới 60`);
-}
-
-// ------------------------------------------------------------- 10. Gợi ý màn tiếp theo (cùng đầu vào với GET /api/modules/:id/suggestions)
-// Module Sản phẩm: FR sinh từ màn đã duyệt (chủ yếu FR kiểm tra dữ liệu) bị coi là "chưa có màn phủ". BA đã bấm Bỏ qua các gợi ý này
-// (FN-60), để danh sách chính chỉ còn link gãy "Quên mật khẩu" và mục "Đã bỏ qua" có sẵn dữ liệu để demo Khôi phục.
-const suggestionsOf = (moduleId: string) => {
-  const m = repo.getModule(moduleId)!;
-  const shots = repo.listScreens(m.id).filter((s) => s.tree);
-  const dismissed = (db.prepare("SELECT key FROM suggestion_dismissals WHERE module_id = ?").all(m.id) as { key: string }[]).map((r) => r.key);
-  return suggestNextScreens({
-    model: extractModel(shots.map((s) => ({ id: s.id, name: s.name, tree: s.tree! }))),
-    requirements: repo.getDocs(m.id).requirements,
-    stories: splitStories(m.requirementInput),
-    dismissed,
+  const diagramTask = (kind: DiagramKind, title: string, who: string, due: number): TaskSpec => ({
+    key: `diagram-${kind}`,
+    title,
+    description: "Sinh bằng AI từ tài liệu đã Xong, chỉnh mã Mermaid nếu cần.",
+    moduleId: P,
+    assigneeId: who,
+    due,
+    priority: "Medium",
+    artifactType: "diagram",
+    artifactId: P,
+    artifactSub: kind,
   });
-};
-tx(() => {
-  const st = db.prepare("INSERT OR IGNORE INTO suggestion_dismissals (module_id, key, created_at) VALUES (?, ?, ?)");
-  // Lặp vì suggestNextScreens gộp gợi ý trùng tên: bỏ qua FR-04 thì FR-05 cùng tên rút gọn mới hiện ra
-  for (let fr = suggestionsOf(DEMO.products).filter((s) => s.kind === "uncovered-fr"); fr.length; fr = suggestionsOf(DEMO.products).filter((s) => s.kind === "uncovered-fr"))
-    for (const s of fr) st.run(DEMO.products, s.key, ago(0, 4));
-});
-for (const m of modules) {
-  const items = suggestionsOf(m.id);
-  const hidden = (db.prepare("SELECT COUNT(*) AS n FROM suggestion_dismissals WHERE module_id = ?").get(m.id) as { n: number }).n;
-  const links = items.filter((s) => s.kind === "broken-link").map((s) => s.name);
-  console.log(`Gợi ý ${m.name}: ${items.length} gợi ý${links.length ? ` (link gãy: ${links.join(", ")})` : ""}${hidden ? `, ${hidden} đã bỏ qua` : ""}`);
-}
+  for (const t of [
+    docTask("BRD", "Viết BRD", DUC, -4),
+    docTask("UC_SPEC", "Viết UC Specification", DUC, -2),
+    docTask("SRS", "Viết SRS", ANH, 1),
+    docTask("FRD_NFR", "Viết FRD-NFR", ANH, 2),
+    docTask("API_SPEC", "Viết API Spec", DUC, 4),
+    diagramTask("CONTEXT", "Vẽ sơ đồ Context", ANH, -1),
+    diagramTask("BPMN", "Vẽ sơ đồ BPMN quy trình nhập hàng", ANH, 3),
+    diagramTask("ERD", "Vẽ ERD", DUC, 5),
+  ])
+    await createTask(t);
 
-const port = process.env.PORT ?? 3000;
-console.log(`\nXong. Mở http://localhost:${port}/#/p/${DEMO.project}`);
-console.log(`  Thiết kế + gợi ý màn: http://localhost:${port}/#/m/${DEMO.products}/design`);
+  // ----------------------------------------------------------- 6. Tài liệu module 1: sinh lần lượt 5 bước (Mock), bấm Xong từng bước
+  for (const kind of DOC_KINDS) {
+    await api("POST", `/api/modules/${P}/docs/${kind}/generate`, { actorId: kind === "SRS" || kind === "FRD_NFR" ? ANH : DUC });
+    if (kind !== "API_SPEC") await done("doc", P, kind, kind === "SRS" || kind === "FRD_NFR" ? ANH : DUC);
+  }
+
+  // ----------------------------------------------------------- 7. Sơ đồ module 1: đủ 5 loại (Mermaid do pipeline Mock + shared/diagrams.ts dựng)
+  for (const kind of DIAGRAM_KINDS) await api("POST", `/api/modules/${P}/diagrams/${kind}/generate`, { actorId: kind === "ERD" ? DUC : ANH });
+  for (const kind of ["CONTEXT", "UC", "SEQUENCE", "BPMN"] as DiagramKind[]) await done("diagram", P, kind, ANH);
+  await approve("diagram", P, "CONTEXT");
+  await approve("diagram", P, "UC");
+  // ERD để Đang làm (bản nháp)
+
+  // ----------------------------------------------------------- 8. Prototype: 3 màn (Mock), Đã duyệt / Xong / Đang làm + bình luận BA Lead
+  async function screen(name: string, prompt: string, by: string) {
+    const r = await api("POST", `/api/modules/${P}/screens`, { name, prompt, actorId: by });
+    return r.screen.id as string;
+  }
+  const scrList = await screen(
+    "Danh sách sản phẩm",
+    "Quản lý sản phẩm: tìm kiếm theo tên hoặc SKU, lọc theo danh mục, trạng thái, bảng danh sách có cột Mã, Tên sản phẩm, Giá bán, Tồn kho, Trạng thái, thao tác xem/sửa/xoá, nút Thêm mới, phân trang.",
+    DUC,
+  );
+  const scrAdd = await screen(
+    "Thêm sản phẩm",
+    "Form thêm sản phẩm: tên sản phẩm (bắt buộc, tối đa 100 ký tự), mã SKU, danh mục, giá bán, tồn kho, mô tả; nút Lưu và Huỷ.",
+    DUC,
+  );
+  await screen("Quản lý danh mục", "Quản lý danh mục: tìm kiếm theo tên, bảng danh sách có cột Mã, Tên danh mục, Số sản phẩm, thao tác sửa/xoá, nút Thêm mới.", ANH);
+  await api("POST", `/api/screens/${scrAdd}/annotations`, { comment: "Thêm ô chọn ảnh sản phẩm và gợi ý định dạng giá (VNĐ).", nodeIds: [], actorId: LAN });
+  for (const t of [
+    { key: "screen-list", title: "Thiết kế màn Danh sách sản phẩm", id: scrList, who: DUC, due: -3 },
+    { key: "screen-add", title: "Thiết kế màn Thêm sản phẩm", id: scrAdd, who: DUC, due: 2 },
+  ])
+    await createTask({ key: t.key, title: t.title, description: "Prototype sinh từ SRS, FRD-NFR và user story.", moduleId: P, assigneeId: t.who, due: t.due, priority: "High", artifactType: "screen", artifactId: t.id });
+  for (const k of ["screen-list", "screen-add"]) await api("PATCH", `/api/tasks/${taskIds[k]}/status`, { status: "doing", actorId: DUC });
+  await done("screen", scrList, undefined, DUC);
+  await approve("screen", scrList);
+  await done("screen", scrAdd, undefined, DUC);
+  // Quản lý danh mục: để Đang làm (chưa có task)
+
+  // ----------------------------------------------------------- 9. Test case module 1 (cần FRD-NFR Xong)
+  await createTask({ key: "tests", title: "Viết test case module Sản phẩm", description: "Sinh test case từ UC Specification + FRD-NFR.", moduleId: P, assigneeId: ANH, due: 3, priority: "Medium", artifactType: "tests", artifactId: P });
+  await api("POST", `/api/modules/${P}/tests/generate`, { actorId: ANH });
+  await done("tests", P, undefined, ANH);
+
+  // ----------------------------------------------------------- 10. BA Lead duyệt / yêu cầu sửa
+  // Duyệt khi dự án chưa cấu hình GitHub: vẫn duyệt, kết quả "Chưa cấu hình GitHub – chưa đẩy".
+  await approve("doc", P, "BRD");
+  await approve("doc", P, "UC_SPEC");
+  await requestChange("doc", P, "SRS"); // SRS về Đang làm + tag "Yêu cầu sửa"; task "Viết SRS" lùi về Đang làm
+
+  // ----------------------------------------------------------- 11. Module 2: task Cần làm / Đang làm
+  await createTask({ key: "orders-brd", title: "Viết BRD module Đơn hàng", description: "Sinh BRD từ 4 user story của module Đơn hàng.", moduleId: DEMO.orders, assigneeId: ANH, due: 6, priority: "High", artifactType: "doc", artifactId: DEMO.orders, artifactSub: "BRD" });
+  await createTask({ key: "orders-review", title: "Rà soát story Đơn hàng với phòng kinh doanh", description: "Đối chiếu tiêu chí chấp nhận với quy trình thực tế tại quầy.", moduleId: DEMO.orders, assigneeId: DUC, due: 2, priority: "Medium" });
+  await createTask({ key: "orders-nfr", title: "Bổ sung yêu cầu phi chức năng cho đơn hàng", description: "Thời gian phản hồi danh sách đơn, giới hạn số đơn mỗi trang.", moduleId: DEMO.orders, assigneeId: DUC, due: 4, priority: "Low" });
+  await api("PATCH", `/api/tasks/${taskIds["orders-review"]}/status`, { status: "doing", actorId: DUC });
+
+  // ----------------------------------------------------------- 12. Tổng kết
+  const docs = await api<any[]>("GET", `/api/modules/${P}/docs`);
+  const diagrams = await api<any[]>("GET", `/api/modules/${P}/diagrams`);
+  const screens = (await api<any>("GET", `/api/modules/${P}`)).screens as any[];
+  const tasks = await api<any[]>("GET", `/api/projects/${DEMO.project}/tasks`);
+  const ST: Record<string, string> = { none: "Chưa có", draft: "Đang làm", done: "Xong", approved: "Đã duyệt", outdated: "Lỗi thời", todo: "Cần làm", doing: "Đang làm" };
+  const flag = (x: { revisionRequested?: boolean }) => (x.revisionRequested ? " + Yêu cầu sửa" : "");
+  console.log(`Tài liệu: ${docs.map((d) => `${d.kind} ${ST[d.status]}${flag(d)}`).join(" · ")}`);
+  console.log(`Sơ đồ: ${diagrams.map((d) => `${d.kind} ${ST[d.status]}`).join(" · ")}`);
+  console.log(`Prototype: ${screens.map((s) => `${s.name} ${ST[s.status]}`).join(" · ")}`);
+  const count: Record<string, number> = { todo: 0, doing: 0, done: 0, approved: 0 };
+  for (const t of tasks) count[t.status]++;
+  console.log(
+    `Công việc: ${tasks.length} task – Cần làm ${count.todo}, Đang làm ${count.doing}, Xong ${count.done}, Đã duyệt ${count.approved}; Yêu cầu sửa: ${tasks.filter((t) => t.revisionRequested).map((t) => t.title).join(", ") || "không có"}`,
+  );
+  const missing = (["todo", "doing", "done", "approved"] as const).filter((s) => !count[s]);
+  if (missing.length || !tasks.some((t) => t.revisionRequested)) throw new Error(`Dữ liệu demo thiếu: cột ${missing.join(", ") || "–"} / task Yêu cầu sửa`);
+
+  const port = process.env.PORT ?? 3000;
+  console.log(`\nXong. Mở http://localhost:${port}/#/p/${DEMO.project}/tasks`);
+  console.log(`  Tài liệu: http://localhost:${port}/#/p/${DEMO.project}/work/${P}/docs`);
+} finally {
+  server.close();
+}
