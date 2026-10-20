@@ -7,15 +7,15 @@ Người cập nhật: **A0**. Mỗi agent dán kết quả `npm test` / `npm ru
 | Mã | Agent | Đợt | Nhánh | Trạng thái | Test | Build | Ghi chú |
 |---|---|---|---|---|---|---|---|
 | A0 | Tích hợp & Điều phối | 0, 4 | `v2-base` | ✅ Đợt 0 xong | 48/48 (xem lưu ý) | ✅ | Xem nhật ký đợt 0 |
-| A1 | Design System | 1 | `agent/a1-design-system` | ⏳ Chưa bắt đầu | — | — | |
-| A2 | Nền tảng dữ liệu & hợp đồng | 1 | `agent/a2-nen-tang` | 🟡 Xong, chờ A0 duyệt `api.md`/`erd.md` | 59/59 ✅ | ✅ | Tạo từ `v2-base` (chưa có `v2-contract`). Xem nhật ký đợt 1 – A2 |
-| A3 | Thành viên & thanh trên | 2 | `agent/a3-thanh-vien` | ⏳ Chờ A1, A2 | — | — | |
-| A4 | Kho tài liệu | 2 | `agent/a4-kho-tai-lieu` | ⏳ Chờ A1, A2 | — | — | Code C4 đã có trên `v2-base` |
-| A5 | Sơ đồ UC | 2 | `agent/a5-so-do-uc` | ⏳ Chờ A1, A2 | — | — | |
-| A6 | Công việc Kanban | 2 | `agent/a6-kanban` | ⏳ Chờ A1, A2 | — | — | |
-| A7 | Tự cập nhật trạng thái task | 2 | `agent/a7-tu-cap-nhat` | ⏳ Chờ A2 | — | — | Gộp sau A6 |
-| A8 | Chất lượng yêu cầu (QUS) | 2 | `agent/a8-qus` | ⏳ Chờ A1, A2 | — | — | Code C1 đã có trên `v2-base` |
-| A9 | Gợi ý màn tiếp theo | 2 | `agent/a9-goi-y` | ⏳ Chờ A1, A2 | — | — | Gộp cuối đợt 2 |
+| A1 | Design System | 1 | `chi_task` (`336c9e2`) | ✅ Đã gộp vào `v2-contract` | ✅ | ✅ | Làm thẳng trên `chi_task`, không có nhánh agent riêng. Route `#/_gallery` chuyển sang `client/routes.ts` |
+| A2 | Nền tảng dữ liệu & hợp đồng | 1 | `agent/a2-nen-tang` | ✅ Đã gộp vào `v2-contract`; `api.md`/`erd.md` đã duyệt và **khoá** | 59/59 ✅ | ✅ | Xem nhật ký đợt 1 – A0 |
+| A3 | Thành viên & thanh trên | 2 | `agent/a3-thanh-vien` | ⏳ Sẵn sàng | — | — | |
+| A4 | Kho tài liệu | 2 | `agent/a4-kho-tai-lieu` | ⏳ Sẵn sàng | — | — | Code C4 đã có trên `v2-base` |
+| A5 | Sơ đồ UC | 2 | `agent/a5-so-do-uc` | ⏳ Sẵn sàng | — | — | |
+| A6 | Công việc Kanban | 2 | `agent/a6-kanban` | ⏳ Sẵn sàng | — | — | |
+| A7 | Tự cập nhật trạng thái task | 2 | `agent/a7-tu-cap-nhat` | ⏳ Sẵn sàng | — | — | Gộp sau A6 |
+| A8 | Chất lượng yêu cầu (QUS) | 2 | `agent/a8-qus` | ⏳ Sẵn sàng | — | — | Code C1 + bản G1–G4 (`e05d9af`, chi_task) đã có trên `v2-contract`; còn FN-56 và chuyển sang `ScoreBadge`/`IssueList` |
+| A9 | Gợi ý màn tiếp theo | 2 | `agent/a9-goi-y` | ⏳ Sẵn sàng | — | — | `shared/suggest.ts` + khối gợi ý trong `DesignTab.tsx` (`e05d9af`) đã có; bỏ qua đang lưu trên trình duyệt, cần chuyển sang API `suggestion_dismissals`. Gộp cuối đợt 2 |
 | A10 | Dữ liệu demo | 3 | `agent/a10-seed` | ⏳ Chờ đợt 2 | — | — | |
 | A11 | Kiểm thử E2E & QA | 3 | `agent/a11-e2e` | ⏳ Chờ A10 | — | — | |
 | A12 | Tài liệu & Triển khai | 3, 4 | `agent/a12-trien-khai` | ⏳ Chờ A11 | — | — | |
@@ -27,7 +27,7 @@ Thứ tự gộp đợt 2: A8 → A4 → A3 → A6 → A7 → A5 → A9.
 | Đợt | Nhánh | Trạng thái |
 |---|---|---|
 | 0 | `v2-base` | ✅ Test và build qua (2026-10-20) |
-| 1 | `v2-contract` | ⏳ |
+| 1 | `v2-contract` | ✅ Build qua, 65/66 test (1 test tốc độ, xem lưu ý) (2026-10-20). **Nhánh nền cho đợt 2** |
 | 2 | `v2-features` | ⏳ |
 | 3–4 | `v2-demo` | ⏳ |
 
@@ -87,3 +87,47 @@ Các tệp `types.ts`, `db.ts`, `app.ts`, `service.ts`, `repo.ts`, `tests/api.te
 | ERD Mermaid | ✅ Vẽ được bằng `public/vendor/mermaid.min.js` |
 
 `public/app.js`, `public/app-style.css` **không** commit (sản phẩm build) – A0 sinh lại sau khi gộp.
+
+---
+
+## Nhật ký đợt 1 – A0 (2026-10-20)
+
+**Nhánh:** `v2-contract` = `chi_task` @ `336c9e2` (gồm `v2-base`, bản QUS G1–G4 + gợi ý màn `e05d9af`, và A1) + gộp `agent/a2-nen-tang` @ `a0e8567`. Gộp không xung đột.
+
+### Duyệt hợp đồng A2 – đã khoá
+
+`docs/api.md`, `docs/erd.md`, `shared/types.ts` được duyệt và **khoá từ nay**. Muốn đổi thì ghi vào `docs/agents/REQUESTS.md`.
+
+Ba lựa chọn A2 tự chốt, A0 **xác nhận** (tài liệu v2 không quy định):
+
+| # | Lựa chọn | Ghi chú cho agent sau |
+|---|---|---|
+| 1 | Duyệt sơ đồ dùng một endpoint `POST /api/modules/:id/diagram/approve` với `{ approved }`, giống duyệt màn và tài liệu | A5 làm theo |
+| 2 | Ưu tiên task là `High` / `Medium` / `Low` (mặc định `Medium`) | A6 hiển thị nhãn tiếng Việt Cao / Trung bình / Thấp |
+| 3 | Xoá module thì `tasks.module_id` thành `NULL` (SET NULL), task vẫn còn | Task gắn `docs`/`tests`/`diagram` của module đã xoá vẫn giữ `artifact_id` cũ. A6 phải hiện "Sản phẩm đã xoá" thay vì lỗi; tương tự với màn đã xoá |
+
+### Điểm vượt phạm vi của A2 – chấp nhận
+
+- **`server/service.ts`**: ngoài chèn `emit`, A2 bọc thao tác ghi trong `tx()` và thêm tham số `actorId?` ở cuối các hàm. Chấp nhận, vì cần để handler A7 chạy chung transaction; chữ ký cũ vẫn gọi được.
+- **`tx()` lồng được**: lời gọi lồng chạy chung transaction ngoài cùng. Lỗi ở lớp trong làm huỷ cả transaction.
+- **Stub route của agent khác** (`server/routes/{members,tasks,diagram,qus,suggest}.ts`): đúng bước 5 của kế hoạch. Cổng số 3 sẽ báo các tệp này ở nhánh A2, đã xét và bỏ qua.
+- **`server/routes/files.ts`** đã chứa 4 route Kho tài liệu chuyển từ `app.ts`. Từ nay tệp thuộc A4.
+- **Thứ tự sự kiện cần A7 lưu ý:** sửa màn đang Đã duyệt sẽ phát `drafted` rồi `unapproved`. Sinh lại tài liệu đang Đã duyệt sẽ phát `unapproved` rồi `drafted`, nên task gắn `docs` đang Xong sẽ đi Xong → Cần làm lại → Đang làm.
+
+### Điểm A0 chèn khi gộp
+
+- A1 thêm route `#/_gallery` thẳng vào `client/main.tsx` (tệp của A2). A0 bỏ dòng đó và đăng ký `{ key: "_gallery", scope: "global", hidden: true }` trong `client/routes.ts`, đúng đề xuất của A2.
+- A1 sửa thêm `CLAUDE.md` ở gốc repo (yêu cầu đọc design system trước khi làm giao diện). Tệp không thuộc agent nào; A0 chấp nhận.
+
+### Kiểm tra trên `v2-contract` (Node v24.16.0)
+
+| Cổng | Kết quả |
+|---|---|
+| 1. `npm test` | 66 test: 65 pass, 1 fail. Test trượt là test tốc độ `transformer.test.ts` (xem lưu ý đợt 0). Lần này máy đang bận (CPU ~57%, có agent khác chạy), nên **`v2-base` cũng trượt y hệt** khi chạy riêng. Mã mô hình không đổi dòng nào, không phải lỗi gộp |
+| 2. `npm run build` | ✅ `public/app.js` 334,2 kB |
+| — `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+| 4. Hợp đồng | Bản khoá chính là bản trên `v2-contract` |
+| 5. Chế độ Mock | ✅ Chạy app với DB mới, không có khoá AI. Mở `#/_gallery`, trang chủ, dự án, Kho tài liệu, Công việc và Thành viên (trang giữ chỗ), 5 tab module, popup Sửa yêu cầu có panel QUS: 0 lỗi console. `GET /api/members` và `GET /api/projects/:id/tasks` trả 501 (stub) đúng dự kiến |
+
+**Đề xuất cho đợt 2:** nên xử lý test tốc độ trước khi 7 agent chạy song song, nếu không cổng số 1 sẽ đỏ liên tục. Ví dụ: chỉ đo thời gian khi biến môi trường `PERF=1`. Tệp này không thuộc agent nào, cần người quyết định.
+

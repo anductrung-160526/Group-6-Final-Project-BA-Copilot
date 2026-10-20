@@ -42,8 +42,10 @@ Nguồn: mục 4 của `docs/Ke_hoach_Agent_BA_Copilot_v2.md`. Người giữ b�
 | | A0 | Chèn `RelatedTasks` do A6 giao (FN-19), làm khi gộp |
 | `client/views/DocsTab.tsx` | A0 | Chèn `RelatedTasks` do A6 giao (FN-19), làm khi gộp |
 | `client/views/moduleTabs.ts` | A5 | Đăng ký đúng một dòng cho `DiagramTab` |
-| `client/routes.ts` | A3, A4, A6 | Đăng ký đúng một dòng cho trang cấp dự án của mình |
+| `client/routes.ts` | A3, A4, A6 | Thay đúng một dòng giữ chỗ của mình (`members`, `files`, `tasks`) |
+| | A1 | Dòng `_gallery` (A0 đã đăng ký khi gộp đợt 1) |
 | `server/routes/index.ts` | A2 | Tạo sẵn import cho mọi tệp route; agent tính năng không sửa |
+| `server/routes/{members,tasks,diagram,qus,suggest,files}.ts` | A2 tạo stub (đợt 1) | Sau đợt 1 mỗi tệp thuộc agent ghi ở mục 1; `files.ts` đã chứa 4 route Kho tài liệu thật |
 | `server/service.ts` | A2 | Chèn lệnh `emit` (đợt 1) |
 | | A8 | Chỉ thêm một lệnh gọi tính điểm trong hàm cập nhật module (FN-56) |
 | `server/ai/pipelines.ts`, `server/ai/mock.ts` | A5 | Chỉ thêm hàm mới ở cuối tệp, không sửa code cũ |
