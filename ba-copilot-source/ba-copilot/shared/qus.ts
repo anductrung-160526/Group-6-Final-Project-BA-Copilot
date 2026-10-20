@@ -17,6 +17,9 @@ export interface QusIssue {
 
 export interface StoryScore {
   index: number;
+  /** Đợt 5: mã và id của user story có cấu trúc (chỉ có khi chấm bằng scoreStructured). */
+  id?: string;
+  code?: string;
   text: string;
   score: number;
   issues: QusIssue[];
@@ -30,7 +33,10 @@ export interface QusResult {
 // Story của các module khác trong cùng dự án, dùng để phát hiện trùng chéo module (G1).
 export interface OtherModuleStories {
   moduleName: string;
-  text: string;
+  /** Văn bản tự do (cách cũ, tách bằng splitStories). */
+  text?: string;
+  /** Đợt 5: từng story đã ghép thành câu (storySentence) – có thì dùng thay cho `text`. */
+  stories?: string[];
 }
 
 export interface ScoreOptions {
@@ -396,10 +402,24 @@ function majorityTemplate(parsed: ParsedStory[]): StoryTemplate | null {
 // Chấm chất lượng toàn bộ danh sách User Stories.
 // options.others: story của các module khác trong cùng dự án, để bắt trùng chéo module (G1).
 export function scoreStories(text: string, options: ScoreOptions = {}): QusResult {
-  const rawStories = splitStories(text);
+  return scoreTexts(splitStories(text), options);
+}
+
+interface TextExtras {
+  /** Lỗi bổ sung cho từng story (vd tiêu chí chấp nhận), cộng vào trước khi tính điểm. */
+  extra?: QusIssue[][];
+  /** Nhãn dùng trong thông báo trùng (mặc định "#<số thứ tự>"). */
+  labels?: string[];
+  ids?: (string | undefined)[];
+  codes?: (string | undefined)[];
+}
+
+// Lõi chấm điểm trên danh sách câu story đã tách sẵn (dùng chung cho văn bản tự do và story có cấu trúc).
+function scoreTexts(rawStories: string[], options: ScoreOptions = {}, ex: TextExtras = {}): QusResult {
   if (rawStories.length === 0) {
     return { stories: [], total: 0 };
   }
+  const label = (i: number) => ex.labels?.[i] ?? `#${i + 1}`;
 
   const parsedList = rawStories.map(parseStory);
   const issuesList: QusIssue[][] = rawStories.map((raw, idx) => {
@@ -480,7 +500,7 @@ export function scoreStories(text: string, options: ScoreOptions = {}): QusResul
   // Chỉ gắn lỗi cho story đứng sau để một cặp trùng không bị trừ điểm hai lần.
   const wordSets = rawStories.map(extractWords);
   const others = (options.others ?? []).flatMap((o) =>
-    splitStories(o.text).map((t) => ({ moduleName: o.moduleName, words: extractWords(t) })),
+    (o.stories ?? splitStories(o.text ?? "")).map((t) => ({ moduleName: o.moduleName, words: extractWords(t) })),
   );
   for (let j = 0; j < rawStories.length; j++) {
     let dupMessage: string | null = null;
@@ -488,8 +508,8 @@ export function scoreStories(text: string, options: ScoreOptions = {}): QusResul
     for (let i = 0; i < j && !dupMessage; i++) {
       const sim = jaccardSimilarity(wordSets[i], wordSets[j]);
       if (sim >= DUPLICATE_THRESHOLD) {
-        dupMessage = `Trùng nội dung với story #${i + 1} trong module (độ tương đồng ${Math.round(sim * 100)}%).`;
-        dupSuggestion = `Gộp hoặc bỏ một trong hai story #${i + 1} và #${j + 1}.`;
+        dupMessage = `Trùng nội dung với story ${label(i)} trong module (độ tương đồng ${Math.round(sim * 100)}%).`;
+        dupSuggestion = `Gộp hoặc bỏ một trong hai story ${label(i)} và ${label(j)}.`;
       }
     }
     for (const o of others) {
@@ -519,8 +539,11 @@ export function scoreStories(text: string, options: ScoreOptions = {}): QusResul
   }
 
   // Điểm story (G4): 100 − 30/error − 15/warn − 5/info, thấp nhất 0. Điểm module = trung bình cộng.
+  ex.extra?.forEach((list, idx) => issuesList[idx]?.push(...list));
   const stories: StoryScore[] = rawStories.map((raw, idx) => ({
     index: idx + 1,
+    ...(ex.ids?.[idx] ? { id: ex.ids[idx] } : {}),
+    ...(ex.codes?.[idx] ? { code: ex.codes[idx] } : {}),
     text: raw,
     score: storyScore(issuesList[idx]),
     issues: issuesList[idx],
@@ -528,4 +551,81 @@ export function scoreStories(text: string, options: ScoreOptions = {}): QusResul
   const total = Math.round(stories.reduce((acc, s) => acc + s.score, 0) / stories.length);
 
   return { stories, total };
+}
+
+// =============================================================== Đợt 5 – user story có cấu trúc (C4)
+
+/** Story có cấu trúc (bảng user_stories): vai trò / mong muốn / lợi ích + tiêu chí chấp nhận. */
+export interface StructuredStory {
+  id?: string;
+  code?: string;
+  asA?: string;
+  iWant?: string;
+  soThat?: string;
+  acceptanceCriteria?: string[];
+}
+
+const ROLE_PREFIX = /^(?:as\s+an?|với\s+tư\s+cách(?:\s+là)?|là(?:\s+một)?)\s+/iu;
+const MEANS_PREFIX = /^(?:i\s+want|tôi\s+muốn)\s+/iu;
+const END_PREFIX = /^(?:so\s+that|để)\s+/iu;
+// Bỏ cụm mở đầu BA lỡ gõ lại trong ô (vd "As a Khách hàng" trong ô vai trò) và dấu câu cuối.
+const cleanPart = (v: string | undefined, prefix: RegExp) =>
+  (v ?? "").normalize("NFC").trim().replace(prefix, "").replace(/[\s,;.]+$/u, "").trim();
+
+/** true khi cả 3 phần đều trống (dòng mới chưa nhập) – không chấm, không đưa vào AI. */
+export const isBlankStructured = (s: StructuredStory) => !cleanPart(s.asA, ROLE_PREFIX) && !cleanPart(s.iWant, MEANS_PREFIX) && !cleanPart(s.soThat, END_PREFIX);
+
+/**
+ * Ghép story có cấu trúc thành câu "As a X, I want Y, so that Z." để chấm QUS / đưa cho AI.
+ * Thiếu phần nào thì bỏ phần đó (thiếu vai trò → câu bắt đầu bằng "I want" → bị WELL_FORMED). Trống hết → "".
+ */
+export function storySentence(s: StructuredStory): string {
+  const role = cleanPart(s.asA, ROLE_PREFIX);
+  const means = cleanPart(s.iWant, MEANS_PREFIX);
+  const end = cleanPart(s.soThat, END_PREFIX);
+  const parts = [role && `As a ${role}`, means && `I want ${means}`, end && `so that ${end}`].filter(Boolean);
+  return parts.length ? parts.join(", ") + "." : "";
+}
+
+/** Lỗi riêng của tiêu chí chấp nhận: chưa có tiêu chí (gợi ý), tiêu chí chứa từ mơ hồ (cảnh báo, gộp một lỗi). */
+function criteriaIssues(criteria: string[]): QusIssue[] {
+  const list = criteria.map((c) => c.trim()).filter(Boolean);
+  if (!list.length) {
+    return [
+      {
+        code: "NO_CRITERIA",
+        severity: "info",
+        message: "Story chưa có tiêu chí chấp nhận.",
+        suggestion: "Thêm ít nhất một tiêu chí kiểm chứng được, ví dụ \"Hiện tối đa 20 đơn, mới nhất trước\".",
+      },
+    ];
+  }
+  const hits = list.flatMap((c, i) => findAmbiguous(c).map((w) => ({ w, i })));
+  if (!hits.length) return [];
+  const words = [...new Set(hits.map((h) => h.w))].join(", ");
+  const rows = [...new Set(hits.map((h) => h.i + 1))].join(", ");
+  return [
+    {
+      code: "AMBIGUOUS",
+      severity: "warn",
+      message: `Tiêu chí chấp nhận (dòng ${rows}) chứa từ ngữ mơ hồ: "${words}".`,
+      suggestion: `Thay "${words}" bằng điều kiện đo được để kiểm thử được, ví dụ "≤ 2 giây".`,
+      excerpt: words,
+    },
+  ];
+}
+
+/**
+ * Chấm QUS trên danh sách story có cấu trúc của một module (đợt 5). Mỗi story được ghép thành câu
+ * (storySentence) rồi chấm như cũ (G1–G4); cộng thêm lỗi của tiêu chí chấp nhận. Story trống được bỏ qua.
+ * Kết quả mỗi story có `id`, `code` để giao diện gắn đúng dòng. Điểm module = trung bình các story được chấm.
+ */
+export function scoreStructured(stories: StructuredStory[], options: ScoreOptions = {}): QusResult {
+  const list = stories.filter((s) => !isBlankStructured(s));
+  return scoreTexts(list.map(storySentence), options, {
+    extra: list.map((s) => criteriaIssues(s.acceptanceCriteria ?? [])),
+    labels: list.map((s, i) => s.code ?? `#${i + 1}`),
+    ids: list.map((s) => s.id),
+    codes: list.map((s) => s.code),
+  });
 }
