@@ -136,7 +136,7 @@ export type ToastKind = "ok" | "err" | "info";
 interface Toast {
   id: number;
   kind: ToastKind;
-  text: string;
+  text: React.ReactNode;
 }
 /** Hộp xác nhận: tiêu đề là câu hỏi, `message` giải thích hậu quả; `danger` cho thao tác xoá. */
 export interface ConfirmOptions {
@@ -146,7 +146,7 @@ export interface ConfirmOptions {
   danger?: boolean;
 }
 interface UICtx {
-  toast: (text: string, kind?: Toast["kind"]) => void;
+  toast: (text: React.ReactNode, kind?: Toast["kind"]) => void;
   /** Chạy tác vụ async: hiện lớp "AI đang xử lý", bắt lỗi thành toast. */
   run: <T>(label: string, fn: () => Promise<T>) => Promise<T | undefined>;
   /** Hỏi xác nhận bằng `Modal` (thay `window.confirm`); trả `true` khi người dùng đồng ý. */
@@ -165,7 +165,7 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
     ask?.resolve(ok);
     setAsk(null);
   };
-  const toast = useCallback((text: string, kind: Toast["kind"] = "info") => {
+  const toast = useCallback((text: React.ReactNode, kind: Toast["kind"] = "info") => {
     const id = Date.now() + Math.random();
     setToasts((t) => [...t.slice(-2), { id, kind, text }]);
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), kind === "err" ? 7000 : 3500);
@@ -230,6 +230,26 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
         ))}
       </div>
     </Ctx.Provider>
+  );
+}
+
+/**
+ * Nội dung toast sau khi BA Lead Duyệt: thông báo GitHub của server ("Chưa cấu hình GitHub – chưa đẩy" / đã đẩy)
+ * + liên kết commit nếu có. Dùng: `toast(<GitOutcome git={r.git} />, r.git.pushed ? "ok" : "info")`.
+ */
+export function GitOutcome({ git }: { git: { message: string; commitUrl?: string } }) {
+  return (
+    <span data-testid="git-outcome">
+      {git.message}
+      {git.commitUrl && (
+        <>
+          {" "}
+          <a className="link" href={git.commitUrl} target="_blank" rel="noopener noreferrer" data-testid="git-outcome-link">
+            Xem commit <Icon name="external" size="xs" />
+          </a>
+        </>
+      )}
+    </span>
   );
 }
 

@@ -15,7 +15,7 @@ import { Renderer } from "../components/Renderer.tsx";
 import { SuggestionsPanel } from "../components/SuggestionsPanel.tsx";
 import { RelatedTasks } from "../components/RelatedTasks.tsx";
 import { currentMemberId, useCurrentMember, withActor } from "../currentMember.ts";
-import { ApprovalBar, Badge, Btn, ConflictNotice, EditingBadge, Empty, Field, Icon, Modal, RowActions, StatusBadge, fmtTime, useUI } from "../components/ui.tsx";
+import { ApprovalBar, Badge, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Field, Icon, Modal, RowActions, StatusBadge, fmtTime, useUI } from "../components/ui.tsx";
 
 type Mode = "select" | "region" | "prototype";
 interface Rect {
@@ -167,7 +167,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
       }
     });
     if (!r) return;
-    if (action === "approve" && r.git) toast(r.git.message, r.git.pushed ? "ok" : "info");
+    if (action === "approve" && r.git) toast(<GitOutcome git={r.git} />, r.git.pushed ? "ok" : "info");
     else toast(action === "done" ? "Đã đánh dấu Xong – chờ BA Lead duyệt" : action === "approve" ? "Đã duyệt màn hình" : "Đã gửi yêu cầu sửa", "ok");
     await reload();
   };
@@ -691,7 +691,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
       {screen && tree && (
         <aside className="studio-right">
           <div className="seg seg-full">
-            <button className={panel === "edit" ? "on" : ""} onClick={() => setPanel("edit")}>
+            <button className={panel === "edit" ? "on" : ""} onClick={() => setPanel("edit")} data-testid="edit-tab">
               Sửa {openAnns.length ? `(${openAnns.length})` : ""}
             </button>
             <button className={panel === "layers" ? "on" : ""} onClick={() => setPanel("layers")}>
