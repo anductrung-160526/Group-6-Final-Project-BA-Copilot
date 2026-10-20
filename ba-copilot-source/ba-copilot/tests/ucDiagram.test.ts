@@ -162,11 +162,10 @@ describe("API sơ đồ UC (Mock)", () => {
   test("GET khi chưa sinh → null; module không tồn tại → 404; chưa có UC → generate 400; chưa có sơ đồ → approve 400", async () => {
     const p = await api("POST", "/api/projects", { name: "P" });
     const m = await api("POST", `/api/projects/${p.data.id}/modules`, { name: "Trống" });
-    // Hợp đồng: trả `null`. server/app.ts (A2) hiện đổi null thành { ok: true } – xem docs/agents/REQUESTS.md (yêu cầu của A5).
-    // Sau khi A2 sửa, chỉ giữ nhánh `null`.
+    // Hợp đồng: trả `null` khi chưa sinh (R-009).
     const empty = await api("GET", `/api/modules/${m.data.id}/diagram`);
     assert.equal(empty.status, 200);
-    assert.ok(empty.data === null || (empty.data.ok === true && !("code" in empty.data)), JSON.stringify(empty.data));
+    assert.equal(empty.data, null);
     assert.equal((await api("GET", "/api/modules/khong-co/diagram")).status, 404);
     const g = await api("POST", `/api/modules/${m.data.id}/diagram/generate`, {});
     assert.equal(g.status, 400);

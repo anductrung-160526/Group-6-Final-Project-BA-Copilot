@@ -1246,6 +1246,13 @@ select:focus {
 .doc-layout:has(> .doc-main:only-child) {
   grid-template-columns: 1fr;
 }
+/* Hai cột bằng nhau (vd SCR-05: soạn mã | xem trước); về 1 cột ở màn hẹp */
+.split-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  padding: 0 var(--space-4);
+}
 .doc-nav {
   display: flex;
   flex-direction: column;
@@ -1803,7 +1810,8 @@ select:focus {
     grid-template-columns: 1fr;
     height: auto;
   }
-  .doc-layout {
+  .doc-layout,
+  .split-2 {
     grid-template-columns: 1fr;
   }
   .meters {

@@ -326,6 +326,19 @@ export function Gallery() {
         </Section>
       </div>
 
+      <Section title="Bố cục 2 cột (.split-2)">
+        <div className="split-2">
+          <div className="box">
+            <div className="box-title">Mã Mermaid</div>
+            <div className="muted small">Cột trái: soạn</div>
+          </div>
+          <div className="box">
+            <div className="box-title">Xem trước</div>
+            <div className="muted small">Cột phải: xem kết quả</div>
+          </div>
+        </div>
+      </Section>
+
       {modal && (
         <Modal
           title="Tạo module"

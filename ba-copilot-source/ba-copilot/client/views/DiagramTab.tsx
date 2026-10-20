@@ -3,6 +3,7 @@
 
 import React, { useEffect, useState } from "react";
 import { approveDiagram, generateDiagram, getDiagram, saveDiagram } from "../api.ts";
+import { currentMemberId } from "../currentMember.ts";
 import type { UcDiagram } from "../../shared/types.ts";
 import { Btn, Empty, StatusBadge, useUI } from "../components/ui.tsx";
 import { Mermaid } from "../components/Mermaid.tsx";
@@ -31,8 +32,7 @@ export function DiagramTab({ m }: ModuleTabProps) {
     let alive = true;
     setLoaded(false);
     getDiagram(m.id)
-      // Hợp đồng trả null khi chưa sinh; server hiện đổi null thành { ok: true } (yêu cầu gửi A2 trong REQUESTS.md).
-      .then((d) => alive && apply(d && "code" in d ? d : null))
+      .then((d) => alive && apply(d))
       .catch((e: Error) => alive && toast(e.message, "err"))
       .finally(() => alive && setLoaded(true));
     return () => {
@@ -47,7 +47,7 @@ export function DiagramTab({ m }: ModuleTabProps) {
 
   const generate = async () => {
     if (diagram && !confirm(dirty ? "Sinh lại sẽ thay mã đang sửa chưa lưu. Tiếp tục?" : "Sinh lại sẽ thay sơ đồ hiện có. Tiếp tục?")) return;
-    const d = await run("AI đang vẽ sơ đồ Use Case…", () => generateDiagram(m.id));
+    const d = await run("AI đang vẽ sơ đồ Use Case…", () => generateDiagram(m.id, currentMemberId()));
     if (d) {
       apply(d);
       toast("Đã sinh sơ đồ Use Case", "ok");
@@ -55,7 +55,7 @@ export function DiagramTab({ m }: ModuleTabProps) {
   };
 
   const save = async () => {
-    const d = await run("Đang lưu sơ đồ", () => saveDiagram(m.id, code));
+    const d = await run("Đang lưu sơ đồ", () => saveDiagram(m.id, code, currentMemberId()));
     if (d) {
       apply(d);
       toast(diagram?.status === "approved" ? "Đã lưu – sơ đồ trở về Bản nháp, cần duyệt lại" : "Đã lưu sơ đồ", "ok");
@@ -63,7 +63,7 @@ export function DiagramTab({ m }: ModuleTabProps) {
   };
 
   const approve = async (ok: boolean) => {
-    const d = await run("Đang cập nhật", () => approveDiagram(m.id, ok));
+    const d = await run("Đang cập nhật", () => approveDiagram(m.id, ok, currentMemberId()));
     if (d) {
       apply(d);
       toast(ok ? "Đã duyệt sơ đồ" : "Đã bỏ duyệt sơ đồ", "ok");
@@ -110,7 +110,7 @@ export function DiagramTab({ m }: ModuleTabProps) {
             : 'Sơ đồ được vẽ từ Use Case. Hãy mở tab "2. Tài liệu" và sinh tài liệu trước.'}
         </Empty>
       ) : (
-        <div className="doc-layout" style={{ gridTemplateColumns: "1fr 1fr" }}>
+        <div className="split-2">
           <div className="box">
             <div className="box-title">Mã Mermaid</div>
             <textarea value={code} onChange={(e) => setCode(e.target.value)} rows={24} spellCheck={false} aria-label="Mã Mermaid của sơ đồ" data-testid="diagram-code" />
