@@ -1,13 +1,19 @@
 // Bộ phát sự kiện đồng bộ cho vòng đời sản phẩm (màn, tài liệu, sơ đồ, test).
 // emit() gọi lần lượt từng handler ngay trong lời gọi hiện tại, nên handler chạy chung transaction với nơi phát
 // (service bọc thao tác ghi + emit trong tx()). Handler ném lỗi → lỗi truyền ra ngoài và transaction bị huỷ.
+//
+// Đợt 5 (C2): drafted · done · approved · revision_requested · stale. "artifact.unapproved" là sự kiện cũ, chỉ
+// còn để mã v2 (service.ts, routes/diagram.ts, taskRules.ts) chạy tới khi C7/C9/C6 thay – mã mới không phát.
 
 import type { ArtifactEvent, ArtifactEventType } from "../shared/types.ts";
 
 export type { ArtifactEvent, ArtifactEventType } from "../shared/types.ts";
 export type EventHandler = (event: ArtifactEvent) => void;
 
-export const EVENT_TYPES: ArtifactEventType[] = ["artifact.drafted", "artifact.approved", "artifact.unapproved", "artifact.stale"];
+/** Sự kiện đợt 5, theo thứ tự vòng đời. */
+export const EVENT_TYPES_V5: ArtifactEventType[] = ["artifact.drafted", "artifact.done", "artifact.approved", "artifact.revision_requested", "artifact.stale"];
+/** Mọi sự kiện còn được phát (đợt 5 + "artifact.unapproved" cũ). Đăng ký handler cho "mọi loại" thì dùng danh sách này. */
+export const EVENT_TYPES: ArtifactEventType[] = [...EVENT_TYPES_V5, "artifact.unapproved"];
 
 const handlers = new Map<ArtifactEventType, EventHandler[]>();
 

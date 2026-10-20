@@ -5,7 +5,8 @@ import { nextStatus, statusReason } from "../shared/taskRules.ts";
 import type { ArtifactEventType, TaskStatus } from "../shared/types.ts";
 
 // null = giữ nguyên
-const TABLE: Record<TaskStatus, Record<ArtifactEventType, TaskStatus | null>> = {
+// Đợt 5 (C2): kiểu nới thành Partial vì TaskStatus/ArtifactEventType có thêm giá trị mới; bảng quy tắc cũ giữ nguyên tới khi C7 thay.
+const TABLE: Partial<Record<TaskStatus, Partial<Record<ArtifactEventType, TaskStatus | null>>>> = {
   todo: { "artifact.drafted": "doing", "artifact.approved": "done", "artifact.unapproved": null, "artifact.stale": null },
   doing: { "artifact.drafted": null, "artifact.approved": "done", "artifact.unapproved": null, "artifact.stale": null },
   done: { "artifact.drafted": null, "artifact.approved": null, "artifact.unapproved": "redo", "artifact.stale": "redo" },
