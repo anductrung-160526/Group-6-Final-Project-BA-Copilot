@@ -9,7 +9,7 @@ Người cập nhật: **A0**. Mỗi agent dán kết quả `npm test` / `npm ru
 | A0 | Tích hợp & Điều phối | 0, 4 | `v2-base` | ✅ Đợt 0 xong | 48/48 (xem lưu ý) | ✅ | Xem nhật ký đợt 0 |
 | A1 | Design System | 1 | `chi_task` (`336c9e2`) | ✅ Đã gộp vào `v2-contract` | ✅ | ✅ | Làm thẳng trên `chi_task`, không có nhánh agent riêng. Route `#/_gallery` chuyển sang `client/routes.ts` |
 | A2 | Nền tảng dữ liệu & hợp đồng | 1 | `agent/a2-nen-tang` | ✅ Đã gộp vào `v2-contract`; `api.md`/`erd.md` đã duyệt và **khoá** | 59/59 ✅ | ✅ | Xem nhật ký đợt 1 – A0 |
-| A3 | Thành viên & thanh trên | 2 | `agent/a3-thanh-vien` | ⏳ Sẵn sàng | — | — | |
+| A3 | Thành viên & thanh trên | 2 | `agent/a3-thanh-vien` | ✅ Xong, chờ gộp. FN-01 đạt; FN-02 đạt sau khi A0 gắn TopBar (R-005); FN-03 một phần (chờ R-006, R-007) | 70/70 ✅ | ✅ | Xem nhật ký đợt 2 – A3 |
 | A4 | Kho tài liệu | 2 | `agent/a4-kho-tai-lieu` | ⏳ Sẵn sàng | — | — | Code C4 đã có trên `v2-base` |
 | A5 | Sơ đồ UC | 2 | `agent/a5-so-do-uc` | ⏳ Sẵn sàng | — | — | |
 | A6 | Công việc Kanban | 2 | `agent/a6-kanban` | ⏳ Sẵn sàng | — | — | |
@@ -134,3 +134,26 @@ Ba lựa chọn A2 tự chốt, A0 **xác nhận** (tài liệu v2 không quy đ
 
 **A8, A9:** mục A8 và A9 trong `docs/Ke_hoach_Agent_BA_Copilot_v2.md` đã có khung "Hiện trạng trên `v2-contract`", ghi rõ phần đã có, việc còn lại và 2 chỗ lệch hợp đồng của `suggest.ts`. Khi khởi chạy A8, A9, phải giữ nguyên khung đó trong prompt.
 
+
+---
+
+## Nhật ký đợt 2 – A3 (2026-10-20)
+
+**Nhánh:** `agent/a3-thanh-vien`, tạo từ `v2-contract` @ `1aabff2`.
+
+### Kiểm tra (`ba-copilot-source/ba-copilot`, Node v24.16.0)
+
+| Lệnh | Kết quả |
+|---|---|
+| `npm test` | ✅ `tests 70 · pass 70 · fail 0` (66 cũ + 4 mới trong `tests/members.test.ts`), `duration_ms 23199` |
+| `npm run build` | ✅ `public/app.js 339.3kb`, `Done` |
+| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+| Chạy app (Mock, DB mới) + Chrome, có gắn tạm `TopBar` vào `main.tsx` (đã hoàn lại) | ✅ Thêm 2 thành viên qua hộp thoại, chọn "Tôi là…", tải lại trang vẫn nhớ; menu Công việc / Kho tài liệu / Thành viên trỏ đúng dự án; `#/_gallery` bình thường; 0 lỗi console |
+
+`public/` **không** commit (sản phẩm build).
+
+### Điểm A0 chèn khi gộp
+- **R-005** – gắn `<TopBar />` vào `client/main.tsx`. Chưa gắn thì ô "Tôi là…" và menu chưa hiện.
+- **R-006** – gửi `actorId` (và tên tác giả bình luận) từ `DesignTab.tsx`.
+- **R-007** – `repo.ts` / `app.ts` đọc và trả `author`/`authorId`, lưu `author_id` cho bình luận.
+- `client/routes.ts`: ngoài dòng `members`, A3 thêm 1 dòng `import { MembersView }` (cần cho dòng đó).
