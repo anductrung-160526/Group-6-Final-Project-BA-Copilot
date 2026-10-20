@@ -73,7 +73,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export function Gallery() {
-  const { toast } = useUI();
+  const { toast, confirm } = useUI();
   const [tab, setTab] = useState<"a" | "b" | "c">("a");
   const [sel, setSel] = useState<"" | "draft" | "approved">("");
   const [member, setMember] = useState<string | null>("m1");
@@ -270,6 +270,12 @@ export function Gallery() {
         <div className="gallery-row">
           <Btn onClick={() => setModal(true)}>Mở Modal</Btn>
           <Btn onClick={() => setDrawer(true)}>Mở Drawer</Btn>
+          <Btn
+            kind="danger"
+            onClick={async () => toast((await confirm({ title: "Xóa module \"Xác thực\"?", message: "Màn hình, tài liệu và test case của module sẽ bị xoá.", okLabel: "Xóa", danger: true })) ? "Đã xoá" : "Đã huỷ")}
+          >
+            Hỏi xác nhận
+          </Btn>
           <Btn onClick={() => toast("Đã lưu thay đổi", "ok")}>Toast thành công</Btn>
           <Btn onClick={() => toast("Không lưu được – thử lại", "err")}>Toast lỗi</Btn>
         </div>

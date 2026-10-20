@@ -281,6 +281,7 @@ select:focus {
 }
 .page-head {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: flex-start;
   gap: var(--space-4);
@@ -665,6 +666,10 @@ select:focus {
   background: var(--color-surface);
   margin: var(--space-4);
 }
+/* Trong trang (.page) khối rỗng thẳng mép với nội dung khác (bảng, ô tìm kiếm) */
+.page > .empty {
+  margin: 0 0 var(--space-4);
+}
 .empty-title {
   font-family: var(--font-heading);
   font-weight: var(--font-weight-semibold);
@@ -687,6 +692,7 @@ select:focus {
 }
 .module-title-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
 }
@@ -903,6 +909,10 @@ select:focus {
   background: var(--color-surface);
   border-right: 1px solid var(--color-border);
   overflow: auto;
+}
+/* Khối nội dung đặt thẳng trong cột trái (vd "Công việc liên quan") cách mép như các khối của cột phải */
+.studio-left > .box {
+  margin: var(--space-2-5);
 }
 .studio-right {
   border-right: 0;
@@ -1392,6 +1402,7 @@ select:focus {
 }
 .filters {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2-5);
 }
 .filters input {
@@ -1816,6 +1827,38 @@ select:focus {
   }
   .meters {
     grid-template-columns: 1fr;
+  }
+}
+/* Màn hẹp (điện thoại): thanh trên xuống 2 hàng – menu pill riêng một hàng, ẩn phụ đề và nhãn chế độ AI */
+@media (max-width: 640px) {
+  .topbar {
+    height: auto;
+    flex-wrap: wrap;
+    row-gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+  }
+  .brand-sub,
+  .ai-pill,
+  .topbar .spacer {
+    display: none;
+  }
+  .topbar .member-picker {
+    flex: 1;
+    min-width: 0;
+    justify-content: flex-end;
+  }
+  .topbar .member-picker .select {
+    min-width: 0;
+  }
+  .topbar .tabs-pill {
+    order: 1;
+    flex-basis: 100%;
+  }
+  .page {
+    padding: var(--space-5) var(--space-4);
+  }
+  .module-head {
+    padding: var(--space-3) var(--space-4) 0;
   }
 }
 
@@ -2309,4 +2352,10 @@ select:focus {
 }
 .type-row > * {
   margin: 0;
+}
+@media (max-width: 640px) {
+  .type-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
 }

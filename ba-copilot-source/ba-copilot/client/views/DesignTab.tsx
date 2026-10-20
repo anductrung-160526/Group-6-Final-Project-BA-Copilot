@@ -30,7 +30,7 @@ const TEMPLATES = [
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase().trim();
 
 export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promise<unknown> }) {
-  const { run, toast } = useUI();
+  const { run, toast, confirm } = useUI();
   const { me } = useCurrentMember(); // FN-03: người thao tác gửi kèm actorId
   const [screenId, setScreenId] = useState<string | null>(m.screens[0]?.id ?? null);
   const [mode, setMode] = useState<Mode>("select");
@@ -382,7 +382,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
 
   const approve = async (approved: boolean) => {
     if (!screen) return;
-    if (!approved && m.docsStatus !== "none" && !confirm("Bỏ duyệt sẽ chuyển tài liệu và test hiện có sang Lỗi thời. Tiếp tục?")) return;
+    if (!approved && m.docsStatus !== "none" && !(await confirm({ title: "Bỏ duyệt màn hình?", message: "Tài liệu và test hiện có sẽ chuyển sang Lỗi thời.", okLabel: "Bỏ duyệt" }))) return;
     await run("Đang cập nhật", () => post(`/api/screens/${screen.id}/approve`, withActor({ approved })));
     await reload();
     toast(approved ? "Đã duyệt thiết kế – có thể sinh tài liệu" : "Đã chuyển về bản nháp", "ok");
@@ -485,7 +485,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
                   <button
                     className="danger"
                     onClick={async () => {
-                      if (!confirm(`Xóa màn hình "${screen.name}"?`)) return;
+                      if (!(await confirm({ title: `Xóa màn hình "${screen.name}"?`, message: "Màn hình và toàn bộ phiên bản của nó sẽ bị xoá.", okLabel: "Xóa", danger: true }))) return;
                       await run("Đang xóa", () => del(`/api/screens/${screen.id}`));
                       reload();
                     }}

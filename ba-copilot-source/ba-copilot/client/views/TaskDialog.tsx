@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import type { ArtifactKind, ArtifactOption, Member, Task, TaskDetail, TaskPriority, TaskStatus } from "../../shared/types.ts";
 import { createTask, deleteTask, getTask, setTaskStatus, updateTask, type TaskInput } from "../api.ts";
 import { Badge, Btn, Drawer, Field, MemberPicker, Modal, Select, fmtTime, useUI, type BadgeTone } from "../components/ui.tsx";
+import { ROLE_LABEL } from "../currentMember.ts";
 
 // ---------------------------------------------------------------- Nhãn dùng chung cho SCR-06, SCR-07, RelatedTasks
 export const TASK_STATUS: { key: TaskStatus; label: string; tone: BadgeTone }[] = [
@@ -187,7 +188,7 @@ export function TaskDialog({
           <textarea rows={4} value={f.description} onChange={(e) => set("description", e.target.value)} placeholder="Việc cần làm, tiêu chí xong…" data-testid="task-desc" />
         </Field>
         <Field label="Người làm" hint={members.length ? undefined : "Chưa có thành viên – thêm ở trang Thành viên."}>
-          <MemberPicker members={members} value={f.assigneeId} onChange={(v) => set("assigneeId", v)} testId="task-assignee" />
+          <MemberPicker members={members.map((m) => ({ id: m.id, name: m.name, role: ROLE_LABEL[m.role] }))} value={f.assigneeId} onChange={(v) => set("assigneeId", v)} testId="task-assignee" />
         </Field>
         <Field label="Hạn">
           <input type="date" value={f.dueDate} onChange={(e) => set("dueDate", e.target.value)} data-testid="task-due" />

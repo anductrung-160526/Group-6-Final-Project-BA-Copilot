@@ -5,14 +5,13 @@
 // Ánh xạ sản phẩm: screen → artifact_id = mã màn; docs, tests, diagram → artifact_id = mã module (= event.artifact.id).
 // BR-02 phát `stale` cho docs và tests của module, nên task gắn docs/tests đang Xong chuyển sang Cần làm lại.
 //
-// Cách ghi bảng giống hệt server/repo/tasks.ts của A6 (setTaskStatus, listTasksByArtifact). Viết riêng ở đây để
-// nhánh A7 chạy được trên v2-contract khi chưa có tệp đó.
+// Đọc/ghi bảng qua server/repo/tasks.ts của A6 (listTasksByArtifact, setTaskStatus, memberExists).
 
-import { randomUUID } from "node:crypto";
 import { getDb } from "./db.ts";
 import { on, EVENT_TYPES, type ArtifactEvent } from "./events.ts";
 import { nextStatus, statusReason } from "../shared/taskRules.ts";
 import type { ArtifactKind, TaskStatus } from "../shared/types.ts";
+import { listTasksByArtifact, memberExists, setTaskStatus } from "./repo/tasks.ts";
 
 /** Một lần đổi trạng thái do hệ thống thực hiện. */
 export interface AutoChange {
@@ -24,29 +23,20 @@ export interface AutoChange {
 
 /** Xử lý một sự kiện: đổi trạng thái mọi task gắn với sản phẩm đó. Gọi trong tx() (events.ts đảm bảo khi phát từ service). */
 export function applyArtifactEvent(event: ArtifactEvent): AutoChange[] {
-  const d = getDb();
   const { kind, id } = event.artifact;
-  const tasks = d.prepare("SELECT id, status FROM tasks WHERE artifact_type = ? AND artifact_id = ? ORDER BY created_at, rowid").all(kind, id) as {
-    id: string;
-    status: TaskStatus;
-  }[];
+  // listTasksByArtifact xếp mới nhất trước; đảo lại để xử lý theo thứ tự tạo
+  const tasks = listTasksByArtifact(kind, id).reverse();
   if (!tasks.length) return [];
 
   const reason = statusReason(event.type, kind, artifactName(kind, id));
-  // actorId chưa chắc là thành viên còn tồn tại (A3 chưa gộp, client cũ…) – chỉ ghi khi có, tránh lỗi khoá ngoại làm huỷ thao tác.
-  const byMember = event.actorId && d.prepare("SELECT 1 FROM members WHERE id = ?").get(event.actorId) ? event.actorId : null;
-  const update = d.prepare("UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?");
-  const log = d.prepare(
-    "INSERT INTO task_events (id, task_id, from_status, to_status, by_member_id, by_system, reason, created_at) VALUES (?, ?, ?, ?, ?, 1, ?, ?)",
-  );
+  // actorId chưa chắc là thành viên còn tồn tại (client cũ, thành viên đã xoá…) – chỉ ghi khi có, tránh lỗi khoá ngoại làm huỷ thao tác.
+  const byMemberId = event.actorId && memberExists(event.actorId) ? event.actorId : null;
 
   const changes: AutoChange[] = [];
   for (const t of tasks) {
     const to = nextStatus(t.status, event.type);
     if (!to) continue;
-    const at = new Date().toISOString();
-    update.run(to, at, t.id);
-    log.run(randomUUID(), t.id, t.status, to, byMember, reason, at);
+    setTaskStatus(t.id, to, { bySystem: true, byMemberId, reason });
     changes.push({ taskId: t.id, from: t.status, to, reason });
   }
   return changes;

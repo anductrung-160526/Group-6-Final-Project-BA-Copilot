@@ -90,6 +90,34 @@ test("(d) chưa có FR thì dựa trên user story (G5 / BR-07); có FR thì b�
   assert.ok(!withFr.some((s) => s.kind === "uncovered-story"));
 });
 
+test("(d2) tên màn đề xuất gọn, không cắt giữa cụm; FR kiểm tra dữ liệu không thành gợi ý màn (Q-10)", () => {
+  const res = suggestNextScreens({
+    model,
+    requirements: [
+      fr("FR-01", 'Hệ thống phải cho phép Quản trị viên thực hiện "Mở màn hình thêm mới (Quản lý sản phẩm)".'),
+      fr("FR-02", 'Hệ thống phải cho phép Quản trị viên thực hiện "Xem danh sách – Quản lý danh mục".'),
+      fr("FR-03", "Hệ thống phải kiểm tra: Tên sản phẩm là bắt buộc."),
+      fr("FR-04", "Hệ thống phải kiểm tra: Giá bán: chỉ nhận số."),
+      fr("FR-05", "Hệ thống phải xuất báo cáo doanh thu theo tháng."),
+    ],
+    stories: [],
+  });
+  assert.deepEqual(
+    res.filter((s) => s.kind === "uncovered-fr").map((s) => [s.source, s.name]),
+    [
+      ["FR-01", "Thêm mới – Quản lý sản phẩm"],
+      ["FR-02", "Xem danh sách – Quản lý danh mục"],
+      ["FR-05", "Xuất báo cáo doanh thu"],
+    ],
+  );
+
+  const stories = splitStories(`- Là nhân viên bán hàng, tôi muốn xem danh sách các đơn hàng theo trạng thái để xử lý đơn mới.
+- Là nhân viên bán hàng, tôi muốn tạo đơn hàng và in hóa đơn cho khách.
+- Là kế toán, tôi muốn xuất danh sách đơn hàng ra Excel (ví dụ theo tháng) để đối soát.`);
+  const names = suggestNextScreens({ model, requirements: [], stories }).map((s) => s.name);
+  assert.deepEqual(names.slice(1), ["Xem danh sách các đơn hàng", "Tạo đơn hàng và in hóa đơn", "Xuất danh sách đơn hàng ra excel"]);
+});
+
 test("(e) gợi ý đã bị bỏ qua thì không hiện lại", () => {
   const res = suggestNextScreens({
     model,

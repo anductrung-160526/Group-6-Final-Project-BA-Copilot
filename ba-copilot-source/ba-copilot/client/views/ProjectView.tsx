@@ -8,7 +8,7 @@ const SAMPLE = `- As a Khách hàng, I want đăng nhập bằng email và mật
 - Cho phép quản trị viên quản lý sản phẩm (tìm kiếm, thêm, sửa, xóa).`;
 
 export function ProjectView({ id, tab, initialModuleId }: { id: string; tab: string; initialModuleId?: string | null }) {
-  const { run, toast } = useUI();
+  const { run, toast, confirm } = useUI();
   const [data, setData] = useState<any>(null);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -104,7 +104,7 @@ export function ProjectView({ id, tab, initialModuleId }: { id: string; tab: str
                     <button
                       className="link-danger"
                       onClick={async () => {
-                        if (!confirm(`Xóa module "${m.name}"?`)) return;
+                        if (!(await confirm({ title: `Xóa module "${m.name}"?`, message: "Màn hình, tài liệu và test case của module sẽ bị xoá.", okLabel: "Xóa", danger: true }))) return;
                         await run("Đang xóa", () => del(`/api/modules/${m.id}`));
                         load();
                       }}

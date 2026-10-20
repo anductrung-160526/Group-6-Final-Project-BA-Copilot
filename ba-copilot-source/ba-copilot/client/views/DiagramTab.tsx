@@ -14,7 +14,7 @@ const PREVIEW_DELAY_MS = 400;
 const badgeStatus = (d: UcDiagram | null) => (!d ? "none" : d.status === "stale" ? "outdated" : d.status);
 
 export function DiagramTab({ m }: ModuleTabProps) {
-  const { run, toast } = useUI();
+  const { run, toast, confirm } = useUI();
   const [diagram, setDiagram] = useState<UcDiagram | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [code, setCode] = useState("");
@@ -46,7 +46,7 @@ export function DiagramTab({ m }: ModuleTabProps) {
   }, [code]);
 
   const generate = async () => {
-    if (diagram && !confirm(dirty ? "Sinh lại sẽ thay mã đang sửa chưa lưu. Tiếp tục?" : "Sinh lại sẽ thay sơ đồ hiện có. Tiếp tục?")) return;
+    if (diagram && !(await confirm({ title: "Sinh lại sơ đồ Use Case?", message: dirty ? "Sinh lại sẽ thay mã đang sửa chưa lưu." : "Sinh lại sẽ thay sơ đồ hiện có.", okLabel: "Sinh lại" }))) return;
     const d = await run("AI đang vẽ sơ đồ Use Case…", () => generateDiagram(m.id, currentMemberId()));
     if (d) {
       apply(d);

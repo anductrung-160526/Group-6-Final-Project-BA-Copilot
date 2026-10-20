@@ -11,7 +11,7 @@ interface P {
 }
 
 export function Home() {
-  const { run, toast } = useUI();
+  const { run, toast, confirm } = useUI();
   const [projects, setProjects] = useState<P[] | null>(null);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -59,7 +59,7 @@ export function Home() {
                   className="link-danger"
                   onClick={async (e) => {
                     e.preventDefault();
-                    if (!confirm(`Xóa dự án "${p.name}" và toàn bộ dữ liệu?`)) return;
+                    if (!(await confirm({ title: `Xóa dự án "${p.name}"?`, message: "Toàn bộ module, màn hình và tài liệu của dự án sẽ bị xoá.", okLabel: "Xóa", danger: true }))) return;
                     await run("Đang xóa", () => del(`/api/projects/${p.id}`));
                     load();
                   }}

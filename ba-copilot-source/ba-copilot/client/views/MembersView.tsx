@@ -50,43 +50,45 @@ export function MembersView(_: PageProps) {
       ) : !members.length ? (
         <Empty title="Chưa có thành viên nào">Thêm các BA trong nhóm để giao việc và ghi tên người làm.</Empty>
       ) : (
-        <table className="tbl" data-testid="members-table">
-          <thead>
-            <tr>
-              <th>Tên</th>
-              <th>Vai trò</th>
-              <th>Ngày thêm</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {members.map((m) => (
-              <tr key={m.id} className={m.id === me?.id ? "selected" : ""} data-testid="member-row">
-                <td>
-                  <span className="member-picker">
-                    <Avatar name={m.name} size="sm" />
-                    <strong>{m.name}</strong>
-                    {m.id === me?.id && <Badge tone="mint">Bạn</Badge>}
-                  </span>
-                </td>
-                <td>
-                  <Badge tone={m.role === "BA_LEAD" ? "violet" : "gray"}>{ROLE_LABEL[m.role]}</Badge>
-                </td>
-                <td className="muted small">{fmtTime(m.createdAt)}</td>
-                <td>
-                  <span className="member-picker">
-                    <button className="link small" onClick={() => setForm({ id: m.id, name: m.name, role: m.role })} data-testid="edit-member">
-                      Sửa
-                    </button>
-                    <button className="link-danger small" onClick={() => setRemoving(m)} data-testid="delete-member">
-                      Xoá
-                    </button>
-                  </span>
-                </td>
+        <div className="table-wrap">
+          <table className="tbl" data-testid="members-table">
+            <thead>
+              <tr>
+                <th>Tên</th>
+                <th>Vai trò</th>
+                <th>Ngày thêm</th>
+                <th />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {members.map((m) => (
+                <tr key={m.id} className={m.id === me?.id ? "selected" : ""} data-testid="member-row">
+                  <td>
+                    <span className="member-picker">
+                      <Avatar name={m.name} size="sm" />
+                      <strong>{m.name}</strong>
+                      {m.id === me?.id && <Badge tone="mint">Bạn</Badge>}
+                    </span>
+                  </td>
+                  <td>
+                    <Badge tone={m.role === "BA_LEAD" ? "violet" : "gray"}>{ROLE_LABEL[m.role]}</Badge>
+                  </td>
+                  <td className="muted small">{fmtTime(m.createdAt)}</td>
+                  <td>
+                    <span className="member-picker">
+                      <button className="link small" onClick={() => setForm({ id: m.id, name: m.name, role: m.role })} data-testid="edit-member">
+                        Sửa
+                      </button>
+                      <button className="link-danger small" onClick={() => setRemoving(m)} data-testid="delete-member">
+                        Xoá
+                      </button>
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {form && (

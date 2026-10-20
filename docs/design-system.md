@@ -30,7 +30,7 @@ Xem trực quan: mở app tại `#/_gallery`.
    Không tô mint cho nền lớn, tiêu đề, nút phụ hay badge trạng thái.
 4. **Badge ôm sát chữ (hug text).** Badge không bao giờ giãn theo khung cha (đã đặt `width: fit-content`). Không đặt `width`, `flex: 1` hay `display: block` cho badge.
 5. **Dùng đúng component:**
-   - Mọi hộp thoại xác nhận / tạo nhanh → `Modal`.
+   - Mọi hộp thoại xác nhận / tạo nhanh → `Modal` (câu hỏi Có/Không → `useUI().confirm(...)`, không dùng `window.confirm`).
    - Mọi panel xem / sửa chi tiết bên phải → `Drawer`.
    - Mọi trạng thái rỗng → `Empty`.
    - Mọi thông báo → `useUI().toast(...)`; mọi tác vụ chờ AI → `useUI().run(...)`.
@@ -129,7 +129,7 @@ App chưa có chế độ tối nên chưa có bộ token tối.
 | `ScoreBadge` | `score` 0–100, `showLabel?` | Điểm QUS: ≥ 80 xanh "Tốt", 60–79 vàng "Khá", < 60 đỏ "Cần sửa" (khớp `shared/qus.ts`). |
 | `Field` | `label`, `hint?`, `children` | Bọc mọi ô nhập có nhãn. |
 | `Select` | `value`, `options`, `onChange`, `placeholder?` | Mọi ô chọn một giá trị. |
-| `MemberPicker` | `members`, `value`, `onChange` | Chọn người phụ trách (khung giao diện; A3 nối dữ liệu). |
+| `MemberPicker` | `members`, `value`, `onChange` | Chọn người phụ trách. Truyền `role` là nhãn đã dịch (`ROLE_LABEL` trong `client/currentMember.ts`: "BA", "BA Lead"), không truyền mã thô. |
 | `Avatar` | `name?`, `size?` | Chữ cái đầu tên, dùng trên thẻ, danh sách. |
 | `Tabs` | `items` (`key`, `label`, `extra?`, `href?`), `active`, `onChange?`, `variant?`: `line` (mặc định) \| `pill` | Thanh tab ngang. `line`: tab chọn chữ mint-700 đậm, gạch chân mint-500 – dùng trong trang (tab module, tab dự án). `pill`: nút bo tròn viền xám, tab chọn nền mint-50 + chữ mint-700 đậm – dùng cho **menu thanh trên** và bộ lọc nhanh. |
 | `Modal` | `title`, `onClose`, `footer?`, `wide?` | **Mọi hộp thoại.** Esc / bấm nền để đóng. Nút chính đặt cuối footer. |
@@ -139,9 +139,10 @@ App chưa có chế độ tối nên chưa có bộ token tối.
 | `KanbanColumn` | `id`, `title`, `count?`, `onDropCard?(cardId, columnId)` | Cột bảng công việc; nhận thẻ kéo thả HTML5. |
 | `KanbanCard` | `id`, `title`, `meta?`, `onClick?` | Thẻ công việc kéo được. |
 | `IssueList` | `issues` (`severity`, `code?`, `message`, `suggestion?`), `empty?` | Danh sách lỗi theo mức: lỗi (đỏ) → cảnh báo (vàng) → gợi ý (xanh dương). |
-| `SuggestionCard` | `title`, `reason`, `onAccept`, `onDismiss` | Thẻ "Gợi ý tiếp theo" (SCR-16): tiêu đề, lý do, nút Tạo + Bỏ qua. |
+| `SuggestionCard` | `title`, `reason`, `onAccept`, `onDismiss` | Thẻ "Gợi ý tiếp theo" (SCR-16): tiêu đề, lý do, nút Tạo (`secondary`, vì một cột có nhiều thẻ – nút primary của vùng là "+ Mới") + Bỏ qua. |
 | `ToastItem` / `useUI().toast` | `kind`: `ok` \| `err` \| `info` | Thông báo góc dưới phải; lỗi giữ 7 giây, còn lại 3,5 giây. |
 | `useUI().run` | `label`, `fn` | Hiện lớp "AI đang xử lý…" và tự đổi lỗi thành toast. |
+| `useUI().confirm` | `title`, `message?`, `okLabel?`, `danger?` → `Promise<boolean>` | **Mọi câu hỏi xác nhận** (xoá, sinh lại, bỏ duyệt): hiện `Modal` với nút Huỷ + nút đồng ý (`danger` cho xoá). Không dùng `window.confirm`. |
 
 ### 3.1. Class bố cục có sẵn (`styles.css`)
 

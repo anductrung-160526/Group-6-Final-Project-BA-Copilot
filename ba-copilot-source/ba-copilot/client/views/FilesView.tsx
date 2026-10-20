@@ -221,47 +221,49 @@ export function FilesView({ projectId, params }: PageProps) {
             <h2>
               {g.name} <Badge>{g.files.length}</Badge>
             </h2>
-            <table className="tbl" data-testid="files-table">
-              <thead>
-                <tr>
-                  <th>Tên tệp</th>
-                  <th>Loại</th>
-                  <th>Stakeholder gửi</th>
-                  <th>Ngày nhận</th>
-                  <th>Kích thước</th>
-                  <th>Ngày lưu</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {g.files.map((f) => (
-                  <tr key={f.id} className={`clickable ${viewing === f.id ? "selected" : ""}`} onClick={() => setViewing(f.id)} data-testid={`file-row-${f.id}`}>
-                    <td>
-                      <button className="link" onClick={(e) => (e.stopPropagation(), setViewing(f.id))}>
-                        {f.name}
-                      </button>{" "}
-                      {f.source === "export" && <Badge tone="violet">Bản xuất</Badge>}
-                    </td>
-                    <td className="nowrap">{kindLabel(f.mime)}</td>
-                    <td>{f.sender || <span className="muted">—</span>}</td>
-                    <td className="nowrap">{fmtDay(f.receivedAt) || <span className="muted">—</span>}</td>
-                    <td className="muted small nowrap">{fmtSize(f.size)}</td>
-                    <td className="muted small nowrap">{fmtTime(f.createdAt)}</td>
-                    <td className="right nowrap" onClick={(e) => e.stopPropagation()}>
-                      <Btn size="sm" onClick={() => dl(f)} data-testid={`dl-${f.id}`}>
-                        ⤓ Tải về
-                      </Btn>{" "}
-                      <Btn size="sm" kind="ghost" onClick={() => startEdit(f)} data-testid={`edit-${f.id}`}>
-                        Sửa
-                      </Btn>{" "}
-                      <Btn size="sm" kind="danger" onClick={() => setDeleting(f)} data-testid={`del-${f.id}`}>
-                        Xoá
-                      </Btn>
-                    </td>
+            <div className="table-wrap">
+              <table className="tbl" data-testid="files-table">
+                <thead>
+                  <tr>
+                    <th>Tên tệp</th>
+                    <th>Loại</th>
+                    <th>Stakeholder gửi</th>
+                    <th>Ngày nhận</th>
+                    <th>Kích thước</th>
+                    <th>Ngày lưu</th>
+                    <th />
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {g.files.map((f) => (
+                    <tr key={f.id} className={`clickable ${viewing === f.id ? "selected" : ""}`} onClick={() => setViewing(f.id)} data-testid={`file-row-${f.id}`}>
+                      <td>
+                        <button className="link" onClick={(e) => (e.stopPropagation(), setViewing(f.id))}>
+                          {f.name}
+                        </button>{" "}
+                        {f.source === "export" && <Badge tone="violet">Bản xuất</Badge>}
+                      </td>
+                      <td className="nowrap">{kindLabel(f.mime)}</td>
+                      <td>{f.sender || <span className="muted">—</span>}</td>
+                      <td className="nowrap">{fmtDay(f.receivedAt) || <span className="muted">—</span>}</td>
+                      <td className="muted small nowrap">{fmtSize(f.size)}</td>
+                      <td className="muted small nowrap">{fmtTime(f.createdAt)}</td>
+                      <td className="right nowrap" onClick={(e) => e.stopPropagation()}>
+                        <Btn size="sm" onClick={() => dl(f)} data-testid={`dl-${f.id}`}>
+                          ⤓ Tải về
+                        </Btn>{" "}
+                        <Btn size="sm" kind="ghost" onClick={() => startEdit(f)} data-testid={`edit-${f.id}`}>
+                          Sửa
+                        </Btn>{" "}
+                        <Btn size="sm" kind="danger" onClick={() => setDeleting(f)} data-testid={`del-${f.id}`}>
+                          Xoá
+                        </Btn>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
         ))
       )}

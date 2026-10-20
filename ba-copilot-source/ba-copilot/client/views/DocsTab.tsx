@@ -9,7 +9,7 @@ import { RelatedTasks } from "../components/RelatedTasks.tsx";
 type Sub = "uc" | "srs" | "seq" | "req";
 
 export function DocsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise<unknown> }) {
-  const { run, toast } = useUI();
+  const { run, toast, confirm } = useUI();
   const [sub, setSub] = useState<Sub>("uc");
   const [ucCode, setUcCode] = useState<string | null>(null);
   const [srsKey, setSrsKey] = useState<string | null>(null);
@@ -24,7 +24,7 @@ export function DocsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise<
   }, [docs]);
 
   const generate = async () => {
-    if (m.docsStatus !== "none" && !confirm("Sinh lại sẽ thay thế toàn bộ UC, SRS và sequence hiện có. Tiếp tục?")) return;
+    if (m.docsStatus !== "none" && !(await confirm({ title: "Sinh lại tài liệu?", message: "Sinh lại sẽ thay thế toàn bộ UC, SRS và sequence hiện có.", okLabel: "Sinh lại" }))) return;
     const r = await run("AI đang phân tích thiết kế và viết UC, SRS, Sequence…", () => post(`/api/modules/${m.id}/docs/generate`));
     if (r) {
       toast(`Đã sinh ${r.useCases.length} Use Case, ${r.requirements.length} yêu cầu, ${r.sequences.length} sơ đồ`, "ok");

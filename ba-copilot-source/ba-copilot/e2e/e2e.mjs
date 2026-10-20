@@ -1,37 +1,60 @@
 // E2E: chạy trình duyệt thật qua toàn bộ luồng BA bằng giao diện (chế độ Mock, DB tạm).
-// Dùng: npm run e2e   (tự khởi động server ở cổng 3199)
+// Dùng: npm run e2e   (tự khởi động server ở cổng 3199; chạy được cả trên Windows)
+// Biến môi trường: E2E_BASE (dùng server có sẵn), E2E_PORT, CHROME_PATH (không đặt thì dùng Chromium của Playwright, thiếu thì Chrome cài trên máy)
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
-import { mkdirSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
+const APP = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = process.env.E2E_PORT ?? "3199";
 const BASE = process.env.E2E_BASE ?? `http://localhost:${PORT}`;
-const SHOTS = "e2e/screenshots";
+const SHOTS = join(APP, "e2e", "screenshots");
 mkdirSync(SHOTS, { recursive: true });
 
 let server;
 if (!process.env.E2E_BASE) {
-  const db = join(tmpdir(), `ba-e2e-${Date.now()}.db`);
-  server = spawn("npx", ["tsx", "server/index.ts"], { env: { ...process.env, PORT, DB_FILE: db, AI_MODE: "mock" }, stdio: "inherit", detached: true });
+  const tmp = mkdtempSync(join(tmpdir(), "ba-e2e-"));
+  // Gọi thẳng tsx bằng node: spawn("npx") không chạy được trên Windows khi không có shell
+  const tsx = join(APP, "node_modules", "tsx", "dist", "cli.mjs");
+  server = spawn(process.execPath, [tsx, "server/index.ts"], {
+    cwd: APP,
+    env: { ...process.env, PORT, DB_FILE: join(tmp, "e2e.db"), DATA_DIR: tmp, AI_MODE: "mock", APP_PASSWORD: "", ANTHROPIC_API_KEY: "" },
+    stdio: ["ignore", "inherit", "inherit"],
+  });
   process.on("exit", () => {
     try {
-      process.kill(-server.pid);
+      server.kill();
     } catch {}
-    rmSync(db, { force: true });
-  });
-  for (let i = 0; i < 40; i++) {
     try {
-      await fetch(`${BASE}/api/settings`);
-      break;
+      rmSync(tmp, { recursive: true, force: true });
+    } catch {} // Windows còn giữ khoá tệp DB: để hệ điều hành dọn thư mục tạm
+  });
+  let up = false;
+  for (let i = 0; i < 80 && !up; i++) {
+    try {
+      up = (await fetch(`${BASE}/api/settings`)).ok;
     } catch {
       await new Promise((r) => setTimeout(r, 250));
     }
   }
+  if (!up) {
+    console.error(`Không khởi động được server ở ${BASE}`);
+    process.exit(1);
+  }
 }
 
-const browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
+async function launch() {
+  if (process.env.CHROME_PATH) return chromium.launch({ executablePath: process.env.CHROME_PATH });
+  try {
+    return await chromium.launch();
+  } catch {
+    return chromium.launch({ channel: "chrome" }); // chưa chạy `npx playwright install chromium`
+  }
+}
+const browser = await launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, acceptDownloads: true });
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));

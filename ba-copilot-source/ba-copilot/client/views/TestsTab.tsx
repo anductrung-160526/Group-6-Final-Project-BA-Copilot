@@ -6,7 +6,7 @@ import { Badge, Btn, Empty, StatusBadge, useUI } from "../components/ui.tsx";
 const TYPE_VI: Record<string, [string, string]> = { Positive: ["Tích cực", "green"], Negative: ["Tiêu cực", "red"], Boundary: ["Giá trị biên", "amber"] };
 
 export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise<unknown> }) {
-  const { run, toast } = useUI();
+  const { run, toast, confirm } = useUI();
   const [type, setType] = useState("");
   const [uc, setUc] = useState("");
   const [q, setQ] = useState("");
@@ -15,7 +15,7 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
   const filtered = useMemo(() => tests.filter((t) => (!type || t.type === type) && (!uc || t.useCaseCode === uc) && (!q || `${t.code} ${t.title}`.toLowerCase().includes(q.toLowerCase()))), [tests, type, uc, q]);
 
   const generate = async () => {
-    if (tests.length && !confirm("Sinh lại sẽ thay thế toàn bộ test case hiện có. Tiếp tục?")) return;
+    if (tests.length && !(await confirm({ title: "Sinh lại test case?", message: "Sinh lại sẽ thay thế toàn bộ test case hiện có.", okLabel: "Sinh lại" }))) return;
     const r = await run("AI đang sinh test case…", () => post(`/api/modules/${m.id}/tests/generate`));
     if (r) {
       toast(`Đã sinh ${r.length} test case`, "ok");

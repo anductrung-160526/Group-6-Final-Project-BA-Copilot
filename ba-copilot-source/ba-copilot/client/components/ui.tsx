@@ -9,18 +9,33 @@ interface Toast {
   kind: ToastKind;
   text: string;
 }
+/** Hộp xác nhận: tiêu đề là câu hỏi, `message` giải thích hậu quả; `danger` cho thao tác xoá. */
+export interface ConfirmOptions {
+  title: string;
+  message?: React.ReactNode;
+  okLabel?: string;
+  danger?: boolean;
+}
 interface UICtx {
   toast: (text: string, kind?: Toast["kind"]) => void;
   /** Chạy tác vụ async: hiện lớp "AI đang xử lý", bắt lỗi thành toast. */
   run: <T>(label: string, fn: () => Promise<T>) => Promise<T | undefined>;
+  /** Hỏi xác nhận bằng `Modal` (thay `window.confirm`); trả `true` khi người dùng đồng ý. */
+  confirm: (o: ConfirmOptions) => Promise<boolean>;
 }
-const Ctx = createContext<UICtx>({ toast: () => {}, run: async () => undefined });
+const Ctx = createContext<UICtx>({ toast: () => {}, run: async () => undefined, confirm: async () => false });
 export const useUI = () => useContext(Ctx);
 
 export function UIProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
+  const [ask, setAsk] = useState<(ConfirmOptions & { resolve: (ok: boolean) => void }) | null>(null);
+  const confirm = useCallback((o: ConfirmOptions) => new Promise<boolean>((resolve) => setAsk({ ...o, resolve })), []);
+  const answer = (ok: boolean) => {
+    ask?.resolve(ok);
+    setAsk(null);
+  };
   const toast = useCallback((text: string, kind: Toast["kind"] = "info") => {
     const id = Date.now() + Math.random();
     setToasts((t) => [...t.slice(-2), { id, kind, text }]);
@@ -47,8 +62,26 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
     [toast],
   );
   return (
-    <Ctx.Provider value={{ toast, run }}>
+    <Ctx.Provider value={{ toast, run, confirm }}>
       {children}
+      {ask && (
+        <Modal
+          title={ask.title}
+          onClose={() => answer(false)}
+          footer={
+            <>
+              <Btn kind="ghost" onClick={() => answer(false)} data-testid="confirm-cancel">
+                Huỷ
+              </Btn>
+              <Btn kind={ask.danger ? "danger" : "primary"} onClick={() => answer(true)} autoFocus data-testid="confirm-ok">
+                {ask.okLabel ?? "Đồng ý"}
+              </Btn>
+            </>
+          }
+        >
+          {ask.message ? <div className="muted">{ask.message}</div> : null}
+        </Modal>
+      )}
       {busy && (
         <div className="busy" role="status" aria-live="polite">
           <div className="busy-card">
@@ -543,7 +576,7 @@ export function SuggestionCard({
       <div className="suggestion-title">{title}</div>
       <div className="suggestion-reason">{reason}</div>
       <div className="suggestion-actions">
-        <Btn size="sm" kind="primary" onClick={onAccept} disabled={disabled}>
+        <Btn size="sm" onClick={onAccept} disabled={disabled}>
           {acceptLabel}
         </Btn>
         <Btn size="sm" kind="ghost" onClick={onDismiss} disabled={disabled}>

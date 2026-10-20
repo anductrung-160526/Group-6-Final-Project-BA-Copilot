@@ -62,10 +62,35 @@ function isCovered(text: string, vocabularies: Set<string>[]): boolean {
   return vocabularies.some((v) => kw.filter((k) => v.has(k)).length / kw.length >= COVERAGE_THRESHOLD);
 }
 
-// Tên màn đề xuất: viết hoa chữ đầu, tối đa 6 từ.
+// FR kiểm tra dữ liệu ("Hệ thống phải kiểm tra: Tên là bắt buộc") là quy tắc của trường trên màn đã có, không phải màn mới.
+const VALIDATION_FR = /^(?:(?:hệ thống|the system)\s+(?:phải|shall|must|should)\s+)?(?:kiểm tra|validate)\s*:/iu;
+// Phần mở đầu không mang tên màn: "Hệ thống phải (cho phép <vai trò> thực hiện)", "The system shall (allow <role> to)".
+const LEAD = /^(?:hệ thống|the system)\s+(?:phải|shall|must|should)\s+(?:cho phép\s+(?:\S+\s+){0,4}?thực hiện\s+|allow\s+(?:\S+\s+){0,3}?to\s+)?/iu;
+// Từ mở đầu mệnh đề phụ: tên màn dừng trước chúng ("… theo trạng thái", "… để xử lý").
+const CLAUSE_WORDS = new Set(["để", "nhằm", "theo", "khi", "trong", "cho", "when", "for", "by"]);
+// Từ nối không được đứng cuối tên.
+const TRAILING_WORDS = new Set(["và", "hoặc", "của", "các", "với", "and", "or", "of", "the", "a", "an"]);
+const MAX_NAME_WORDS = 8;
+
+// Tên màn đề xuất: bỏ phần mở đầu chung, dừng ở mệnh đề phụ, tối đa 8 từ, không kết thúc bằng từ nối, viết hoa chữ đầu.
+// FR dạng 'cho phép Quản trị viên thực hiện "Thêm sản phẩm"' lấy tên là thao tác trong ngoặc kép.
 function screenName(text: string): string {
-  const words = text.replace(/[.。!?]+$/u, "").trim().split(/\s+/).slice(0, 6).join(" ");
-  return words.charAt(0).toUpperCase() + words.slice(1);
+  const quoted = text.match(/["“]([^"”]+)["”]/u)?.[1];
+  let words: string[] = [];
+  if (quoted) {
+    words = quoted.trim().replace(/^mở màn hình\s+/iu, "").replace(/\s*\(([^)]+)\)\s*$/u, " – $1").split(/\s+/);
+  } else {
+    // Bỏ chú thích trong ngoặc ("… ra Excel (ví dụ theo tháng)"), kể cả ngoặc chưa đóng
+    const core = text.replace(/\s*[(（][^)）]*[)）]?/gu, " ").replace(/[.。!?]+$/u, "").trim().replace(LEAD, "");
+    for (const w of core.split(/\s+/)) {
+      if (words.length && CLAUSE_WORDS.has(w.toLowerCase())) break;
+      words.push(w);
+    }
+  }
+  words = words.slice(0, MAX_NAME_WORDS);
+  while (words.length > 1 && TRAILING_WORDS.has(words[words.length - 1].toLowerCase())) words.pop();
+  const name = words.join(" ").replace(/[\s:;,–-]+$/u, "");
+  return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
 // Tên và tiêu đề của các màn đã có (đã chuẩn hoá) – dùng để biết đích điều hướng hay tên đề xuất đã tồn tại.
@@ -108,7 +133,7 @@ export function suggestNextScreens(input: SuggestInput): ScreenSuggestion[] {
   const all: ScreenSuggestion[] = brokenLinks(model, known);
 
   // BR-07 / G5: đã có FR thì dựa trên FR, chưa có FR thì dựa trên user story
-  const frs = requirements.filter((r) => r.type === "FR");
+  const frs = requirements.filter((r) => r.type === "FR" && !VALIDATION_FR.test(r.statement.trim()));
   if (frs.length) {
     for (const r of frs) {
       const name = screenName(r.statement);
