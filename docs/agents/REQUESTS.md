@@ -44,3 +44,16 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Lý do: ngưỡng `< 400 ms` làm cổng số 1 đỏ khi máy bận (`v2-base` cũng trượt), dù mã mô hình không đổi.
 - Thay đổi: chỉ kiểm ngưỡng thời gian khi `PERF=1`; phần kiểm tra kết quả mô hình giữ nguyên.
 - Trạng thái: **Chấp nhận** (người dùng quyết định, 2026-10-20)
+
+### R-011 – A7: đăng ký tự cập nhật task trong `createApp()`
+- Đợt / agent yêu cầu: 2 / A7
+- Tệp: `server/app.ts` · Chủ tệp: A2
+- Lý do: `server/taskAutomation.ts` chỉ chạy khi có nơi gọi `registerTaskAutomation()`. Chưa ai gọi thì FN-20 → FN-23 không có hiệu lực khi chạy app (test của A7 tự gọi nên vẫn xanh).
+- Thay đổi đề xuất (A0 chèn khi gộp A7, sau A6) – 2 dòng:
+  ```ts
+  import { registerTaskAutomation } from "./taskAutomation.ts"; // cạnh import "./routes/index.ts"
+  registerTaskAutomation(); // dòng đầu thân createApp()
+  ```
+  Gọi nhiều lần vẫn chỉ có một bộ handler, nên đặt trong `createApp()` an toàn cho cả test lẫn `server/index.ts`. A7 đã thử trên bản gộp A6 + A7 + 2 dòng này: `npm test` 99/99.
+- Trạng thái: Mở
+- Quyết định của A0 (ngày):

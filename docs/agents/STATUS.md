@@ -13,7 +13,7 @@ Người cập nhật: **A0**. Mỗi agent dán kết quả `npm test` / `npm ru
 | A4 | Kho tài liệu | 2 | `agent/a4-kho-tai-lieu` | ⏳ Sẵn sàng | — | — | Code C4 đã có trên `v2-base` |
 | A5 | Sơ đồ UC | 2 | `agent/a5-so-do-uc` | ⏳ Sẵn sàng | — | — | |
 | A6 | Công việc Kanban | 2 | `agent/a6-kanban` | ⏳ Sẵn sàng | — | — | |
-| A7 | Tự cập nhật trạng thái task | 2 | `agent/a7-tu-cap-nhat` | ⏳ Sẵn sàng | — | — | Gộp sau A6 |
+| A7 | Tự cập nhật trạng thái task | 2 | `agent/a7-tu-cap-nhat` | ✅ Xong, chờ gộp (sau A6) | 88/88 ✅ | ✅ | FN-20 → FN-23. Khi gộp: R-011 (2 dòng trong `app.ts`). Xem nhật ký đợt 2 – A7 |
 | A8 | Chất lượng yêu cầu (QUS) | 2 | `agent/a8-qus` | ⏳ Sẵn sàng | — | — | Phần lớn đã có; việc còn lại ghi ở khung "Hiện trạng" mục A8 trong kế hoạch (chính: FN-56, `ScoreBadge`/`IssueList`) |
 | A9 | Gợi ý màn tiếp theo | 2 | `agent/a9-goi-y` | ⏳ Sẵn sàng | — | — | Phần lớn đã có; việc còn lại ghi ở khung "Hiện trạng" mục A9 trong kế hoạch (chính: API + `suggestion_dismissals`, tách `SuggestionsPanel`, sửa 2 chỗ lệch hợp đồng). Gộp cuối đợt 2 |
 | A10 | Dữ liệu demo | 3 | `agent/a10-seed` | ⏳ Chờ đợt 2 | — | — | |
@@ -134,3 +134,50 @@ Ba lựa chọn A2 tự chốt, A0 **xác nhận** (tài liệu v2 không quy đ
 
 **A8, A9:** mục A8 và A9 trong `docs/Ke_hoach_Agent_BA_Copilot_v2.md` đã có khung "Hiện trạng trên `v2-contract`", ghi rõ phần đã có, việc còn lại và 2 chỗ lệch hợp đồng của `suggest.ts`. Khi khởi chạy A8, A9, phải giữ nguyên khung đó trong prompt.
 
+
+---
+
+## Nhật ký đợt 2 – A7 (2026-10-20)
+
+**Nhánh:** `agent/a7-tu-cap-nhat`, tạo từ `v2-contract` @ `1aabff2`. Worktree `E:\wt-a7`.
+
+### Tệp đã tạo (đúng dòng A7 trong `OWNERSHIP.md`)
+
+| Tệp | Nội dung |
+|---|---|
+| `shared/taskRules.ts` | `nextStatus(current, event) → TaskStatus \| null` (hàm thuần) và `statusReason(event, kind, name)` – lý do tiếng Việt cho `task_events.reason` |
+| `server/taskAutomation.ts` | `registerTaskAutomation()` đăng ký handler cho 4 loại sự kiện (gọi lại nhiều lần vẫn chỉ một bộ); `applyArtifactEvent()` tìm task theo `artifact_type/artifact_id`, đổi trạng thái, ghi `task_events` với `by_system = 1` |
+| `tests/taskRules.test.ts` | Bảng quyết định đủ 16 ô (4 trạng thái × 4 sự kiện) + lý do |
+| `tests/taskAutomation.test.ts` | Tích hợp qua API (Mock AI): luồng demo bản 4 ngày, sinh lại tài liệu đang duyệt, sơ đồ UC, người thao tác |
+
+### Quy tắc đã cài
+
+| Sự kiện | Cần làm | Đang làm | Xong | Cần làm lại |
+|---|---|---|---|---|
+| `drafted` | Đang làm | – | – | Đang làm |
+| `approved` | Xong | Xong | – | Xong |
+| `unapproved` | – | – | Cần làm lại | – |
+| `stale` | – | – | Cần làm lại | – |
+
+Ánh xạ: `screen` theo mã màn; `docs`, `tests`, `diagram` theo mã module. BR-02 phát `stale` docs/tests nên task gắn docs/tests đang **Xong** sang Cần làm lại; task đang làm dở giữ nguyên (đúng quy tắc "các trường hợp khác giữ nguyên").
+
+### Kiểm tra (`ba-copilot-source/ba-copilot`, Node v24.16.0)
+
+| Lệnh | Kết quả |
+|---|---|
+| `npm test` | ✅ `tests 88 · pass 88 · fail 0` (66 cũ + 22 mới), `duration_ms 18193` |
+| `npm run build` | ✅ `public/app.js 334.2kb`, `public/app-style.css 41.2kb`, `Done in 772ms` (không commit `public/`) |
+| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+| Thử gộp A6 (`5e5f394`) + A7 + R-011 trên worktree tạm | ✅ `npm test` 99/99 – task tạo qua API thật của A6 |
+
+### Điểm A0 chèn khi gộp (sau A6)
+
+1. **R-011** – 2 dòng trong `server/app.ts`: import và gọi `registerTaskAutomation()` ở đầu `createApp()`. Thiếu bước này thì app chạy thật **không** tự đổi trạng thái task (test vẫn xanh vì tự đăng ký).
+2. (Tuỳ chọn) `taskAutomation.ts` ghi bảng giống hệt `setTaskStatus`/`listTasksByArtifact` của `server/repo/tasks.ts` (A6); sau khi gộp có thể chuyển sang gọi hàm của A6, hành vi không đổi.
+3. A5 gộp sau: route sơ đồ phải phát `artifact.*` `kind: "diagram"` như `docs/api.md` mục 3; test A7 đã giả lập đúng các sự kiện đó.
+4. Đánh số yêu cầu: `agent/a3-thanh-vien` và `agent/a4-kho-tai-lieu` cùng dùng **R-006** cho hai yêu cầu khác nhau – cần đánh lại số khi gộp.
+
+### Giới hạn đã biết
+
+- Bản 4 ngày không có bước **duyệt bộ test**, nên task gắn `tests` chỉ tự đi tới Đang làm, không tự sang Xong.
+- `by_member_id` của sự kiện hệ thống lấy từ `actorId` khi đó là thành viên có thật; `actorId` lạ được bỏ qua (ghi `NULL`) để không làm hỏng thao tác vì khoá ngoại.
