@@ -1,10 +1,16 @@
-// Công việc Kanban (FN-15 → FN-19). Hợp đồng: docs/api.md mục "Công việc". Chủ sở hữu: A6.
+// Công việc Kanban (FN-15 → FN-19, đợt 5). Hợp đồng: docs/api.md mục "Công việc" + "Đợt 5". Chủ sở hữu: C7 (trước: A6).
+// Đổi trạng thái bằng tay theo đúng mũi tên (shared/taskRules.ts): todo→doing · doing→done (cần người bấm) ·
+// done→approved và done/approved→doing (+ cờ Yêu cầu sửa) chỉ BA Lead. Task có gắn sản phẩm (đợt 5) thì đổi qua
+// luồng duyệt của sản phẩm (routes/approval.ts applyApproval) để task và sản phẩm luôn đồng bộ.
 
 import * as repo from "../repo.ts";
 import * as tasks from "../repo/tasks.ts";
 import { BizError } from "../service.ts";
-import { route, str, actor } from "../http.ts";
-import type { ArtifactKind, Task, TaskPriority, TaskStatus } from "../../shared/types.ts";
+import { route, str, actor, currentMember, HttpError, type HandlerCtx } from "../http.ts";
+import { getArtifactState } from "../db.ts";
+import { moveError, taskMove } from "../../shared/taskRules.ts";
+import { applyApproval, parseArtifactRef } from "./approval.ts";
+import { DIAGRAM_KINDS, DOC_KINDS, type ArtifactKind, type DiagramKind, type DocKind, type Task, type TaskPriority, type TaskStatus } from "../../shared/types.ts";
 
 const mustProject = (id: string) => {
   if (!repo.getProject(id)) throw new BizError("Không tìm thấy dự án", 404);
@@ -19,7 +25,7 @@ const mustTask = (id: string): Task => {
 const opt = (v: unknown, max = 200): string | null | undefined => (v === undefined ? undefined : v === null ? null : str(v, max).trim() || null);
 
 const status = (v: unknown): TaskStatus => {
-  if (!tasks.TASK_STATUSES.includes(v as TaskStatus)) throw new BizError("Trạng thái phải là Cần làm, Đang làm, Xong hoặc Cần làm lại");
+  if (!tasks.TASK_STATUSES.includes(v as TaskStatus)) throw new BizError("Trạng thái phải là Cần làm, Đang làm, Xong hoặc Đã duyệt");
   return v as TaskStatus;
 };
 
@@ -39,10 +45,24 @@ function artifactModule(projectId: string, kind: ArtifactKind, id: string): stri
   return m && m.projectId === projectId ? m.id : null;
 }
 
+/** sub của tài liệu/sơ đồ: doc bắt buộc DocKind, diagram mặc định UC, loại khác bỏ qua. */
+function artifactSub(kind: ArtifactKind | null, v: unknown): DocKind | DiagramKind | null {
+  const s = typeof v === "string" && v ? v : null;
+  if (kind === "doc") {
+    if (!s || !(DOC_KINDS as string[]).includes(s)) throw new BizError("Chọn loại tài liệu (BRD, UC Specification, SRS, FRD-NFR, API Spec)");
+    return s as DocKind;
+  }
+  if (kind === "diagram") {
+    if (s && !(DIAGRAM_KINDS as string[]).includes(s)) throw new BizError("Loại sơ đồ không hợp lệ");
+    return (s ?? "UC") as DiagramKind;
+  }
+  return null;
+}
+
 /**
- * Gộp body (TaskInput, có thể chỉ một phần) vào giá trị hiện có rồi kiểm tra theo quy tắc docs/api.md mục 4.
- * Sản phẩm gắn kèm phải cùng module với task (docs/tests/diagram: artifactId = moduleId). Thiếu moduleId thì tự điền theo sản phẩm.
- * Task cũ trỏ tới sản phẩm đã xoá vẫn sửa được các trường khác (A0 chốt: không báo lỗi).
+ * Gộp body (TaskInput + artifactSub, có thể chỉ một phần) vào giá trị hiện có rồi kiểm tra theo quy tắc docs/api.md mục 4.
+ * Sản phẩm gắn kèm phải cùng module với task (doc/diagram/tests: artifactId = moduleId). Thiếu moduleId thì tự điền theo sản phẩm.
+ * Task cũ trỏ tới sản phẩm đã xoá (hoặc bộ tài liệu cũ "docs") vẫn sửa được các trường khác.
  */
 function fields(projectId: string, body: any, base?: Task): tasks.TaskFields {
   const title = body.title !== undefined ? str(body.title, 300).trim() : (base?.title ?? "");
@@ -67,12 +87,14 @@ function fields(projectId: string, body: any, base?: Task): tasks.TaskFields {
     if (!m || m.projectId !== projectId) throw new BizError("Module không thuộc dự án này");
   }
 
-  const touchArtifact = body.artifactType !== undefined || body.artifactId !== undefined;
+  const touchArtifact = body.artifactType !== undefined || body.artifactId !== undefined || body.artifactSub !== undefined;
   const artifactType = (touchArtifact ? (opt(body.artifactType, 20) ?? null) : (base?.artifactType ?? null)) as ArtifactKind | null;
   const artifactId = touchArtifact ? (opt(body.artifactId, 100) ?? null) : (base?.artifactId ?? null);
+  let sub = touchArtifact ? null : (base?.artifactSub ?? null);
   if (!!artifactType !== !!artifactId) throw new BizError("Loại sản phẩm và sản phẩm gắn kèm phải cùng có hoặc cùng để trống");
   if (artifactType && touchArtifact) {
-    if (!tasks.ARTIFACT_KINDS.includes(artifactType)) throw new BizError("Loại sản phẩm phải là màn hình, tài liệu, sơ đồ UC hoặc bộ test");
+    if (!tasks.ARTIFACT_KINDS.includes(artifactType)) throw new BizError("Loại sản phẩm phải là màn hình, tài liệu, sơ đồ hoặc bộ test");
+    sub = artifactSub(artifactType, body.artifactSub);
     const am = artifactModule(projectId, artifactType, artifactId!);
     if (!am) throw new BizError("Sản phẩm gắn kèm không thuộc dự án này");
     if (mod === undefined && !moduleId) moduleId = am;
@@ -82,7 +104,7 @@ function fields(projectId: string, body: any, base?: Task): tasks.TaskFields {
     const am = artifactModule(projectId, artifactType, artifactId!);
     if (am && am !== moduleId) throw new BizError("Sản phẩm gắn kèm phải thuộc đúng module của công việc");
   }
-  return { moduleId, title, description, assigneeId, dueDate, priority, artifactType, artifactId };
+  return { moduleId, title, description, assigneeId, dueDate, priority, artifactType, artifactId, artifactSub: sub };
 }
 
 route("GET", "/api/projects/:id/tasks", ({ params, query }) => {
@@ -93,6 +115,7 @@ route("GET", "/api/projects/:id/tasks", ({ params, query }) => {
 route("POST", "/api/projects/:id/tasks", ({ params, body }) => {
   mustProject(params.id);
   const st = body.status === undefined || body.status === null ? "todo" : status(body.status);
+  if (st !== "todo" && st !== "doing") throw new BizError("Công việc mới chỉ ở Cần làm hoặc Đang làm");
   return tasks.createTask(params.id, fields(params.id, body), st, { byMemberId: byMember(body) });
 });
 
@@ -118,12 +141,39 @@ route("DELETE", "/api/tasks/:id", ({ params }) => {
   return { ok: true };
 });
 
-route("PATCH", "/api/tasks/:id/status", ({ params, body }) => {
+/**
+ * Đổi trạng thái bằng tay. Sai mũi tên → 400; thiếu quyền (Xong không rõ người, Duyệt / Yêu cầu sửa không phải BA Lead) → 403.
+ * Task gắn sản phẩm đợt 5 còn tồn tại: Xong / Duyệt / Yêu cầu sửa đi qua luồng duyệt của sản phẩm (task tự đi theo).
+ * Sản phẩm đã ở đúng trạng thái đích (lệch do dữ liệu cũ) thì chỉ đồng bộ task.
+ */
+route("PATCH", "/api/tasks/:id/status", async (ctx: HandlerCtx) => {
+  const { params, body } = ctx;
   const t = mustTask(params.id);
-  return tasks.setTaskStatus(t.id, status(body.status), { byMemberId: byMember(body), bySystem: false });
+  const to = status(body.status);
+  if (t.status === to) return t;
+  const me = currentMember(ctx);
+  const mv = taskMove(t.status, to);
+  const err = moveError(t.status, to, me);
+  if (err) throw new HttpError(err, mv ? 403 : 400, mv ? "FORBIDDEN" : undefined);
+  const by = { byMemberId: me?.id ?? byMember(body), bySystem: false };
+
+  if (mv !== "start" && t.artifactType && t.artifactType !== "docs" && t.artifactId) {
+    const ref = parseArtifactRef(t.artifactType, t.artifactId, t.artifactSub ?? undefined);
+    const st = getArtifactState(ref);
+    if (st && st.status !== "none") {
+      const target = mv === "done" ? "done" : mv === "approve" ? "approved" : "draft";
+      const alreadyThere = st.status === target && (mv !== "request-change" || st.revisionRequested);
+      if (!alreadyThere) {
+        await applyApproval(mv!, ref, { req: ctx.req, query: ctx.query, body: { actorId: body.actorId } });
+        const after = tasks.getTask(t.id)!;
+        if (after.status === to) return after; // sự kiện đã kéo task theo
+      }
+    }
+  }
+  return tasks.setTaskStatus(t.id, to, by, mv === "request-change" ? true : mv === "approve" ? false : undefined);
 });
 
-route("GET", "/api/artifacts/:kind/:id/tasks", ({ params }) => {
-  if (!tasks.ARTIFACT_KINDS.includes(params.kind as ArtifactKind)) throw new BizError("Loại sản phẩm không hợp lệ");
-  return tasks.listTasksByArtifact(params.kind as ArtifactKind, params.id);
+route("GET", "/api/artifacts/:kind/:id/tasks", ({ params, query }) => {
+  if (!tasks.ARTIFACT_KINDS.includes(params.kind as ArtifactKind) && params.kind !== "docs") throw new BizError("Loại sản phẩm không hợp lệ");
+  return tasks.listTasksByArtifact(params.kind as ArtifactKind, params.id, query.get("sub") || undefined);
 });
