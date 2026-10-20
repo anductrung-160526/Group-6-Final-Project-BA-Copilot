@@ -17,7 +17,7 @@ Người cập nhật: **A0**. Mỗi agent dán kết quả `npm test` / `npm ru
 | A8 | Chất lượng yêu cầu (QUS) | 2 | `agent/a8-qus` | ⏳ Sẵn sàng | — | — | Phần lớn đã có; việc còn lại ghi ở khung "Hiện trạng" mục A8 trong kế hoạch (chính: FN-56, `ScoreBadge`/`IssueList`) |
 | A9 | Gợi ý màn tiếp theo | 2 | `agent/a9-goi-y` | ⏳ Sẵn sàng | — | — | Phần lớn đã có; việc còn lại ghi ở khung "Hiện trạng" mục A9 trong kế hoạch (chính: API + `suggestion_dismissals`, tách `SuggestionsPanel`, sửa 2 chỗ lệch hợp đồng). Gộp cuối đợt 2 |
 | A10 | Dữ liệu demo | 3 | `agent/a10-seed` | ⏳ Chờ đợt 2 | — | — | |
-| A11 | Kiểm thử E2E & QA | 3 | `agent/a11-e2e` | ⏳ Chờ A10 | — | — | |
+| A11 | Kiểm thử E2E & QA | 3 | `agent/a11-e2e` | ✅ Xong (chạy trước A10, trên bản gộp tạm đợt 2) | 66/66 ✅ (nhánh) · 143/143 ✅ (bản gộp tạm) | ✅ | E2E `demo-flow` 27/27 khi có R-005 + R-011; thiếu thì 2 lỗi Cao. Xem `QA_REPORT.md` và nhật ký đợt 3 – A11 |
 | A12 | Tài liệu & Triển khai | 3, 4 | `agent/a12-trien-khai` | ⏳ Chờ A11 | — | — | |
 
 Thứ tự gộp đợt 2: A8 → A4 → A3 → A6 → A7 → A5 → A9.
@@ -133,4 +133,30 @@ Ba lựa chọn A2 tự chốt, A0 **xác nhận** (tài liệu v2 không quy đ
 **Đã xử lý (theo quyết định của người dùng):** phép đo `< 400 ms` trong `tests/transformer.test.ts` chỉ chạy khi `PERF=1`. Phần kiểm tra kết quả của mô hình vẫn chạy như cũ. Sau khi sửa: `npm test` 66/66 hai lần liên tiếp. Đo tốc độ riêng: `PERF=1 npx tsx --test tests/transformer.test.ts` (đang qua).
 
 **A8, A9:** mục A8 và A9 trong `docs/Ke_hoach_Agent_BA_Copilot_v2.md` đã có khung "Hiện trạng trên `v2-contract`", ghi rõ phần đã có, việc còn lại và 2 chỗ lệch hợp đồng của `suggest.ts`. Khi khởi chạy A8, A9, phải giữ nguyên khung đó trong prompt.
+
+---
+
+## Nhật ký đợt 3 – A11 (2026-10-20)
+
+**Nhánh:** `agent/a11-e2e`, tạo từ `v2-contract` @ `1aabff2`. Chỉ thêm `e2e/demo-flow.mjs`, `docs/agents/QA_REPORT.md` và dòng/nhật ký này.
+
+`v2-features` chưa có, A10 chưa chạy → A11 kiểm thử trên **bản gộp tạm** (worktree `E:/wt-a11-int`, không đẩy lên): `v2-contract` + `a2-r005` → A8 → A4 → A3 → A6 → A7 → A5 → A9, xung đột duy nhất ở `client/routes.ts`, rồi mô phỏng điểm chèn A0 R-005, R-011 và `actorId` của `TasksView`. Chi tiết và danh sách lỗi Q-01 → Q-13: `docs/agents/QA_REPORT.md`.
+
+### Kiểm tra (Node v24.16.0)
+
+| Lệnh | Nhánh `agent/a11-e2e` | Bản gộp tạm đợt 2 |
+|---|---|---|
+| `npm test` | ✅ `tests 66 · pass 66 · fail 0`, `duration_ms 16456` | ✅ `tests 143 · pass 143 · fail 0`, `duration_ms 20385` |
+| `npm run build` | ✅ `public/app.js 334.2kb`, `public/app-style.css 41.2kb`, `Done` | ✅ `public/app.js 363.2kb`, `public/app-style.css 41.7kb`, `Done` |
+| `npx tsc --noEmit` | ✅ | ✅ |
+| `node e2e/demo-flow.mjs` | – (tính năng đợt 2 chưa có trên nhánh này) | ❌ khi chưa chèn R-005 (Q-01) · ✅ **27/27**, 0 lỗi JavaScript khi có R-005 + R-011 |
+| `node e2e/e2e.mjs` (hồi quy) | – | ✅ 18/18 (`E2E_BASE` + `CHROME_PATH`; `npm run e2e` hỏng trên Windows – Q-12) |
+
+### Điểm A0 cần chèn khi gộp (để E2E xanh)
+
+1. **R-005** – `client/main.tsx`: thay header cũ bằng `<TopBar />` (Q-01, Cao).
+2. **R-011** – `server/app.ts`: `registerTaskAutomation()` đầu `createApp()` (Q-02, Cao).
+3. `client/views/TasksView.tsx`: `currentActorId` → `currentMemberId()` (điểm chèn A6).
+4. Xung đột `client/routes.ts`: giữ cả 3 import và 3 dòng `TasksView`, `FilesView`, `MembersView`.
+5. Sau khi gộp: `npm run build && node e2e/demo-flow.mjs`.
 
