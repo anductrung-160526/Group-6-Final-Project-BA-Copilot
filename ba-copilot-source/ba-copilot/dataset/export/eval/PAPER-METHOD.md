@@ -68,14 +68,14 @@ Mỗi ô ghi F1 / Next / Edit (giây KLM).
   - Ví dụ R041-09: thiếu ô Mật khẩu giữa ô Email và nút Đăng nhập; mô hình không gợi ý (`demoB-R041-09.png`).
   - Bài báo **không** nêu hạn chế này và cũng không đánh giá trường hợp này (chỉ dùng cây dở dạng tiền tố). Đây là kết quả đo được trong thực nghiệm của nhóm: mô hình học từ cây đầy đủ nên quen dừng (EOS) sau con cuối cùng.
 - **Có lúc dừng sớm ngay cả khi thiếu ở cuối.** Ví dụ R059-10: thiếu phân trang ở cuối trang, mô hình đoán EOS (`demoB-R059-10.png`). Tỷ lệ Next đúng loại 34.8%.
-- Hướng cải thiện (ngoài bài báo, đã thử ở `COORDS-EXPERIMENT.md`):
+- Hướng cải thiện (ngoài bài báo, đã thử ở `STRICT-NEXT.md` và `DATA-LIMITED.md`):
   - xáo trộn thứ tự anh em khi huấn luyện (V4): bắt chỗ thiếu ở giữa tăng lên khoảng 20%, nhưng tọa độ kém hơn;
   - thêm dữ liệu thật, như màn do BA vẽ hoặc qua Sinh thiết kế bằng Claude.
 - Dữ liệu do Claude soạn, chưa qua BA kiểm nghiệm; tập test nhỏ.
 
 ## 5. Mô hình đối chứng (không dùng trong tab Gợi ý)
 `model/next-transformer.json` là Transformer encoder hai chiều phát hiện chỗ thiếu; không thuộc phương pháp của bài báo.
-- Chỉ dùng trong thí nghiệm đối chứng (`MODEL-SELECTION.md`, `app-insertion.json`).
+- Chỉ dùng trong thí nghiệm đối chứng (`paper-decoders.json`).
 - Giữ cho API cũ `GET /api/screens/:id/suggestions` (không có khung bao).
 - Tab Gợi ý luôn gọi `POST` kèm khung bao, nên luôn dùng Recursive.
 
