@@ -7,6 +7,7 @@ import { createElement, type ComponentType } from "react";
 import { ProjectView } from "./views/ProjectView.tsx";
 import { Gallery } from "./views/_Gallery.tsx";
 import { FilesView } from "./views/FilesView.tsx";
+import { MembersView } from "./views/MembersView.tsx";
 
 export interface PageProps {
   projectId: string; // "" với trang global
@@ -32,7 +33,7 @@ const LegacyFilesPage: ComponentType<PageProps> = ({ projectId, params }) => cre
 export const PAGES: AppPage[] = [
   { key: "tasks", label: "Công việc", scope: "project", component: placeholder("Công việc", "FN-15 → FN-19") },
   { key: "files", label: "Kho tài liệu", scope: "project", component: FilesView },
-  { key: "members", label: "Thành viên", scope: "global", component: placeholder("Thành viên", "FN-01") },
+  { key: "members", label: "Thành viên", scope: "global", component: MembersView },
   { key: "_gallery", label: "Gallery", scope: "global", component: Gallery, hidden: true },
 ];
 

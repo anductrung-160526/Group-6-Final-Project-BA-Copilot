@@ -11,6 +11,8 @@ Người cập nhật: **A0**. Mỗi agent dán kết quả `npm test` / `npm ru
 | A2 | Nền tảng dữ liệu & hợp đồng | 1 | `agent/a2-nen-tang` | ✅ Đã gộp vào `v2-contract`; `api.md`/`erd.md` đã duyệt và **khoá** | 59/59 ✅ | ✅ | Xem nhật ký đợt 1 – A0 |
 | A3 | Thành viên & thanh trên | 2 | `agent/a3-thanh-vien` | ⏳ Sẵn sàng | — | — | |
 | A4 | Kho tài liệu | 2 | `agent/a4-kho-tai-lieu` | ✅ Xong, chờ A0 gộp | 75/75 ✅ | ✅ | FN-04 → FN-10 đạt (kể cả FN-08). Xem nhật ký đợt 2 – A4; yêu cầu R-005, R-006 |
+| A3 | Thành viên & thanh trên | 2 | `agent/a3-thanh-vien` | ✅ Xong, chờ gộp. FN-01 đạt; FN-02 đạt sau khi A0 gắn TopBar (R-005); FN-03 một phần (chờ R-006, R-007) | 70/70 ✅ | ✅ | Xem nhật ký đợt 2 – A3 |
+| A4 | Kho tài liệu | 2 | `agent/a4-kho-tai-lieu` | ⏳ Sẵn sàng | — | — | Code C4 đã có trên `v2-base` |
 | A5 | Sơ đồ UC | 2 | `agent/a5-so-do-uc` | ⏳ Sẵn sàng | — | — | |
 | A6 | Công việc Kanban | 2 | `agent/a6-kanban` | ⏳ Sẵn sàng | — | — | |
 | A7 | Tự cập nhật trạng thái task | 2 | `agent/a7-tu-cap-nhat` | ⏳ Sẵn sàng | — | — | Gộp sau A6 |
@@ -210,6 +212,9 @@ Lưu ý: lần chạy đầu `npm test` và `tsc` bị hết bộ nhớ vì máy
 | FN-07 | Bảng tệp xếp theo module (Cấp dự án trước); xoá có hộp thoại xác nhận, xoá luôn tệp vật lý |
 | FN-08 | Ô tìm theo tên (không phân biệt dấu) + lọc module; server hỗ trợ `?q=` và `?moduleId=` |
 | FN-09, FN-10 | `FileDrawer` (`Drawer` lg): PDF bằng `<iframe>`, ảnh bằng `<img>`, loại khác "Tải về để xem"; nút Tải về; `GET /api/files/:id`, `/preview` (`inline`, `415` với loại khác), `/download` giữ tên tiếng Việt |
+## Nhật ký đợt 2 – A3 (2026-10-20)
+
+**Nhánh:** `agent/a3-thanh-vien`, tạo từ `v2-contract` @ `1aabff2`.
 
 ### Kiểm tra (`ba-copilot-source/ba-copilot`, Node v24.16.0)
 
@@ -228,3 +233,17 @@ Lưu ý: lần chạy đầu `npm test` và `tsc` bị hết bộ nhớ vì máy
 - **R-005 (A2):** hỗ trợ `inline` và tên tệp tiếng Việt trong `FileResponse`; tới lúc đó `server/routes/files.ts` tự ghi đè header.
 - **Sau khi gộp A3:** `FilesView` chưa gửi `actorId` (chưa có `useCurrentMember()`). Server đã nhận và lưu `uploaded_by` nếu thành viên tồn tại; chỉ cần thêm `actorId: me?.id` vào lời gọi `uploadFile` trong `FilesView.tsx` (A4 làm nếu được giao lại).
 - Đổi danh sách loại tệp: `.pptx`, `.txt`, `.md`, `.csv` **không còn tải lên được** (theo yêu cầu "Word, PDF, Excel, ảnh"). Tệp loại đó đã có trong kho vẫn xem danh sách, tải về và xoá được.
+| `npm test` | ✅ `tests 70 · pass 70 · fail 0` (66 cũ + 4 mới trong `tests/members.test.ts`), `duration_ms 23199` |
+| `npm run build` | ✅ `public/app.js 339.3kb`, `Done` |
+| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+| Chạy app (Mock, DB mới) + Chrome, có gắn tạm `TopBar` vào `main.tsx` (đã hoàn lại) | ✅ Thêm 2 thành viên qua hộp thoại, chọn "Tôi là…", tải lại trang vẫn nhớ; menu Công việc / Kho tài liệu / Thành viên trỏ đúng dự án; `#/_gallery` bình thường; 0 lỗi console |
+
+`public/` **không** commit (sản phẩm build).
+
+### Điểm A0 chèn khi gộp
+- **R-005** – gắn `<TopBar />` vào `client/main.tsx`. Chưa gắn thì ô "Tôi là…" và menu chưa hiện.
+- **R-006** – gửi `actorId` (và tên tác giả bình luận) từ `DesignTab.tsx`.
+- **R-007** – `repo.ts` / `app.ts` đọc và trả `author`/`authorId`, lưu `author_id` cho bình luận.
+- `client/routes.ts`: ngoài dòng `members`, A3 thêm 1 dòng `import { MembersView }` (cần cho dòng đó).
+- Menu thanh trên dạng **pill** (theo yêu cầu người dùng): ghép từ class có sẵn `.tpl-row` + `.chip` / `.chip-sel`, không thêm CSS mới. Gợi ý cho A1 (không bắt buộc): thêm biến thể `Tabs variant="pill"` vào `ui.tsx` + `#/_gallery` để màn khác dùng chung. Sau khi đổi: `npm test` 70/70 ✅, `npm run build` ✅, 0 lỗi console.
+- Cập nhật: menu pill chuyển thành component dùng chung `Tabs variant="pill"` (người dùng yêu cầu, sửa tệp của A1 – xem **R-008**). `npm test` 70/70 ✅, `npm run build` ✅ (`app.js 339.6kb`), 0 lỗi console ở `#/_gallery` và trang dự án.

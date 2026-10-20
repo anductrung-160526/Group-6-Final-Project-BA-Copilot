@@ -610,7 +610,8 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
                           key={a.id}
                           className={`pin pin-${a.status}`}
                           style={{ left: r.x + r.w - 10, top: r.y - 10 }}
-                          title={a.comment}
+                          title={`${a.author}: ${a.comment}`}
+                          aria-label={`Bình luận ${annotations.indexOf(a) + 1} của ${a.author}`}
                           onMouseDown={(e) => e.stopPropagation()}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -899,7 +900,10 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
                     <strong>v{v.number}</strong>
                     <Badge tone={v.kind === "generate" ? "blue" : v.kind === "revert" ? "amber" : v.kind === "layout" ? "green" : "violet"}>{v.kind === "generate" ? "Sinh mới" : v.kind === "revert" ? "Khôi phục" : v.kind === "layout" ? "Gợi ý bố cục" : v.kind === "manual" ? "Sửa tay" : v.scope === "region" ? "Sửa theo vùng" : "Sửa toàn màn hình"}</Badge>
                     {v.id === screen.currentVersionId && <Badge tone="green">Hiện tại</Badge>}
-                    <span className="muted small right">{fmtTime(v.createdAt)}</span>
+                    <span className="muted small right" data-testid="version-author">
+                      {v.author ? `${v.author} · ` : ""}
+                      {fmtTime(v.createdAt)}
+                    </span>
                   </div>
                   <div className="ver-prompt">{v.prompt || "—"}</div>
                   <div className="muted small">
