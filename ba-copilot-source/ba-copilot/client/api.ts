@@ -202,13 +202,13 @@ export const getModuleDiagram = (moduleId: string, kind: DiagramKind) => get<Mod
 export const saveModuleDiagram = (moduleId: string, kind: DiagramKind, b: { code: string; parts?: DiagramPart[]; baseRev?: number }) => put<ModuleDiagram>(`/api/modules/${enc(moduleId)}/diagrams/${kind}`, b);
 export const generateModuleDiagram = (moduleId: string, kind: DiagramKind, b: { baseRev?: number } = {}) => post<ModuleDiagram>(`/api/modules/${enc(moduleId)}/diagrams/${kind}/generate`, b);
 
-// Xong / Duyệt / Yêu cầu sửa – C7 (state đã chạy; 3 lệnh còn 501). kind: "screen" | "doc" | "diagram" | "tests"; sub cho doc/diagram.
+// Xong / Duyệt / Yêu cầu sửa – C7 (state đã chạy; 3 lệnh còn 501). Đợt 5 không có đăng nhập: luôn gửi actorId = currentMemberId() (ô "Tôi là…"). kind: "screen" | "doc" | "diagram" | "tests"; sub cho doc/diagram.
 type ArtifactKindV5 = Exclude<ArtifactKind, "docs">;
 const artifactPath = (kind: ArtifactKindV5, id: string, action: string) => `/api/artifacts/${kind}/${enc(id)}/${action}`;
 export const getArtifactState = (kind: ArtifactKindV5, id: string, sub?: DocKind | DiagramKind) => get<ArtifactState>(`${artifactPath(kind, id, "state")}${qs({ sub })}`);
-export const markArtifactDone = (kind: ArtifactKindV5, id: string, b: { sub?: DocKind | DiagramKind; baseRev?: number } = {}) => post<ApprovalResult>(artifactPath(kind, id, "done"), b);
-export const approveArtifact = (kind: ArtifactKindV5, id: string, b: { sub?: DocKind | DiagramKind; baseRev?: number } = {}) => post<ApprovalResult>(artifactPath(kind, id, "approve"), b);
-export const requestArtifactChange = (kind: ArtifactKindV5, id: string, b: { sub?: DocKind | DiagramKind } = {}) => post<ApprovalResult>(artifactPath(kind, id, "request-change"), b);
+export const markArtifactDone = (kind: ArtifactKindV5, id: string, b: { sub?: DocKind | DiagramKind; baseRev?: number; actorId?: string } = {}) => post<ApprovalResult>(artifactPath(kind, id, "done"), b);
+export const approveArtifact = (kind: ArtifactKindV5, id: string, b: { sub?: DocKind | DiagramKind; baseRev?: number; actorId?: string } = {}) => post<ApprovalResult>(artifactPath(kind, id, "approve"), b);
+export const requestArtifactChange = (kind: ArtifactKindV5, id: string, b: { sub?: DocKind | DiagramKind; actorId?: string } = {}) => post<ApprovalResult>(artifactPath(kind, id, "request-change"), b);
 
 // GitHub – C8 (501)
 export const getProjectGit = (projectId: string) => get<ProjectGit | null>(`/api/projects/${enc(projectId)}/git`);

@@ -5,7 +5,7 @@
 // Đợt 5 (C2): drafted · done · approved · revision_requested · stale. "artifact.unapproved" là sự kiện cũ, chỉ
 // còn để mã v2 (service.ts, routes/diagram.ts, taskRules.ts) chạy tới khi C7/C9/C6 thay – mã mới không phát.
 
-import type { ArtifactEvent, ArtifactEventType } from "../shared/types.ts";
+import type { ArtifactEvent, ArtifactEventType, ArtifactRef, GitPushOutcome } from "../shared/types.ts";
 
 export type { ArtifactEvent, ArtifactEventType } from "../shared/types.ts";
 export type EventHandler = (event: ArtifactEvent) => void;
@@ -30,4 +30,15 @@ export function emit(event: ArtifactEvent): void {
 /** Chỉ dùng trong test. */
 export function clearHandlers(): void {
   handlers.clear();
+}
+
+// ---------- Điểm nối Duyệt → GitHub (C0 thêm, đợt 5). C8 đăng ký khi nạp server/github.ts; C7 gọi trong POST .../approve.
+// Chưa đăng ký (C8 chưa gộp) → coi như dự án chưa cấu hình repo.
+export type ApprovedPusher = (ref: ArtifactRef, actorId: string | null) => Promise<GitPushOutcome>;
+let approvedPusher: ApprovedPusher | null = null;
+export function registerApprovedPusher(fn: ApprovedPusher | null): void {
+  approvedPusher = fn;
+}
+export function pushApproved(ref: ArtifactRef, actorId: string | null): Promise<GitPushOutcome> {
+  return approvedPusher ? approvedPusher(ref, actorId) : Promise.resolve({ pushed: false, message: "Chưa cấu hình GitHub – chưa đẩy" });
 }
