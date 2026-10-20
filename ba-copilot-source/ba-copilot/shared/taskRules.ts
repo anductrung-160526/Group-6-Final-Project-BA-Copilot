@@ -47,6 +47,7 @@ export function nextTaskState(cur: TaskState, event: ArtifactEventType): TaskSta
       if (s === "done" || s === "approved") to = { status: "doing", revisionRequested: rr };
       break;
   }
+  if (!to && cur.status === "redo") to = { status: "doing", revisionRequested: true }; // dữ liệu cũ: chuẩn hoá luôn
   if (!to) return null;
   return to.status === cur.status && to.revisionRequested === cur.revisionRequested ? null : to;
 }
