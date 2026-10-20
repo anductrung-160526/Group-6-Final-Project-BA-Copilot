@@ -93,3 +93,17 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
   - Thêm `cursor: pointer;` cho `.qus-story-head` (panel đang tạm đặt `style={{ cursor: "pointer" }}`; A8 bỏ dòng đó sau khi A1 thêm).
 - Trạng thái: Mở
 - Quyết định của A0:
+### R-005 – `FileResponse` cần chọn `inline`/`attachment` và tên tệp tiếng Việt
+- Đợt / agent: 2 / A4
+- Tệp: `server/http.ts`, `server/app.ts` · Chủ tệp: A2
+- Lý do: `app.ts` luôn ghi `content-disposition: attachment; filename="<tên>"`. (1) `GET /api/files/:id/preview` theo hợp đồng phải `inline` để `<iframe>` hiện PDF. (2) Tên có ký tự ngoài Latin-1 (vd "Tài liệu.pdf") làm `writeHead` ném lỗi vì header không hợp lệ.
+- Cách A4 đang làm (chỉ trong `server/routes/files.ts`): hàm `sendFile()` bọc `res.writeHead` của **riêng phản hồi đó** để ghi đè `content-disposition` (`filename=` bản ASCII bỏ dấu, `filename*=UTF-8''` tên gốc) và thêm `x-content-type-options: nosniff`. Có test trong `tests/files.test.ts`.
+- Thay đổi đề xuất: thêm `disposition?: "inline" | "attachment"` vào `FileResponse` và để `app.ts` tự sinh `filename=` ASCII. Khi A2 làm xong, A4 bỏ phần bọc `writeHead`.
+- Trạng thái: Mở
+
+### R-006 – A4 thay dòng `files` trong `client/routes.ts`
+- Đợt / agent: 2 / A4
+- Tệp: `client/routes.ts` · Chủ tệp: A2 (mục 2 `OWNERSHIP.md` cho A4 thay đúng một dòng giữ chỗ)
+- Thay đổi: dòng `files` trỏ sang `FilesView` và thêm 1 dòng `import { FilesView }`. Hằng `LegacyFilesPage` (và import `ProjectView` nó dùng) không còn được dùng, **chưa xoá** để không sửa quá phạm vi.
+- Việc A0 khi gộp: xoá `LegacyFilesPage`; trong `ProjectView.tsx` bỏ nhánh `tab === "files"` + import `FilesTab` (link tab "Kho tài liệu" vẫn trỏ `#/p/:id/files`, giờ mở `FilesView`); sau đó xoá `client/views/FilesTab.tsx`.
+- Trạng thái: Mở
