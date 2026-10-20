@@ -1,31 +1,15 @@
 // Kho tài liệu (FN-04 → FN-10). Hợp đồng: docs/api.md mục "Kho tài liệu". Chủ sở hữu: A4.
 // Logic lưu tệp, kiểm tra và thông tin nguồn nằm ở server/files.ts; tệp vật lý ở DATA_DIR/files.
 
-import type { ServerResponse } from "node:http";
 import * as repo from "../repo.ts";
 import { BizError } from "../service.ts";
 import { route, FileResponse, str, actor } from "../http.ts";
-import { saveBuffer, readFileFromDisk, getFileItem, listFileItems, updateFileItem, deleteFileItem, readMeta, canPreview, fold } from "../files.ts";
+import { saveBuffer, readFileFromDisk, getFileItem, listFileItems, updateFileItem, deleteFileItem, readMeta, canPreview } from "../files.ts";
 
 function mustFile(id: string) {
   const f = getFileItem(id);
   if (!f) throw new BizError("Không tìm thấy file", 404);
   return f;
-}
-
-/**
- * Trả nội dung tệp với content-disposition mong muốn.
- * app.ts luôn ghi `attachment; filename="<tên>"` – không xem trước được và lỗi với tên tiếng Việt
- * (ký tự ngoài Latin-1 không được nằm trong header). Ở đây ghi đè header ngay trong lần writeHead của
- * phản hồi này: tên ASCII cho filename=, tên gốc cho filename*=. (Yêu cầu A2 hỗ trợ sẵn: REQUESTS.md R-005.)
- */
-function sendFile(res: ServerResponse, f: { name: string; mime: string }, buf: Buffer, disposition: "inline" | "attachment") {
-  const ascii = fold(f.name).replace(/[^\x20-\x7e]/g, "_").replace(/["\\;]/g, "_");
-  const cd = `${disposition}; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(f.name)}`;
-  const writeHead = res.writeHead.bind(res) as (status: number, headers?: Record<string, string>) => ServerResponse;
-  (res as any).writeHead = (status: number, headers?: Record<string, string>) =>
-    writeHead(status, { ...(headers ?? {}), "content-disposition": cd, "x-content-type-options": "nosniff", "cache-control": "no-store" });
-  return new FileResponse(buf, ascii, f.mime);
 }
 
 function readContent(f: { storedName: string }) {
@@ -65,16 +49,16 @@ route("GET", "/api/files/:id", ({ params }) => {
 route("PATCH", "/api/files/:id", ({ params, body }) => updateFileItem(params.id, body));
 
 // FN-09: xem trước PDF và ảnh
-route("GET", "/api/files/:id/preview", ({ params, res }) => {
+route("GET", "/api/files/:id/preview", ({ params }) => {
   const f = mustFile(params.id);
   if (!canPreview(f.mime)) throw new BizError("Loại tệp này không xem trước được, hãy tải về để xem", 415);
-  return sendFile(res, f, readContent(f), "inline");
+  return new FileResponse(readContent(f), f.name, f.mime, "inline");
 });
 
 // FN-10: tải về
-route("GET", "/api/files/:id/download", ({ params, res }) => {
+route("GET", "/api/files/:id/download", ({ params }) => {
   const f = mustFile(params.id);
-  return sendFile(res, f, readContent(f), "attachment");
+  return new FileResponse(readContent(f), f.name, f.mime, "attachment");
 });
 
 // Xoá tệp (xoá cả tệp vật lý)
