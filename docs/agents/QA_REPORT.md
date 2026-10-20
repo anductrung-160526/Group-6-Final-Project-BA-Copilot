@@ -24,6 +24,8 @@ Nhánh `v2-features` chưa có (A0 chưa gộp đợt 2), A10 chưa chạy. Vì 
 | `e2e/e2e.mjs` (cũ, hồi quy) | – | ✅ 18/18 kiểm tra (chạy với `E2E_BASE`, `CHROME_PATH`; xem Q-12) |
 | Nhánh `agent/a11-e2e` (chỉ thêm tệp A11) | `npm test` ✅ 66/66 · build ✅ `app.js` 334,2 kB | |
 
+A10 commit `b6ee7cd` trong lúc A11 chạy. Đã gộp thêm vào bản tạm: `npm run seed` chạy 2 lần liên tiếp trên DB mới không lỗi, không nhân đôi dữ liệu; `npm test` vẫn 143/143. `demo-flow.mjs` không phụ thuộc seed (tự tạo dữ liệu trên DB tạm).
+
 Không bật lại trên bản thô sau khi sửa Q-01: thiếu R-011 thì bước 2–4 của luồng demo chắc chắn trượt (task không tự đổi trạng thái), A7 đã ghi rõ ở R-011 và đã kiểm chứng ngược trên bản có chèn.
 
 ### 2.1. Các kiểm tra trong `e2e/demo-flow.mjs`
