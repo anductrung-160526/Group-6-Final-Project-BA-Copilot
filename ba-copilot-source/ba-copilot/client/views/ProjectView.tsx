@@ -141,11 +141,12 @@ export function ProjectView({ id, tab, initialModuleId }: { id: string; tab: str
           </Field>
           <Field label="Yêu cầu nghiệp vụ / User story (không bắt buộc)" hint="Dán user story hoặc danh sách chức năng ở dạng tự do. AI dùng làm bối cảnh khi thiết kế và viết tài liệu.">
             <textarea rows={7} value={req} onChange={(e) => setReq(e.target.value)} placeholder={SAMPLE} />
-            <QusPanel text={req} others={otherStories} />
           </Field>
           <button className="link" onClick={() => setReq(SAMPLE)}>
             Dùng ví dụ mẫu
           </button>
+          {/* SCR-15 đặt ngoài <Field> (thẻ label) để bấm bung/thu story không nhảy con trỏ về ô nhập */}
+          <QusPanel text={req} others={otherStories} />
         </Modal>
       )}
     </div>

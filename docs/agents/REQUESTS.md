@@ -44,3 +44,52 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Lý do: ngưỡng `< 400 ms` làm cổng số 1 đỏ khi máy bận (`v2-base` cũng trượt), dù mã mô hình không đổi.
 - Thay đổi: chỉ kiểm ngưỡng thời gian khi `PERF=1`; phần kiểm tra kết quả mô hình giữ nguyên.
 - Trạng thái: **Chấp nhận** (người dùng quyết định, 2026-10-20)
+
+> Ghi chú A8: R-005 → R-011 đã được các nhánh A3, A4, A5, A7 dùng, nên A8 lấy dải R-020 → R-023 để tránh trùng. A0 đánh số lại khi gộp nếu cần.
+
+### R-020 – A8: gọi `saveModuleQus()` khi lưu yêu cầu (FN-56)
+- Đợt / agent yêu cầu: 2 / A8
+- Tệp: `server/app.ts` · Chủ tệp: A2
+- Lý do: FN-56 cần lưu điểm vào `modules.qus_score` khi BA lưu yêu cầu. Bảng sở hữu cho A8 chèn "một lệnh gọi tính điểm trong hàm cập nhật module" ở `server/service.ts`, nhưng `service.ts` **không có** hàm cập nhật module: `POST /api/projects/:id/modules` và `PATCH /api/modules/:id` nằm ở `app.ts`, gọi thẳng `repo`. A8 không tự sửa `app.ts`.
+- Thay đổi đề xuất (2 dòng, hàm đã có sẵn và đã có test trong `server/routes/qus.ts`):
+  ```ts
+  import { saveModuleQus } from "./routes/qus.ts";
+  // POST /api/projects/:id/modules – sau repo.createModule(...):
+  const m = repo.createModule(params.id, name, str(body.requirementInput, 50000));
+  saveModuleQus(m.id);
+  return repo.getModule(m.id);
+  // PATCH /api/modules/:id – sau repo.updateModule(...), trước return:
+  if (typeof body.requirementInput === "string") saveModuleQus(params.id);
+  ```
+  Không ném lỗi theo điểm, nên vẫn đúng BR-05 (điểm thấp vẫn lưu được).
+- Trạng thái: Mở
+- Quyết định của A0:
+
+### R-021 – A8: trả `qusScore` / `qusCheckedAt` trong `Module` (FN-56)
+- Đợt / agent yêu cầu: 2 / A8
+- Tệp: `server/repo.ts` · Chủ tệp: chưa có chủ
+- Lý do: `docs/api.md` mục 5 hứa `GET /api/projects/:id` trả `modules[].qusScore`, và `shared/types.ts` đã có trường này, nhưng `toModule()` chưa đọc 2 cột mới nên luôn thiếu.
+- Thay đổi đề xuất: trong `toModule(r)` thêm `qusScore: r.qus_score ?? null, qusCheckedAt: r.qus_checked_at ?? null`.
+- Trạng thái: Mở
+- Quyết định của A0:
+
+### R-022 – A8: cột điểm QUS trong danh sách module (FN-56)
+- Đợt / agent yêu cầu: 2 / A8
+- Tệp: `client/views/ProjectView.tsx` (ngoài khối `<Modal>`) · Chủ tệp: A8 chỉ được sửa khối Modal
+- Lý do: FN-56 cần huy hiệu điểm cạnh mỗi module ở SCR-09. Cần R-020 và R-021 trước.
+- Thay đổi đề xuất: import `ScoreBadge` từ `ui.tsx`; thêm `<th>Chất lượng</th>` sau cột "Module" và ô
+  `<td>{m.qusScore == null ? <span className="muted small">Chưa chấm</span> : <ScoreBadge score={m.qusScore} />}</td>`.
+- Trạng thái: Mở
+- Quyết định của A0:
+
+### R-023 – A8: dọn CSS `.qus-*` không còn dùng sau khi panel chuyển sang `ScoreBadge` / `IssueList`
+- Đợt / agent yêu cầu: 2 / A8
+- Tệp: `client/styles.css` · Chủ tệp: A1
+- Lý do: `QusPanel.tsx` mới dùng `ScoreBadge`, `IssueList`, `Empty`, `Btn`, không còn dùng một số class riêng.
+- Thay đổi đề xuất:
+  - Xoá hẳn: `.qus-empty`, `.qus-section-title`, `.qus-issues-list`, `.qus-toggle-btn`, `.qus-toggle-btn:hover`.
+  - Ở các selector ghép `.qus-issue, .issue` / `.qus-issue-error, .issue-error` / `-warn` / `-info` / `.qus-issue-msg, .issue-msg` / `.qus-issue-sugg, .issue-sugg`: chỉ bỏ phần `.qus-*`, **giữ** `.issue*` (của `IssueList`).
+  - Còn dùng, giữ nguyên: `.qus-panel`, `.qus-head`, `.qus-title-wrap`, `.qus-body`, `.qus-story-item`, `.qus-story-head`, `.qus-story-title`, `.qus-story-text`.
+  - Thêm `cursor: pointer;` cho `.qus-story-head` (panel đang tạm đặt `style={{ cursor: "pointer" }}`; A8 bỏ dòng đó sau khi A1 thêm).
+- Trạng thái: Mở
+- Quyết định của A0:

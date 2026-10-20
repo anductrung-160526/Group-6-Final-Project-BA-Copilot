@@ -1,5 +1,51 @@
-// Điểm QUS đã lưu của module (FN-56). Hợp đồng: docs/api.md mục "Chất lượng yêu cầu". Chủ sở hữu: A8.
+// Điểm QUS của module (FN-56). Hợp đồng: docs/api.md mục "Chất lượng yêu cầu". Chủ sở hữu: A8.
+// Điểm chỉ để tư vấn (BR-05): không chặn lưu module, không chặn sinh màn hay sinh tài liệu.
 
-import { route, notImplemented } from "../http.ts";
+import * as repo from "../repo.ts";
+import { getDb } from "../db.ts";
+import { BizError } from "../service.ts";
+import { route } from "../http.ts";
+import { scoreStories, type OtherModuleStories, type QusResult } from "../../shared/qus.ts";
+import type { Module, ModuleQus } from "../../shared/types.ts";
 
-route("GET", "/api/modules/:id/qus", notImplemented("FN-56"));
+// Story của các module khác cùng dự án, để bắt trùng chéo module (G1) – giống panel QUS trên trình duyệt.
+function othersOf(m: Module): OtherModuleStories[] {
+  return repo
+    .listModules(m.projectId)
+    .filter((x) => x.id !== m.id)
+    .map((x) => ({ moduleName: x.name, text: x.requirementInput }));
+}
+
+function scoreModule(m: Module): QusResult {
+  return scoreStories(m.requirementInput, { others: othersOf(m) });
+}
+
+/**
+ * FN-56: chấm lại yêu cầu hiện tại của module bằng scoreStories() và lưu vào modules.qus_score / qus_checked_at.
+ * Gọi sau khi tạo module và sau khi PATCH /api/modules/:id đổi requirementInput.
+ * Yêu cầu không có story nào → lưu NULL (chưa chấm). Trả về điểm vừa lưu.
+ */
+export function saveModuleQus(moduleId: string): number | null {
+  const m = repo.getModule(moduleId);
+  if (!m) return null;
+  const result = scoreModule(m);
+  const score = result.stories.length ? result.total : null;
+  getDb()
+    .prepare("UPDATE modules SET qus_score = ?, qus_checked_at = ? WHERE id = ?")
+    .run(score, score === null ? null : new Date().toISOString(), moduleId);
+  return score;
+}
+
+route("GET", "/api/modules/:id/qus", ({ params }): ModuleQus => {
+  const m = repo.getModule(params.id);
+  if (!m) throw new BizError("Không tìm thấy module", 404);
+  const saved = getDb().prepare("SELECT qus_score, qus_checked_at FROM modules WHERE id = ?").get(m.id) as
+    | { qus_score: number | null; qus_checked_at: string | null }
+    | undefined;
+  return {
+    moduleId: m.id,
+    score: saved?.qus_score ?? null,
+    checkedAt: saved?.qus_checked_at ?? null,
+    result: scoreModule(m),
+  };
+});
