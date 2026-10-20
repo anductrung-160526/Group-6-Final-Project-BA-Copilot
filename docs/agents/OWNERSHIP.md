@@ -4,7 +4,7 @@ Nguồn: mục 4 của `docs/Ke_hoach_Agent_BA_Copilot_v2.md`. Người giữ b�
 
 **Quy ước đường dẫn**
 - Đường dẫn mã nguồn (`server/…`, `client/…`, `shared/…`, `tests/…`, `scripts/…`, `e2e/…`) tính từ `ba-copilot-source/ba-copilot/`.
-- Đường dẫn bắt đầu bằng `docs/` tính từ gốc repo.
+- Đường dẫn bắt đầu bằng `docs/` và tệp ghi rõ "(gốc repo)" tính từ gốc repo.
 
 **Luật**
 1. Agent chỉ tạo hoặc sửa tệp trong dòng của mình. Muốn sửa tệp khác thì dừng lại và ghi yêu cầu vào `docs/agents/REQUESTS.md`.
@@ -16,7 +16,7 @@ Nguồn: mục 4 của `docs/Ke_hoach_Agent_BA_Copilot_v2.md`. Người giữ b�
 
 | Agent | Tệp sở hữu |
 |---|---|
-| A0 – Tích hợp & Điều phối | `docs/agents/STATUS.md`, `docs/agents/OWNERSHIP.md`, `docs/agents/REQUESTS.md`, các điểm chèn được giao khi gộp (xem mục 2) |
+| A0 – Tích hợp & Điều phối | `docs/agents/STATUS.md`, `docs/agents/OWNERSHIP.md`, `docs/agents/REQUESTS.md`, `CLAUDE.md` (gốc repo), `docs/Ke_hoach_Agent_BA_Copilot_v2.md`, các điểm chèn được giao khi gộp (xem mục 2) |
 | A1 – Design System | `client/styles.css`, `client/components/ui.tsx`, `client/views/_Gallery.tsx`, `docs/design-system.md` |
 | A2 – Nền tảng dữ liệu & hợp đồng | `server/db.ts`, `server/http.ts`, `server/app.ts`, `server/events.ts`, `server/routes/index.ts`, `shared/types.ts`, `client/main.tsx`, `client/routes.ts`, `client/views/moduleTabs.ts`, `client/views/ModuleView.tsx` (phần khung tab), `client/api.ts` (stub hàm gọi API mới), `tests/contract.test.ts`, `docs/erd.md`, `docs/api.md` |
 | A3 – Thành viên & thanh trên | `server/routes/members.ts`, `server/repo/members.ts`, `client/views/MembersView.tsx`, `client/components/TopBar.tsx`, `client/currentMember.ts`, `tests/members.test.ts` |
@@ -49,8 +49,23 @@ Nguồn: mục 4 của `docs/Ke_hoach_Agent_BA_Copilot_v2.md`. Người giữ b�
 | `server/service.ts` | A2 | Chèn lệnh `emit` (đợt 1) |
 | | A8 | Chỉ thêm một lệnh gọi tính điểm trong hàm cập nhật module (FN-56) |
 | `server/ai/pipelines.ts`, `server/ai/mock.ts` | A5 | Chỉ thêm hàm mới ở cuối tệp, không sửa code cũ |
+| `CLAUDE.md` (gốc repo) | A1 | Giữ nội dung mục "Giao diện". Muốn sửa thì ghi vào `REQUESTS.md`, A0 sửa. Agent khác muốn thêm luật chung cũng qua `REQUESTS.md` |
 | `public/app.js`, `public/app-style.css` | — | Sản phẩm build, không sửa tay. Sinh lại bằng `npm run build` sau mỗi lần gộp (A0) |
 
 ## 3. Tệp không thuộc agent nào
 
 Mọi tệp không có trong mục 1 và mục 2 (ví dụ `server/ai/*` khác, `model/`, `dataset/`, `scripts/` ngoài `seed.ts`, các tệp test của mô hình gợi ý ML từ nhánh `trung_ba`) thì **không agent nào được sửa** trong v2. Cần sửa thì ghi vào `docs/agents/REQUESTS.md` để A0 quyết định.
+
+## 4. Sổ ghi nhận sửa ngoài phạm vi
+
+Mọi lần một agent sửa tệp không thuộc dòng của mình đều phải được ghi ở đây, kèm cách xử lý. Chi tiết từng mục nằm trong `docs/agents/REQUESTS.md`.
+
+| Mã | Đợt | Agent | Tệp | Chủ tệp | Xử lý |
+|---|---|---|---|---|---|
+| R-001 | 1 | A1 | `client/main.tsx` – thêm import `Gallery` và nhánh `parts[0] === "_gallery"` | A2 | **Vi phạm, đã gỡ.** A0 bỏ 2 dòng đó khi gộp, đăng ký trang qua `client/routes.ts` (dòng `_gallery`, `hidden: true`) đúng đề xuất của A2. `main.tsx` trên `v2-contract` giống hệt bản của A2 |
+| R-002 | 1 | A1 | `CLAUDE.md` (gốc repo) – tạo mới, mục "Giao diện" | Chưa có chủ | **Chấp nhận, bổ sung vào bảng.** Nội dung đúng tinh thần A1 (bắt đọc design system). Từ nay A0 là chủ tệp, A1 giữ mục "Giao diện" (mục 1 và 2 ở trên) |
+| R-003 | 1 | A2 | `server/service.ts` – bọc `tx()`, thêm tham số `actorId?` (vượt "chỉ chèn emit") | A2 (có giới hạn) | **Chấp nhận.** Cần để handler A7 chạy chung transaction; chữ ký cũ vẫn gọi được |
+| R-004 | 1 | A0 | `tests/transformer.test.ts` – ngưỡng `< 400 ms` chỉ kiểm khi `PERF=1` | Chưa có chủ (tệp `trung_ba`) | **Người dùng quyết định.** Cổng số 1 đỏ do máy bận dù mã không đổi |
+
+Từ đợt 2: cổng số 3 báo tệp ngoài bảng → A0 ghi một dòng vào đây trước khi quyết gộp hay trả lại.
+

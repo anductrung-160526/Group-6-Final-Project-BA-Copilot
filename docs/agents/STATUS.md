@@ -116,8 +116,9 @@ Ba lựa chọn A2 tự chốt, A0 **xác nhận** (tài liệu v2 không quy đ
 
 ### Điểm A0 chèn khi gộp
 
-- A1 thêm route `#/_gallery` thẳng vào `client/main.tsx` (tệp của A2). A0 bỏ dòng đó và đăng ký `{ key: "_gallery", scope: "global", hidden: true }` trong `client/routes.ts`, đúng đề xuất của A2.
-- A1 sửa thêm `CLAUDE.md` ở gốc repo (yêu cầu đọc design system trước khi làm giao diện). Tệp không thuộc agent nào; A0 chấp nhận.
+- **R-001 – vi phạm:** A1 thêm route `#/_gallery` thẳng vào `client/main.tsx` (tệp của A2). A0 gỡ và đăng ký `{ key: "_gallery", scope: "global", hidden: true }` trong `client/routes.ts`, đúng đề xuất của A2.
+- **R-002 – tệp ngoài bảng:** A1 tạo `CLAUDE.md` ở gốc repo (yêu cầu đọc design system trước khi làm giao diện). A0 chấp nhận và bổ sung vào `OWNERSHIP.md`: A0 là chủ tệp, A1 giữ mục "Giao diện".
+- Cả hai, cùng R-003 (A2 – `service.ts`) và R-004 (A0 – test tốc độ), ghi ở `OWNERSHIP.md` mục 4 và `REQUESTS.md`.
 
 ### Kiểm tra trên `v2-contract` (Node v24.16.0)
 
