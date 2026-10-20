@@ -147,3 +147,15 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Kiểm tra: tab `line` cũ giữ nguyên kiểu (gạch chân mint-500); `npm test` 70/70, build qua, 0 lỗi console.
 - Trạng thái: Mở – chờ A0 ghi vào sổ `OWNERSHIP.md` mục 4 và A1 xem lại
 - Quyết định của A0 (ngày):
+### R-011 – A7: đăng ký tự cập nhật task trong `createApp()`
+- Đợt / agent yêu cầu: 2 / A7
+- Tệp: `server/app.ts` · Chủ tệp: A2
+- Lý do: `server/taskAutomation.ts` chỉ chạy khi có nơi gọi `registerTaskAutomation()`. Chưa ai gọi thì FN-20 → FN-23 không có hiệu lực khi chạy app (test của A7 tự gọi nên vẫn xanh).
+- Thay đổi đề xuất (A0 chèn khi gộp A7, sau A6) – 2 dòng:
+  ```ts
+  import { registerTaskAutomation } from "./taskAutomation.ts"; // cạnh import "./routes/index.ts"
+  registerTaskAutomation(); // dòng đầu thân createApp()
+  ```
+  Gọi nhiều lần vẫn chỉ có một bộ handler, nên đặt trong `createApp()` an toàn cho cả test lẫn `server/index.ts`. A7 đã thử trên bản gộp A6 + A7 + 2 dòng này: `npm test` 99/99.
+- Trạng thái: Mở
+- Quyết định của A0 (ngày):
