@@ -23,7 +23,7 @@ if (existsSync(envFile)) {
 } else envNote.push(`không thấy file ${envFile}`);
 if (!process.env.ANTHROPIC_API_KEY?.trim() && process.env.CLAUDE_API_KEY?.trim()) process.env.ANTHROPIC_API_KEY = process.env.CLAUDE_API_KEY;
 if (process.env.AI_MODE?.trim().toLowerCase() === "mock") envNote.push("AI_MODE=mock đang bật");
-else if (!process.env.ANTHROPIC_API_KEY?.trim()) envNote.push("ANTHROPIC_API_KEY trống hoặc không có trong .env");
+else if (!process.env.ANTHROPIC_API_KEY?.trim() && !process.env.ANTHROPIC_AUTH_TOKEN?.trim()) envNote.push("ANTHROPIC_API_KEY (hoặc ANTHROPIC_AUTH_TOKEN) trống hoặc không có trong .env");
 
 const port = Number(process.env.PORT ?? 3000);
 openDb(process.env.DB_FILE ?? join(root, "data", "ba-copilot.db"));
@@ -31,5 +31,5 @@ const server = createApp({ publicDir: join(root, "public") });
 server.listen(port, () => {
   const c = aiConfig();
   console.log(`\n  BA Copilot đang chạy: http://localhost:${port}`);
-  console.log(`  AI: ${c.provider === "claude" ? `Claude API (${c.model})` : `Chế độ Mock (rule-based) – ${envNote.join("; ") || "đặt ANTHROPIC_API_KEY trong .env để dùng Claude"}`}\n`);
+  console.log(`  AI: ${c.provider === "claude" ? `Claude API (${c.model}${c.baseUrl !== "https://api.anthropic.com" ? ` qua ${c.baseUrl}` : ""})` : `Chế độ Mock (rule-based) – ${envNote.join("; ") || "đặt ANTHROPIC_API_KEY trong .env để dùng Claude"}`}\n`);
 });

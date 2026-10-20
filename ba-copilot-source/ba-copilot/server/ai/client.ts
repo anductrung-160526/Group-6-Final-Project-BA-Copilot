@@ -7,18 +7,22 @@ export interface AIConfig {
   provider: "claude" | "mock";
   model: string;
   apiKey: string;
+  /** ANTHROPIC_AUTH_TOKEN (cổng trung gian dùng Bearer), dùng khi không có API key */
+  authToken: string;
   baseUrl: string;
 }
 
 export function aiConfig(): AIConfig {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim() ?? "";
   const forced = process.env.AI_MODE?.trim().toLowerCase();
-  const provider = forced === "mock" || !apiKey ? "mock" : "claude";
+  const authToken = process.env.ANTHROPIC_AUTH_TOKEN?.trim() ?? "";
+  const provider = forced === "mock" || (!apiKey && !authToken) ? "mock" : "claude";
   return {
     provider,
     model: process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-4-5",
     apiKey,
-    baseUrl: process.env.ANTHROPIC_BASE_URL?.trim() || "https://api.anthropic.com",
+    authToken,
+    baseUrl: (process.env.ANTHROPIC_BASE_URL?.trim() || "https://api.anthropic.com").replace(/\/+$/, "").replace(/\/v1$/, ""),
   };
 }
 
@@ -91,7 +95,7 @@ export async function runAI<T>(opts: RunAIOptions<T>): Promise<T> {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-api-key": cfg.apiKey,
+          ...(cfg.apiKey ? { "x-api-key": cfg.apiKey } : { authorization: `Bearer ${cfg.authToken}` }),
           "anthropic-version": "2023-06-01",
         },
         body: JSON.stringify({
