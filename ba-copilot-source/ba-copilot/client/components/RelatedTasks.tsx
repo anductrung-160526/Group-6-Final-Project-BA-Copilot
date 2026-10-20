@@ -1,20 +1,23 @@
-// FN-19 – Công việc gắn với một sản phẩm (màn, tài liệu, sơ đồ UC, bộ test). Chủ sở hữu: A6.
-// A6 chỉ viết component; A0 chèn vào DesignTab (kind "screen", id = screenId) và DocsTab (kind "docs", id = moduleId) khi gộp:
-//   <RelatedTasks kind="screen" id={screen.id} />
+// FN-19 – Công việc gắn với một sản phẩm (màn, tài liệu, sơ đồ, bộ test). Chủ sở hữu: C7 (trước: A6).
+// Màn sản phẩm nhúng:  <RelatedTasks kind="doc" id={moduleId} sub="BRD" />  ·  <RelatedTasks kind="screen" id={screen.id} />
+// Hiện trạng thái đợt 5 (Cần làm / Đang làm / Xong / Đã duyệt) + tag "Yêu cầu sửa". Bấm thẻ → Quản lý công việc.
 
 import React, { useEffect, useState } from "react";
 import type { ArtifactKind, Member, Task } from "../../shared/types.ts";
-import { listArtifactTasks, listMembers } from "../api.ts";
-import { Avatar, Badge, KanbanCard } from "./ui.tsx";
+import { get, listMembers } from "../api.ts";
+import { Avatar, Badge, KanbanCard, RevisionTag, StatusBadge } from "./ui.tsx";
 import { fmtDate, isOverdue, priorityBadge, statusInfo } from "../views/TaskDialog.tsx";
+import { tasksHref } from "../projectMenu.ts";
 
-export function RelatedTasks({ kind, id, title = "Công việc liên quan" }: { kind: ArtifactKind; id: string; title?: string }) {
+export function RelatedTasks({ kind, id, sub, title = "Công việc liên quan" }: { kind: ArtifactKind; id: string; sub?: string; title?: string }) {
   const [tasks, setTasks] = useState<Task[] | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   useEffect(() => {
     setTasks(null);
-    listArtifactTasks(kind, id).then(setTasks).catch(() => setTasks([]));
-  }, [kind, id]);
+    get<Task[]>(`/api/artifacts/${kind}/${encodeURIComponent(id)}/tasks${sub ? `?sub=${encodeURIComponent(sub)}` : ""}`)
+      .then(setTasks)
+      .catch(() => setTasks([]));
+  }, [kind, id, sub]);
   useEffect(() => {
     listMembers().then(setMembers).catch(() => setMembers([]));
   }, []);
@@ -28,27 +31,25 @@ export function RelatedTasks({ kind, id, title = "Công việc liên quan" }: { 
       </div>
       {!tasks && <div className="muted small">Đang tải…</div>}
       {tasks?.length === 0 && <div className="muted small">Chưa có công việc nào gắn với sản phẩm này.</div>}
-      {tasks?.map((t) => {
-        const st = statusInfo(t.status);
-        return (
-          <KanbanCard
-            key={t.id}
-            id={t.id}
-            draggable={false}
-            title={t.title}
-            onClick={() => (window.location.hash = `#/p/${t.projectId}/tasks`)}
-            meta={
-              <>
-                <Badge tone={st.tone}>{st.label}</Badge>
-                {priorityBadge(t.priority)}
-                {t.dueDate && (isOverdue(t) ? <Badge tone="red">Quá hạn {fmtDate(t.dueDate)}</Badge> : <span>Hạn {fmtDate(t.dueDate)}</span>)}
-                <span className="spacer" />
-                <Avatar name={name(t.assigneeId)} size="sm" />
-              </>
-            }
-          />
-        );
-      })}
+      {tasks?.map((t) => (
+        <KanbanCard
+          key={t.id}
+          id={t.id}
+          draggable={false}
+          title={t.title}
+          onClick={() => (window.location.hash = tasksHref(t.projectId))}
+          meta={
+            <>
+              <StatusBadge status={statusInfo(t.status).key} />
+              {t.revisionRequested && <RevisionTag testId={`related-revision-${t.id}`} />}
+              {priorityBadge(t.priority)}
+              {t.dueDate && (isOverdue(t) ? <Badge tone="red">Quá hạn {fmtDate(t.dueDate)}</Badge> : <span>Hạn {fmtDate(t.dueDate)}</span>)}
+              <span className="spacer" />
+              <Avatar name={name(t.assigneeId)} size="sm" />
+            </>
+          }
+        />
+      ))}
     </div>
   );
 }
