@@ -246,3 +246,22 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Thay đổi: xem `QA_REPORT.md` mục 7. Component mới `useUI().confirm` đã thêm đủ 3 nơi (ui.tsx, `#/_gallery`, design-system.md).
 - Trạng thái: **Chấp nhận, đã làm** (commit `96a5a56`)
 - Quyết định của A0 (2026-10-20): các agent chủ tệp xem lại phần của mình khi rảnh; không chặn đợt 4.
+
+### R-090 – C2/C0: thêm `commitsError?` vào `GitHistory`
+- Đợt / agent yêu cầu: 5 – đợt 2 / C8
+- Tệp: `shared/types.ts`, `docs/api.md` mục 5.6 · Chủ tệp: C2 (khoá – C0 gộp)
+- Lý do: `GET /api/projects/:id/git/history` gọi GitHub để lấy commit; GitHub lỗi (sai token, mất mạng) thì vẫn phải trả nhật ký `git_pushes` trong app. C8 đang trả thêm trường `commitsError?: string` (câu tiếng Việt) và khai báo kiểu tạm `GitHistory & { commitsError?: string }` trong `server/routes/git.ts`, `client/views/GitHistoryView.tsx`.
+- Thay đổi đề xuất: `GitHistory` thêm `commitsError?: string`; ghi một dòng vào bảng 5.6.
+- Trạng thái: Mở
+
+### R-091 – C7: lỗi GitHub khi Duyệt là `HttpError` 502
+- Đợt / agent yêu cầu: 5 – đợt 2 / C8
+- Tệp: `server/routes/approval.ts` · Chủ tệp: C7
+- Ghi chú: `pushApproved(ref, actorId)` (hàm thật trong `server/github.ts`, tự đăng ký khi nạp `server/routes/git.ts`) ném `GitHubError extends HttpError` (status 502, message tiếng Việt, không chứa token) khi đã cấu hình mà GitHub lỗi. C7 chỉ cần gọi `await pushApproved(...)` **trước** khi đổi trạng thái (ngoài `tx()`, vì là async) và để lỗi lan ra – client nhận `{ error: "<lý do>" }` mã 502, trạng thái không đổi. Chưa cấu hình → `{ pushed: false, message: "Chưa cấu hình GitHub – chưa đẩy" }`. Màn prototype: `index.html` tự tính cả màn đang được duyệt (chưa cần đổi trạng thái trước khi đẩy).
+- Trạng thái: Mở (chỉ thông tin)
+
+### R-092 – C3: nút Cài đặt GitHub trên header dự án
+- Đợt / agent yêu cầu: 5 – đợt 2 / C8
+- Tệp: `client/components/ProjectShell.tsx` · Chủ tệp: C3
+- Ghi chú: ngăn cài đặt là `ProjectGitSettings` trong `client/views/ProjectGitSettings.tsx`, props `{ projectId, onClose, onSaved? }`; tự kiểm tra BA Lead (`useCurrentMember`), tự gửi `actorId`. Server chặn 403 khi người đang chọn không phải BA Lead, kể cả khi thiếu `actorId`.
+- Trạng thái: Mở (chỉ thông tin)
