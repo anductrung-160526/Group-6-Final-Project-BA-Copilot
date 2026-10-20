@@ -1,7 +1,7 @@
 // Trang chủ (đợt 5): danh sách dự án – tạo, sửa, xoá. Bấm vào dự án mở thẳng "Quản lý công việc". Chủ sở hữu: C3.
 import React, { useEffect, useState } from "react";
 import { del, get, patch, post } from "../api.ts";
-import { Btn, Empty, Field, Modal, RowActions, fmtTime, useUI } from "../components/ui.tsx";
+import { Btn, Empty, Field, Icon, Modal, RowActions, fmtTime, useUI } from "../components/ui.tsx";
 import { projectHref } from "../projectMenu.ts";
 
 interface P {
@@ -56,7 +56,8 @@ export function Home() {
           <p className="muted">Mỗi dự án có user story, các module và luồng Tài liệu → Sơ đồ → Prototype → Test case → Truy vết.</p>
         </div>
         <Btn kind="primary" onClick={() => setForm({ id: null, name: "", description: "" })} data-testid="new-project">
-          + Dự án mới
+          <Icon name="plus" size="sm" />
+          Dự án mới
         </Btn>
       </div>
       {projects === null ? (

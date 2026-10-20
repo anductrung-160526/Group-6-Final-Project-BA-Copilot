@@ -4,10 +4,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { get, listFiles, uploadFile, updateFile, deleteFile } from "../api.ts";
 import type { FileItem } from "../../shared/types.ts";
-import { Badge, Btn, Empty, Field, FileDrop, Modal, Select, fmtTime, useUI } from "../components/ui.tsx";
+import { Badge, Btn, Empty, Field, FileDrop, IconBtn, Modal, RowActions, Select, fmtTime, useUI } from "../components/ui.tsx";
 import type { PageProps } from "../routes.ts";
 import { withActor } from "../currentMember.ts";
-import { ACCEPT, ALLOWED_EXTS, FileDrawer, MAX_FILE_BYTES, fmtDay, fmtSize, fold, kindLabel, useDownload } from "./FileDrawer.tsx";
+import { ACCEPT, ALLOWED_EXTS, FileDrawer, deleteConfirm, MAX_FILE_BYTES, fmtDay, fmtSize, fold, kindLabel, useDownload } from "./FileDrawer.tsx";
 
 const PROJECT_LEVEL = "__project"; // giá trị lọc "Cấp dự án" (module_id NULL)
 
@@ -75,7 +75,6 @@ export function FilesView({ projectId, params }: PageProps) {
   const [source, setSource] = useState<Source>({ moduleId: "", sender: "", receivedAt: today(), note: "" });
   const [viewing, setViewing] = useState<string | null>(null);
   const [editing, setEditing] = useState<{ file: FileItem; name: string; src: Source } | null>(null);
-  const [deleting, setDeleting] = useState<FileItem | null>(null);
 
   const load = () =>
     listFiles(projectId)
@@ -164,13 +163,12 @@ export function FilesView({ projectId, params }: PageProps) {
     load();
   };
 
-  const confirmDelete = async () => {
-    if (!deleting) return;
-    const res = await run("Đang xoá…", () => deleteFile(deleting.id));
+  // Xoá sau khi RowActions đã hỏi xác nhận.
+  const removeFile = async (file: FileItem) => {
+    const res = await run("Đang xoá…", () => deleteFile(file.id));
     if (!res) return;
-    toast(`Đã xoá "${deleting.name}"`, "ok");
-    if (viewing === deleting.id) setViewing(null);
-    setDeleting(null);
+    toast(`Đã xoá "${file.name}"`, "ok");
+    if (viewing === file.id) setViewing(null);
     load();
   };
 
@@ -180,9 +178,6 @@ export function FilesView({ projectId, params }: PageProps) {
 
   return (
     <div className="page" data-testid="files-view">
-      <div className="crumbs">
-        <a href="#/">Dự án</a> / <a href={`#/p/${projectId}`}>{project.name}</a> / <span>Kho tài liệu</span>
-      </div>
       <div className="page-head">
         <div>
           <h1>Kho tài liệu</h1>
@@ -231,7 +226,7 @@ export function FilesView({ projectId, params }: PageProps) {
                     <th>Ngày nhận</th>
                     <th>Kích thước</th>
                     <th>Ngày lưu</th>
-                    <th />
+                    <th className="actions" />
                   </tr>
                 </thead>
                 <tbody>
@@ -248,16 +243,16 @@ export function FilesView({ projectId, params }: PageProps) {
                       <td className="nowrap">{fmtDay(f.receivedAt) || <span className="muted">—</span>}</td>
                       <td className="muted small nowrap">{fmtSize(f.size)}</td>
                       <td className="muted small nowrap">{fmtTime(f.createdAt)}</td>
-                      <td className="right nowrap" onClick={(e) => e.stopPropagation()}>
-                        <Btn size="sm" onClick={() => dl(f)} data-testid={`dl-${f.id}`}>
-                          ⤓ Tải về
-                        </Btn>{" "}
-                        <Btn size="sm" kind="ghost" onClick={() => startEdit(f)} data-testid={`edit-${f.id}`}>
-                          Sửa
-                        </Btn>{" "}
-                        <Btn size="sm" kind="danger" onClick={() => setDeleting(f)} data-testid={`del-${f.id}`}>
-                          Xoá
-                        </Btn>
+                      <td className="actions" onClick={(e) => e.stopPropagation()}>
+                        <span className="row-actions">
+                          <IconBtn icon="download" label="Tải về" onClick={() => dl(f)} data-testid={`dl-${f.id}`} />
+                          <RowActions
+                            onEdit={() => startEdit(f)}
+                            onDelete={() => removeFile(f)}
+                            deleteConfirm={deleteConfirm(f)}
+                            testIds={{ edit: `edit-${f.id}`, delete: `del-${f.id}` }}
+                          />
+                        </span>
                       </td>
                     </tr>
                   ))}
@@ -288,9 +283,7 @@ export function FilesView({ projectId, params }: PageProps) {
                   <td>{f.name}</td>
                   <td className="muted small nowrap">{fmtSize(f.size)}</td>
                   <td className="right">
-                    <button className="link-danger" onClick={() => setPending((p) => (p && p.length > 1 ? p.filter((_, j) => j !== i) : null))} aria-label={`Bỏ ${f.name}`}>
-                      Bỏ
-                    </button>
+                    <IconBtn icon="close" label={`Bỏ ${f.name}`} onClick={() => setPending((p) => (p && p.length > 1 ? p.filter((_, j) => j !== i) : null))} />
                   </td>
                 </tr>
               ))}
@@ -322,32 +315,13 @@ export function FilesView({ projectId, params }: PageProps) {
         </Modal>
       )}
 
-      {deleting && (
-        <Modal
-          title="Xoá tệp?"
-          onClose={() => setDeleting(null)}
-          footer={
-            <>
-              <Btn onClick={() => setDeleting(null)}>Huỷ</Btn>
-              <Btn kind="danger" onClick={confirmDelete} data-testid="confirm-delete">
-                Xoá tệp
-              </Btn>
-            </>
-          }
-        >
-          <p>
-            Xoá <strong>{deleting.name}</strong> khỏi kho? Tệp bị xoá khỏi máy chủ và không khôi phục được.
-          </p>
-        </Modal>
-      )}
-
       {viewed && (
         <FileDrawer
           file={viewed}
           moduleName={moduleName(viewed.moduleId)}
           onClose={() => setViewing(null)}
           onEdit={() => startEdit(viewed)}
-          onDelete={() => setDeleting(viewed)}
+          onDelete={() => removeFile(viewed)}
         />
       )}
     </div>

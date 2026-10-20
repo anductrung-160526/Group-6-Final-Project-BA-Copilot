@@ -265,6 +265,7 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
                   Lưu mã
                 </Btn>
                 <Btn kind="ghost" size="sm" onClick={downloadMd} data-testid="download-md">
+                  <Icon name="download" size="sm" />
                   Tải .md
                 </Btn>
               </>

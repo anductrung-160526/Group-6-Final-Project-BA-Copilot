@@ -128,6 +128,7 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
         {others.length > 0 && <EditingBadge names={others.map((o) => o.name)} />}
         {tests.length > 0 && (
           <Btn size="sm" onClick={() => run("Đang tạo file Excel", () => download(`/api/modules/${encodeURIComponent(m.id)}/export/xlsx`))} data-testid="export-xlsx">
+            <Icon name="download" size="sm" />
             Xuất Excel
           </Btn>
         )}

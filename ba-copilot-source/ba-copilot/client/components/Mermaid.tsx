@@ -3,7 +3,7 @@
 //   const err = await parseMermaid(code);               null = hợp lệ; { line, message } khi sai (dùng trước khi lưu)
 
 import React, { useEffect, useState } from "react";
-import { Btn } from "./ui.tsx";
+import { Btn, Icon } from "./ui.tsx";
 
 declare global {
   interface Window {
@@ -121,6 +121,7 @@ export function Mermaid({ code, name, downloadable = true }: { code: string; nam
       <div className="mermaid-svg" dangerouslySetInnerHTML={{ __html: svg }} />
       {svg && downloadable && (
         <Btn kind="ghost" size="sm" onClick={downloadSvg}>
+          <Icon name="download" size="sm" />
           Tải SVG
         </Btn>
       )}

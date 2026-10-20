@@ -138,9 +138,10 @@ export function ProjectGitSettings({ projectId, onClose, onSaved }: { projectId:
               <Badge tone="green">
                 <Icon name="lock" size="xs" /> Đã lưu token
               </Badge>
-              <button type="button" className="link-danger" onClick={clearToken} disabled={!!busy} data-testid="git-clear-token">
+              <Btn size="sm" kind="danger" onClick={clearToken} disabled={!!busy} data-testid="git-clear-token">
+                <Icon name="delete" size="sm" />
                 Xoá token
-              </button>
+              </Btn>
             </div>
           )}
           <Field label="Nhánh nhận bản đã duyệt" hint='Mặc định "main". Nhánh chưa có thì app tự tạo từ nhánh mặc định của repo ở lần Duyệt đầu tiên.'>

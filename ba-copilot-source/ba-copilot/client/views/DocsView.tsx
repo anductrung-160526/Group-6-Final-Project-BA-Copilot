@@ -247,6 +247,7 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
                 Chỉnh bằng AI
               </Btn>
               <Btn kind="ghost" onClick={() => downloadMd(kind, doc.content)} data-testid="doc-download">
+                <Icon name="download" size="sm" />
                 Tải .md
               </Btn>
             </>
