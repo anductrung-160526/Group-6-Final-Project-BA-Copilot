@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { UIProvider } from "./components/ui.tsx";
+import { TopBar } from "./components/TopBar.tsx";
 import { Home } from "./views/Home.tsx";
 import { ProjectView } from "./views/ProjectView.tsx";
 import { ModuleView } from "./views/ModuleView.tsx";
-import { get } from "./api.ts";
 import { matchPage } from "./routes.ts";
 
 export function navigate(hash: string) {
@@ -23,10 +23,6 @@ function useHash() {
 
 function App() {
   const hash = useHash();
-  const [settings, setSettings] = useState<{ provider: string; model: string; auth?: boolean } | null>(null);
-  useEffect(() => {
-    get("/api/settings").then(setSettings).catch(() => {});
-  }, []);
   const parts = hash.replace(/^#\/?/, "").split("/");
   const page = matchPage(parts); // trang đăng ký trong client/routes.ts
   let view: React.ReactNode;
@@ -37,24 +33,7 @@ function App() {
 
   return (
     <div className="app">
-      <header className="topbar">
-        <a href="#/" className="brand">
-          <span className="logo">BA</span>
-          <span>
-            BA Copilot<span className="brand-sub">Prompt → Thiết kế → Tài liệu → Test</span>
-          </span>
-        </a>
-        {settings && (
-          <span className={`ai-pill ${settings.provider === "claude" ? "on" : ""}`} title={settings.provider === "claude" ? "Đang dùng Claude API" : "Chưa có ANTHROPIC_API_KEY – đang chạy bộ sinh rule-based"}>
-            {settings.provider === "claude" ? `Claude · ${settings.model}` : "Chế độ Mock (rule-based)"}
-          </span>
-        )}
-        {settings?.auth && (
-          <button className="btn btn-ghost btn-sm" onClick={() => fetch("/api/logout", { method: "POST" }).then(() => window.location.reload())}>
-            Đăng xuất
-          </button>
-        )}
-      </header>
+      <TopBar />
       <main className="main">{view}</main>
     </div>
   );

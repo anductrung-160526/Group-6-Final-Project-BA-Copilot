@@ -15,6 +15,8 @@ import { buildTrace } from "../shared/trace.ts";
 import { saveExport } from "./files.ts";
 import { route, matchRoute, FileResponse, HttpError, str, arr, actor } from "./http.ts";
 import "./routes/index.ts"; // route v2 theo phân hệ (members, files, diagram, tasks, qus, suggest)
+import { saveModuleQus } from "./routes/qus.ts";
+import { getMember } from "./repo/members.ts";
 
 // ---------------------------------------------------------------- API
 route("GET", "/api/settings", () => {
@@ -45,7 +47,9 @@ route("POST", "/api/projects/:id/modules", ({ params, body }) => {
   if (!repo.getProject(params.id)) throw new BizError("Không tìm thấy dự án", 404);
   const name = str(body.name, 200).trim();
   if (!name) throw new BizError("Tên module không được để trống");
-  return repo.createModule(params.id, name, str(body.requirementInput, 50000));
+  const m = repo.createModule(params.id, name, str(body.requirementInput, 50000));
+  saveModuleQus(m.id); // FN-56 (R-020)
+  return repo.getModule(m.id);
 });
 route("GET", "/api/modules/:id", ({ params }) => {
   const m = repo.getModuleDetail(params.id);
@@ -57,6 +61,7 @@ route("PATCH", "/api/modules/:id", ({ params, body }) => {
     ...(typeof body.name === "string" ? { name: str(body.name, 200) } : {}),
     ...(typeof body.requirementInput === "string" ? { requirementInput: str(body.requirementInput, 50000) } : {}),
   });
+  if (typeof body.requirementInput === "string") saveModuleQus(params.id); // FN-56 (R-020)
   return repo.getModule(params.id);
 });
 route("DELETE", "/api/modules/:id", ({ params }) => (repo.deleteModule(params.id), { ok: true }));
@@ -78,7 +83,9 @@ route("POST", "/api/screens/:id/annotations", ({ params, body }) => {
   if (!comment) throw new BizError("Bình luận không được để trống");
   const b = body.bbox;
   const bbox = b && typeof b === "object" ? { x: Number(b.x) || 0, y: Number(b.y) || 0, w: Number(b.w) || 0, h: Number(b.h) || 0 } : null;
-  return repo.createAnnotation({ screenId: s.id, versionId: s.currentVersionId, nodeIds: arr(body.nodeIds), bbox, comment, author: str(body.author, 60) || "BA" });
+  const id = actor(body);
+  const member = id ? getMember(id) : null; // FN-03 (R-007): người thao tác có thật thì lấy tên + mã của họ
+  return repo.createAnnotation({ screenId: s.id, versionId: s.currentVersionId, nodeIds: arr(body.nodeIds), bbox, comment, author: member?.name ?? (str(body.author, 60) || "BA"), authorId: member?.id ?? null });
 });
 route("PATCH", "/api/annotations/:id", ({ params, body }) => {
   const st = body.status;
@@ -236,7 +243,7 @@ export function createApp(opts: { publicDir: string }): Server {
             "x-content-type-options": "nosniff",
           });
           res.end(out.data);
-        } else send(res, 200, out ?? { ok: true });
+        } else send(res, 200, out === undefined ? { ok: true } : out);
         return;
       }
       // static

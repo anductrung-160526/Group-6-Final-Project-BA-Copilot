@@ -6,6 +6,7 @@ import { get, listFiles, uploadFile, updateFile, deleteFile } from "../api.ts";
 import type { FileItem } from "../../shared/types.ts";
 import { Badge, Btn, Empty, Field, FileDrop, Modal, Select, fmtTime, useUI } from "../components/ui.tsx";
 import type { PageProps } from "../routes.ts";
+import { withActor } from "../currentMember.ts";
 import { ACCEPT, ALLOWED_EXTS, FileDrawer, MAX_FILE_BYTES, fmtDay, fmtSize, fold, kindLabel, useDownload } from "./FileDrawer.tsx";
 
 const PROJECT_LEVEL = "__project"; // giá trị lọc "Cấp dự án" (module_id NULL)
@@ -126,14 +127,14 @@ export function FilesView({ projectId, params }: PageProps) {
     const results = await run(`Đang tải lên ${pending.length} tệp…`, () =>
       Promise.allSettled(
         pending.map(async (f) =>
-          uploadFile(projectId, {
+          uploadFile(projectId, withActor({
             name: f.name,
             contentBase64: await readBase64(f),
             moduleId: source.moduleId || null,
             sender: source.sender,
             receivedAt: source.receivedAt || null,
             note: source.note,
-          }),
+          })),
         ),
       ),
     );

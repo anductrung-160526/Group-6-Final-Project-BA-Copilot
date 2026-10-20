@@ -64,6 +64,8 @@ const toModule = (r: Row): Module => ({
   requirementInput: r.requirement_input,
   docsStatus: r.docs_status,
   testsStatus: r.tests_status,
+  qusScore: r.qus_score ?? null,
+  qusCheckedAt: r.qus_checked_at ?? null,
   createdAt: r.created_at,
 });
 
@@ -133,6 +135,8 @@ const toVersion = (r: Row): ScreenVersion => ({
   changedIds: J(r.changed_ids, []),
   rejected: J(r.rejected, []),
   tree: J(r.tree),
+  author: r.author ?? "",
+  authorId: r.author_id ?? null,
   createdAt: r.created_at,
 });
 
@@ -218,6 +222,7 @@ const toAnnotation = (r: Row): Annotation => ({
   bbox: J(r.bbox),
   comment: r.comment,
   author: r.author,
+  authorId: r.author_id ?? null,
   status: r.status,
   createdAt: r.created_at,
 });
@@ -237,10 +242,10 @@ export function getAnnotations(ids: string[]): Annotation[] {
 }
 
 export function createAnnotation(a: Omit<Annotation, "id" | "createdAt" | "status">): Annotation {
-  const ann: Annotation = { ...a, id: uid(), status: "open", createdAt: now() };
+  const ann: Annotation = { ...a, authorId: a.authorId ?? null, id: uid(), status: "open", createdAt: now() };
   getDb()
-    .prepare("INSERT INTO annotations (id, screen_id, version_id, node_ids, bbox, comment, author, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
-    .run(ann.id, ann.screenId, ann.versionId, JSON.stringify(ann.nodeIds), JSON.stringify(ann.bbox), ann.comment, ann.author, ann.status, ann.createdAt);
+    .prepare("INSERT INTO annotations (id, screen_id, version_id, node_ids, bbox, comment, author, author_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    .run(ann.id, ann.screenId, ann.versionId, JSON.stringify(ann.nodeIds), JSON.stringify(ann.bbox), ann.comment, ann.author, ann.authorId ?? null, ann.status, ann.createdAt);
   return ann;
 }
 
