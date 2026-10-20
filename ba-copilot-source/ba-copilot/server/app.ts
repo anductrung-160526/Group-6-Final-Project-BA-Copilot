@@ -15,6 +15,7 @@ import { buildTrace } from "../shared/trace.ts";
 import { saveExport } from "./files.ts";
 import { route, matchRoute, FileResponse, HttpError, str, arr, actor } from "./http.ts";
 import "./routes/index.ts"; // route v2 theo phân hệ (members, files, diagram, tasks, qus, suggest)
+import { registerTaskAutomation } from "./taskAutomation.ts";
 import { saveModuleQus } from "./routes/qus.ts";
 import { getMember } from "./repo/members.ts";
 
@@ -212,6 +213,7 @@ function send(res: ServerResponse, status: number, data: unknown) {
 const MIME: Record<string, string> = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".json": "application/json", ".map": "application/json", ".ico": "image/x-icon" };
 
 export function createApp(opts: { publicDir: string }): Server {
+  registerTaskAutomation(); // FN-20 → FN-23 (R-011); gọi nhiều lần vẫn chỉ một bộ handler
   const require = createRequire(import.meta.url);
   let mermaidPath = "";
   try {
