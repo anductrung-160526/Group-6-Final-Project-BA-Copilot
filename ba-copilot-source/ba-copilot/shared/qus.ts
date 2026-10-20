@@ -11,6 +11,8 @@ export interface QusIssue {
   severity: "error" | "warn" | "info";
   message: string;
   suggestion?: string;
+  /** Đoạn chữ trong story gây ra lỗi (FN-55), ví dụ từ mơ hồ "nhanh" hoặc cụm "và xóa". */
+  excerpt?: string;
 }
 
 export interface StoryScore {
@@ -62,6 +64,8 @@ const AMBIGUOUS_WORDS: string[] = [
   "linh hoạt",
   "hiệu quả",
   "dễ dàng",
+  "dễ dùng",
+  "dễ sử dụng",
   "tối ưu",
   "nhanh",
   "tốt",
@@ -244,7 +248,17 @@ export function splitStories(text: string): string[] {
     }
   }
 
-  return stories.filter((s) => s.length > 0);
+  // Mỗi câu bắt đầu bằng "As a" hay "Là" (UC-28 bước 2) là một story, kể cả khi viết liền trên một dòng.
+  return stories.flatMap(splitSentences).filter((s) => s.length > 0);
+}
+
+// Ranh giới câu ngay trước "As a/an", "Là", "Với tư cách" viết hoa (giữa câu không viết hoa nên không bị tách nhầm).
+const SENTENCE_STORY_START = /(?<=[.!?])\s+(?=(?:As\s+an?|Là|Với\s+tư\s+cách)\s)/u;
+function splitSentences(story: string): string[] {
+  return story
+    .normalize("NFC")
+    .split(SENTENCE_STORY_START)
+    .map((s) => s.trim());
 }
 
 // Phân tích cấu trúc User Story (English + Tiếng Việt)
@@ -290,37 +304,38 @@ export function parseStory(rawText: string): ParsedStory {
   return { role, means, end, isTemplate: true, template };
 }
 
-// Kiểm tra phần means có nhiều hành động nối bằng và / and / ;
-function checkAtomic(means: string): boolean {
-  if (!means) return false;
-  if (means.includes(";")) return true;
+// Kiểm tra phần means có nhiều hành động nối bằng và / and / ; – trả về đoạn chữ nối (FN-55), không vi phạm thì null.
+function checkAtomic(means: string): string | null {
+  if (!means) return null;
+  if (means.includes(";")) return ";";
 
   const verbsPattern = ACTION_VERBS.join("|");
-  const re = new RegExp(`(?:,\\s*)?(?:và|and)\\s+(?:có\\s+thể\\s+)?(?:${verbsPattern})(?=[^\\p{L}\\p{N}_]|$)`, "u");
-  if (re.test(means)) return true;
+  const re = new RegExp(`(?:và|and)\\s+(?:có\\s+thể\\s+)?(?:${verbsPattern})(?=[^\\p{L}\\p{N}_]|$)`, "u");
+  const m = means.match(re);
+  if (m) return m[0];
 
   const reDongThoi = new RegExp(`(?:đồng\\s+thời|cũng\\s+như)\\s+(?:${verbsPattern})(?=[^\\p{L}\\p{N}_]|$)`, "u");
-  if (reDongThoi.test(means)) return true;
+  const m2 = means.match(reDongThoi);
+  if (m2) return m2[0];
 
-  return false;
+  return null;
 }
 
-// Kiểm tra ghi chú dài trong ngoặc hoặc chứa các từ ví dụ, lưu ý, e.g., note:
-function checkMinimal(text: string): boolean {
+// Kiểm tra ghi chú dài trong ngoặc hoặc chứa các từ ví dụ, lưu ý, e.g., note: – trả về đoạn chữ gây lỗi (FN-55), không vi phạm thì null.
+function checkMinimal(text: string): string | null {
   const norm = text.normalize("NFC").toLowerCase();
-  if (/(?:ví\s+dụ|lưu\s+ý|e\.g\.|note:)/u.test(norm)) {
-    return true;
-  }
+  const note = norm.match(/(?:ví\s+dụ|lưu\s+ý|e\.g\.|note:)/u);
+  if (note) return note[0];
   const parenMatches = norm.match(/\(([^)]+)\)/g);
   if (parenMatches) {
     for (const pm of parenMatches) {
       const inner = pm.slice(1, -1).trim();
       if (inner.length >= 15 || inner.split(/\s+/).length >= 4) {
-        return true;
+        return pm;
       }
     }
   }
-  return false;
+  return null;
 }
 
 // Từ khung của khuôn mẫu story: bỏ đi khi so trùng để chỉ so phần nội dung (G1).
@@ -357,23 +372,25 @@ function penaltyOf(issues: QusIssue[]): number {
   return penalty;
 }
 
+// Điểm một story (G4, FN-52): 100 − 30/error − 15/warn − 5/info, thấp nhất 0.
+export function storyScore(issues: QusIssue[]): number {
+  return Math.max(0, BASE_SCORE - penaltyOf(issues));
+}
+
 const TEMPLATE_LABEL: Record<StoryTemplate, string> = {
   en: '"As a… I want… so that…"',
   vi: '"Là… tôi muốn… để…"',
   free: "viết tự do",
 };
 
-// Khuôn mẫu chiếm đa số trong module (G2). Hoà thì ưu tiên khuôn mẫu chuẩn (en, vi) rồi đến khuôn mẫu xuất hiện trước.
-function majorityTemplate(parsed: ParsedStory[]): StoryTemplate {
-  const count = new Map<StoryTemplate, number>();
-  for (const p of parsed) count.set(p.template, (count.get(p.template) ?? 0) + 1);
-  let best: StoryTemplate = parsed[0].template;
-  for (const p of parsed) {
-    const c = count.get(p.template)!;
-    const b = count.get(best)!;
-    if (c > b || (c === b && best === "free" && p.template !== "free")) best = p.template;
-  }
-  return best;
+// Khuôn mẫu chiếm đa số trong module (G2): chỉ xét 2 khuôn mẫu chuẩn "As a…" (en) và "Là…" (vi), hoà thì lấy
+// khuôn mẫu xuất hiện trước. Không story nào theo khuôn mẫu chuẩn thì trả null (bỏ qua NOT_UNIFORM).
+function majorityTemplate(parsed: ParsedStory[]): StoryTemplate | null {
+  const std = parsed.filter((p) => p.template !== "free");
+  if (std.length === 0) return null;
+  const en = std.filter((p) => p.template === "en").length;
+  const vi = std.length - en;
+  return en === vi ? std[0].template : en > vi ? "en" : "vi";
 }
 
 // Chấm chất lượng toàn bộ danh sách User Stories.
@@ -420,23 +437,27 @@ export function scoreStories(text: string, options: ScoreOptions = {}): QusResul
       }
 
       // ATOMIC: phần means có nhiều hành động nối bằng và / and / ;
-      if (parsed.means && checkAtomic(parsed.means)) {
+      const atomic = parsed.means ? checkAtomic(parsed.means) : null;
+      if (atomic) {
         issues.push({
           code: "ATOMIC",
           severity: "warn",
-          message: "Phần hành động (means) chứa nhiều hành động nối bằng 'và', 'and' hoặc ';'.",
+          message: `Phần hành động (means) chứa nhiều hành động, nối bằng "${atomic}".`,
           suggestion: "Tách thành các user story riêng biệt cho từng hành động để đảm bảo tính độc lập (atomic).",
+          excerpt: atomic,
         });
       }
     }
 
     // MINIMAL: ghi chú dài trong ngoặc hoặc ví dụ, lưu ý
-    if (checkMinimal(raw)) {
+    const minimal = checkMinimal(raw);
+    if (minimal) {
       issues.push({
         code: "MINIMAL",
         severity: "info",
-        message: "Story chứa ghi chú, ví dụ hoặc chi tiết phụ trong ngoặc đơn.",
+        message: `Story chứa ghi chú, ví dụ hoặc chi tiết phụ: "${minimal}".`,
         suggestion: "Chuyển các ghi chú chi tiết hoặc ví dụ vào Acceptance Criteria (tiêu chí nghiệm thu).",
+        excerpt: minimal,
       });
     }
 
@@ -448,7 +469,8 @@ export function scoreStories(text: string, options: ScoreOptions = {}): QusResul
         code: "AMBIGUOUS",
         severity: "warn",
         message: `Story chứa từ ngữ mơ hồ: "${wordsStr}".`,
-        suggestion: `Thay thế "${wordsStr}" bằng tiêu chí cụ thể có thể đo lường hoặc kiểm thử được.`,
+        suggestion: `Thay "${wordsStr}" bằng tiêu chí đo được, ví dụ "≤ 2 giây" hoặc "tối đa 3 bước".`,
+        excerpt: wordsStr,
       });
     }
     return issues;
@@ -482,8 +504,8 @@ export function scoreStories(text: string, options: ScoreOptions = {}): QusResul
   }
 
   // NOT_UNIFORM (G2): story lệch khuôn mẫu chiếm đa số nhận mức info. Module chỉ có 1 story thì bỏ qua.
-  if (rawStories.length > 1) {
-    const majority = majorityTemplate(parsedList);
+  const majority = rawStories.length > 1 ? majorityTemplate(parsedList) : null;
+  if (majority) {
     parsedList.forEach((p, idx) => {
       if (p.template !== majority) {
         issuesList[idx].push({
@@ -500,7 +522,7 @@ export function scoreStories(text: string, options: ScoreOptions = {}): QusResul
   const stories: StoryScore[] = rawStories.map((raw, idx) => ({
     index: idx + 1,
     text: raw,
-    score: Math.max(0, BASE_SCORE - penaltyOf(issuesList[idx])),
+    score: storyScore(issuesList[idx]),
     issues: issuesList[idx],
   }));
   const total = Math.round(stories.reduce((acc, s) => acc + s.score, 0) / stories.length);

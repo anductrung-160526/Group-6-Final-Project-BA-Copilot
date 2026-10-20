@@ -14,7 +14,7 @@ Người cập nhật: **A0**. Mỗi agent dán kết quả `npm test` / `npm ru
 | A5 | Sơ đồ UC | 2 | `agent/a5-so-do-uc` | ⏳ Sẵn sàng | — | — | |
 | A6 | Công việc Kanban | 2 | `agent/a6-kanban` | ⏳ Sẵn sàng | — | — | |
 | A7 | Tự cập nhật trạng thái task | 2 | `agent/a7-tu-cap-nhat` | ⏳ Sẵn sàng | — | — | Gộp sau A6 |
-| A8 | Chất lượng yêu cầu (QUS) | 2 | `agent/a8-qus` | ⏳ Sẵn sàng | — | — | Phần lớn đã có; việc còn lại ghi ở khung "Hiện trạng" mục A8 trong kế hoạch (chính: FN-56, `ScoreBadge`/`IssueList`) |
+| A8 | Chất lượng yêu cầu (QUS) | 2 | `agent/a8-qus` | ✅ Xong, chờ gộp. FN-50 → FN-55 đạt; FN-56 xong phần của A8, chờ A0 chèn R-020 → R-022 | 75/75 ✅ (`qus.test.ts` 21/21) | ✅ | Xem nhật ký đợt 2 – A8 |
 | A9 | Gợi ý màn tiếp theo | 2 | `agent/a9-goi-y` | ⏳ Sẵn sàng | — | — | Phần lớn đã có; việc còn lại ghi ở khung "Hiện trạng" mục A9 trong kế hoạch (chính: API + `suggestion_dismissals`, tách `SuggestionsPanel`, sửa 2 chỗ lệch hợp đồng). Gộp cuối đợt 2 |
 | A10 | Dữ liệu demo | 3 | `agent/a10-seed` | ⏳ Chờ đợt 2 | — | — | |
 | A11 | Kiểm thử E2E & QA | 3 | `agent/a11-e2e` | ⏳ Chờ A10 | — | — | |
@@ -134,3 +134,47 @@ Ba lựa chọn A2 tự chốt, A0 **xác nhận** (tài liệu v2 không quy đ
 
 **A8, A9:** mục A8 và A9 trong `docs/Ke_hoach_Agent_BA_Copilot_v2.md` đã có khung "Hiện trạng trên `v2-contract`", ghi rõ phần đã có, việc còn lại và 2 chỗ lệch hợp đồng của `suggest.ts`. Khi khởi chạy A8, A9, phải giữ nguyên khung đó trong prompt.
 
+
+---
+
+## Nhật ký đợt 2 – A8 Chất lượng yêu cầu (2026-10-20)
+
+**Nhánh:** `agent/a8-qus`, tạo từ `v2-contract` @ `1aabff2`. Worktree `E:/wt-a8`.
+
+### Kết quả kiểm tra (Node v24, chạy trong `ba-copilot-source/ba-copilot`)
+
+| Cổng | Kết quả |
+|---|---|
+| 1. `npm test` | ✅ `ℹ tests 75 · ℹ pass 75 · ℹ fail 0` (trước khi làm: 66/66; thêm 9 test vào `tests/qus.test.ts`, tệp này 21/21) |
+| 2. `npm run build` | ✅ `Done` – không commit `public/` (A0 build lại khi gộp) |
+| — `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+| 3. Tệp đã đổi | `shared/qus.ts`, `client/components/QusPanel.tsx`, `server/routes/qus.ts`, `tests/qus.test.ts`, khối `<Modal>` Tạo module trong `client/views/ProjectView.tsx`, `docs/agents/REQUESTS.md`, `docs/agents/STATUS.md` |
+| 5. Chế độ Mock (Playwright, Chrome thật) | ✅ Popup Tạo module: trạng thái rỗng, gõ 5 story mẫu → 82/100 Tốt, từng story 100/50/85/85/90 (khớp tính tay); điểm chỉ cập nhật sau 300 ms; bung/thu bằng chuột và phím Enter; điểm 55 "Cần sửa" vẫn tạo được module (BR-05); popup Sửa yêu cầu hiện panel; màn hẹp 390 px không cuộn ngang; 0 lỗi console |
+
+### 5 story mẫu – tính tay
+
+| # | Story | Vi phạm | Điểm |
+|---|---|---|---|
+| 1 | Là khách hàng, tôi muốn xem lịch sử đơn hàng để theo dõi giao hàng. | – | 100 |
+| 2 | Tôi muốn đăng nhập nhanh | WELL_FORMED −30, AMBIGUOUS "nhanh" −15, NOT_UNIFORM −5 | 50 |
+| 3 | Là quản trị viên, tôi muốn xem danh sách và xóa người dùng để dọn dẹp hệ thống. | ATOMIC "và xóa" −15 | 85 |
+| 4 | Là khách hàng, tôi muốn đặt hàng. | NO_END −15 | 85 |
+| 5 | As a guest, I want to export invoices (lưu ý: chỉ định dạng PDF) so that I can keep records. | MINIMAL "lưu ý" −5, NOT_UNIFORM −5 | 90 |
+| | **Module** = (100 + 50 + 85 + 85 + 90) / 5 | khuôn mẫu đa số "Là…" (3/5) | **82 – Tốt** |
+
+Đã đưa thành test "5 story mẫu: điểm khớp với tính tay".
+
+### Thay đổi so với `v2-contract`
+
+- `qus.ts`: giữ nguyên `PENALTY_*`, ngưỡng Jaccard 0,8, ngưỡng Tốt/Khá/Cần sửa. Sửa 1 chỗ lệch G2: khuôn mẫu đa số trước đây có thể là "viết tự do", làm story **đúng mẫu** bị phạt NOT_UNIFORM (vd 2 story tự do + 1 story "Là…"). Nay chỉ xét "As a…" và "Là…"; không story nào đúng mẫu thì bỏ qua tiêu chí. Bổ sung: tách câu bắt đầu bằng "As a"/"Là" viết liền một dòng (UC-28 bước 2); trường `excerpt` (đoạn chữ gây lỗi, FN-55) cho AMBIGUOUS/ATOMIC/MINIMAL; thêm từ mơ hồ "dễ dùng", "dễ sử dụng"; hàm `storyScore()` để kiểm chặn đáy 0.
+- `QusPanel.tsx`: dùng `ScoreBadge`, `IssueList`, `Empty`; bung/thu từng story (mặc định bung story có lỗi/cảnh báo) và "Bung/Thu gọn tất cả"; nhãn mức lỗi viết rõ "(lỗi)/(cảnh báo)/(gợi ý)" cạnh mã.
+- `ProjectView.tsx` (khối Modal): đưa panel ra khỏi `<Field>` (thẻ `label`), trước đây bấm vào panel làm con trỏ nhảy về ô nhập.
+- `server/routes/qus.ts`: `GET /api/modules/:id/qus` đúng `docs/api.md` mục 5 (404 khi không có module); hàm `saveModuleQus(moduleId)` chấm bằng chính `scoreStories` (có story module khác cùng dự án, giống panel) và lưu `qus_score`/`qus_checked_at`; yêu cầu trống thì lưu NULL.
+
+### Điểm A0 cần chèn khi gộp
+
+- **R-020** (`server/app.ts`): gọi `saveModuleQus()` sau tạo module và sau `PATCH /api/modules/:id` có `requirementInput`. `service.ts` không có hàm cập nhật module nên A8 không chèn được ở đó.
+- **R-021** (`server/repo.ts`): `toModule()` đọc `qusScore`/`qusCheckedAt`.
+- **R-022** (`ProjectView.tsx`, ngoài Modal): cột "Chất lượng" với `ScoreBadge`.
+- **R-023** (`styles.css`, A1): dọn class `.qus-*` không còn dùng, thêm `cursor: pointer` cho `.qus-story-head`.
+- **Báo A9:** `splitStories` nay tách thêm các câu "As a…"/"Là…" viết liền một dòng; `tests/suggest.test.ts` vẫn xanh.
