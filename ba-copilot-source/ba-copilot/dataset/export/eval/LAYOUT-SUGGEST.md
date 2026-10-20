@@ -1,5 +1,7 @@
 # Tính năng gợi ý bố cục theo Li et al. 2020 – triển khai và đánh giá
 
+> Phần tính năng (mục 1) vẫn đúng. Số liệu đánh giá bên dưới chấm trên mô hình 400 màn cũ. Mô hình trong app hiện nay xem `DATA-LIMITED.md`.
+
 Tính năng gợi ý của Design Studio nay **chỉ dùng phương pháp của bài báo**: *Auto Completion of User Interface Layout Design Using
 Transformer-Based Tree Decoders* (Li, Amelot, Zhou, Bengio, Si 2020, arXiv:2001.05308), Recursive Transformer Tree Decoder (§4.4).
 - Đã gỡ khỏi tính năng: bộ luật R1–R9, bộ lọc ứng dụng (ngưỡng, loại trùng, một gợi ý mỗi container), mô hình đối chứng (encoder hai chiều, n-gram) và cơ chế học khi duyệt.

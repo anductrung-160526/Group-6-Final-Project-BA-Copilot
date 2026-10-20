@@ -146,3 +146,11 @@ shell) – kill theo PID; model/*.pt bị gitignore (bản 300 màn dựng lại
   · IoU 22,8 (bản có embedding vị trí 11,0 · 27,2). LƯU Ý: mọi lần chạy A/B trước đó vô tình dùng use_pos=True (ngoài bài báo) – đã ghi
   trong STRICT-NEXT.md. Người dùng TỪ CHỐI: push nhánh thử nghiệm merge (đã xóa worktree/nhánh local) và dùng thêm 300 màn dataset/extra.
 - Đang bàn: làm auto-completion giống gợi ý code Colab (con trỏ, palette chèn tay, gợi ý nhiều phần tử, Alt+]/[) – chờ người dùng chọn.
+
+========================================================================
+10. CẬP NHẬT 20/10 – MÔ HÌNH CUỐI VÀO APP (dataset/export/eval/DATA-LIMITED.md)
+========================================================================
+- Người dùng đồng ý thay mô hình. App dùng: tiền huấn luyện WebSight (23.382 cây) → tinh chỉnh 785 màn (R001–R800 trừ 15 màn trong
+  dataset/excluded-roots.json), tăng cường ×2, dropout 0,2, no-pos, 256×4, lưới 32×40. Test 38 màn: Next chặt 19,7 · IoU 33,8 · Edit 37,0 s.
+  Không có ablation. Script: scripts/paper/train_final.sh; xuất: export_recursive.py --result dataset/export/eval/data-limited/final.json.
+- Parity TS↔PyTorch, npm test 30/30, tsc, E2E qua. Đã dọn báo cáo cũ và viết lại chữ giao diện Design Studio theo ngôn ngữ kinh doanh.

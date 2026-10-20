@@ -89,10 +89,10 @@ Tính năng **chỉ dùng phương pháp của Li et al. (2020)**, *Auto Complet
 - **Hoàn thành bố cục:** giải mã tham lam tới EOS (kể cả container vừa sinh) trong vùng chọn hoặc cả màn, rồi chấp nhận từng phần.
 - **Đầu vào:** cây đang thiết kế và khung bao từng phần tử đo trên canvas, rời rạc hóa theo lưới 32 ô ngang × ô dọc 40 px (lưới đọc từ config của mô hình).
 - **Đầu ra:** loại, cờ lá, khung bao. Phần tử chèn vào có props trung tính; nội dung chữ đổi bằng Prompt sửa thiết kế.
-- **Mô hình:** `model/recursive-layout.json`, hidden 256, 4 lớp, 4,3 triệu tham số, lưới **32 ô ngang × ô dọc 40 px**, chọn theo val (`dataset/export/eval/STRICT-NEXT.md`). Huấn luyện trên **500 màn gốc (399 màn train) = 2.793 cây**, chia 80/10/10, chỉ dữ liệu web của nhóm, không WebSight. Test 38 màn: Next chặt 8,8%, IoU ≥ 0,5 22,8%.
+- **Mô hình:** `model/recursive-layout.json`, hidden 256, 4 lớp, lưới **32 ô ngang × ô dọc 40 px**, kiến trúc đúng bài báo (không embedding vị trí). Huấn luyện hai bước: **tiền huấn luyện trên 23.382 cây WebSight**, rồi **tinh chỉnh trên 785 màn gốc của nhóm** (13.168 cây train, chia 80/10/10) có tăng cường bố cục ×2 và dropout 0,2. Test 38 màn: **Next chặt 19,7%** (bản 500 màn trước: 8,8%), IoU ≥ 0,5 33,8%, Edit 37,0 s (không gợi ý: 60,5 s). Ngoài bài báo: WebSight, lưới thô, tăng cường, dropout. Chi tiết và lưu ý (không có ablation, test nhỏ): `dataset/export/eval/DATA-LIMITED.md`.
   - Suy luận thuần TypeScript (`shared/recursive.ts`), khớp PyTorch (`tests/recursive.test.ts`).
   - Độ trễ trên CPU (42 màn test): hỏi một container khoảng 20–60 ms; xét cả màn trung vị 0,3 s (tối đa 0,9 s); Hoàn thành bố cục trung vị 0,4 s (tối đa khoảng 6 s với màn lớn).
-- **Kết quả:** `dataset/export/eval/LAYOUT-SUGGEST.md`.
+- **Kết quả:** `dataset/export/eval/DATA-LIMITED.md` (mô hình hiện tại), `STRICT-NEXT.md` (chọn lưới), `LAYOUT-SUGGEST.md` (mô phỏng KLM, chấm trên mô hình 400 màn trước đây).
   - Mô phỏng KLM cho thấy gợi ý từng bước tiết kiệm khoảng 39–48% thời gian thao tác so với tự làm tay; Hoàn thành bố cục tiết kiệm 16–43%.
   - Có bảng độ chính xác theo từng loại phần tử.
   - Đối chiếu từng điểm với bài báo: `dataset/export/eval/PAPER-METHOD.md`.
