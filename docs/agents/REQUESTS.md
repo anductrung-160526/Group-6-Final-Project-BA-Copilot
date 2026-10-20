@@ -226,7 +226,7 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Đợt / agent yêu cầu: 5 – đợt 1 / C2
 - Tệp: `server/repo.ts`, `server/service.ts` · Chủ tệp: C9
 - Thay đổi đề xuất: `toScreen()` thêm `rev`, `revisionRequested: !!r.revision_requested`, `updatedBy`, `updatedAt`; `toModule()` thêm `testsRev`, `testsRevisionRequested`; sinh/sửa test case gọi `bumpRev({ kind: "tests", id: moduleId, moduleId }, actorId)`. Route sửa màn trong `app.ts` đã nhận `baseRev` và tăng `screens.rev` (C2) – client chỉ cần gửi `baseRev`.
-- Trạng thái: Mở
+- Trạng thái: **Đã làm** (C9, nhánh `agent/c9-prototype`): `toScreen`/`toModule` đọc cột mới; sinh test gọi `bumpRev` tests + chặn đè `baseRev`.
 
 ### R-034 – C7: task theo hợp đồng đợt 5
 - Đợt / agent yêu cầu: 5 – đợt 1 / C2
@@ -246,3 +246,24 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Thay đổi: xem `QA_REPORT.md` mục 7. Component mới `useUI().confirm` đã thêm đủ 3 nơi (ui.tsx, `#/_gallery`, design-system.md).
 - Trạng thái: **Chấp nhận, đã làm** (commit `96a5a56`)
 - Quyết định của A0 (2026-10-20): các agent chủ tệp xem lại phần của mình khi rảnh; không chặn đợt 4.
+
+### R-100 – C0/C7: bỏ "artifact.unapproved" còn phát khi sửa màn Đã duyệt
+- Đợt / agent yêu cầu: 5 – đợt 2 / C9
+- Tệp: `server/service.ts` (`draftAfterChange`) · Chủ tệp: C9; liên quan `tests/taskAutomation.test.ts` (C7)
+- Lý do: để `tests/taskAutomation.test.ts` (luồng v2, kỳ vọng task `redo` + `docs_status` Lỗi thời khi sửa màn Đã duyệt) còn qua trên nhánh C9, `draftAfterChange` vẫn phát thêm `artifact.unapproved` và áp BR-02 cho bộ tài liệu cũ khi màn đang **Đã duyệt**. Màn đang **Xong** chỉ về Bản nháp + `artifact.drafted` (+ bộ test Lỗi thời) đúng hợp đồng đợt 5.
+- Thay đổi đề xuất: khi C7 thay taskRules/test mới, C0 xoá 2 dòng có chú thích "v2 – bỏ khi C0 làm R-030" trong `draftAfterChange` (giữ `setArtifactState(draft)` + `drafted` + `staleTests`).
+- Trạng thái: Mở
+
+### R-101 – C0: route sinh test case trùng trong `app.ts`
+- Đợt / agent yêu cầu: 5 – đợt 2 / C9
+- Tệp: `server/app.ts` · Chủ tệp: C2 (khoá)
+- Lý do: `POST /api/modules/:id/tests/generate` trong `app.ts` không truyền `baseRev`. C9 đăng ký lại cùng đường dẫn trong `server/routes/prototype.ts` (tệp route nạp trước nên được ưu tiên) để nhận `baseRev` + `actorId`; body/kết quả giữ nguyên (`TestCase[]`). Thêm `GET /api/modules/:id/tests/readiness` → `{ ready, reason, source: "v5"|"legacy"|null, frdStatus }`.
+- Thay đổi đề xuất: xoá dòng route tests/generate trong `app.ts`; ghi 2 endpoint vào `docs/api.md` mục 5.7.
+- Trạng thái: Mở
+
+### R-102 – C1: thêm icon "download" (Tải về)
+- Đợt / agent yêu cầu: 5 – đợt 2 / C9
+- Tệp: `client/components/ui.tsx`, `docs/design-system.md` · Chủ tệp: C1
+- Lý do: nút "Xuất HTML", "Xuất Excel" (C9) và các nút tải tệp khác chưa có icon phù hợp (bảng `ICONS` chỉ có `upload`). Tạm để nút chỉ có chữ.
+- Thay đổi đề xuất: thêm `download: Download` (Lucide) vào `ICONS` + bảng mục 3.1.
+- Trạng thái: Mở

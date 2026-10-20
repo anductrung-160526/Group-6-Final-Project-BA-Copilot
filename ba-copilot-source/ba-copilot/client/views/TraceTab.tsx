@@ -164,7 +164,13 @@ export function TraceTab({ m }: { m: ModuleDetail; reload?: () => Promise<unknow
                     r.screens.map((s, j) => (
                       <React.Fragment key={s.id}>
                         {j > 0 && ", "}
-                        {screenName(s.id)} {s.inferred && <Badge tone="flag">suy luận</Badge>}
+                        {screenName(s.id)}
+                        {s.inferred && (
+                          <>
+                            {" "}
+                            <Badge tone="flag">suy luận</Badge>
+                          </>
+                        )}
                       </React.Fragment>
                     ))
                   ) : isFr ? (
