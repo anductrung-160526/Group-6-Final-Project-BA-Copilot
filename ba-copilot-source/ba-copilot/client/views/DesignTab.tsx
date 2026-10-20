@@ -8,6 +8,8 @@ import type { Annotation, ModuleDetail, ScreenVersion } from "../../shared/types
 import { findNode, nodeLabel, topMostIds, UINode } from "../../shared/design.ts";
 import { Renderer } from "../components/Renderer.tsx";
 import { SuggestionsPanel } from "../components/SuggestionsPanel.tsx";
+import { RelatedTasks } from "../components/RelatedTasks.tsx";
+import { useCurrentMember, withActor } from "../currentMember.ts";
 import { Badge, Btn, Empty, Field, Modal, StatusBadge, fmtTime, useUI } from "../components/ui.tsx";
 
 type Mode = "select" | "region" | "prototype";
@@ -29,6 +31,7 @@ const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/
 
 export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promise<unknown> }) {
   const { run, toast } = useUI();
+  const { me } = useCurrentMember(); // FN-03: người thao tác gửi kèm actorId
   const [screenId, setScreenId] = useState<string | null>(m.screens[0]?.id ?? null);
   const [mode, setMode] = useState<Mode>("select");
   const [selected, setSelected] = useState<string[]>([]);
@@ -166,7 +169,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
 
   const acceptItems = async (versionId: string, list: { ref: string; parentId: string; index: number; type: string }[]) => {
     if (!screen) return false;
-    const r = await run("Đang chèn phần tử", () => post(`/api/screens/${screen.id}/layout/accept`, { versionId, items: list }));
+    const r = await run("Đang chèn phần tử", () => post(`/api/screens/${screen.id}/layout/accept`, withActor({ versionId, items: list })));
     if (!r) return false;
     setShowChanges(true);
     await reload();
@@ -232,7 +235,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
   // sửa tay: xóa / đổi thứ tự trong container
   const manual = async (op: "remove" | "up" | "down", id: string) => {
     if (!screen) return;
-    const r = await run("Đang cập nhật", () => post(`/api/screens/${screen.id}/manual`, { op, id }));
+    const r = await run("Đang cập nhật", () => post(`/api/screens/${screen.id}/manual`, withActor({ op, id })));
     if (!r) return;
     if (op === "remove") setSelected([]);
     await reload();
@@ -333,7 +336,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
   const openNewScreen = (initialName = "", initialPrompt = "") => setNewScreen({ name: initialName, prompt: initialPrompt });
   const createScreen = async () => {
     if (!newScreen) return;
-    const r = await run("AI đang thiết kế màn hình…", () => post(`/api/modules/${m.id}/screens`, newScreen));
+    const r = await run("AI đang thiết kế màn hình…", () => post(`/api/modules/${m.id}/screens`, withActor(newScreen)));
     if (r) {
       setNewScreen(null);
       await reload();
@@ -352,7 +355,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
 
   const addComment = async () => {
     if (!screen || !comment.trim()) return;
-    const a = await run("Đang lưu bình luận", () => post<Annotation>(`/api/screens/${screen.id}/annotations`, { nodeIds: selected, comment, bbox: unionBox(selected) }));
+    const a = await run("Đang lưu bình luận", () => post<Annotation>(`/api/screens/${screen.id}/annotations`, withActor({ nodeIds: selected, comment, bbox: unionBox(selected), author: me?.name })));
     if (a) {
       setComment("");
       setChecked((c) => new Set([...c, a.id]));
@@ -365,7 +368,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
     const ids = [...checked].filter((id) => annotations.some((a) => a.id === id));
     if (!prompt.trim() && !ids.length) return toast("Nhập yêu cầu sửa hoặc tick bình luận để gửi vào prompt", "err");
     const label = selected.length || ids.length ? "AI đang sửa vùng đã khoanh…" : "AI đang sửa toàn màn hình…";
-    const r = await run(label, () => post(`/api/screens/${screen.id}/edit`, { prompt, nodeIds: selected, annotationIds: ids }));
+    const r = await run(label, () => post(`/api/screens/${screen.id}/edit`, withActor({ prompt, nodeIds: selected, annotationIds: ids })));
     if (!r) return;
     if (r.version) toast(`v${r.version.number}: ${r.summary || "Đã cập nhật thiết kế"}`, "ok");
     else toast(r.summary, "info");
@@ -380,14 +383,14 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
   const approve = async (approved: boolean) => {
     if (!screen) return;
     if (!approved && m.docsStatus !== "none" && !confirm("Bỏ duyệt sẽ chuyển tài liệu và test hiện có sang Lỗi thời. Tiếp tục?")) return;
-    await run("Đang cập nhật", () => post(`/api/screens/${screen.id}/approve`, { approved }));
+    await run("Đang cập nhật", () => post(`/api/screens/${screen.id}/approve`, withActor({ approved })));
     await reload();
     toast(approved ? "Đã duyệt thiết kế – có thể sinh tài liệu" : "Đã chuyển về bản nháp", "ok");
   };
 
   const revert = async (v: ScreenVersion) => {
     if (!screen) return;
-    await run("Đang khôi phục", () => post(`/api/screens/${screen.id}/revert`, { versionId: v.id }));
+    await run("Đang khôi phục", () => post(`/api/screens/${screen.id}/revert`, withActor({ versionId: v.id })));
     setViewVersion(null);
     await reload();
     await loadVersions();
@@ -418,6 +421,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
           ))}
           {!m.screens.length && <div className="muted small pad">Chưa có màn hình. Bấm "+ Mới" và mô tả màn hình bằng prompt.</div>}
         </div>
+        {screen && <RelatedTasks kind="screen" id={screen.id} />}
         {/* SCR-16 – Gợi ý tiếp theo (A9). Không tự tạo màn (BR-06): Tạo chỉ mở hộp thoại đã điền sẵn */}
         <SuggestionsPanel m={m} onCreate={openNewScreen} />
       </aside>

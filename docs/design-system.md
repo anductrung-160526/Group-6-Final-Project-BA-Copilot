@@ -157,6 +157,7 @@ App chưa có chế độ tối nên chưa có bộ token tối.
 | `.split-2` | Hai cột bằng nhau (soạn \| xem trước), về 1 cột khi màn hẹp. Dùng ở SCR-05 Sơ đồ UC |
 | `.meters`, `.meter` | Thẻ chỉ số (Truy vết) |
 | `.kanban` | Lưới chứa các `KanbanColumn` |
+| `.suggest-block`, `.suggest-list` | Khung khối Gợi ý tiếp theo (SCR-16) ở cột trái Design Studio, chứa các `SuggestionCard` |
 
 ---
 

@@ -1863,11 +1863,6 @@ select:focus {
   overflow: hidden;
   font-size: var(--font-size-sm);
 }
-.qus-empty {
-  padding: var(--space-2-5) var(--space-3-5);
-  color: var(--color-muted);
-  background: var(--color-bg-sub);
-}
 .qus-head {
   display: flex;
   align-items: center;
@@ -1895,14 +1890,6 @@ select:focus {
   max-height: 280px;
   overflow-y: auto;
 }
-.qus-section-title {
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-small);
-  color: var(--color-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: var(--space-1-5);
-}
 .qus-story-item {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -1918,6 +1905,7 @@ select:focus {
 }
 .qus-story-head {
   display: flex;
+  cursor: pointer;
   justify-content: space-between;
   align-items: flex-start;
   gap: var(--space-2);
@@ -1935,62 +1923,34 @@ select:focus {
   line-height: 1.4;
   word-break: break-word;
 }
-.qus-issues-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1-5);
-  margin-top: var(--space-1);
-}
-.qus-issue,
 .issue {
   border-radius: var(--radius-sm);
   padding: var(--space-1-5) var(--space-2);
   font-size: var(--font-size-small);
   line-height: 1.4;
 }
-.qus-issue-error,
 .issue-error {
   background: var(--color-danger-soft);
   border-left: 3px solid var(--color-danger);
 }
-.qus-issue-warn,
 .issue-warn {
   background: var(--color-warning-soft);
   border-left: 3px solid var(--color-warning);
 }
-.qus-issue-info,
 .issue-info {
   background: var(--color-info-soft);
   border-left: 3px solid var(--color-info);
 }
-.qus-issue-msg,
 .issue-msg {
   display: flex;
   align-items: center;
   gap: var(--space-1-5);
   font-weight: var(--font-weight-medium);
 }
-.qus-issue-sugg,
 .issue-sugg {
   margin-top: 3px;
   color: var(--color-muted);
   font-size: var(--font-size-xs);
-}
-.qus-toggle-btn {
-  border: none;
-  background: none;
-  color: var(--color-muted);
-  font-size: var(--font-size-small);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-0-5) var(--space-1-5);
-  border-radius: var(--radius-xs);
-}
-.qus-toggle-btn:hover {
-  background: var(--color-hover);
-  color: var(--color-strong);
 }
 
 /* ---------- SCR-16 Gợi ý tiếp theo ---------- */
@@ -2002,19 +1962,6 @@ select:focus {
   flex-direction: column;
   gap: var(--space-1-5);
   padding: var(--space-1-5) var(--space-2) var(--space-2-5);
-}
-.suggest-item {
-  padding: var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-}
-.suggest-name {
-  font-weight: var(--font-weight-semibold);
-}
-.suggest-actions {
-  display: flex;
-  gap: var(--space-1-5);
-  margin-top: var(--space-1-5);
 }
 
 /* =========================================================================

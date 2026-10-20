@@ -80,7 +80,6 @@ export function QusPanel({ text, others }: { text: string; others?: OtherModuleS
               <div
                 className="qus-story-head"
                 aria-expanded={open}
-                style={{ cursor: "pointer" }}
                 {...pressable(() => setPicked((p) => ({ ...p, [s.index]: !open })))}
               >
                 <div className="qus-story-title">
