@@ -23,7 +23,7 @@ Mã agent dùng tiền tố **C** để không lẫn với A0–A12 của các �
 | 12 | Nút | "Xong" (BA) và "Duyệt" / "Yêu cầu sửa" (chỉ BA Lead) đặt ở **mọi màn sản phẩm** và trong ngăn chi tiết task. |
 | 13 | Repo | Mỗi dự án một repo, **BA Lead dán link** trong cài đặt dự án; app tự tạo nhánh đã cấu hình nếu chưa có. |
 | 14 | Token | Chỉ BA Lead đẩy lên GitHub nên chỉ cần **một token của dự án** (lưu ở server, không trả về client). Không làm token riêng từng BA. |
-| 15 | Phân quyền | Đăng nhập thật theo từng thành viên (tên + mật khẩu). Server chặn các thao tác của BA Lead. |
+| 15 | Phân quyền | **Không có màn đăng nhập.** Giữ ô chọn "Tôi là…" như hiện tại; quyền BA Lead xét theo người đang chọn (gửi `actorId`). Server chặn Duyệt / Yêu cầu sửa / Quản trị khi `actorId` không phải BA Lead (kể cả khi thiếu `actorId`). Mã đăng nhập/mật khẩu C2 đã viết để yên, không có giao diện, app luôn ở chế độ demo. |
 | 16 | Định dạng GitHub | Tài liệu và sơ đồ: `.md`. Prototype: xuất **HTML tĩnh**. Test case: `.md`. |
 | 17 | User story | Mỗi story một dòng: mã US-xx, As a / I want / So that, tiêu chí chấp nhận (nhiều dòng), độ ưu tiên. Nút "+ Thêm user story". |
 
@@ -47,7 +47,7 @@ Cần làm ──► Đang làm ──[Xong · BA]──► Xong ──[Duyệt 
 | C0 | Điều phối & tích hợp | 0–3 | `docs/agents/*`, tệp kế hoạch này, `README.md`, `DEPLOY.md` |
 | C1 | Design System | 1 | `client/styles.css`, `client/components/ui.tsx`, `client/views/_Gallery.tsx`, `docs/design-system.md`, `package.json` (thêm `lucide-react`) |
 | C2 | Hợp đồng & nền tảng | 1 | `shared/types.ts`, `server/db.ts` (mọi migration), `server/http.ts`, `server/app.ts`, `server/routes/index.ts`, `server/events.ts`, `server/presence.ts` (mới), `client/presence.ts` (mới), `client/api.ts` (stub), `client/projectMenu.ts` (mới, registry menu trái), `docs/api.md`, `docs/erd.md`, `tests/contract.test.ts` |
-| C3 | Khung dự án, đăng nhập, quản trị | 2 | `client/main.tsx`, `client/routes.ts`, `client/components/TopBar.tsx`, `client/components/ProjectShell.tsx` (mới), `client/views/Home.tsx`, `client/views/ProjectView.tsx`, `client/views/ModuleView.tsx` (gỡ bỏ), `client/views/moduleTabs.ts` (gỡ bỏ), `client/views/LoginView.tsx` (mới), `client/views/AdminView.tsx` (đổi từ `MembersView.tsx`), `client/views/LogsTab.tsx`, `client/currentMember.ts`, `server/auth.ts`, `server/routes/members.ts`, `server/repo/members.ts`, `tests/members.test.ts`, `tests/auth.test.ts` |
+| C3 | Khung dự án, quản trị | 2 | `client/main.tsx`, `client/routes.ts`, `client/components/TopBar.tsx`, `client/components/ProjectShell.tsx` (mới), `client/views/Home.tsx`, `client/views/ProjectView.tsx`, `client/views/ModuleView.tsx` (gỡ bỏ), `client/views/moduleTabs.ts` (gỡ bỏ), `client/views/AdminView.tsx` (đổi từ `MembersView.tsx`), `client/views/LogsTab.tsx`, `client/currentMember.ts`, `server/auth.ts`, `server/routes/members.ts`, `server/repo/members.ts`, `tests/members.test.ts`, `tests/auth.test.ts` |
 | C4 | Yêu cầu nghiệp vụ | 2 | `server/routes/stories.ts`, `server/repo/stories.ts`, `client/views/StoriesView.tsx`, `shared/qus.ts`, `client/components/QusPanel.tsx`, `server/routes/qus.ts`, `shared/suggest.ts` (đọc story mới), `tests/stories.test.ts`, `tests/qus.test.ts` |
 | C5 | Tài liệu | 2 | `server/ai/docsPipelines.ts` (mới), `server/routes/docs.ts`, `server/repo/docs.ts`, `client/views/DocsView.tsx` (thay `DocsTab.tsx`), `tests/docs.test.ts` |
 | C6 | Sơ đồ | 2 | `server/ai/diagramPipelines.ts` (mới), `shared/ucDiagram.ts`, `shared/diagrams.ts` (mới), `server/routes/diagram.ts`, `server/routes/diagrams.ts` (khung của C2), `client/views/DiagramsView.tsx` (thay `DiagramTab.tsx`), `client/components/Mermaid.tsx`, `tests/diagrams.test.ts` |
@@ -91,12 +91,12 @@ Luật sở hữu giữ như `docs/agents/OWNERSHIP.md`: chạm tệp ngoài dò
 - **Migration dữ liệu cũ:** `redo` → `doing` + cờ. UC/SRS/FR-NFR cũ → các dòng `module_docs` tương ứng. `requirementInput` → `user_stories` (tách bằng `splitStories` của QUS).
 - **Chặn đè:** helper `assertRev(current, base)` ném 409. Mọi API ghi sản phẩm nhận `baseRev`.
 - **Presence:** `POST /api/presence {kind,id}` gửi nhịp 30 giây, hết hạn 90 giây; `GET` trả người đang sửa. Hook `usePresence(kind,id)` ở client.
-- **Phân quyền:** middleware `requireMember`, `requireLead`. Phiên đăng nhập gắn `memberId`; actor lấy từ phiên, không lấy từ body.
+- **Phân quyền:** middleware `requireMember`, `requireLead` (đã làm ở đợt 1; đợt 5 không dùng màn đăng nhập – xem quyết định 15).
 - **`client/projectMenu.ts`:** registry menu trái với chỗ giữ chỗ cho từng màn, để mỗi agent đợt 2 thay đúng một dòng.
 - Stub đủ mọi endpoint trong `docs/api.md` (bảng endpoint đợt 5).
 
-### C3 – Khung dự án, đăng nhập, quản trị (đợt 2)
-- **Màn ngoài:** thanh trên chỉ có logo, tên người đăng nhập, chế độ AI, đăng xuất. Trang chủ = danh sách dự án. Mục "Quản trị hệ thống" (thành viên, vai, mật khẩu) **chỉ BA Lead thấy**.
+### C3 – Khung dự án, quản trị (đợt 2)
+- **Màn ngoài:** thanh trên giữ logo, ô chọn "Tôi là…", chế độ AI. Trang chủ = danh sách dự án. Mục "Quản trị hệ thống" (thành viên, vai – không có mật khẩu) **chỉ hiện khi người đang chọn là BA Lead**; vào thẳng URL khi không phải BA Lead thì báo không có quyền.
 - **Trong dự án:** header hiển thị tên dự án + nút Cài đặt GitHub (chỉ BA Lead, mở `ProjectGitSettings` của C8). Menu trái:
   - Quản lý công việc (`#/p/:pid/tasks`)
   - Yêu cầu nghiệp vụ (`#/p/:pid/stories`)
@@ -106,7 +106,7 @@ Luật sở hữu giữ như `docs/agents/OWNERSHIP.md`: chạm tệp ngoài dò
   - Lịch sử GitHub (`#/p/:pid/git`)
 - Bấm vào dự án mở thẳng "Quản lý công việc". Module vẫn tạo/xoá trong "Thực hiện công việc"; ô "Yêu cầu nghiệp vụ" trong hộp thoại tạo module bị bỏ.
 - Chuyển hướng URL cũ `#/m/:id/<tab>` sang URL mới.
-- Màn đăng nhập. Gỡ ô "Tôi là…".
+- **Không** làm màn đăng nhập, **giữ** ô "Tôi là…".
 
 ### C4 – Yêu cầu nghiệp vụ (đợt 2)
 - Bảng story theo dự án, lọc theo module. Mỗi dòng có 3 ô có placeholder "As a…", "I want…", "So that…", tiêu chí chấp nhận (thêm/xoá dòng), độ ưu tiên. Nút "+ Thêm user story" thêm dòng mới; sửa/xoá từng dòng bằng `RowActions`.
@@ -129,7 +129,7 @@ Luật sở hữu giữ như `docs/agents/OWNERSHIP.md`: chạm tệp ngoài dò
 
 ### C7 – Trạng thái & duyệt (đợt 2)
 - `taskRules` theo sơ đồ mục 1. Kanban 4 cột, tag "Yêu cầu sửa" trên thẻ, chặn kéo sai luật.
-- `POST /api/artifacts/:kind/:id/{done|approve|request-change}`: đổi trạng thái sản phẩm + task gắn kèm, ghi `task_events`, phát sự kiện. `approve` và `request-change` cần `requireLead`.
+- `POST /api/artifacts/:kind/:id/{done|approve|request-change}`: đổi trạng thái sản phẩm + task gắn kèm, ghi `task_events`, phát sự kiện. `approve` và `request-change` chỉ cho phép khi `actorId` (người chọn ở ô "Tôi là…") là BA Lead – thiếu `actorId` hoặc là BA thì trả 403 (chặt hơn `requireLead` chế độ demo của C2). `done` cần có `actorId`.
 - Hook gọi C8: chỉ `approve` → `pushApproved(artifact)`; `done` không gọi GitHub. Dự án chưa cấu hình repo thì vẫn duyệt được và báo "Chưa cấu hình GitHub – chưa đẩy". Lỗi GitHub khi đã cấu hình thì trạng thái **không** đổi và báo rõ lý do.
 - `ArtifactActions`: bọc `ApprovalBar` + gọi API; C5, C6, C9 nhúng vào màn của mình. Ngăn chi tiết task cũng có các nút này.
 
@@ -160,7 +160,7 @@ Luật sở hữu giữ như `docs/agents/OWNERSHIP.md`: chạm tệp ngoài dò
 
 ### C11 – Seed, E2E & QA (đợt 3)
 - Seed: 2 BA + 1 BA Lead có mật khẩu, 1 dự án, 2 module, story có cấu trúc, đủ 5 tài liệu và 5 sơ đồ, task ở cả 4 trạng thái, 1 task có tag "Yêu cầu sửa".
-- E2E: đăng nhập BA → story → BRD … API Spec → sơ đồ → prototype → Xong → đăng nhập BA Lead → Yêu cầu sửa → BA sửa, Xong → Duyệt → có commit trên GitHub giả lập. Có thêm ca 2 BA sửa cùng màn và nhận 409.
+- E2E: chọn "Tôi là" một BA → story → BRD … API Spec → sơ đồ → prototype → Xong → chọn "Tôi là" BA Lead → Yêu cầu sửa → BA sửa, Xong → Duyệt → có commit trên GitHub giả lập. Có thêm ca 2 BA sửa cùng màn và nhận 409.
 
 ## 4. Thứ tự chạy (trong 1 ngày)
 
