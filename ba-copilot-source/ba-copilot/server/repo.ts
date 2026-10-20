@@ -3,6 +3,10 @@ import { getDb, tx } from "./db.ts";
 import type { UINode } from "../shared/design.ts";
 import type {
   Annotation,
+  ArtifactStatus,
+  DocKind,
+  ModuleDocData,
+  UserStory,
   DocBundle,
   DocStatus,
   Module,
@@ -67,6 +71,9 @@ const toModule = (r: Row): Module => ({
   qusScore: r.qus_score ?? null,
   qusCheckedAt: r.qus_checked_at ?? null,
   createdAt: r.created_at,
+  // Đợt 5 (R-033): chặn đè + cờ Yêu cầu sửa của bộ test case
+  testsRev: Number(r.tests_rev ?? 0),
+  testsRevisionRequested: !!r.tests_revision_requested,
 });
 
 export function listModules(projectId: string): (Module & { screenCount: number })[] {
@@ -122,6 +129,11 @@ const toScreen = (r: Row): Screen => ({
   status: r.status,
   currentVersionId: r.current_version_id,
   createdAt: r.created_at,
+  // Đợt 5 (R-033): số bản, cờ Yêu cầu sửa, người/lúc ghi cuối
+  rev: Number(r.rev ?? 1),
+  revisionRequested: !!r.revision_requested,
+  updatedBy: r.updated_by ?? null,
+  updatedAt: r.updated_at ?? null,
 });
 
 const toVersion = (r: Row): ScreenVersion => ({
@@ -155,10 +167,14 @@ export function listScreens(moduleId: string): ScreenWithTree[] {
   return rows.map((r) => ({ ...toScreen(r), tree: J(r.tree), versionNumber: Number(r.vnum ?? 0) }));
 }
 
-export function createScreen(moduleId: string, name: string): Screen {
+export function createScreen(moduleId: string, name: string, actorId?: string): Screen {
   const s: Screen = { id: uid(), moduleId, name, status: "draft", currentVersionId: null, createdAt: now() };
-  getDb().prepare("INSERT INTO screens (id, module_id, name, status, created_at) VALUES (?, ?, ?, ?, ?)").run(s.id, s.moduleId, s.name, s.status, s.createdAt);
-  return s;
+  // Đợt 5: màn mới có rev 1 (mặc định của cột), ghi người/lúc tạo làm người/lúc sửa cuối
+  const by = actorId && getDb().prepare("SELECT 1 FROM members WHERE id = ?").get(actorId) ? actorId : null;
+  getDb()
+    .prepare("INSERT INTO screens (id, module_id, name, status, created_at, updated_by, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+    .run(s.id, s.moduleId, s.name, s.status, s.createdAt, by, s.createdAt);
+  return getScreen(s.id) ?? s;
 }
 
 export function updateScreen(id: string, patch: Partial<Pick<Screen, "name" | "status" | "currentVersionId">>): void {
@@ -267,7 +283,26 @@ function listData<T>(table: string, moduleId: string): T[] {
   return (getDb().prepare(`SELECT data FROM ${table} WHERE module_id = ? ORDER BY ord`).all(moduleId) as Row[]).map((r) => J(r.data));
 }
 
+/**
+ * Tài liệu của module cho test case, truy vết, gợi ý, xuất file (đợt 5): đọc `module_docs` trước
+ * (UC_SPEC → useCases, FRD_NFR → requirements, SRS → srs); loại nào chưa có dòng trong `module_docs`
+ * thì dùng bảng cũ (`use_cases`, `requirements`, `srs`) để module làm theo luồng cũ vẫn chạy.
+ */
 export function getDocs(moduleId: string): DocBundle {
+  const legacy = getLegacyDocs(moduleId);
+  const uc = getModuleDocRow(moduleId, "UC_SPEC");
+  const frd = getModuleDocRow(moduleId, "FRD_NFR");
+  const srs = getModuleDocRow(moduleId, "SRS");
+  return {
+    useCases: uc ? (uc.data?.useCases ?? []).map(normUseCase) : legacy.useCases,
+    requirements: frd ? (frd.data?.requirements ?? []).map(normRequirement) : legacy.requirements,
+    srs: srs ? (srs.data?.srs ?? null) : legacy.srs,
+    sequences: legacy.sequences,
+  };
+}
+
+/** Bảng cũ (luồng v2: generateDocs/refineDoc của màn Tài liệu cũ). Màn mới không dùng. */
+export function getLegacyDocs(moduleId: string): DocBundle {
   const srsRow = getDb().prepare("SELECT data FROM srs WHERE module_id = ?").get(moduleId) as Row | undefined;
   return {
     useCases: listData<UseCase>("use_cases", moduleId),
@@ -342,6 +377,74 @@ export function saveTests(moduleId: string, tests: TestCase[]): void {
     const st = d.prepare("INSERT INTO test_cases (module_id, code, ord, data) VALUES (?, ?, ?, ?)");
     tests.forEach((t, i) => st.run(moduleId, t.code, i, JSON.stringify(t)));
   });
+}
+
+// ---------- Đợt 5: đọc thẳng bảng của C4 (user_stories) và C5 (module_docs) – chỉ đọc, không ghi ----------
+export interface ModuleDocRow {
+  kind: DocKind;
+  content: string;
+  data: ModuleDocData | null;
+  status: ArtifactStatus;
+  rev: number;
+}
+
+export function getModuleDocRow(moduleId: string, kind: DocKind): ModuleDocRow | null {
+  const r = getDb().prepare("SELECT kind, content, data, status, rev FROM module_docs WHERE module_id = ? AND kind = ?").get(moduleId, kind) as Row | undefined;
+  if (!r) return null;
+  return { kind: r.kind, content: r.content ?? "", data: J(r.data), status: r.status, rev: Number(r.rev) };
+}
+
+/** User story của module theo thứ tự hiển thị (bảng `user_stories`, C4). */
+export function listModuleStories(moduleId: string): UserStory[] {
+  return (getDb().prepare("SELECT * FROM user_stories WHERE module_id = ? ORDER BY ord, code").all(moduleId) as Row[]).map((r) => ({
+    id: r.id,
+    projectId: r.project_id,
+    moduleId: r.module_id ?? null,
+    code: r.code,
+    asA: r.as_a ?? "",
+    iWant: r.i_want ?? "",
+    soThat: r.so_that ?? "",
+    acceptanceCriteria: J(r.acceptance_criteria, []),
+    priority: r.priority,
+    order: Number(r.ord ?? 0),
+    rev: Number(r.rev ?? 1),
+    updatedBy: r.updated_by ?? null,
+    updatedAt: r.updated_at ?? null,
+    createdAt: r.created_at,
+  }));
+}
+
+// Dữ liệu C5 ghi có thể thiếu trường mảng – chuẩn hoá để các hàm dùng .map/.includes không vỡ.
+const arrOf = (v: unknown): any[] => (Array.isArray(v) ? v : []);
+function normUseCase(u: any): UseCase {
+  return {
+    ...u,
+    code: String(u?.code ?? ""),
+    name: String(u?.name ?? ""),
+    actors: arrOf(u?.actors).map(String),
+    description: String(u?.description ?? ""),
+    trigger: String(u?.trigger ?? ""),
+    preconditions: arrOf(u?.preconditions).map(String),
+    postconditions: arrOf(u?.postconditions).map(String),
+    mainFlow: arrOf(u?.mainFlow),
+    altFlows: arrOf(u?.altFlows).map((a: any) => ({ ...a, steps: arrOf(a?.steps).map(String) })),
+    exceptions: arrOf(u?.exceptions).map((a: any) => ({ ...a, steps: arrOf(a?.steps).map(String) })),
+    businessRules: arrOf(u?.businessRules).map(String),
+    screenIds: arrOf(u?.screenIds).map(String),
+    assumptions: arrOf(u?.assumptions).map(String),
+  };
+}
+function normRequirement(r: any): Requirement {
+  return {
+    ...r,
+    code: String(r?.code ?? ""),
+    type: r?.type === "NFR" ? "NFR" : "FR",
+    statement: String(r?.statement ?? ""),
+    priority: ["High", "Medium", "Low"].includes(r?.priority) ? r.priority : "Medium",
+    useCaseCodes: arrOf(r?.useCaseCodes).map(String),
+    source: String(r?.source ?? ""),
+    isAssumption: !!r?.isAssumption,
+  };
 }
 
 export function getModuleDetail(id: string): ModuleDetail | null {

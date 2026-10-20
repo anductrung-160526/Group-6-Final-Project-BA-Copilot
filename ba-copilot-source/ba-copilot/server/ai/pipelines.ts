@@ -32,14 +32,27 @@ const NODE_SCHEMA = {
 };
 
 // ---------------------------------------------------------------- Sinh màn hình
-export async function generateScreen(args: { moduleId: string; prompt: string; name: string; requirementInput: string; otherScreens: string[] }): Promise<{ name: string; tree: UINode }> {
+/**
+ * Đợt 5: bối cảnh là SRS + FRD-NFR (bảng `module_docs`) + user story của module (bảng `user_stories`), do service dựng
+ * thành `context` (Markdown). `prompt` có thể trống – khi đó AI thiết kế màn theo tên màn và bối cảnh tài liệu.
+ */
+export async function generateScreen(args: {
+  moduleId: string;
+  prompt: string;
+  name: string;
+  context?: string;
+  /** @deprecated v2 – ô yêu cầu cũ; còn để scripts/build-corpus.ts biên dịch. Dùng `context`. */
+  requirementInput?: string;
+  otherScreens: string[];
+  mockPrompt?: string;
+}): Promise<{ name: string; tree: UINode }> {
   const prompt = `Thiết kế MỘT màn hình web theo yêu cầu của BA.
 
 ## Yêu cầu của BA
-${args.prompt}
+${args.prompt.trim() || `(BA không ghi thêm – thiết kế màn "${args.name}" theo tài liệu bên dưới)`}
 
-## Bối cảnh module (yêu cầu nghiệp vụ / user story)
-${args.requirementInput || "(không có)"}
+## Bối cảnh module (user story, SRS, FRD-NFR)
+${args.context || args.requirementInput || "(chưa có tài liệu)"}
 
 ## Các màn hình đã có trong module (dùng đúng tên này cho navigateTo)
 ${args.otherScreens.length ? args.otherScreens.map((s) => `- ${s}`).join("\n") : "(chưa có)"}
@@ -53,6 +66,7 @@ ${catalogText}
 - Trường nhập phải có label, name và ràng buộc hợp lý (required, minLength, maxLength, inputType, pattern).
 - Nút có action (động từ tiếng Anh ngắn) và navigateTo nếu chuyển màn hình.
 - Dữ liệu mẫu trong Table tối đa 3 dòng, thực tế, tiếng Việt.
+- Màn hình phải đáp ứng các yêu cầu chức năng (FR) và user story liên quan tới màn này; trường dữ liệu và ràng buộc lấy theo SRS/FRD-NFR khi có.
 - Bố cục gọn gàng, chuyên nghiệp; tối đa khoảng 40 node.`;
   return runAI({
     type: "generate_screen",
@@ -71,7 +85,7 @@ ${catalogText}
       return v.ok ? { value: { name: String(raw?.name || args.name || tree.props.title || "Màn hình"), tree } } : { errors: v.errors };
     },
     mock: () => {
-      const tree = mockScreen(args.prompt, args.name);
+      const tree = mockScreen(args.mockPrompt || args.prompt, args.name);
       return { name: args.name || String(tree.props.title), tree };
     },
   });
@@ -84,6 +98,8 @@ export async function editScreen(args: {
   selectedIds: string[];
   instruction: string;
   comments: { comment: string; nodeIds: string[] }[];
+  /** Đợt 5: tóm tắt user story + FRD-NFR của module, để AI sửa không lệch tài liệu. */
+  context?: string;
 }): Promise<{ ops: PatchOp[]; summary: string }> {
   const scoped = args.selectedIds.length > 0;
   const regionText = scoped
@@ -112,7 +128,10 @@ ${commentText}
 
 ## Yêu cầu sửa
 ${args.instruction || "(xem bình luận)"}
-
+${args.context ? `
+## Tài liệu của module (tham khảo, không được làm trái)
+${args.context}
+` : ""}
 ## Thư viện component
 ${catalogText}
 
@@ -399,11 +418,12 @@ ${JSON.stringify(args.useCases.map((u) => ({ ...u, screens: u.screenIds.map(titl
 
 // ---------------------------------------------------------------- Test case
 export async function generateTests(args: { moduleId: string; useCases: UseCase[]; requirements: Requirement[]; model: DesignModel }): Promise<TestCase[]> {
-  const prompt = `Sinh bộ test case thủ công (manual) cho module dựa trên tài liệu đã duyệt.
+  const prompt = `Sinh bộ test case thủ công (manual) cho module dựa trên UC Specification và FRD-NFR (đã Xong).
 Kỹ thuật bắt buộc:
 - Kịch bản: mỗi luồng (main, từng A*, từng E*) của mỗi UC có ít nhất 1 test; flowRef = "main" hoặc mã luồng.
 - Phân vùng tương đương & giá trị biên: mỗi trường có minLength/maxLength/min/max → test Boundary (dưới biên, đúng biên, vượt biên).
 - Mỗi test tham chiếu ít nhất 1 mã yêu cầu (requirementCodes) có trong danh sách.
+- Mỗi yêu cầu chức năng (FR) có ít nhất 1 test. Nếu không có Use Case thì useCaseCode để trống ("").
 - Mã test: TC-001, TC-002...; type: Positive | Negative | Boundary; priority: High | Medium | Low.
 - steps là các bước thao tác cụ thể; testData là dữ liệu cụ thể; expected là kết quả kiểm chứng được.
 
@@ -470,7 +490,7 @@ ${JSON.stringify(args.model.screens.map((s) => ({ screen: s.title, fields: s.fie
       const errors: string[] = [];
       if (!tcs.length) errors.push("Không có test case");
       for (const t of tcs) {
-        if (!ucCodes.has(t.useCaseCode)) errors.push(`${t.code}: useCaseCode không tồn tại (${t.useCaseCode})`);
+        if (ucCodes.size ? !ucCodes.has(t.useCaseCode) : t.useCaseCode !== "") errors.push(`${t.code}: useCaseCode không tồn tại (${t.useCaseCode})`);
         if (!t.requirementCodes.length) errors.push(`${t.code}: thiếu requirementCodes hợp lệ (BR-04)`);
       }
       return errors.length ? { errors } : { value: tcs };
