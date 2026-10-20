@@ -1,13 +1,15 @@
 // Khung trong dự án (đợt 5, kế hoạch mục 3 "C3"): đầu trang (tên dự án + nút GitHub) + menu trái (SideNav) dựng từ
 // registry client/projectMenu.ts + vùng nội dung. "Thực hiện công việc" có bộ chọn module ở đầu vùng nội dung, nhớ
-// module chọn gần nhất theo dự án; tạo / xoá module ở đây. Màn hẹp: menu trái thu thành nút "Menu" mở ngăn phải.
+// module chọn gần nhất theo dự án; xoá module ở đây. Tạo module chuyển sang màn "Yêu cầu nghiệp vụ" (đợt 6 – D3: có module
+// trước rồi mới viết story) – dự án chưa có module thì bước làm việc chỉ dẫn sang đó. Màn hẹp: menu trái thu thành nút
+// "Menu" mở ngăn phải.
 // Chủ sở hữu: C3. Nội dung từng màn do agent chủ màn làm (cột owner trong projectMenu.ts).
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import type { Module, Project } from "../../shared/types.ts";
-import { del, get, post } from "../api.ts";
+import { del, get } from "../api.ts";
 import { useCurrentMember } from "../currentMember.ts";
-import { PROJECT_MENU, WORK_STEPS, gitHref, projectHref, workHref, type ProjectRoute, type WorkStepItem } from "../projectMenu.ts";
-import { Btn, Drawer, Empty, Field, ICON_NAMES, Icon, Modal, RowActions, Select, SideNav, useUI, type IconName, type SideNavItem } from "./ui.tsx";
+import { PROJECT_MENU, WORK_STEPS, gitHref, projectHref, storiesHref, workHref, type ProjectRoute, type WorkStepItem } from "../projectMenu.ts";
+import { Btn, Drawer, Empty, ICON_NAMES, Icon, RowActions, Select, SideNav, useUI, type IconName, type SideNavItem } from "./ui.tsx";
 
 type ProjectData = Project & { modules: Module[] };
 
@@ -67,7 +69,6 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
   const [project, setProject] = useState<ProjectData | null>(null);
   const [missing, setMissing] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [creating, setCreating] = useState<string | null>(null); // tên module đang nhập, null = đóng hộp thoại
 
   const load = useCallback(
     () =>
@@ -84,6 +85,16 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
     setProject(null);
     load();
   }, [load]);
+  // Module tạo ở màn Yêu cầu nghiệp vụ (StoriesView phát sự kiện "bacopilot:modules-changed") → tải lại danh sách module
+  // để menu trái trỏ đúng module; đổi mục menu cũng tải lại cho chắc (không xoá màn đang hiện).
+  useEffect(() => {
+    const h = () => void load();
+    window.addEventListener("bacopilot:modules-changed", h);
+    return () => window.removeEventListener("bacopilot:modules-changed", h);
+  }, [load]);
+  useEffect(() => {
+    if (project) load();
+  }, [section]);
 
   // Đóng menu (màn hẹp) khi chuyển trang.
   useEffect(() => {
@@ -132,17 +143,6 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
   const sub = subOf(step, params);
   const active = section === "work" ? (step ? `work/${step.key}${sub ? `/${sub}` : ""}` : "work") : section;
 
-  const createModule = async () => {
-    const name = (creating ?? "").trim();
-    if (!name) return;
-    const m = await run("Đang tạo module", () => post<Module>(`/api/projects/${encodeURIComponent(pid)}/modules`, { name }));
-    if (!m) return;
-    setCreating(null);
-    toast(`Đã tạo module ${m.name}`, "ok");
-    writeModule(pid, m.id);
-    await load();
-    window.location.hash = workHref(pid, m.id, step?.key ?? "docs");
-  };
   const deleteModule = async (m: Module) => {
     const r = await run("Đang xoá module", () => del(`/api/modules/${encodeURIComponent(m.id)}`));
     if (!r) return;
@@ -176,11 +176,12 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
       <div className="page">
         <Empty title="Chưa có module">
           Module là một nhóm chức năng (VD: Xác thực, Quản lý sản phẩm). Mỗi module đi qua 5 bước: Tài liệu → Sơ đồ → Prototype → Test case → Truy vết.
+          Tạo module và viết user story ở mục Yêu cầu nghiệp vụ trước.
         </Empty>
-        <Btn kind="primary" onClick={() => setCreating("")} data-testid="new-module">
-          <Icon name="plus" size="sm" />
-          Module
-        </Btn>
+        <a className="btn btn-primary btn-md" href={storiesHref(pid)} data-testid="go-stories">
+          <Icon name="arrowRight" size="sm" />
+          Đến Yêu cầu nghiệp vụ
+        </a>
       </div>
     );
   } else if (!validUrlModule || !step) {
@@ -204,11 +205,6 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
             onDelete={() => deleteModule(current)}
             deleteConfirm={{ title: `Xoá module "${current.name}"?`, message: "Tài liệu, sơ đồ, màn hình và test case của module sẽ bị xoá. User story của module được giữ lại, không còn gắn module.", okLabel: "Xoá" }}
           />
-          <span className="spacer" />
-          <Btn size="sm" onClick={() => setCreating("")} data-testid="new-module">
-            <Icon name="plus" size="sm" />
-            Module
-          </Btn>
         </div>
         <Step key={`${validUrlModule}/${step.key}`} projectId={pid} moduleId={validUrlModule} params={params} />
       </>
@@ -251,33 +247,6 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
         <Drawer title="Menu dự án" onClose={() => setMenuOpen(false)} testId="project-menu-drawer">
           {nav}
         </Drawer>
-      )}
-
-      {creating !== null && (
-        <Modal
-          title="Module mới"
-          onClose={() => setCreating(null)}
-          footer={
-            <>
-              <Btn onClick={() => setCreating(null)}>Huỷ</Btn>
-              <Btn kind="primary" disabled={!creating.trim()} onClick={createModule} data-testid="create-module">
-                Tạo module
-              </Btn>
-            </>
-          }
-        >
-          <Field label="Tên module" hint="User story của module nhập ở mục Yêu cầu nghiệp vụ.">
-            <input
-              autoFocus
-              value={creating}
-              maxLength={200}
-              onChange={(e) => setCreating(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && createModule()}
-              placeholder="VD: Xác thực người dùng"
-              data-testid="module-name"
-            />
-          </Field>
-        </Modal>
       )}
     </div>
   );

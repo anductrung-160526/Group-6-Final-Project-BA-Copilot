@@ -1,8 +1,9 @@
 // E2E luồng demo BA Copilot – đợt 5 (C11). Trình duyệt thật, chế độ Mock, DB tạm. Dựa vào data-testid (không dựa vào chữ / icon).
 //
 //   Luồng chính:
-//     1. Chuẩn bị: 1 BA Lead + 1 BA (API), "Tôi là" BA, tạo dự án + module bằng giao diện
-//     2. Yêu cầu nghiệp vụ: thêm 2 user story có cấu trúc
+//     1. Chuẩn bị: 1 BA Lead + 1 BA (API), "Tôi là" BA, tạo dự án bằng giao diện
+//     2. Yêu cầu nghiệp vụ: dự án chưa có module → nút thêm story bị khoá; tạo module ngay tại màn này (đợt 6 – D3)
+//        rồi thêm 2 user story có cấu trúc
 //     3. Tài liệu: sinh BRD → UC Spec → SRS → FRD-NFR → API Spec (Mock), bấm Xong từng bước
 //     4. Sơ đồ: sinh Context, UC, BPMN (vẽ được bằng Mermaid), bấm Xong
 //     5. Prototype: sinh 1 màn, Xuất HTML, bấm Xong
@@ -202,20 +203,25 @@ try {
     projectId = decodeURIComponent(page.url().match(/#\/p\/([^/]+)\//)[1]);
     check(!!projectId, "tạo dự án → mở thẳng Quản lý công việc");
     await tid("pnav-work").click();
-    await tid("new-module").click();
-    await tid("module-name").fill(MODULE);
-    await tid("create-module").click();
-    await page.waitForURL(/#\/p\/[^/]+\/work\/[^/]+/);
-    moduleId = decodeURIComponent(page.url().match(/\/work\/([^/]+)/)[1]);
-    check(!!moduleId, `tạo module "${MODULE}" trong Thực hiện công việc`);
-    // Task gắn tài liệu API Spec (BA Lead giao) – để kiểm tra task đi theo vòng Xong / Yêu cầu sửa / Duyệt
-    taskId = (await api("POST", `/api/projects/${projectId}/tasks`, { title: TASK_TITLE, moduleId, assigneeId: baId, artifactType: "doc", artifactId: moduleId, artifactSub: "API_SPEC", actorId: leadId })).id;
+    await tid("go-stories").waitFor();
+    check((await tid("new-module").count()) === 0, "Thực hiện công việc không còn nút tạo module, chỉ dẫn sang Yêu cầu nghiệp vụ");
   });
 
   // ================================================================ 2. Yêu cầu nghiệp vụ
   await step("2. Yêu cầu nghiệp vụ", async () => {
-    await tid("pnav-stories").click();
+    await tid("go-stories").click();
     await tid("stories-view").waitFor();
+    check(await tid("story-add").isDisabled(), "dự án chưa có module → nút Thêm user story bị khoá");
+    check((await tid("story-add-hint").innerText()).includes("Tạo module trước"), 'có lời nhắc "Tạo module trước…"');
+    await shot("02a-chua-co-module");
+    await tid("new-module").click();
+    await tid("module-name").fill(MODULE);
+    await tid("create-module").click();
+    await page.waitForURL(/#\/p\/[^/]+\/stories\/[^/]+/);
+    moduleId = decodeURIComponent(page.url().match(/\/stories\/([^/]+)/)[1]);
+    check(!!moduleId && (await tid("story-add").isEnabled()), `tạo module "${MODULE}" ở Yêu cầu nghiệp vụ → nút Thêm user story mở`);
+    // Task gắn tài liệu API Spec (BA Lead giao) – để kiểm tra task đi theo vòng Xong / Yêu cầu sửa / Duyệt
+    taskId = (await api("POST", `/api/projects/${projectId}/tasks`, { title: TASK_TITLE, moduleId, assigneeId: baId, artifactType: "doc", artifactId: moduleId, artifactSub: "API_SPEC", actorId: leadId })).id;
     const stories = [
       { asA: "nhân viên bán hàng", iWant: "xem danh sách đơn hàng theo trạng thái", soThat: "xử lý đơn mới trong ngày", ac: ["Mặc định lọc đơn Mới", "Hiện tối đa 20 đơn, mới nhất trước"], priority: "High" },
       { asA: "nhân viên bán hàng", iWant: "huỷ đơn hàng chưa giao", soThat: "trả lại tồn kho khi khách đổi ý", ac: ["Bắt buộc nhập lý do huỷ"], priority: "Medium" },
@@ -226,7 +232,7 @@ try {
       await tid("story-asA").fill(s.asA);
       await tid("story-iWant").fill(s.iWant);
       await tid("story-soThat").fill(s.soThat);
-      await tid("story-module").selectOption({ label: MODULE });
+      check((await tid("story-module").inputValue()) === moduleId, "dòng mới mặc định chọn module đang xem");
       await tid("story-priority").selectOption(s.priority);
       for (const [k, c] of s.ac.entries()) {
         if (k > 0) await tid("story-ac-add").click();

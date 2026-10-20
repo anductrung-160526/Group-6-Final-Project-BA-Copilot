@@ -168,7 +168,7 @@ Người viết: **C2**. Kế hoạch: `docs/Ke_hoach_Agent_BA_Copilot_v2_dot5.m
 | PATCH | `/api/stories/:id` | `UserStoryInput & { baseRev? }` | `UserStory` · `409 CONFLICT` | `requireMember` | `updateStory(id, b)` |
 | DELETE | `/api/stories/:id` | – | `{ ok: true }` | `requireMember` | `deleteStory(id)` |
 
-`UserStoryInput = { moduleId?, asA?, iWant?, soThat?, acceptanceCriteria?: string[], priority?: "High" \| "Medium" \| "Low" }`. `moduleId` phải thuộc dự án → `400`. QUS (`GET /api/modules/:id/qus`, C4) chuyển sang chấm trên story ghép lại thành câu.
+`UserStoryInput = { moduleId?, asA?, iWant?, soThat?, acceptanceCriteria?: string[], priority?: "High" \| "Medium" \| "Low" }`. `moduleId` phải thuộc dự án → `400`. **Đợt 6 (D3):** `POST` bắt buộc `moduleId` (thiếu / rỗng / `null` → `400` "Chưa chọn module…", dự án chưa có module → `400` "Dự án chưa có module – tạo module trước…"); `PATCH` gửi `moduleId` rỗng / `null` → `400` (không bỏ gắn được), không gửi thì giữ nguyên – story cũ đã mất module (module bị xoá → `null`) vẫn sửa được và gắn lại bằng `moduleId` hợp lệ. QUS (`GET /api/modules/:id/qus`, C4) chuyển sang chấm trên story ghép lại thành câu.
 
 ## 5.3 Tài liệu theo bước – `server/routes/docs.ts` (C5, **501**)
 

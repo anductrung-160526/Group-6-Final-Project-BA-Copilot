@@ -1,6 +1,7 @@
 // Yêu cầu nghiệp vụ – user story cấp dự án (kế hoạch đợt 5, mục 3 "C4"). Chủ sở hữu: C4.
 // Hợp đồng: docs/api.md "Đợt 5" mục 5.2. Truy vấn: server/repo/stories.ts.
 // Ghi: requireMember(ctx) → assertRev(rev, baseRevOf(body)) (trong repo) → rev + 1, updated_by = người thao tác.
+// Tạo story bắt buộc `moduleId` hợp lệ của dự án (đợt 6 – D3), thiếu → 400 kèm câu nhắc tạo module trước.
 // Story đổi → tài liệu đang có của module chuyển Lỗi thời (artifact.stale) và chấm lại QUS của dự án.
 
 import { arr, baseRevOf, currentMember, HttpError, requireMember, route, type HandlerCtx } from "../http.ts";
