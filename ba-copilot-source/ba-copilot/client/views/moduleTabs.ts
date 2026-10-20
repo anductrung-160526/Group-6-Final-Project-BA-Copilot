@@ -5,6 +5,7 @@ import { createElement, type ComponentType } from "react";
 import type { ModuleDetail } from "../../shared/types.ts";
 import { DesignTab } from "./DesignTab.tsx";
 import { DocsTab } from "./DocsTab.tsx";
+import { DiagramTab } from "./DiagramTab.tsx";
 import { TestsTab } from "./TestsTab.tsx";
 import { TraceTab } from "./TraceTab.tsx";
 import { LogsTab } from "./LogsTab.tsx";
@@ -33,6 +34,7 @@ export const MODULE_TABS: ModuleTab[] = [
     },
   },
   { key: "docs", label: "2. Tài liệu", component: DocsTab, note: (m) => m.docsStatus },
+  { key: "diagram", label: "Sơ đồ UC", component: DiagramTab },
   { key: "tests", label: "3. Test case", component: TestsTab, note: (m) => m.testsStatus },
   { key: "trace", label: "4. Truy vết", component: TraceTab },
   { key: "logs", label: "Nhật ký AI", component: ({ m }) => createElement(LogsTab, { moduleId: m.id }) },

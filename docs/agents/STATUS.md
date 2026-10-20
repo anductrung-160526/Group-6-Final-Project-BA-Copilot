@@ -11,7 +11,7 @@ Người cập nhật: **A0**. Mỗi agent dán kết quả `npm test` / `npm ru
 | A2 | Nền tảng dữ liệu & hợp đồng | 1 | `agent/a2-nen-tang` | ✅ Đã gộp vào `v2-contract`; `api.md`/`erd.md` đã duyệt và **khoá** | 59/59 ✅ | ✅ | Xem nhật ký đợt 1 – A0 |
 | A3 | Thành viên & thanh trên | 2 | `agent/a3-thanh-vien` | ⏳ Sẵn sàng | — | — | |
 | A4 | Kho tài liệu | 2 | `agent/a4-kho-tai-lieu` | ⏳ Sẵn sàng | — | — | Code C4 đã có trên `v2-base` |
-| A5 | Sơ đồ UC | 2 | `agent/a5-so-do-uc` | ⏳ Sẵn sàng | — | — | |
+| A5 | Sơ đồ UC | 2 | `agent/a5-so-do-uc` | ✅ Xong, chờ gộp | 81/81 ✅ (15 mới) | ✅ | FN-11 → FN-14 đạt. Mở R-009 (A2, `app.ts` trả `null`), R-010 (A1, class 2 cột). Xem nhật ký đợt 2 – A5 |
 | A6 | Công việc Kanban | 2 | `agent/a6-kanban` | ⏳ Sẵn sàng | — | — | |
 | A7 | Tự cập nhật trạng thái task | 2 | `agent/a7-tu-cap-nhat` | ⏳ Sẵn sàng | — | — | Gộp sau A6 |
 | A8 | Chất lượng yêu cầu (QUS) | 2 | `agent/a8-qus` | ⏳ Sẵn sàng | — | — | Phần lớn đã có; việc còn lại ghi ở khung "Hiện trạng" mục A8 trong kế hoạch (chính: FN-56, `ScoreBadge`/`IssueList`) |
@@ -134,3 +134,27 @@ Ba lựa chọn A2 tự chốt, A0 **xác nhận** (tài liệu v2 không quy đ
 
 **A8, A9:** mục A8 và A9 trong `docs/Ke_hoach_Agent_BA_Copilot_v2.md` đã có khung "Hiện trạng trên `v2-contract`", ghi rõ phần đã có, việc còn lại và 2 chỗ lệch hợp đồng của `suggest.ts`. Khi khởi chạy A8, A9, phải giữ nguyên khung đó trong prompt.
 
+
+---
+
+## Nhật ký đợt 2 – A5 (2026-10-20)
+
+**Nhánh:** `agent/a5-so-do-uc`, tạo từ `v2-contract` @ `1aabff2`.
+
+### Kiểm tra (`ba-copilot-source/ba-copilot`, Node v24.16.0)
+
+| Lệnh | Kết quả |
+|---|---|
+| `npm test` | ✅ `tests 81 · pass 81 · fail 0` (66 cũ + 15 mới trong `tests/ucDiagram.test.ts`), `duration_ms 19210` |
+| `npm run build` | ✅ `public/app.js 338.6kb`, `public/app-style.css 41.2kb`, `Done` |
+| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+| Chạy app (Mock, DB mới) + Chrome | ✅ Tab "Sơ đồ UC": trạng thái rỗng → Sinh sơ đồ → Mermaid vẽ được (actor tròn, UC bầu dục, khung Hệ thống); gõ thêm cạnh «include»/«extend» thì xem trước vẽ lại; Lưu → Duyệt → Bỏ duyệt → Duyệt đúng huy hiệu; sinh lại tài liệu khi UC đổi → huy hiệu "Lỗi thời" + băng cảnh báo. 0 lỗi console |
+
+`public/app.js`, `public/app-style.css` **không** commit (sản phẩm build).
+
+### Điểm A0 cần biết khi gộp
+- `client/views/moduleTabs.ts`: thêm **2 dòng** (1 dòng import `DiagramTab` + 1 dòng đăng ký tab `diagram` ngay sau tab Tài liệu). Bảng sở hữu ghi "đúng một dòng" – không thể đăng ký mà không import.
+- `server/ai/pipelines.ts`, `server/ai/mock.ts`: chỉ thêm (2 dòng import ở đầu tệp + hàm mới ở cuối), không sửa dòng cũ.
+- **actorId:** `DiagramTab` chưa gửi `actorId` vì `client/currentMember.ts` (A3) chưa có trên `v2-contract`. Sau khi gộp A3, chèn `useCurrentMember()` và truyền id vào `generateDiagram`, `saveDiagram`, `approveDiagram` (tham số thứ 2/3 đã có sẵn trong `client/api.ts`).
+- **FN-14:** handler nghe `artifact.drafted` (`kind: "docs"`) đăng ký trong `server/routes/diagram.ts`. Sơ đồ ghi dòng `%% nguon-uc: <mã băm>` của UC lúc vẽ; chỉ chuyển "Lỗi thời" khi mã/tên/actor/quan hệ UC thật sự đổi (chỉnh SRS hay Sequence thì giữ nguyên). Thứ tự sự kiện khi sinh lại / lưu sơ đồ đang Đã duyệt: `unapproved` rồi `drafted` (giống tài liệu).
+- R-009, R-010 trong `REQUESTS.md`.
