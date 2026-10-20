@@ -10,10 +10,8 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createElement } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
 import { getDb } from "./db.ts";
-import { Renderer } from "../client/components/Renderer.tsx";
+import { screenToHtml } from "../shared/exportHtml.ts";
 import type { UINode } from "../shared/design.ts";
 import {
   DIAGRAM_KIND_LABEL,
@@ -179,24 +177,16 @@ function prototypeCss(): string {
   return (cssCache = FALLBACK_CSS);
 }
 
-/** HTML tĩnh tự chứa của một màn (tạm – xem ghi chú ở trên). */
+/** HTML tĩnh tự chứa của một màn – dùng `screenToHtml` của C9 (shared/exportHtml.ts), C0 thay bản tạm khi gộp. */
 export function screenHtml(name: string, tree: UINode | null, moduleName: string): string {
-  let body = `<p style="padding:24px">Màn chưa có bản thiết kế.</p>`;
-  if (tree) {
-    try {
-      body = renderToStaticMarkup(createElement(Renderer, { node: tree }));
-    } catch {
-      body = `<p style="padding:24px">Không dựng được giao diện của màn này.</p>`;
-    }
-  }
-  return `<!doctype html>
+  if (!tree) {
+    return `<!doctype html>
 <html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(name)} – ${esc(moduleName)}</title>
-<style>
-${prototypeCss()}
-</style></head>
-<body>${body}</body></html>
+<title>${esc(name)} – ${esc(moduleName)}</title></head>
+<body><p style="padding:24px">Màn chưa có bản thiết kế.</p></body></html>
 `;
+  }
+  return screenToHtml(tree, { title: `${name} – ${moduleName}`, backHref: "index.html", footer: `Xuất từ BA Copilot – ${moduleName}` });
 }
 
 function prototypeIndex(moduleName: string, items: { name: string; file: string }[]): string {
