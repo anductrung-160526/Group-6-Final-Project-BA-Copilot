@@ -6,23 +6,16 @@ Người cập nhật: **A0**. Mỗi agent dán kết quả `npm test` / `npm ru
 
 | Mã | Agent | Đợt | Nhánh | Trạng thái | Test | Build | Ghi chú |
 |---|---|---|---|---|---|---|---|
-| A0 | Tích hợp & Điều phối | 0, 4 | `v2-base` | ✅ Đợt 0 xong | 48/48 (xem lưu ý) | ✅ | Xem nhật ký đợt 0 |
+| A0 | Tích hợp & Điều phối | 0, 2, 4 | `v2-base`, `v2-features` | ✅ Đợt 0 xong; ✅ gộp đợt 2 xong | 143/143 | ✅ | Xem nhật ký đợt 0 và nhật ký gộp đợt 2 |
 | A1 | Design System | 1 | `chi_task` (`336c9e2`) | ✅ Đã gộp vào `v2-contract` | ✅ | ✅ | Làm thẳng trên `chi_task`, không có nhánh agent riêng. Route `#/_gallery` chuyển sang `client/routes.ts` |
 | A2 | Nền tảng dữ liệu & hợp đồng | 1 | `agent/a2-nen-tang` | ✅ Đã gộp vào `v2-contract`; `api.md`/`erd.md` đã duyệt và **khoá** | 59/59 ✅ | ✅ | Xem nhật ký đợt 1 – A0 |
-| A3 | Thành viên & thanh trên | 2 | `agent/a3-thanh-vien` | ⏳ Sẵn sàng | — | — | |
-| A4 | Kho tài liệu | 2 | `agent/a4-kho-tai-lieu` | ✅ Xong, chờ A0 gộp | 75/75 ✅ | ✅ | FN-04 → FN-10 đạt (kể cả FN-08). Xem nhật ký đợt 2 – A4; yêu cầu R-005, R-006 |
-| A3 | Thành viên & thanh trên | 2 | `agent/a3-thanh-vien` | ✅ Xong, chờ gộp. FN-01 đạt; FN-02 đạt sau khi A0 gắn TopBar (R-005); FN-03 một phần (chờ R-006, R-007) | 70/70 ✅ | ✅ | Xem nhật ký đợt 2 – A3 |
-| A4 | Kho tài liệu | 2 | `agent/a4-kho-tai-lieu` | ⏳ Sẵn sàng | — | — | Code C4 đã có trên `v2-base` |
-| A5 | Sơ đồ UC | 2 | `agent/a5-so-do-uc` | ⏳ Sẵn sàng | — | — | |
-| A6 | Công việc Kanban | 2 | `agent/a6-kanban` | ✅ Xong, chờ A0 gộp | 77/77 ✅ (11 test mới) | ✅ | FN-15 → FN-19 đạt. Xem nhật ký đợt 2 – A6 (điểm A0 chèn khi gộp) |
-| A5 | Sơ đồ UC | 2 | `agent/a5-so-do-uc` | ✅ Xong, chờ gộp | 81/81 ✅ (15 mới) | ✅ | FN-11 → FN-14 đạt. Mở R-009 (A2, `app.ts` trả `null`), R-010 (A1, class 2 cột). Xem nhật ký đợt 2 – A5 |
-| A6 | Công việc Kanban | 2 | `agent/a6-kanban` | ⏳ Sẵn sàng | — | — | |
-| A7 | Tự cập nhật trạng thái task | 2 | `agent/a7-tu-cap-nhat` | ⏳ Sẵn sàng | — | — | Gộp sau A6 |
-| A8 | Chất lượng yêu cầu (QUS) | 2 | `agent/a8-qus` | ✅ Xong, chờ gộp. FN-50 → FN-55 đạt; FN-56 xong phần của A8, chờ A0 chèn R-020 → R-022 | 75/75 ✅ (`qus.test.ts` 21/21) | ✅ | Xem nhật ký đợt 2 – A8 |
-| A6 | Công việc Kanban | 2 | `agent/a6-kanban` | ⏳ Sẵn sàng | — | — | |
-| A7 | Tự cập nhật trạng thái task | 2 | `agent/a7-tu-cap-nhat` | ✅ Xong, chờ gộp (sau A6) | 88/88 ✅ | ✅ | FN-20 → FN-23. Khi gộp: R-011 (2 dòng trong `app.ts`). Xem nhật ký đợt 2 – A7 |
-| A8 | Chất lượng yêu cầu (QUS) | 2 | `agent/a8-qus` | ⏳ Sẵn sàng | — | — | Phần lớn đã có; việc còn lại ghi ở khung "Hiện trạng" mục A8 trong kế hoạch (chính: FN-56, `ScoreBadge`/`IssueList`) |
-| A9 | Gợi ý màn tiếp theo | 2 | `agent/a9-goi-y` | ✅ Xong, chờ gộp (cuối đợt 2) | 70/70 ✅ (`suggest.test.ts` 10/10) | ✅ | FN-57 → FN-61 đạt. API + bảng `suggestion_dismissals`, `SuggestionsPanel` thay khối cũ trong `DesignTab.tsx`, hết 2 chỗ lệch hợp đồng. Mở R-012 (CSS `.suggest-*`, chủ A1). Xem nhật ký đợt 2 – A9 |
+| A3 | Thành viên & thanh trên | 2 | `agent/a3-thanh-vien` (`832441f`) | ✅ Đã gộp vào `v2-features`. FN-01 → FN-03 đạt sau R-005 → R-007 | 70/70 ✅ | ✅ | Xem nhật ký đợt 2 – A3 và A0 |
+| A4 | Kho tài liệu | 2 | `agent/a4-kho-tai-lieu` (`5a3a569`) | ✅ Đã gộp vào `v2-features`. FN-04 → FN-10 đạt; đã bỏ bọc `writeHead` (R-013), dọn tab cũ (R-014) | 75/75 ✅ | ✅ | Xem nhật ký đợt 2 – A4 và A0 |
+| A5 | Sơ đồ UC | 2 | `agent/a5-so-do-uc` (`ad26ab9`) | ✅ Đã gộp vào `v2-features`. FN-11 → FN-14 đạt; R-009, R-010 xong | 81/81 ✅ | ✅ | Xem nhật ký đợt 2 – A5 và A0 |
+| A6 | Công việc Kanban | 2 | `agent/a6-kanban` (`5e5f394`) | ✅ Đã gộp vào `v2-features`. FN-15 → FN-19 đạt; `RelatedTasks` đã chèn vào DesignTab, DocsTab | 77/77 ✅ | ✅ | Xem nhật ký đợt 2 – A6 và A0 |
+| A7 | Tự cập nhật trạng thái task | 2 | `agent/a7-tu-cap-nhat` (`ec8abaa`) | ✅ Đã gộp vào `v2-features`. FN-20 → FN-23 đạt trên app thật (R-011) | 88/88 ✅ | ✅ | Xem nhật ký đợt 2 – A7 và A0 |
+| A8 | Chất lượng yêu cầu (QUS) | 2 | `agent/a8-qus` (`7c59ab1`) | ✅ Đã gộp vào `v2-features`. FN-50 → FN-56 đạt (R-020 → R-023 xong) | 75/75 ✅ | ✅ | Xem nhật ký đợt 2 – A8 và A0 |
+| A9 | Gợi ý màn tiếp theo | 2 | `agent/a9-goi-y` (`addfdb9`) | ✅ Đã gộp vào `v2-features`. FN-57 → FN-61 đạt; R-012 xong | 70/70 ✅ | ✅ | Xem nhật ký đợt 2 – A9 và A0 |
 | A10 | Dữ liệu demo | 3 | `agent/a10-seed` | ⏳ Chờ đợt 2 | — | — | |
 | A11 | Kiểm thử E2E & QA | 3 | `agent/a11-e2e` | ⏳ Chờ A10 | — | — | |
 | A12 | Tài liệu & Triển khai | 3, 4 | `agent/a12-trien-khai` | ⏳ Chờ A11 | — | — | |
@@ -35,7 +28,7 @@ Thứ tự gộp đợt 2: A8 → A4 → A3 → A6 → A7 → A5 → A9.
 |---|---|---|
 | 0 | `v2-base` | ✅ Test và build qua (2026-10-20) |
 | 1 | `v2-contract` | ✅ Build qua, 66/66 test (2026-10-20). **Nhánh nền cho đợt 2** |
-| 2 | `v2-features` | ⏳ |
+| 2 | `v2-features` | ✅ 143/143 test, build qua, E2E demo A11 27/27 và E2E cũ 18/18 (2026-10-20). **Nhánh nền cho đợt 3** |
 | 3–4 | `v2-demo` | ⏳ |
 
 ---
@@ -185,6 +178,7 @@ Ba lựa chọn A2 tự chốt, A0 **xác nhận** (tài liệu v2 không quy đ
 - **R-022** (`ProjectView.tsx`, ngoài Modal): cột "Chất lượng" với `ScoreBadge`.
 - **R-023** (`styles.css`, A1): dọn class `.qus-*` không còn dùng, thêm `cursor: pointer` cho `.qus-story-head`.
 - **Báo A9:** `splitStories` nay tách thêm các câu "As a…"/"Là…" viết liền một dòng; `tests/suggest.test.ts` vẫn xanh.
+
 ## Nhật ký đợt 2 – A2 (R-005)
 
 **Việc:** sửa phản hồi tệp (`FileResponse`) để `/api/files/:id/preview` hiện được trong `<iframe>` và tên tệp tiếng Việt không còn gây lỗi 500.
@@ -202,6 +196,9 @@ Ba lựa chọn A2 tự chốt, A0 **xác nhận** (tài liệu v2 không quy đ
 | `npx tsc --noEmit` | ✅ Không lỗi kiểu |
 
 Lưu ý: lần chạy đầu `npm test` và `tsc` bị hết bộ nhớ vì máy đang chạy nhiều agent cùng lúc. Chạy lại thì qua, không liên quan đến thay đổi.
+
+---
+
 ## Nhật ký đợt 2 – A4 (2026-10-20)
 
 **Nhánh:** `agent/a4-kho-tai-lieu`, tạo từ `v2-contract` @ `1aabff2`.
@@ -217,9 +214,52 @@ Lưu ý: lần chạy đầu `npm test` và `tsc` bị hết bộ nhớ vì máy
 | FN-07 | Bảng tệp xếp theo module (Cấp dự án trước); xoá có hộp thoại xác nhận, xoá luôn tệp vật lý |
 | FN-08 | Ô tìm theo tên (không phân biệt dấu) + lọc module; server hỗ trợ `?q=` và `?moduleId=` |
 | FN-09, FN-10 | `FileDrawer` (`Drawer` lg): PDF bằng `<iframe>`, ảnh bằng `<img>`, loại khác "Tải về để xem"; nút Tải về; `GET /api/files/:id`, `/preview` (`inline`, `415` với loại khác), `/download` giữ tên tiếng Việt |
+
+### Kiểm tra (`ba-copilot-source/ba-copilot`, Node v24.16.0)
+
+| Lệnh | Kết quả |
+|---|---|
+| `npm test` | ✅ `tests 75 · pass 75 · fail 0` (66 cũ + 9 test A4 mới trong `tests/files.test.ts`), `duration_ms 12012` |
+| `npm run build` | ✅ `public/app.js 347.4kb`, `public/app-style.css 41.2kb`, `Done` |
+| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+| Chạy app (Mock, DB mới) + Chrome | ✅ Thả 3 tệp (PDF, PNG, XLSX) + 1 `.txt` cùng lúc: `.txt` bị chặn, 3 tệp lên đủ, đúng module và nguồn. Xem PDF trong ngăn phải, Word hiện "Tải về để xem", tìm "bang gia", đổi tên, xoá có xác nhận, link `#/p/:id/files/:moduleId` lọc đúng module. 0 lỗi console |
+
+`public/app.js`, `public/app-style.css` **không** commit (sản phẩm build) – A0 sinh lại sau khi gộp.
+
+### Điểm A0 xử lý khi gộp
+
+- **R-006:** xoá `LegacyFilesPage` trong `client/routes.ts`, bỏ tab "files" + import `FilesTab` trong `ProjectView.tsx`, rồi xoá `client/views/FilesTab.tsx`.
+- **R-005 (A2):** hỗ trợ `inline` và tên tệp tiếng Việt trong `FileResponse`; tới lúc đó `server/routes/files.ts` tự ghi đè header.
+- **Sau khi gộp A3:** `FilesView` chưa gửi `actorId` (chưa có `useCurrentMember()`). Server đã nhận và lưu `uploaded_by` nếu thành viên tồn tại; chỉ cần thêm `actorId: me?.id` vào lời gọi `uploadFile` trong `FilesView.tsx` (A4 làm nếu được giao lại).
+- Đổi danh sách loại tệp: `.pptx`, `.txt`, `.md`, `.csv` **không còn tải lên được** (theo yêu cầu "Word, PDF, Excel, ảnh"). Tệp loại đó đã có trong kho vẫn xem danh sách, tải về và xoá được.
+
+---
+
 ## Nhật ký đợt 2 – A3 (2026-10-20)
 
 **Nhánh:** `agent/a3-thanh-vien`, tạo từ `v2-contract` @ `1aabff2`.
+
+### Kiểm tra (`ba-copilot-source/ba-copilot`, Node v24.16.0)
+
+| Lệnh | Kết quả |
+|---|---|
+| `npm test` | ✅ `tests 70 · pass 70 · fail 0` (66 cũ + 4 mới trong `tests/members.test.ts`), `duration_ms 23199` |
+| `npm run build` | ✅ `public/app.js 339.3kb`, `Done` |
+| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+| Chạy app (Mock, DB mới) + Chrome, có gắn tạm `TopBar` vào `main.tsx` (đã hoàn lại) | ✅ Thêm 2 thành viên qua hộp thoại, chọn "Tôi là…", tải lại trang vẫn nhớ; menu Công việc / Kho tài liệu / Thành viên trỏ đúng dự án; `#/_gallery` bình thường; 0 lỗi console |
+
+`public/` **không** commit (sản phẩm build).
+
+### Điểm A0 chèn khi gộp
+- **R-005** – gắn `<TopBar />` vào `client/main.tsx`. Chưa gắn thì ô "Tôi là…" và menu chưa hiện.
+- **R-006** – gửi `actorId` (và tên tác giả bình luận) từ `DesignTab.tsx`.
+- **R-007** – `repo.ts` / `app.ts` đọc và trả `author`/`authorId`, lưu `author_id` cho bình luận.
+- `client/routes.ts`: ngoài dòng `members`, A3 thêm 1 dòng `import { MembersView }` (cần cho dòng đó).
+- Menu thanh trên dạng **pill** (theo yêu cầu người dùng): ghép từ class có sẵn `.tpl-row` + `.chip` / `.chip-sel`, không thêm CSS mới. Gợi ý cho A1 (không bắt buộc): thêm biến thể `Tabs variant="pill"` vào `ui.tsx` + `#/_gallery` để màn khác dùng chung. Sau khi đổi: `npm test` 70/70 ✅, `npm run build` ✅, 0 lỗi console.
+- Cập nhật: menu pill chuyển thành component dùng chung `Tabs variant="pill"` (người dùng yêu cầu, sửa tệp của A1 – xem **R-008**). `npm test` 70/70 ✅, `npm run build` ✅ (`app.js 339.6kb`), 0 lỗi console ở `#/_gallery` và trang dự án.
+
+---
+
 ## Nhật ký đợt 2 – A6 (2026-10-20)
 
 **Nhánh:** `agent/a6-kanban`, tạo từ `v2-contract` @ `1aabff2` (worktree `E:/wt-a6`).
@@ -254,6 +294,20 @@ Lưu ý: lần chạy đầu `npm test` và `tsc` bị hết bộ nhớ vì máy
    - `client/views/DocsTab.tsx`: `<RelatedTasks kind="docs" id={<moduleId>} />`.
    - Import: `import { RelatedTasks } from "../components/RelatedTasks.tsx";`
 4. A7 gộp sau A6: dùng `server/repo/tasks.ts` (`listTasksByArtifact`, `setTaskStatus` với `bySystem: true`).
+
+### Kiểm tra (`ba-copilot-source/ba-copilot`, Node v24.16.0)
+
+| Lệnh | Kết quả |
+|---|---|
+| `npm test` | ✅ `tests 77 · pass 77 · fail 0` (66 cũ + 11 trong `tests/tasks.test.ts`), `duration_ms 14990` |
+| `npm run build` | ✅ `public/app.js 344.6kb`, `public/app-style.css 41.2kb`, `Done` |
+| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+| Chạy app (Mock, DB mới) + Chrome | ✅ Kéo thẻ Đang làm → Xong, **tải lại trang thẻ vẫn ở cột Xong**. Giả lập API lỗi khi kéo → thẻ quay về cột cũ, có toast. Tạo task gắn Sơ đồ UC (module tự điền), sửa task, lịch sử trạng thái, lọc module: đúng. 0 lỗi console |
+
+`public/app.js`, `public/app-style.css` **không** commit (sản phẩm build).
+
+---
+
 ## Nhật ký đợt 2 – A7 (2026-10-20)
 
 **Nhánh:** `agent/a7-tu-cap-nhat`, tạo từ `v2-contract` @ `1aabff2`. Worktree `E:\wt-a7`.
@@ -277,9 +331,51 @@ Lưu ý: lần chạy đầu `npm test` và `tsc` bị hết bộ nhớ vì máy
 | `stale` | – | – | Cần làm lại | – |
 
 Ánh xạ: `screen` theo mã màn; `docs`, `tests`, `diagram` theo mã module. BR-02 phát `stale` docs/tests nên task gắn docs/tests đang **Xong** sang Cần làm lại; task đang làm dở giữ nguyên (đúng quy tắc "các trường hợp khác giữ nguyên").
+
+### Kiểm tra (`ba-copilot-source/ba-copilot`, Node v24.16.0)
+
+| Lệnh | Kết quả |
+|---|---|
+| `npm test` | ✅ `tests 88 · pass 88 · fail 0` (66 cũ + 22 mới), `duration_ms 18193` |
+| `npm run build` | ✅ `public/app.js 334.2kb`, `public/app-style.css 41.2kb`, `Done in 772ms` (không commit `public/`) |
+| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+| Thử gộp A6 (`5e5f394`) + A7 + R-011 trên worktree tạm | ✅ `npm test` 99/99 – task tạo qua API thật của A6 |
+
+### Điểm A0 chèn khi gộp (sau A6)
+
+1. **R-011** – 2 dòng trong `server/app.ts`: import và gọi `registerTaskAutomation()` ở đầu `createApp()`. Thiếu bước này thì app chạy thật **không** tự đổi trạng thái task (test vẫn xanh vì tự đăng ký).
+2. (Tuỳ chọn) `taskAutomation.ts` ghi bảng giống hệt `setTaskStatus`/`listTasksByArtifact` của `server/repo/tasks.ts` (A6); sau khi gộp có thể chuyển sang gọi hàm của A6, hành vi không đổi.
+3. A5 gộp sau: route sơ đồ phải phát `artifact.*` `kind: "diagram"` như `docs/api.md` mục 3; test A7 đã giả lập đúng các sự kiện đó.
+4. Đánh số yêu cầu: `agent/a3-thanh-vien` và `agent/a4-kho-tai-lieu` cùng dùng **R-006** cho hai yêu cầu khác nhau – cần đánh lại số khi gộp.
+
+### Giới hạn đã biết
+
+- Bản 4 ngày không có bước **duyệt bộ test**, nên task gắn `tests` chỉ tự đi tới Đang làm, không tự sang Xong.
+- `by_member_id` của sự kiện hệ thống lấy từ `actorId` khi đó là thành viên có thật; `actorId` lạ được bỏ qua (ghi `NULL`) để không làm hỏng thao tác vì khoá ngoại.
+
+---
+
 ## Nhật ký đợt 2 – A5 (2026-10-20)
 
 **Nhánh:** `agent/a5-so-do-uc`, tạo từ `v2-contract` @ `1aabff2`.
+
+### Kiểm tra (`ba-copilot-source/ba-copilot`, Node v24.16.0)
+
+| Lệnh | Kết quả |
+|---|---|
+| `npm test` | ✅ `tests 81 · pass 81 · fail 0` (66 cũ + 15 mới trong `tests/ucDiagram.test.ts`), `duration_ms 19210` |
+| `npm run build` | ✅ `public/app.js 338.6kb`, `public/app-style.css 41.2kb`, `Done` |
+| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+| Chạy app (Mock, DB mới) + Chrome | ✅ Tab "Sơ đồ UC": trạng thái rỗng → Sinh sơ đồ → Mermaid vẽ được (actor tròn, UC bầu dục, khung Hệ thống); gõ thêm cạnh «include»/«extend» thì xem trước vẽ lại; Lưu → Duyệt → Bỏ duyệt → Duyệt đúng huy hiệu; sinh lại tài liệu khi UC đổi → huy hiệu "Lỗi thời" + băng cảnh báo. 0 lỗi console |
+
+`public/app.js`, `public/app-style.css` **không** commit (sản phẩm build).
+
+### Điểm A0 cần biết khi gộp
+- `client/views/moduleTabs.ts`: thêm **2 dòng** (1 dòng import `DiagramTab` + 1 dòng đăng ký tab `diagram` ngay sau tab Tài liệu). Bảng sở hữu ghi "đúng một dòng" – không thể đăng ký mà không import.
+- `server/ai/pipelines.ts`, `server/ai/mock.ts`: chỉ thêm (2 dòng import ở đầu tệp + hàm mới ở cuối), không sửa dòng cũ.
+- **actorId:** `DiagramTab` chưa gửi `actorId` vì `client/currentMember.ts` (A3) chưa có trên `v2-contract`. Sau khi gộp A3, chèn `useCurrentMember()` và truyền id vào `generateDiagram`, `saveDiagram`, `approveDiagram` (tham số thứ 2/3 đã có sẵn trong `client/api.ts`).
+- **FN-14:** handler nghe `artifact.drafted` (`kind: "docs"`) đăng ký trong `server/routes/diagram.ts`. Sơ đồ ghi dòng `%% nguon-uc: <mã băm>` của UC lúc vẽ; chỉ chuyển "Lỗi thời" khi mã/tên/actor/quan hệ UC thật sự đổi (chỉnh SRS hay Sequence thì giữ nguyên). Thứ tự sự kiện khi sinh lại / lưu sơ đồ đang Đã duyệt: `unapproved` rồi `drafted` (giống tài liệu).
+- R-009, R-010 trong `REQUESTS.md`.
 ---
 
 ## Nhật ký đợt 2 – A9 (2026-10-20)
@@ -300,68 +396,6 @@ Lưu ý: lần chạy đầu `npm test` và `tsc` bị hết bộ nhớ vì máy
 
 | Lệnh | Kết quả |
 |---|---|
-| `npm test` | ✅ `tests 75 · pass 75 · fail 0` (66 cũ + 9 test A4 mới trong `tests/files.test.ts`), `duration_ms 12012` |
-| `npm run build` | ✅ `public/app.js 347.4kb`, `public/app-style.css 41.2kb`, `Done` |
-| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
-| Chạy app (Mock, DB mới) + Chrome | ✅ Thả 3 tệp (PDF, PNG, XLSX) + 1 `.txt` cùng lúc: `.txt` bị chặn, 3 tệp lên đủ, đúng module và nguồn. Xem PDF trong ngăn phải, Word hiện "Tải về để xem", tìm "bang gia", đổi tên, xoá có xác nhận, link `#/p/:id/files/:moduleId` lọc đúng module. 0 lỗi console |
-
-`public/app.js`, `public/app-style.css` **không** commit (sản phẩm build) – A0 sinh lại sau khi gộp.
-
-### Điểm A0 xử lý khi gộp
-
-- **R-006:** xoá `LegacyFilesPage` trong `client/routes.ts`, bỏ tab "files" + import `FilesTab` trong `ProjectView.tsx`, rồi xoá `client/views/FilesTab.tsx`.
-- **R-005 (A2):** hỗ trợ `inline` và tên tệp tiếng Việt trong `FileResponse`; tới lúc đó `server/routes/files.ts` tự ghi đè header.
-- **Sau khi gộp A3:** `FilesView` chưa gửi `actorId` (chưa có `useCurrentMember()`). Server đã nhận và lưu `uploaded_by` nếu thành viên tồn tại; chỉ cần thêm `actorId: me?.id` vào lời gọi `uploadFile` trong `FilesView.tsx` (A4 làm nếu được giao lại).
-- Đổi danh sách loại tệp: `.pptx`, `.txt`, `.md`, `.csv` **không còn tải lên được** (theo yêu cầu "Word, PDF, Excel, ảnh"). Tệp loại đó đã có trong kho vẫn xem danh sách, tải về và xoá được.
-| `npm test` | ✅ `tests 70 · pass 70 · fail 0` (66 cũ + 4 mới trong `tests/members.test.ts`), `duration_ms 23199` |
-| `npm run build` | ✅ `public/app.js 339.3kb`, `Done` |
-| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
-| Chạy app (Mock, DB mới) + Chrome, có gắn tạm `TopBar` vào `main.tsx` (đã hoàn lại) | ✅ Thêm 2 thành viên qua hộp thoại, chọn "Tôi là…", tải lại trang vẫn nhớ; menu Công việc / Kho tài liệu / Thành viên trỏ đúng dự án; `#/_gallery` bình thường; 0 lỗi console |
-
-`public/` **không** commit (sản phẩm build).
-
-### Điểm A0 chèn khi gộp
-- **R-005** – gắn `<TopBar />` vào `client/main.tsx`. Chưa gắn thì ô "Tôi là…" và menu chưa hiện.
-- **R-006** – gửi `actorId` (và tên tác giả bình luận) từ `DesignTab.tsx`.
-- **R-007** – `repo.ts` / `app.ts` đọc và trả `author`/`authorId`, lưu `author_id` cho bình luận.
-- `client/routes.ts`: ngoài dòng `members`, A3 thêm 1 dòng `import { MembersView }` (cần cho dòng đó).
-- Menu thanh trên dạng **pill** (theo yêu cầu người dùng): ghép từ class có sẵn `.tpl-row` + `.chip` / `.chip-sel`, không thêm CSS mới. Gợi ý cho A1 (không bắt buộc): thêm biến thể `Tabs variant="pill"` vào `ui.tsx` + `#/_gallery` để màn khác dùng chung. Sau khi đổi: `npm test` 70/70 ✅, `npm run build` ✅, 0 lỗi console.
-- Cập nhật: menu pill chuyển thành component dùng chung `Tabs variant="pill"` (người dùng yêu cầu, sửa tệp của A1 – xem **R-008**). `npm test` 70/70 ✅, `npm run build` ✅ (`app.js 339.6kb`), 0 lỗi console ở `#/_gallery` và trang dự án.
-| `npm test` | ✅ `tests 77 · pass 77 · fail 0` (66 cũ + 11 trong `tests/tasks.test.ts`), `duration_ms 14990` |
-| `npm run build` | ✅ `public/app.js 344.6kb`, `public/app-style.css 41.2kb`, `Done` |
-| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
-| Chạy app (Mock, DB mới) + Chrome | ✅ Kéo thẻ Đang làm → Xong, **tải lại trang thẻ vẫn ở cột Xong**. Giả lập API lỗi khi kéo → thẻ quay về cột cũ, có toast. Tạo task gắn Sơ đồ UC (module tự điền), sửa task, lịch sử trạng thái, lọc module: đúng. 0 lỗi console |
-
-`public/app.js`, `public/app-style.css` **không** commit (sản phẩm build).
-| `npm test` | ✅ `tests 88 · pass 88 · fail 0` (66 cũ + 22 mới), `duration_ms 18193` |
-| `npm run build` | ✅ `public/app.js 334.2kb`, `public/app-style.css 41.2kb`, `Done in 772ms` (không commit `public/`) |
-| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
-| Thử gộp A6 (`5e5f394`) + A7 + R-011 trên worktree tạm | ✅ `npm test` 99/99 – task tạo qua API thật của A6 |
-
-### Điểm A0 chèn khi gộp (sau A6)
-
-1. **R-011** – 2 dòng trong `server/app.ts`: import và gọi `registerTaskAutomation()` ở đầu `createApp()`. Thiếu bước này thì app chạy thật **không** tự đổi trạng thái task (test vẫn xanh vì tự đăng ký).
-2. (Tuỳ chọn) `taskAutomation.ts` ghi bảng giống hệt `setTaskStatus`/`listTasksByArtifact` của `server/repo/tasks.ts` (A6); sau khi gộp có thể chuyển sang gọi hàm của A6, hành vi không đổi.
-3. A5 gộp sau: route sơ đồ phải phát `artifact.*` `kind: "diagram"` như `docs/api.md` mục 3; test A7 đã giả lập đúng các sự kiện đó.
-4. Đánh số yêu cầu: `agent/a3-thanh-vien` và `agent/a4-kho-tai-lieu` cùng dùng **R-006** cho hai yêu cầu khác nhau – cần đánh lại số khi gộp.
-
-### Giới hạn đã biết
-
-- Bản 4 ngày không có bước **duyệt bộ test**, nên task gắn `tests` chỉ tự đi tới Đang làm, không tự sang Xong.
-- `by_member_id` của sự kiện hệ thống lấy từ `actorId` khi đó là thành viên có thật; `actorId` lạ được bỏ qua (ghi `NULL`) để không làm hỏng thao tác vì khoá ngoại.
-| `npm test` | ✅ `tests 81 · pass 81 · fail 0` (66 cũ + 15 mới trong `tests/ucDiagram.test.ts`), `duration_ms 19210` |
-| `npm run build` | ✅ `public/app.js 338.6kb`, `public/app-style.css 41.2kb`, `Done` |
-| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
-| Chạy app (Mock, DB mới) + Chrome | ✅ Tab "Sơ đồ UC": trạng thái rỗng → Sinh sơ đồ → Mermaid vẽ được (actor tròn, UC bầu dục, khung Hệ thống); gõ thêm cạnh «include»/«extend» thì xem trước vẽ lại; Lưu → Duyệt → Bỏ duyệt → Duyệt đúng huy hiệu; sinh lại tài liệu khi UC đổi → huy hiệu "Lỗi thời" + băng cảnh báo. 0 lỗi console |
-
-`public/app.js`, `public/app-style.css` **không** commit (sản phẩm build).
-
-### Điểm A0 cần biết khi gộp
-- `client/views/moduleTabs.ts`: thêm **2 dòng** (1 dòng import `DiagramTab` + 1 dòng đăng ký tab `diagram` ngay sau tab Tài liệu). Bảng sở hữu ghi "đúng một dòng" – không thể đăng ký mà không import.
-- `server/ai/pipelines.ts`, `server/ai/mock.ts`: chỉ thêm (2 dòng import ở đầu tệp + hàm mới ở cuối), không sửa dòng cũ.
-- **actorId:** `DiagramTab` chưa gửi `actorId` vì `client/currentMember.ts` (A3) chưa có trên `v2-contract`. Sau khi gộp A3, chèn `useCurrentMember()` và truyền id vào `generateDiagram`, `saveDiagram`, `approveDiagram` (tham số thứ 2/3 đã có sẵn trong `client/api.ts`).
-- **FN-14:** handler nghe `artifact.drafted` (`kind: "docs"`) đăng ký trong `server/routes/diagram.ts`. Sơ đồ ghi dòng `%% nguon-uc: <mã băm>` của UC lúc vẽ; chỉ chuyển "Lỗi thời" khi mã/tên/actor/quan hệ UC thật sự đổi (chỉnh SRS hay Sequence thì giữ nguyên). Thứ tự sự kiện khi sinh lại / lưu sơ đồ đang Đã duyệt: `unapproved` rồi `drafted` (giống tài liệu).
-- R-009, R-010 trong `REQUESTS.md`.
 | `npm test` | ✅ `tests 70 · pass 70 · fail 0`, `duration_ms 17601` (66 cũ + 4 test mới trong `suggest.test.ts`, tệp này 10/10) |
 | `npm run build` | ✅ `public/app.js 329.9kb`, `public/app-style.css 41.2kb`, `Done` |
 | `npx tsc --noEmit` | ✅ Không lỗi kiểu |
@@ -375,3 +409,42 @@ Lưu ý: lần chạy đầu `npm test` và `tsc` bị hết bộ nhớ vì máy
 - `DesignTab.tsx`: A9 gộp cuối, sau A3 (FN-03) và A6/A0 (`RelatedTasks`). Điểm A9 sửa nằm ở đầu hàm (khối state gợi ý cũ, đã xoá), cạnh `createScreen` (thêm `openNewScreen`) và cuối cột trái `<aside className="studio-left">`. Nếu A0 chèn `RelatedTasks` vào cột trái thì đặt **trên** dòng `<SuggestionsPanel …/>` hoặc ở cột phải, không lồng vào panel.
 - Chạy `npm run build` sau khi gộp để `public/` có panel mới.
 
+---
+
+## Nhật ký gộp đợt 2 – A0 (2026-10-20)
+
+**Nhánh:** `v2-features`, tạo từ `v2-contract` @ `1aabff2` (worktree `E:/wt-features`).
+
+### Thứ tự gộp và điểm chèn
+
+| Bước | Gộp | Xung đột | Điểm A0 chèn ngay sau đó (commit) |
+|---|---|---|---|
+| 1 | `agent/a8-qus` (`7c59ab1`) | Không | – (R-020 → R-023 cần A3/A6, làm ở bước sau) |
+| 1b | `agent/a2-r005-file-response` (`cf93aea`) | Không | Điều kiện cho A4 (R-013) |
+| 2 | `agent/a4-kho-tai-lieu` (`5a3a569`) | Không | Bỏ `sendFile()`/bọc `writeHead`, dùng `FileResponse(…, disposition)` (`a089431`) |
+| 3 | `agent/a3-thanh-vien` (`832441f`) | `client/routes.ts`: giữ cả `FilesView` và `MembersView` | R-005 TopBar; R-007 author/authorId; `actorId` khi tải tệp (A4); R-020, R-021 điểm QUS; R-009 trả `null` (`6c466d7`) |
+| 4 | `agent/a6-kanban` (`5e5f394`) | `client/routes.ts`: giữ cả 3 trang | R-014 dọn `LegacyFilesPage`/`FilesTab`; R-022 cột Chất lượng; `actorId` TasksView; `RelatedTasks` trong DocsTab (trong commit gộp `c0b6c5d`) |
+| 5 | `agent/a7-tu-cap-nhat` (`ec8abaa`) | Không | R-011 `registerTaskAutomation()` (`43588c0`) |
+| 6 | `agent/a5-so-do-uc` (`ad26ab9`) | Không | `actorId` DiagramTab; bỏ nhánh tạm `{ ok: true }`; R-010 `.split-2` (`8ced088`) |
+| 7 | `agent/a9-goi-y` (`addfdb9`) | Không | R-006 `actorId` DesignTab; `RelatedTasks` màn hình (trên khối Gợi ý); R-012, R-023 dọn CSS; build lại `public/` (`195af3e`) |
+
+`STATUS.md` và `REQUESTS.md` được dựng lại từ bản `v2-contract` + phần ghi thêm của từng nhánh theo thứ tự gộp (dòng bảng do A0 viết lại), vì gộp tự động làm xé lẻ nhật ký. Số yêu cầu trùng: hai mục của A4 đổi thành R-013, R-014.
+
+### Cổng kiểm tra trên `v2-features` (Node v24.16.0)
+
+| Cổng | Kết quả |
+|---|---|
+| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+| `npm test` | ✅ 143/143 (không bật `PERF`) |
+| `npm run build` | ✅ |
+| Cổng số 3 (sửa ngoài phạm vi) | ✅ Chỉ còn 1 điểm nhỏ của A5 (dòng import đầu `mock.ts`/`pipelines.ts`), đã chấp nhận, ghi `OWNERSHIP.md` mục 4 |
+| E2E demo A11 (`e2e/demo-flow.mjs`, chép tạm từ `agent/a11-e2e`, chưa gộp) | ✅ 27/27 trên bản gộp thật, không mô phỏng; 0 lỗi JavaScript |
+| E2E cũ (`e2e/e2e.mjs`) | ✅ 18/18 (chạy với máy chủ dựng sẵn + `CHROME_PATH`, xem tồn đọng) |
+
+### Tồn đọng (không chặn đợt 3)
+
+- **Tràn ngang ở 375 px** (E2E A11 ghi nhận): dự án 501 px, công việc 671 px, kho tài liệu 430 px, gallery 418 px, thành viên 395 px, thiết kế/tài liệu/sơ đồ 377 px. Thuộc A1 + chủ màn.
+- **`e2e/e2e.mjs` không tự khởi động máy chủ trên Windows** (`spawn npx ENOENT`) và cần Chromium của Playwright (`npx playwright install`) hoặc `CHROME_PATH`. Lỗi sẵn có, tệp chưa có chủ.
+- Khối "Công việc liên quan" ở cột trái Design Studio dính sát mép (không có lớp đệm cho cột hẹp). A1 xem có cần khung riêng.
+- Tuỳ chọn của A7: `taskAutomation.ts` vẫn tự viết SQL thay vì gọi `setTaskStatus`/`listTasksByArtifact` của A6. Chạy đúng, test xanh.
+- A1 xem lại R-008, R-010, R-012, R-023 (A0 đã làm thay theo đúng đề xuất).

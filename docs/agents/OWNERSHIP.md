@@ -66,6 +66,19 @@ Mọi lần một agent sửa tệp không thuộc dòng của mình đều ph�
 | R-002 | 1 | A1 | `CLAUDE.md` (gốc repo) – tạo mới, mục "Giao diện" | Chưa có chủ | **Chấp nhận, bổ sung vào bảng.** Nội dung đúng tinh thần A1 (bắt đọc design system). Từ nay A0 là chủ tệp, A1 giữ mục "Giao diện" (mục 1 và 2 ở trên) |
 | R-003 | 1 | A2 | `server/service.ts` – bọc `tx()`, thêm tham số `actorId?` (vượt "chỉ chèn emit") | A2 (có giới hạn) | **Chấp nhận.** Cần để handler A7 chạy chung transaction; chữ ký cũ vẫn gọi được |
 | R-004 | 1 | A0 | `tests/transformer.test.ts` – ngưỡng `< 400 ms` chỉ kiểm khi `PERF=1` | Chưa có chủ (tệp `trung_ba`) | **Người dùng quyết định.** Cổng số 1 đỏ do máy bận dù mã không đổi |
+| R-005 | 2 | A3 → A0 | `client/main.tsx` – gắn `<TopBar />` thay header cũ | A2 | **Chấp nhận, A0 chèn khi gộp** |
+| R-006 | 2 | A3 → A0 | `client/views/DesignTab.tsx` – gửi `actorId` ở các lời gọi tạo phiên bản, bình luận, duyệt | Dùng chung | **Chấp nhận, A0 chèn khi gộp** |
+| R-007 | 2 | A3 → A0 | `server/repo.ts`, `server/app.ts` – đọc/ghi `author`, `author_id` | Chưa có chủ / A2 | **Chấp nhận, A0 chèn khi gộp** |
+| R-008 | 2 | A3 | `ui.tsx`, `styles.css`, `_Gallery.tsx`, `design-system.md` – `Tabs variant="pill"` | A1 | **Chấp nhận** – người dùng yêu cầu trực tiếp, A3 tự sửa; A1 xem lại |
+| R-009 | 2 | A5 → A0 | `server/app.ts` – trả `null` đúng hợp đồng | A2 | **Chấp nhận, A0 sửa khi gộp** |
+| R-010 | 2 | A5 → A0 | `styles.css`, `design-system.md`, `_Gallery.tsx` – class `.split-2` | A1 | **Chấp nhận, A0 làm thay A1** |
+| R-011 | 2 | A7 → A0 | `server/app.ts` – gọi `registerTaskAutomation()` | A2 | **Chấp nhận, A0 chèn khi gộp** |
+| R-012 | 2 | A9 → A0 | `styles.css`, `design-system.md` – dọn `.suggest-*` | A1 | **Chấp nhận, A0 làm thay A1** |
+| R-013 | 2 | A4 → A2 | `server/http.ts`, `server/app.ts` – `FileResponse` có `disposition`, tên tệp ASCII | A2 | **Chấp nhận** – A2 làm trên nhánh riêng, A0 gộp trước A4 |
+| R-014 | 2 | A4 → A0 | `client/routes.ts`, `ProjectView.tsx`, xoá `FilesTab.tsx` | A2 / dùng chung / A4 | **Chấp nhận, A0 dọn khi gộp** |
+| R-020 → R-022 | 2 | A8 → A0 | `server/app.ts`, `server/repo.ts`, `ProjectView.tsx` (ngoài Modal) – FN-56 | A2 / chưa có chủ / dùng chung | **Chấp nhận, A0 chèn khi gộp** |
+| R-023 | 2 | A8 → A0 | `styles.css` – dọn `.qus-*` | A1 | **Chấp nhận, A0 làm thay A1** |
+| — | 2 | A5 | `server/ai/mock.ts`, `server/ai/pipelines.ts` – thêm 1 dòng import ở đầu tệp (ngoài "chỉ thêm ở cuối") | Dùng chung | **Chấp nhận** – bắt buộc để hàm mới ở cuối tệp chạy; không sửa code cũ (phát hiện ở cổng số 3) |
 
 Từ đợt 2: cổng số 3 báo tệp ngoài bảng → A0 ghi một dòng vào đây trước khi quyết gộp hay trả lại.
 
