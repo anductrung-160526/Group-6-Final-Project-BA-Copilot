@@ -668,7 +668,10 @@ export function mockTests(ucs: UseCase[], reqs: Requirement[], model: DesignMode
     const ucReqs = reqs.filter((r) => r.type === "FR" && r.useCaseCodes.includes(u.code));
     const mainReq = ucReqs.slice(0, 1).map((r) => r.code);
     const pre = u.preconditions.join("; ");
-    const ucFields = model.screens.filter((s) => u.screenIds.includes(s.screenId)).flatMap((s) => s.fields);
+    // Màn của UC: theo screenIds; UC đợt 5 (sinh từ BRD, chưa gắn màn) thì lấy màn có tên được nhắc trong UC
+    const ucText = foldVi([u.name, u.description, ...u.mainFlow.map((x) => x.text)].join(" "));
+    const ucScreens = u.screenIds.length ? model.screens.filter((s) => u.screenIds.includes(s.screenId)) : model.screens.filter((s) => s.title && ucText.includes(foldVi(s.title)));
+    const ucFields = ucScreens.flatMap((s) => s.fields);
     const sample = ucFields.map((f) => `${f.label} = ${sampleValue(f)}`).join("; ");
     tests.push({ code: code(), title: `${u.name} – luồng chính thành công`, type: "Positive", priority: "High", useCaseCode: u.code, flowRef: "main", requirementCodes: mainReq, preconditions: pre, testData: sample || "-", steps: u.mainFlow.filter((s) => s.actor !== "Hệ thống").map((s) => s.text), expected: u.postconditions.join("; ") });
     for (const a of u.altFlows) tests.push({ code: code(), title: `${u.name} – ${a.name}`, type: "Positive", priority: "Medium", useCaseCode: u.code, flowRef: a.code, requirementCodes: mainReq, preconditions: pre, testData: "-", steps: a.steps.filter((s) => !s.startsWith("Hệ thống")), expected: a.steps.filter((s) => s.startsWith("Hệ thống")).join("; ") || "Hệ thống xử lý đúng luồng thay thế" });
@@ -693,8 +696,28 @@ export function mockTests(ucs: UseCase[], reqs: Requirement[], model: DesignMode
       }
     }
   }
+  // Đợt 5: FR chưa có test nào (FRD-NFR không gắn UC, hoặc UC không có luồng) → mỗi FR một test kiểm chứng
+  const covered = new Set(tests.flatMap((t) => t.requirementCodes));
+  for (const r of reqs.filter((x) => x.type === "FR" && !covered.has(x.code))) {
+    const uc = ucs.find((u) => r.useCaseCodes.includes(u.code));
+    tests.push({
+      code: code(),
+      title: `${r.code} – ${r.statement.length > 80 ? r.statement.slice(0, 77) + "…" : r.statement}`,
+      type: "Positive",
+      priority: r.priority,
+      useCaseCode: uc?.code ?? "",
+      flowRef: "main",
+      requirementCodes: [r.code],
+      preconditions: uc?.preconditions.join("; ") ?? "",
+      testData: "-",
+      steps: ["Thực hiện thao tác theo yêu cầu " + r.code, "Quan sát kết quả hệ thống trả về"],
+      expected: r.statement,
+    });
+  }
   return tests;
 }
+
+const foldVi = (x: string) => x.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase();
 
 function num(constraints: string[], key: string): number | null {
   const c = constraints.find((x) => x.startsWith(`${key}=`));

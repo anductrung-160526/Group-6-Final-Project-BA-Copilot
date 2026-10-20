@@ -1,9 +1,26 @@
+// Bước 5 "Truy vết" (đợt 5, C9): ma trận Story → UC → FR → Màn → TC (shared/trace.ts buildTraceMatrix) và các chỗ hở
+// (story chưa có UC, FR chưa có màn / chưa có test case…). Liên kết do máy suy luận theo từ khoá được đánh dấu "suy luận".
+// `TraceTab` (props cũ { m, reload }) còn để ModuleView cũ biên dịch tới khi C0 dọn.
+
 import React, { useEffect, useState } from "react";
 import { get } from "../api.ts";
 import type { ModuleDetail } from "../../shared/types.ts";
+import type { TraceMatrix } from "../../shared/trace.ts";
+import type { WorkStepProps } from "../projectMenu.ts";
 import { Badge, Empty, useUI } from "../components/ui.tsx";
+import { NoModule, useModuleDetail } from "./TestsTab.tsx";
 
 const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
+
+interface TraceData {
+  coverage: { flowsWithTests: number; flowsTotal: number };
+  screens: { id: string; name: string }[];
+  useCases: { code: string; name: string }[];
+  stories: { code: string; asA: string; iWant: string; soThat: string }[];
+  requirements: { code: string; type: "FR" | "NFR"; statement: string }[];
+  tests: { code: string; title: string }[];
+  matrix: TraceMatrix;
+}
 
 function Meter({ label, a, b, testid }: { label: string; a: number; b: number; testid: string }) {
   const v = pct(a, b);
@@ -12,7 +29,7 @@ function Meter({ label, a, b, testid }: { label: string; a: number; b: number; t
     <div className="meter" data-testid={testid}>
       <div className="meter-label">{label}</div>
       <div className="meter-value">
-        {v}% <span className="muted small">({a}/{b})</span>
+        {b ? `${v}%` : "—"} <span className="muted small">({a}/{b})</span>
       </div>
       <div className="meter-bar">
         <div className={`meter-fill ${tone}`} style={{ width: `${v}%` }} />
@@ -21,53 +38,151 @@ function Meter({ label, a, b, testid }: { label: string; a: number; b: number; t
   );
 }
 
-export function TraceTab({ m }: { m: ModuleDetail }) {
+const Missing = () => <Badge tone="red">Chưa có</Badge>;
+
+/** Bước "Truy vết". */
+export function TraceStep({ moduleId }: WorkStepProps) {
+  const { m, reload } = useModuleDetail(moduleId);
+  if (!moduleId) return <NoModule what="ma trận truy vết" />;
+  if (!m) return <div className="page muted">Đang tải…</div>;
+  return <TraceTab m={m} reload={reload} />;
+}
+
+export function TraceTab({ m }: { m: ModuleDetail; reload?: () => Promise<unknown> }) {
   const { toast } = useUI();
-  const [t, setT] = useState<any>(null);
+  const [t, setT] = useState<TraceData | null>(null);
   useEffect(() => {
-    get(`/api/modules/${m.id}/trace`).then(setT).catch((e) => toast(e.message, "err"));
+    get<TraceData>(`/api/modules/${encodeURIComponent(m.id)}/trace`)
+      .then(setT)
+      .catch((e) => toast(e.message, "err"));
   }, [m]);
   if (!t) return <div className="muted pad">Đang tải…</div>;
-  if (!m.docs.requirements.length) return <Empty title="Chưa có dữ liệu truy vết">Sinh tài liệu và test case để xem ma trận Màn hình ↔ Use Case ↔ Yêu cầu ↔ Test case.</Empty>;
-  const c = t.coverage;
-  const screenName = (id: string) => t.screens.find((s: any) => s.id === id)?.name ?? id;
+  const mx = t.matrix;
+  if (!t.stories.length && !t.useCases.length && !t.requirements.length)
+    return <Empty title="Chưa có dữ liệu truy vết">Thêm user story cho module và làm bước Tài liệu (UC Specification, FRD-NFR) để xem ma trận Story → Use Case → Yêu cầu → Màn hình → Test case.</Empty>;
+
+  const screenName = (id: string) => t.screens.find((s) => s.id === id)?.name ?? id;
+  const ucName = (code: string) => t.useCases.find((u) => u.code === code)?.name ?? "";
+  const req = (code: string) => t.requirements.find((r) => r.code === code);
+  const story = (code: string) => t.stories.find((s) => s.code === code);
+  const inferredStory = (sc: string, uc: string) => mx.storyLinks[sc]?.find((l) => l.code === uc)?.inferred;
+  const g = mx.gaps;
+  const gapRows: [string, string[], string][] = [
+    ["User story chưa có Use Case", g.storiesWithoutUc, "gap-story"],
+    ["Use Case chưa có yêu cầu (FR/NFR)", g.useCasesWithoutFr, "gap-uc"],
+    ["FR chưa gắn Use Case", g.frWithoutUc, "gap-fr-uc"],
+    ["FR chưa có màn hình", g.frWithoutScreen, "gap-fr-screen"],
+    ["FR chưa có test case", g.frWithoutTest, "gap-fr-test"],
+    ["Màn hình chưa gắn yêu cầu nào", g.screensWithoutFr.map(screenName), "gap-screen"],
+    ["Test case không tham chiếu được", g.testsWithoutReference, "gap-test"],
+  ];
+  const openGaps = gapRows.filter(([, list]) => list.length);
+  let prevStory: string | null | undefined;
+  let prevUc: string | null | undefined;
+
   return (
-    <div className="docs">
+    <div className="docs" data-testid="trace-step">
       <div className="meters">
-        <Meter label="Yêu cầu chức năng có test" a={c.frWithTests} b={c.frTotal} testid="cov-fr" />
-        <Meter label="Luồng UC có test" a={c.flowsWithTests} b={c.flowsTotal} testid="cov-flow" />
-        <Meter label="Use Case gắn màn hình" a={c.ucWithScreens} b={c.ucTotal} testid="cov-uc" />
+        <Meter label="User story có Use Case" a={mx.counts.storiesWithUc} b={mx.counts.stories} testid="cov-story" />
+        <Meter label="Yêu cầu chức năng có màn hình" a={mx.counts.frWithScreen} b={mx.counts.frTotal} testid="cov-screen" />
+        <Meter label="Yêu cầu chức năng có test" a={mx.counts.frWithTest} b={mx.counts.frTotal} testid="cov-fr" />
+        <Meter label="Luồng UC có test" a={t.coverage.flowsWithTests} b={t.coverage.flowsTotal} testid="cov-flow" />
       </div>
-      {(c.untestedRequirements.length > 0 || c.untestedFlows.length > 0 || c.useCasesWithoutScreens.length > 0 || c.testsWithoutReference.length > 0) && (
-        <div className="warn-banner">
-          {c.untestedRequirements.length > 0 && <div>Yêu cầu chưa có test: {c.untestedRequirements.join(", ")}</div>}
-          {c.untestedFlows.length > 0 && <div>Luồng chưa có test: {c.untestedFlows.join(", ")}</div>}
-          {c.useCasesWithoutScreens.length > 0 && <div>Use Case chưa gắn màn hình: {c.useCasesWithoutScreens.join(", ")}</div>}
-          {c.testsWithoutReference.length > 0 && <div>Test không tham chiếu được: {c.testsWithoutReference.join(", ")}</div>}
+      {openGaps.length > 0 ? (
+        <div className="warn-banner" data-testid="trace-gaps">
+          <strong>Chỗ hở cần xử lý</strong>
+          {openGaps.map(([label, list, id]) => (
+            <div key={id} data-testid={id}>
+              {label}: {list.join(", ")}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="muted small" data-testid="trace-gaps-none">
+          Không có chỗ hở – mọi story, Use Case, yêu cầu chức năng đều đã được nối tới màn hình và test case.
         </div>
       )}
-      <table className="tbl">
+      <div className="muted small">Liên kết có nhãn "suy luận" do hệ thống đoán theo từ khoá (tài liệu chưa ghi rõ) – BA cần xác nhận.</div>
+      <table className="tbl" data-testid="trace-matrix">
         <thead>
           <tr>
-            <th>Yêu cầu</th>
-            <th>Nội dung</th>
+            <th>User story</th>
             <th>Use Case</th>
+            <th>Yêu cầu</th>
             <th>Màn hình</th>
             <th>Test case</th>
           </tr>
         </thead>
         <tbody>
-          {t.rows.map((r: any) => (
-            <tr key={r.requirement.code} className={r.requirement.type === "FR" && !r.tests.length ? "row-warn" : ""}>
-              <td className="nowrap strong">
-                {r.requirement.code} <Badge tone={r.requirement.type === "FR" ? "blue" : "violet"}>{r.requirement.type}</Badge>
-              </td>
-              <td>{r.requirement.statement}</td>
-              <td className="nowrap">{r.useCases.join(", ") || "—"}</td>
-              <td>{r.screenIds.map(screenName).join(", ") || "—"}</td>
-              <td>{r.tests.length ? <span className="small">{r.tests.join(", ")}</span> : <Badge tone={r.requirement.type === "FR" ? "red" : "gray"}>Chưa có</Badge>}</td>
-            </tr>
-          ))}
+          {mx.rows.map((r, i) => {
+            const showStory = r.story !== prevStory;
+            const showUc = showStory || r.useCase !== prevUc;
+            prevStory = r.story;
+            prevUc = r.useCase;
+            const rq = r.requirement ? req(r.requirement) : undefined;
+            const st = r.story ? story(r.story) : undefined;
+            const isFr = rq?.type === "FR";
+            const warn = (r.story && !r.useCase) || (isFr && (!r.screens.length || !r.tests.length));
+            return (
+              <tr key={i} className={warn ? "row-warn" : ""}>
+                <td>
+                  {showStory &&
+                    (st ? (
+                      <>
+                        <span className="strong">{st.code}</span> <span className="muted small">{st.iWant}</span>
+                      </>
+                    ) : (
+                      <span className="muted">—</span>
+                    ))}
+                </td>
+                <td>
+                  {showUc &&
+                    (r.useCase ? (
+                      <>
+                        <span className="strong nowrap">{r.useCase}</span> <span className="small">{ucName(r.useCase)}</span>{" "}
+                        {r.story && inferredStory(r.story, r.useCase) && <Badge tone="flag">suy luận</Badge>}
+                      </>
+                    ) : r.story ? (
+                      <Missing />
+                    ) : (
+                      <span className="muted">—</span>
+                    ))}
+                </td>
+                <td>
+                  {rq ? (
+                    <>
+                      <span className="strong nowrap">{rq.code}</span> <Badge tone={rq.type === "FR" ? "blue" : "violet"}>{rq.type}</Badge> <span className="small">{rq.statement}</span>
+                    </>
+                  ) : r.useCase ? (
+                    <Missing />
+                  ) : (
+                    <span className="muted">—</span>
+                  )}
+                </td>
+                <td>
+                  {r.screens.length ? (
+                    r.screens.map((s, j) => (
+                      <React.Fragment key={s.id}>
+                        {j > 0 && ", "}
+                        {screenName(s.id)}
+                        {s.inferred && (
+                          <>
+                            {" "}
+                            <Badge tone="flag">suy luận</Badge>
+                          </>
+                        )}
+                      </React.Fragment>
+                    ))
+                  ) : isFr ? (
+                    <Missing />
+                  ) : (
+                    <span className="muted">—</span>
+                  )}
+                </td>
+                <td className="small">{r.tests.length ? r.tests.join(", ") : isFr ? <Missing /> : <span className="muted">—</span>}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

@@ -1,4 +1,4 @@
-// SCR-16 – Khối "Gợi ý tiếp theo" ở cột trái tab Thiết kế (UC-29, FN-57 → FN-61). Chủ sở hữu: A9.
+// SCR-16 – Khối "Gợi ý tiếp theo" ở cột trái màn Prototype (UC-29, FN-57 → FN-61). Chủ sở hữu: A9 → C9 (đợt 5).
 // Gợi ý do server tính (GET /api/modules/:id/suggestions); Bỏ qua / Khôi phục lưu theo module trên server.
 // Không tự tạo màn (BR-06): nút Tạo chỉ gọi onCreate để DesignTab mở hộp thoại "Màn hình mới" đã điền sẵn.
 
@@ -36,9 +36,10 @@ export function SuggestionsPanel({ m, onCreate }: { m: ModuleDetail; onCreate: (
       .catch((e) => toast(e.message, "err"));
 
   // `m` đổi sau mỗi lần DesignTab gọi reload() (tạo màn, duyệt, sửa màn, sửa yêu cầu…) → tính lại gợi ý (UC-29 bước 7).
+  // Đợt 5: story nằm ở bảng user_stories (không có trong ModuleDetail) → luôn hỏi server; không có gợi ý nào thì ẩn khối.
   useEffect(() => {
-    if (hasSource) load();
-  }, [m, hasSource]);
+    load();
+  }, [m]);
 
   useEffect(() => {
     if (!data?.dismissed.length) setShowDismissed(false);
@@ -56,7 +57,7 @@ export function SuggestionsPanel({ m, onCreate }: { m: ModuleDetail; onCreate: (
     }
   };
 
-  if (!hasSource || !data) return null;
+  if (!data || (!hasSource && !data.items.length && !data.dismissed.length)) return null;
   const { items, dismissed } = data;
 
   return (

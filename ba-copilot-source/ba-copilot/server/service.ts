@@ -1,16 +1,20 @@
-// Tầng nghiệp vụ: áp dụng quy tắc BR-01..BR-04 và điều phối pipeline AI.
+// Tầng nghiệp vụ: điều phối pipeline AI cho prototype, test case, truy vết (chủ sở hữu: C9).
+// Đợt 5: bỏ BR-01 (tài liệu không còn cần màn đã duyệt – tài liệu đi trước prototype, quyết định 6);
+// prototype sinh từ SRS + FRD-NFR (`module_docs`) + user story (`user_stories`); test case sinh khi FRD-NFR đã Xong.
+// Các hàm tài liệu cũ (generateDocs, refineDoc, approveDocs, updateRequirements) giữ cho màn Tài liệu cũ, ghi bảng cũ.
 
 import * as repo from "./repo.ts";
 import * as ai from "./ai/pipelines.ts";
 import { applyPatch } from "../shared/patch.ts";
 import { cloneTree, collectIds, diffTrees, findNode, findParent, isContainer, newId, nodeLabel, topMostIds, UINode, validateTree } from "../shared/design.ts";
 import { extractModel, DesignModel } from "../shared/extract.ts";
-import { buildTrace } from "../shared/trace.ts";
-import type { ArtifactEventType, DocStatus, Requirement, SequenceDiagram, UseCase } from "../shared/types.ts";
+import { buildTrace, buildTraceMatrix } from "../shared/trace.ts";
+import { DOC_KIND_LABEL, type ArtifactEventType, type ArtifactRef, type ArtifactStatus, type DocStatus, type Requirement, type SequenceDiagram, type UseCase } from "../shared/types.ts";
 import { Box, completeLayout, nextElements, nextInContainer, RecursiveModel, toGrid } from "../shared/recursive.ts";
 import { defaultNode } from "../shared/layoutDefaults.ts";
 import { getRecursive } from "./nextModel.ts";
-import { tx } from "./db.ts";
+import { getArtifactState, setArtifactState, bumpRev, tx } from "./db.ts";
+import { assertRev } from "./http.ts";
 import { emit } from "./events.ts";
 
 export class BizError extends Error {
@@ -50,13 +54,58 @@ function markStale(moduleId: string, actorId?: string) {
 }
 
 // ------------------------------------------------------------- Design Studio
-export async function createScreenFromPrompt(moduleId: string, prompt: string, name: string, actorId?: string) {
+// ------------------------------------------------------------- Bối cảnh tài liệu cho AI (đợt 5)
+const STATUS_VI: Record<ArtifactStatus, string> = { none: "Chưa có", draft: "Bản nháp", done: "Xong", approved: "Đã duyệt", outdated: "Lỗi thời" };
+const clip = (t: string, n: number) => (t.length > n ? t.slice(0, n) + "\n…(lược bớt)" : t);
+
+function storyLines(moduleId: string): string[] {
+  return repo.listModuleStories(moduleId).map((st) => {
+    const ac = st.acceptanceCriteria.filter(Boolean);
+    return `- ${st.code} [${st.priority}]: As a ${st.asA || "…"}, I want ${st.iWant || "…"}${st.soThat ? `, so that ${st.soThat}` : ""}${ac.length ? `\n  Tiêu chí chấp nhận: ${ac.join("; ")}` : ""}`;
+  });
+}
+
+/**
+ * Bối cảnh sinh/sửa màn: user story của module + SRS (Markdown) + FRD-NFR (danh sách yêu cầu) đọc thẳng từ
+ * `user_stories` / `module_docs`. Module chưa có gì ở đợt 5 thì dùng ô yêu cầu cũ (`requirementInput`).
+ * `full = false` (sửa màn): bỏ SRS cho gọn.
+ */
+export function moduleContext(moduleId: string, full = true): string {
   const m = mustModule(moduleId);
-  if (!prompt.trim()) throw new BizError("Prompt không được để trống");
+  const parts: string[] = [];
+  const stories = storyLines(moduleId);
+  if (stories.length) parts.push(`### User story\n${stories.join("\n")}`);
+  const srs = repo.getModuleDocRow(moduleId, "SRS");
+  if (full && srs?.content.trim()) parts.push(`### SRS (${STATUS_VI[srs.status] ?? srs.status})\n${clip(srs.content.trim(), 8000)}`);
+  const frd = repo.getModuleDocRow(moduleId, "FRD_NFR");
+  const reqs = frd ? repo.getDocs(moduleId).requirements : [];
+  if (frd && reqs.length)
+    parts.push(`### FRD-NFR (${STATUS_VI[frd.status] ?? frd.status})\n${reqs.map((r) => `- ${r.code} (${r.type}, ${r.priority}${r.useCaseCodes.length ? `, ${r.useCaseCodes.join("/")}` : ""}): ${r.statement}`).join("\n")}`);
+  else if (frd?.content.trim()) parts.push(`### FRD-NFR (${STATUS_VI[frd.status] ?? frd.status})\n${clip(frd.content.trim(), 6000)}`);
+  if (!parts.length && m.requirementInput.trim()) parts.push(`### Yêu cầu nghiệp vụ (bản cũ)\n${m.requirementInput.trim()}`);
+  return parts.join("\n\n");
+}
+
+const foldVi = (x: string) => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d").toLowerCase().trim();
+
+/** Prompt cho bản Mock (rule-based) khi BA để trống prompt: tên màn + các story/FR nhắc tới tên màn. */
+function mockPromptFor(moduleId: string, name: string): string {
+  const words = foldVi(name).split(/\s+/).filter((w) => w.length >= 2);
+  const hit = (t: string) => words.length > 0 && words.every((w) => foldVi(t).includes(w));
+  const reqs = repo.getDocs(moduleId).requirements.filter((r) => r.type === "FR" && hit(r.statement)).map((r) => r.statement);
+  const stories = repo.listModuleStories(moduleId).filter((st) => hit(st.iWant)).map((st) => st.iWant);
+  return [`Màn hình ${name}.`, ...stories, ...reqs].join(" ");
+}
+
+export async function createScreenFromPrompt(moduleId: string, prompt: string, name: string, actorId?: string) {
+  mustModule(moduleId);
+  if (!prompt.trim() && !name.trim()) throw new BizError("Nhập tên màn hình hoặc mô tả màn hình");
   const others = repo.listScreens(moduleId).map((s) => s.name);
-  const result = await ai.generateScreen({ moduleId, prompt, name: name.trim(), requirementInput: m.requirementInput, otherScreens: others });
+  const context = moduleContext(moduleId);
+  const mockPrompt = prompt.trim() ? undefined : mockPromptFor(moduleId, name.trim());
+  const result = await ai.generateScreen({ moduleId, prompt, name: name.trim(), context, otherScreens: others, mockPrompt });
   return tx(() => {
-    const screen = repo.createScreen(moduleId, result.name);
+    const screen = repo.createScreen(moduleId, result.name, actorId);
     const version = repo.addVersion(screen.id, { kind: "generate", prompt, tree: result.tree });
     screenEvent("artifact.drafted", screen, actorId);
     return { screen: repo.getScreen(screen.id), version };
@@ -81,6 +130,7 @@ export async function editScreenWithPrompt(screenId: string, input: { prompt: st
     selectedIds: selected,
     instruction: input.prompt,
     comments: annotations.map((a) => ({ comment: a.comment, nodeIds: a.nodeIds })),
+    context: moduleContext(screen.moduleId, false),
   });
   const result = applyPatch(current.tree, ops, { selectedIds: selected });
   const valid = validateTree(result.tree);
@@ -271,22 +321,33 @@ export function manualEdit(screenId: string, input: { op: "remove" | "up" | "dow
   return { version };
 }
 
-/** Màn vừa có phiên bản mới: phát artifact.drafted; nếu màn đang Đã duyệt thì về Nháp và áp BR-02. Gọi trong tx(). */
+/**
+ * Màn vừa có phiên bản mới (gọi trong tx()). Đợt 5: màn đang Xong / Đã duyệt / Lỗi thời → về Bản nháp (giữ cờ
+ * "Yêu cầu sửa"), phát artifact.drafted; màn đang Xong mà bị sửa thì bộ test của module (bước sau) → Lỗi thời.
+ * Tài liệu mới (`module_docs`) đi trước prototype nên không bị ảnh hưởng.
+ * Tương thích v2 tới khi C7 gộp (R-030, R-100): màn đang Đã duyệt vẫn phát thêm "artifact.unapproved" và áp BR-02 cho
+ * bộ tài liệu cũ (`modules.docs_status`) + test như trước.
+ */
 function draftAfterChange(screen: { id: string; status: string; moduleId: string }, actorId?: string) {
+  const ref: ArtifactRef = { kind: "screen", id: screen.id, moduleId: screen.moduleId };
+  if (screen.status !== "draft") setArtifactState(ref, { status: "draft" });
   screenEvent("artifact.drafted", screen, actorId);
   if (screen.status === "approved") {
-    repo.updateScreen(screen.id, { status: "draft" });
-    screenEvent("artifact.unapproved", screen, actorId);
-    markStale(screen.moduleId, actorId); // BR-02
-  }
+    screenEvent("artifact.unapproved", screen, actorId); // v2 – bỏ khi C0 làm R-030
+    markStale(screen.moduleId, actorId); // BR-02 cũ: tài liệu cũ + test
+  } else if (screen.status === "done") staleTests(screen.moduleId, actorId);
 }
 
-// ------------------------------------------------------------- Docs
-function approvedModel(moduleId: string): DesignModel {
-  const screens = repo.listScreens(moduleId).filter((s) => s.status === "approved" && s.tree);
-  if (!screens.length) throw new BizError("BR-01: Cần ít nhất một màn hình ở trạng thái Đã duyệt trước khi sinh tài liệu");
-  return extractModel(screens.map((s) => ({ id: s.id, name: s.name, tree: s.tree! })));
+/** Bộ test đang có (Bản nháp / Xong / Đã duyệt) → Lỗi thời, phát artifact.stale. */
+function staleTests(moduleId: string, actorId?: string) {
+  const m = repo.getModule(moduleId);
+  if (!m || !live(m.testsStatus)) return;
+  setArtifactState({ kind: "tests", id: moduleId, moduleId }, { status: "outdated" });
+  moduleEvent("artifact.stale", "tests", moduleId, actorId);
 }
+
+// ------------------------------------------------------------- Docs (luồng cũ – màn Tài liệu cũ; màn mới của C5 dùng docs.ts riêng)
+// Đợt 5: bỏ BR-01 – không còn cần màn Đã duyệt; mô hình thiết kế lấy từ mọi màn đang có (có thể rỗng).
 
 export function getDesignModel(moduleId: string): DesignModel {
   mustModule(moduleId);
@@ -296,7 +357,7 @@ export function getDesignModel(moduleId: string): DesignModel {
 
 export async function generateDocs(moduleId: string, actorId?: string) {
   const m = mustModule(moduleId);
-  const model = approvedModel(moduleId);
+  const model = getDesignModel(moduleId);
   const { useCases, requirements } = await ai.generateUseCases({ moduleId, moduleName: m.name, requirementInput: m.requirementInput, model });
   repo.saveUseCasesAndRequirements(moduleId, useCases, requirements);
   const [srs, sequences] = await Promise.all([
@@ -311,13 +372,13 @@ export async function generateDocs(moduleId: string, actorId?: string) {
     moduleEvent("artifact.drafted", "docs", moduleId, actorId);
     if (live(m.testsStatus)) moduleEvent("artifact.stale", "tests", moduleId, actorId);
   });
-  return repo.getDocs(moduleId);
+  return repo.getLegacyDocs(moduleId);
 }
 
 export async function refineDoc(moduleId: string, target: string, instruction: string, actorId?: string) {
   const m = mustModule(moduleId);
   if (!instruction.trim()) throw new BizError("Nhập yêu cầu chỉnh");
-  const docs = repo.getDocs(moduleId);
+  const docs = repo.getLegacyDocs(moduleId);
   const model = getDesignModel(moduleId);
   if (target.startsWith("SEQ:")) {
     const code = target.slice(4);
@@ -345,13 +406,13 @@ export async function refineDoc(moduleId: string, target: string, instruction: s
     moduleEvent("artifact.drafted", "docs", moduleId, actorId);
     if (live(m.testsStatus)) moduleEvent("artifact.stale", "tests", moduleId, actorId);
   });
-  return repo.getDocs(moduleId);
+  return repo.getLegacyDocs(moduleId);
 }
 
 export function updateRequirements(moduleId: string, reqs: Requirement[]) {
   mustModule(moduleId);
   repo.saveRequirements(moduleId, reqs);
-  return repo.getDocs(moduleId);
+  return repo.getLegacyDocs(moduleId);
 }
 
 export function approveDocs(moduleId: string, approved: boolean, actorId?: string) {
@@ -364,25 +425,74 @@ export function approveDocs(moduleId: string, approved: boolean, actorId?: strin
   });
 }
 
-// ------------------------------------------------------------- Tests
-export async function generateTests(moduleId: string, actorId?: string) {
+// ------------------------------------------------------------- Test case (đợt 5)
+export interface TestsReadiness {
+  ready: boolean;
+  /** Lý do chặn (hiển thị cho BA) khi `ready = false`. */
+  reason: string;
+  /** "v5": nguồn là module_docs (UC_SPEC + FRD_NFR). "legacy": module làm theo luồng cũ (tài liệu cũ đã duyệt). */
+  source: "v5" | "legacy" | null;
+  frdStatus: ArtifactStatus;
+}
+
+/** Điều kiện sinh test case: FRD-NFR ở trạng thái Xong / Đã duyệt (quyết định 8). Module chỉ có tài liệu cũ đã duyệt vẫn sinh được. */
+export function testsReadiness(moduleId: string): TestsReadiness {
   const m = mustModule(moduleId);
-  if (m.docsStatus !== "approved") throw new BizError("Cần duyệt tài liệu (Approved) trước khi sinh test case");
-  const docs = repo.getDocs(moduleId);
+  const frd = getArtifactState({ kind: "doc", id: moduleId, moduleId, sub: "FRD_NFR" });
+  const st = frd?.status ?? "none";
+  if (st === "done" || st === "approved") {
+    if (!repo.getDocs(moduleId).requirements.length) return { ready: false, reason: `${DOC_KIND_LABEL.FRD_NFR} chưa có yêu cầu nào (FR/NFR) để sinh test case`, source: null, frdStatus: st };
+    return { ready: true, reason: "", source: "v5", frdStatus: st };
+  }
+  if (st === "none" && m.docsStatus === "approved") return { ready: true, reason: "", source: "legacy", frdStatus: st };
+  return { ready: false, reason: `Cần ${DOC_KIND_LABEL.FRD_NFR} ở trạng thái Xong trước khi sinh test case (hiện: ${STATUS_VI[st]})`, source: null, frdStatus: st };
+}
+
+/**
+ * Sinh (lại) bộ test case từ UC Specification + FRD-NFR. Chặn đè theo `modules.tests_rev` (baseRev thiếu thì cho qua).
+ * Sau khi ghi: bộ test về Bản nháp (giữ cờ Yêu cầu sửa), rev + 1, phát artifact.drafted.
+ */
+export async function generateTests(moduleId: string, actorId?: string, baseRev?: number) {
+  const m = mustModule(moduleId);
+  assertRev(m.testsRev ?? 0, baseRev);
+  const r = testsReadiness(moduleId);
+  if (!r.ready) throw new BizError(r.reason);
+  const docs = r.source === "legacy" ? repo.getLegacyDocs(moduleId) : repo.getDocs(moduleId);
   const model = getDesignModel(moduleId);
   const tests = await ai.generateTests({ moduleId, useCases: docs.useCases, requirements: docs.requirements, model });
+  const ref: ArtifactRef = { kind: "tests", id: moduleId, moduleId };
   tx(() => {
+    assertRev(repo.getModule(moduleId)?.testsRev ?? 0, baseRev); // có người vừa sinh lại trong lúc AI chạy
     repo.saveTests(moduleId, tests);
-    repo.updateModule(moduleId, { testsStatus: "draft" });
+    setArtifactState(ref, { status: "draft" });
+    bumpRev(ref, actorId);
     moduleEvent("artifact.drafted", "tests", moduleId, actorId);
   });
   return tests;
 }
 
+// ------------------------------------------------------------- Truy vết
+/** Ma trận cũ (FR ↔ UC ↔ màn ↔ TC, phục vụ xuất Excel) + ma trận đợt 5 Story → UC → FR → Màn → TC (`matrix`). */
 export function trace(moduleId: string) {
   mustModule(moduleId);
   const docs = repo.getDocs(moduleId);
   const tests = repo.getTests(moduleId);
-  const screens = repo.listScreens(moduleId).map((s) => ({ id: s.id, name: s.name }));
-  return { ...buildTrace(docs.useCases, docs.requirements, tests), screens, useCases: docs.useCases.map((u) => ({ code: u.code, name: u.name, screenIds: u.screenIds })) };
+  const screenRows = repo.listScreens(moduleId);
+  const stories = repo.listModuleStories(moduleId);
+  const matrix = buildTraceMatrix({
+    stories,
+    useCases: docs.useCases,
+    requirements: docs.requirements,
+    screens: screenRows.map((s) => ({ id: s.id, name: s.name, title: String(s.tree?.props?.title ?? "") })),
+    tests,
+  });
+  return {
+    ...buildTrace(docs.useCases, docs.requirements, tests),
+    screens: screenRows.map((s) => ({ id: s.id, name: s.name, status: s.status })),
+    useCases: docs.useCases.map((u) => ({ code: u.code, name: u.name, screenIds: u.screenIds })),
+    stories: stories.map((st) => ({ code: st.code, asA: st.asA, iWant: st.iWant, soThat: st.soThat })),
+    requirements: docs.requirements.map((r) => ({ code: r.code, type: r.type, statement: r.statement })),
+    tests: tests.map((t) => ({ code: t.code, title: t.title })),
+    matrix,
+  };
 }

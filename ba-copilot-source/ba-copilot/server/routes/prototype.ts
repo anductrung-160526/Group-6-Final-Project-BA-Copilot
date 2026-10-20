@@ -1,7 +1,42 @@
-// Prototype – xuất HTML tĩnh (kế hoạch đợt 5, mục 3 "C9"). Chủ sở hữu: C9.
-// Khung do C2 tạo: trả 501 cho tới khi C9 thay (dùng shared/exportHtml.ts, trả FileResponse text/html).
-// Hợp đồng: docs/api.md "Đợt 5" mục 5.7. Các route sửa màn trong app.ts đã nhận `baseRev` và tăng `screens.rev` (C2).
+// Prototype, test case – route của C9 (kế hoạch đợt 5, mục 3 "C9"). Hợp đồng: docs/api.md "Đợt 5" mục 5.7.
+// - GET /api/screens/:id/export/html: màn hình → HTML tĩnh tự chứa (shared/exportHtml.ts). `?inline=1` để xem ngay trong trình duyệt.
+// - POST /api/modules/:id/tests/generate: thay route cũ trong app.ts (tệp route đăng ký trước app.ts nên được ưu tiên – xem
+//   matchRoute) để nhận `baseRev` (chặn đè bộ test, 409 CONFLICT) và chặn khi FRD-NFR chưa Xong. Body/kết quả giữ như cũ: TestCase[].
+//   C0: bỏ route trùng trong app.ts khi dọn (REQUESTS R-101).
+// - GET /api/modules/:id/tests/readiness: điều kiện sinh test case (để màn hiện lý do chặn).
 
-import { notImplemented, route } from "../http.ts";
+import * as repo from "../repo.ts";
+import * as svc from "../service.ts";
+import { actor, baseRevOf, FileResponse, requireMember, route } from "../http.ts";
+import { screenToHtml } from "../../shared/exportHtml.ts";
 
-route("GET", "/api/screens/:id/export/html", notImplemented("C9 – xuất màn hình thành HTML tĩnh"));
+function fileSafe(s: string) {
+  return (
+    s
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/đ/g, "d")
+      .replace(/Đ/g, "D")
+      .replace(/[^\w-]+/g, "_")
+      .slice(0, 60) || "man_hinh"
+  );
+}
+
+route("GET", "/api/screens/:id/export/html", (ctx) => {
+  requireMember(ctx);
+  const s = repo.getScreen(ctx.params.id);
+  const v = s?.currentVersionId ? repo.getVersion(s.currentVersionId) : null;
+  if (!s || !v) throw new svc.BizError("Không tìm thấy màn hình", 404);
+  const html = screenToHtml(v.tree, { title: s.name, footer: `${s.name} – phiên bản v${v.number} · xuất từ BA Copilot` });
+  return new FileResponse(Buffer.from(html, "utf8"), `${fileSafe(s.name)}.html`, "text/html; charset=utf-8", ctx.query.get("inline") === "1" ? "inline" : "attachment");
+});
+
+route("POST", "/api/modules/:id/tests/generate", (ctx) => {
+  requireMember(ctx);
+  return svc.generateTests(ctx.params.id, actor(ctx.body), baseRevOf(ctx.body));
+});
+
+route("GET", "/api/modules/:id/tests/readiness", (ctx) => {
+  requireMember(ctx);
+  return svc.testsReadiness(ctx.params.id);
+});
