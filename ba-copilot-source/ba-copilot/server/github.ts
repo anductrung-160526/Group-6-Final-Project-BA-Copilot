@@ -12,6 +12,7 @@
 import { randomUUID } from "node:crypto";
 import { getDb } from "./db.ts";
 import { registerApprovedPusher } from "./events.ts";
+import { HttpError } from "./http.ts";
 import { buildExport, type ExportFile } from "./gitExport.ts";
 import type { ArtifactRef, GitCommit, GitPush, GitPushOutcome, GitTestResult, ProjectGit } from "../shared/types.ts";
 
@@ -36,12 +37,16 @@ const API = () => (process.env.GITHUB_API_URL || "https://api.github.com").repla
 
 // ---------------------------------------------------------------- lỗi tiếng Việt
 
-export class GitHubError extends Error {
+/**
+ * Lỗi GitHub đã dịch sang tiếng Việt. Là HttpError 502 nên nếu lan ra API (vd C7 không bắt khi Duyệt) client nhận
+ * đúng câu thông báo, không bị coi là lỗi máy chủ 500. `githubStatus`: mã HTTP GitHub trả (0 = lỗi mạng).
+ */
+export class GitHubError extends HttpError {
   constructor(
     message: string,
-    public status: number,
+    public githubStatus: number,
   ) {
-    super(message);
+    super(message, 502);
     this.name = "GitHubError";
   }
 }
