@@ -1,16 +1,16 @@
-// SCR-06 – Bảng công việc Kanban (FN-17, FN-18). Chủ sở hữu: A6. Trang đăng ký ở client/routes.ts (key "tasks").
-// Kéo thẻ sang cột khác: đổi chỗ ngay trên màn rồi gọi PATCH /api/tasks/:id/status; lỗi thì trả thẻ về cột cũ.
+// SCR-06 – Quản lý công việc: Kanban 4 cột Cần làm · Đang làm · Xong · Đã duyệt (đợt 5). Chủ sở hữu: C7 (trước: A6).
+// Đăng ký ở client/projectMenu.ts (mục "tasks") và client/routes.ts cũ.
+// Kéo thẻ chỉ theo mũi tên (shared/taskRules.ts): Cần làm → Đang làm → Xong (BA) → Đã duyệt (chỉ BA Lead);
+// Xong / Đã duyệt → Đang làm = Yêu cầu sửa (chỉ BA Lead). Kéo sai → thẻ ở lại cột cũ + toast lý do.
+// Task gắn sản phẩm đổi trạng thái qua endpoint duyệt của sản phẩm (moveTask trong TaskDialog.tsx).
 
 import React, { useCallback, useEffect, useState } from "react";
 import type { ArtifactOption, Member, Task, TaskStatus } from "../../shared/types.ts";
-import { get, listArtifacts, listMembers, listTasks, setTaskStatus } from "../api.ts";
-import { Avatar, Badge, Btn, Empty, KanbanCard, KanbanColumn, Select, useUI } from "../components/ui.tsx";
-import type { PageProps } from "../routes.ts";
-import { currentMemberId } from "../currentMember.ts";
-import { TASK_STATUS, TaskDialog, artifactLabel, fmtDate, isOverdue, priorityBadge } from "./TaskDialog.tsx";
-
-/** Người đang thao tác, gửi kèm `actorId` để ghi task_events.by_member_id (FN-18). */
-const currentActorId = (): string | undefined => currentMemberId();
+import { moveError } from "../../shared/taskRules.ts";
+import { get, listArtifacts, listMembers, listTasks } from "../api.ts";
+import { Avatar, Badge, Btn, Empty, Icon, KanbanCard, KanbanColumn, RevisionTag, Select, useUI } from "../components/ui.tsx";
+import { useCurrentMember } from "../currentMember.ts";
+import { ARTIFACT_ICON, TASK_STATUS, TaskDialog, artifactLabel, fmtDate, isOverdue, moveTask, priorityBadge, statusInfo } from "./TaskDialog.tsx";
 
 interface Project {
   id: string;
@@ -20,8 +20,9 @@ interface Project {
 
 type Editing = { task: Task | null; status?: TaskStatus } | null;
 
-export function TasksView({ projectId }: PageProps) {
+export function TasksView({ projectId }: { projectId: string; params?: string[] }) {
   const { toast } = useUI();
+  const { me } = useCurrentMember();
   const [project, setProject] = useState<Project | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [artifacts, setArtifacts] = useState<ArtifactOption[]>([]);
@@ -30,10 +31,11 @@ export function TasksView({ projectId }: PageProps) {
   const [moduleId, setModuleId] = useState("");
   const [editing, setEditing] = useState<Editing>(null);
 
+  const loadArtifacts = () => listArtifacts(projectId).then(setArtifacts).catch(() => setArtifacts([]));
   useEffect(() => {
     get<Project>(`/api/projects/${encodeURIComponent(projectId)}`).then(setProject).catch((e) => toast(e.message, "err"));
-    listMembers().then(setMembers).catch(() => setMembers([])); // API thành viên (A3) chưa có thì bỏ trống
-    listArtifacts(projectId).then(setArtifacts).catch(() => setArtifacts([]));
+    listMembers().then(setMembers).catch(() => setMembers([]));
+    loadArtifacts();
   }, [projectId]);
 
   const load = useCallback(
@@ -47,15 +49,22 @@ export function TasksView({ projectId }: PageProps) {
     load();
   }, [load]);
 
-  const move = async (cardId: string, to: string) => {
+  const move = async (cardId: string, col: string) => {
     const t = tasks?.find((x) => x.id === cardId);
-    if (!t || t.status === to) return;
+    const to = col as TaskStatus;
+    if (!t || statusInfo(t.status).key === to) return;
+    // Kéo sai luật: thẻ ở lại cột cũ, báo lý do.
+    const err = moveError(t.status, to, me);
+    if (err) return toast(err, "err");
     const from = t.status;
     const put = (status: TaskStatus) => setTasks((list) => list?.map((x) => (x.id === cardId ? { ...x, status } : x)) ?? list);
-    put(to as TaskStatus);
+    put(to);
     try {
-      const saved = await setTaskStatus(cardId, to as TaskStatus, currentActorId());
-      setTasks((list) => list?.map((x) => (x.id === cardId ? saved : x)) ?? list);
+      const r = await moveTask(t, to, me);
+      if (r.message) toast(r.message, "info");
+      // Mọi task gắn cùng sản phẩm cũng đổi theo → tải lại cả bảng.
+      load();
+      if (t.artifactType) loadArtifacts();
     } catch (e) {
       put(from);
       toast(`Không chuyển được thẻ: ${(e as Error).message}`, "err");
@@ -66,7 +75,7 @@ export function TasksView({ projectId }: PageProps) {
     setEditing(null);
     load();
     // Sản phẩm mới tạo sau khi mở trang (màn, module) – tải lại để nhãn gắn kèm đúng.
-    if (t.artifactType && !artifacts.some((a) => a.kind === t.artifactType && a.id === t.artifactId)) listArtifacts(projectId).then(setArtifacts).catch(() => {});
+    if (t.artifactType) loadArtifacts();
   };
 
   const memberName = (id: string | null) => (id ? (members.find((m) => m.id === id)?.name ?? null) : null);
@@ -76,32 +85,30 @@ export function TasksView({ projectId }: PageProps) {
   if (!project || !tasks) return <div className="page muted">Đang tải…</div>;
   return (
     <div className="page" data-testid="tasks-view">
-      <div className="crumbs">
-        <a href="#/">Dự án</a> / <a href={`#/p/${projectId}/modules`}>{project.name}</a> / <span>Công việc</span>
-      </div>
       <div className="page-head">
         <div>
-          <h1>Công việc</h1>
-          <p className="muted">Kéo thẻ sang cột khác để đổi trạng thái. Bấm vào thẻ để xem và sửa.</p>
+          <h1>Quản lý công việc</h1>
+          <p className="muted">Kéo thẻ theo luồng Cần làm → Đang làm → Xong → Đã duyệt. Duyệt và Yêu cầu sửa chỉ BA Lead. Bấm vào thẻ để xem chi tiết.</p>
         </div>
         <div className="filters">
           <Select value={assigneeId} placeholder="Mọi người làm" options={members.map((m) => ({ value: m.id, label: m.name }))} onChange={setAssigneeId} testId="filter-assignee" />
           <Select value={moduleId} placeholder="Mọi module" options={project.modules.map((m) => ({ value: m.id, label: m.name }))} onChange={setModuleId} testId="filter-module" />
           <Btn kind="primary" onClick={() => setEditing({ task: null })} data-testid="new-task">
-            + Công việc mới
+            <Icon name="plus" size="sm" />
+            Công việc mới
           </Btn>
         </div>
       </div>
 
       {tasks.length === 0 && (
         <Empty title={filtered ? "Không có công việc khớp bộ lọc" : "Chưa có công việc nào"}>
-          {filtered ? "Đổi người làm hoặc module ở bộ lọc phía trên." : "Bấm “+ Công việc mới” để giao việc đầu tiên, gắn với màn hình, tài liệu, sơ đồ UC hoặc bộ test."}
+          {filtered ? "Đổi người làm hoặc module ở bộ lọc phía trên." : "Bấm “Công việc mới” để giao việc đầu tiên, gắn với màn hình, tài liệu, sơ đồ hoặc bộ test."}
         </Empty>
       )}
 
       <div className="kanban" data-testid="kanban">
         {TASK_STATUS.map((col) => {
-          const cards = tasks.filter((t) => t.status === col.key);
+          const cards = tasks.filter((t) => statusInfo(t.status).key === col.key);
           return (
             <KanbanColumn
               key={col.key}
@@ -110,13 +117,16 @@ export function TasksView({ projectId }: PageProps) {
               count={cards.length}
               onDropCard={move}
               footer={
-                <Btn kind="ghost" size="sm" onClick={() => setEditing({ task: null, status: col.key })} data-testid={`add-${col.key}`}>
-                  + Thêm
-                </Btn>
+                col.key === "todo" || col.key === "doing" ? (
+                  <Btn kind="ghost" size="sm" onClick={() => setEditing({ task: null, status: col.key })} data-testid={`add-${col.key}`}>
+                    <Icon name="plus" size="sm" />
+                    Thêm
+                  </Btn>
+                ) : undefined
               }
             >
               {cards.map((t) => {
-                const art = artifactLabel(t, artifacts);
+                const art = artifactLabel(t, artifacts, moduleName);
                 const who = memberName(t.assigneeId);
                 const mod = moduleName(t.moduleId);
                 return (
@@ -127,11 +137,18 @@ export function TasksView({ projectId }: PageProps) {
                     onClick={() => setEditing({ task: t })}
                     meta={
                       <>
+                        {t.revisionRequested && <RevisionTag testId={`revision-${t.id}`} />}
                         {priorityBadge(t.priority)}
-                        {art && <Badge tone={art.missing ? "flag" : "gray"}>{art.text}</Badge>}
+                        {art && (
+                          <Badge tone={art.missing ? "flag" : "gray"}>
+                            <Icon name={ARTIFACT_ICON[art.kind]} size="xs" />
+                            {art.text}
+                          </Badge>
+                        )}
                         {!art && mod && <span>{mod}</span>}
                         {t.dueDate && (isOverdue(t) ? <Badge tone="red">Quá hạn {fmtDate(t.dueDate)}</Badge> : <span>Hạn {fmtDate(t.dueDate)}</span>)}
                         <span className="spacer" />
+                        {who && <span className="small">{who}</span>}
                         <Avatar name={who} size="sm" />
                       </>
                     }
@@ -152,9 +169,12 @@ export function TasksView({ projectId }: PageProps) {
           members={members}
           modules={project.modules}
           artifacts={artifacts}
-          actorId={currentActorId()}
           onClose={() => setEditing(null)}
           onSaved={saved}
+          onChanged={() => {
+            load();
+            loadArtifacts();
+          }}
           onDeleted={() => {
             setEditing(null);
             load();

@@ -1,8 +1,5 @@
-// Kiểm thử tích hợp tự cập nhật trạng thái task (FN-20 → FN-23): chạy server thật (DB trong bộ nhớ, AI Mock)
-// và đi luồng demo của bản 4 ngày qua API. Chủ sở hữu: A7.
-//
-// Tạo task qua POST /api/projects/:id/tasks (A6). Khi route còn là stub 501 (nhánh chưa gộp A6) thì ghi thẳng vào bảng
-// đúng như repo/tasks.ts của A6, để test chạy được ở cả hai phía của lần gộp.
+// Task gắn sản phẩm đi theo sự kiện (server/taskAutomation.ts, đợt 5). Chủ sở hữu: C7.
+// Phát thẳng sự kiện như các agent sản phẩm (C5, C6, C9) và luồng duyệt (C7) sẽ làm, trong tx() như nơi phát thật.
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -12,175 +9,148 @@ import { openDb, getDb, tx } from "../server/db.ts";
 import { createApp } from "../server/app.ts";
 import { emit } from "../server/events.ts";
 import { registerTaskAutomation } from "../server/taskAutomation.ts";
-import type { ArtifactKind, TaskStatus } from "../shared/types.ts";
+import * as repo from "../server/repo.ts";
+import * as tasks from "../server/repo/tasks.ts";
+import type { ArtifactEventType, ArtifactRef, DiagramKind, DocKind } from "../shared/types.ts";
 
 let server: Server;
-let base = "";
-
-async function api(method: string, path: string, body?: unknown) {
-  const res = await fetch(base + path, { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
-  const ct = res.headers.get("content-type") ?? "";
-  return { status: res.status, data: (ct.includes("json") ? await res.json() : null) as any };
-}
 
 before(async () => {
   delete process.env.ANTHROPIC_API_KEY;
   openDb(":memory:");
   server = createApp({ publicDir: process.cwd() + "/public" });
-  // Gọi 2 lần: vẫn chỉ một bộ handler (A0 sẽ gọi trong createApp – xem STATUS.md dòng A7).
+  // Gọi 2 lần: vẫn chỉ một bộ handler.
   registerTaskAutomation();
   registerTaskAutomation();
   await new Promise<void>((r) => server.listen(0, r));
-  base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  void (server.address() as AddressInfo).port;
 });
 after(() => server.close());
 
-async function createTask(projectId: string, title: string, artifact?: { kind: ArtifactKind; id: string; moduleId: string }): Promise<string> {
-  const body = { title, moduleId: artifact?.moduleId, artifactType: artifact?.kind, artifactId: artifact?.id };
-  const r = await api("POST", `/api/projects/${projectId}/tasks`, body);
-  if (r.status === 200) {
-    assert.equal(r.data.status, "todo");
-    return r.data.id;
-  }
-  assert.equal(r.status, 501, JSON.stringify(r.data));
-  const id = randomUUID();
-  const at = new Date().toISOString();
-  getDb()
-    .prepare("INSERT INTO tasks (id, project_id, module_id, title, artifact_type, artifact_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-    .run(id, projectId, artifact?.moduleId ?? null, title, artifact?.kind ?? null, artifact?.id ?? null, at, at);
-  getDb()
-    .prepare("INSERT INTO task_events (id, task_id, from_status, to_status, by_system, reason, created_at) VALUES (?, ?, NULL, 'todo', 0, '', ?)")
-    .run(randomUUID(), id, at);
-  return id;
+function setup(name: string) {
+  const pid = repo.createProject(`Dự án ${name}`).id;
+  const mid = repo.createModule(pid, name).id;
+  const sid = repo.createScreen(mid, "Đăng nhập").id;
+  return { pid, mid, sid };
 }
 
-const status = (taskId: string) => (getDb().prepare("SELECT status FROM tasks WHERE id = ?").get(taskId) as { status: TaskStatus }).status;
-
-/** Các lần đổi trạng thái do hệ thống ghi, cũ trước. */
-function systemEvents(taskId: string) {
-  return getDb()
-    .prepare("SELECT from_status, to_status, by_member_id, reason FROM task_events WHERE task_id = ? AND by_system = 1 ORDER BY created_at, rowid")
-    .all(taskId) as { from_status: TaskStatus; to_status: TaskStatus; by_member_id: string | null; reason: string }[];
-}
-const steps = (taskId: string) => systemEvents(taskId).map((e) => `${e.from_status}→${e.to_status}`);
-
-async function setupModule(name: string) {
-  const p = await api("POST", "/api/projects", { name: `Dự án ${name}` });
-  const m = await api("POST", `/api/projects/${p.data.id}/modules`, { name, requirementInput: "As a Khách hàng, I want đăng nhập để mua hàng" });
-  const s = await api("POST", `/api/modules/${m.data.id}/screens`, {
-    prompt: "Màn hình đăng nhập bằng email và mật khẩu (bắt buộc, mật khẩu tối thiểu 8 ký tự), nút Đăng nhập",
-    name: "Đăng nhập",
-  });
-  assert.equal(s.status, 200, JSON.stringify(s.data));
-  return { pid: p.data.id as string, mid: m.data.id as string, sid: s.data.screen.id as string };
+function task(pid: string, title: string, a?: { kind: ArtifactRef["kind"]; id: string; moduleId: string; sub?: DocKind | DiagramKind | null }) {
+  return tasks.createTask(pid, {
+    moduleId: a?.moduleId ?? null,
+    title,
+    description: "",
+    assigneeId: null,
+    dueDate: null,
+    priority: "Medium",
+    artifactType: a?.kind ?? null,
+    artifactId: a?.id ?? null,
+    artifactSub: a?.sub ?? null,
+  }).id;
 }
 
-test("luồng demo: tạo task gắn màn → sửa màn Đang làm → duyệt màn Xong → tài liệu, test → sửa màn đã duyệt thì task tài liệu Cần làm lại", async () => {
-  const { pid, mid, sid } = await setupModule("Xác thực");
-  const other = await api("POST", `/api/modules/${mid}/screens`, { prompt: "Màn hình quên mật khẩu, nhập email, nút Gửi", name: "Quên mật khẩu" });
-  const ref = (kind: ArtifactKind, id = mid) => ({ kind, id, moduleId: mid });
+const fire = (type: ArtifactEventType, artifact: ArtifactRef, actorId?: string) => tx(() => emit({ type, artifact, actorId }));
+const state = (id: string) => {
+  const t = tasks.getTask(id)!;
+  return `${t.status}${t.revisionRequested ? "+cờ" : ""}`;
+};
+const sysEvents = (id: string) => tasks.listEvents(id).filter((e) => e.bySystem);
 
-  const tScreen = await createTask(pid, "Thiết kế màn Đăng nhập", ref("screen", sid));
-  const tOther = await createTask(pid, "Thiết kế màn Quên mật khẩu", ref("screen", other.data.screen.id));
-  const tDocs = await createTask(pid, "Viết tài liệu Xác thực", ref("docs"));
-  const tTests = await createTask(pid, "Sinh test Xác thực", ref("tests"));
-  const tDiagram = await createTask(pid, "Vẽ sơ đồ UC Xác thực", ref("diagram"));
-  const tFree = await createTask(pid, "Họp với khách hàng");
+test("tài liệu theo sub: drafted → done → revision_requested → done → approved; tài liệu khác không bị động", () => {
+  const { pid, mid } = setup("Xác thực");
+  const brd: ArtifactRef = { kind: "doc", id: mid, moduleId: mid, sub: "BRD" };
+  const tBrd = task(pid, "BRD", { kind: "doc", id: mid, moduleId: mid, sub: "BRD" });
+  const tSrs = task(pid, "SRS", { kind: "doc", id: mid, moduleId: mid, sub: "SRS" });
+  const tFree = task(pid, "Họp khách hàng");
 
-  // FN-20: sửa màn (bình luận + sửa) → Đang làm
-  const ann = await api("POST", `/api/screens/${sid}/annotations`, { nodeIds: ["btn_login"], comment: 'Đổi chữ thành "Vào hệ thống"' });
-  const edit = await api("POST", `/api/screens/${sid}/edit`, { prompt: "", nodeIds: [], annotationIds: [ann.data.id] });
-  assert.equal(edit.status, 200, JSON.stringify(edit.data));
-  assert.equal(status(tScreen), "doing");
+  fire("artifact.drafted", brd);
+  assert.equal(state(tBrd), "doing");
+  fire("artifact.done", brd);
+  assert.equal(state(tBrd), "done");
+  fire("artifact.revision_requested", brd);
+  assert.equal(state(tBrd), "doing+cờ");
+  fire("artifact.drafted", brd);
+  assert.equal(state(tBrd), "doing+cờ", "sửa tiếp giữ cờ");
+  fire("artifact.done", brd);
+  assert.equal(state(tBrd), "done+cờ");
+  fire("artifact.approved", brd);
+  assert.equal(state(tBrd), "approved");
+  assert.deepEqual(
+    sysEvents(tBrd).map((e) => `${e.fromStatus}→${e.toStatus}`),
+    ["todo→doing", "doing→done", "done→doing", "doing→done", "done→approved"],
+  );
+  assert.equal(sysEvents(tBrd)[2].reason, "BA Lead yêu cầu sửa Tài liệu BRD – Xác thực");
+  assert.equal(sysEvents(tBrd)[4].reason, "BA Lead duyệt Tài liệu BRD – Xác thực");
 
-  // FN-21: duyệt màn → Xong, có lý do (FN-23)
-  assert.equal((await api("POST", `/api/screens/${sid}/approve`, {})).status, 200);
-  assert.equal(status(tScreen), "done");
-  assert.deepEqual(steps(tScreen), ["todo→doing", "doing→done"]);
-  assert.equal(systemEvents(tScreen)[1].reason, "Màn hình “Đăng nhập” đã được duyệt");
-
-  // Tài liệu: sinh → Đang làm, duyệt → Xong
-  const docs = await api("POST", `/api/modules/${mid}/docs/generate`, {});
-  assert.equal(docs.status, 200, JSON.stringify(docs.data));
-  assert.equal(status(tDocs), "doing");
-  assert.equal((await api("POST", `/api/modules/${mid}/docs/approve`, {})).status, 200);
-  assert.equal(status(tDocs), "done");
-
-  // Test case: sinh → Đang làm (bản 4 ngày chưa có bước duyệt test)
-  assert.equal((await api("POST", `/api/modules/${mid}/tests/generate`, {})).status, 200);
-  assert.equal(status(tTests), "doing");
-
-  // FN-22 + BR-02: sửa màn đã duyệt → màn Cần làm lại, tài liệu Lỗi thời → task tài liệu Cần làm lại
-  const edit2 = await api("POST", `/api/screens/${sid}/edit`, { prompt: 'Thêm nút "Đăng nhập bằng Google"', nodeIds: ["login_form"], annotationIds: [] });
-  assert.equal(edit2.status, 200, JSON.stringify(edit2.data));
-  const detail = await api("GET", `/api/modules/${mid}`);
-  assert.equal(detail.data.docsStatus, "outdated");
-  assert.equal(detail.data.testsStatus, "outdated");
-  assert.equal(status(tScreen), "redo");
-  assert.equal(status(tDocs), "redo");
-  assert.match(systemEvents(tDocs).at(-1)!.reason, /Tài liệu “Xác thực” thành Lỗi thời.*BR-02/);
-  // Task test đang làm dở: Lỗi thời chỉ kéo lùi task đã Xong, còn lại giữ nguyên
-  assert.equal(status(tTests), "doing");
-
-  // Task gắn sản phẩm khác hoặc không gắn sản phẩm thì không bị động tới
-  for (const t of [tOther, tDiagram, tFree]) {
-    assert.equal(status(t), "todo");
-    assert.deepEqual(steps(t), []);
+  for (const t of [tSrs, tFree]) {
+    assert.equal(state(t), "todo");
+    assert.equal(sysEvents(t).length, 0);
   }
 
-  // Làm lại: duyệt lại màn → Xong; sinh lại tài liệu (đang Lỗi thời) → Đang làm
-  await api("POST", `/api/screens/${sid}/approve`, {});
-  assert.equal(status(tScreen), "done");
-  await api("POST", `/api/modules/${mid}/docs/generate`, {});
-  assert.equal(status(tDocs), "doing");
-  assert.deepEqual(steps(tScreen), ["todo→doing", "doing→done", "done→redo", "redo→done"]);
-  assert.deepEqual(steps(tDocs), ["todo→doing", "doing→done", "done→redo", "redo→doing"]);
+  // Sửa sản phẩm đã duyệt → Đang làm (phải bấm Xong lại)
+  fire("artifact.drafted", brd);
+  assert.equal(state(tBrd), "doing");
+  assert.equal(sysEvents(tBrd).at(-1)!.reason, "Tài liệu BRD – Xác thực có bản nháp mới");
+
+  // doc thiếu sub (sai hợp đồng) → không đoán
+  fire("artifact.done", { kind: "doc", id: mid, moduleId: mid });
+  assert.equal(state(tSrs), "todo");
 });
 
-test("sinh lại tài liệu đang Đã duyệt: Xong → Cần làm lại → Đang làm (unapproved rồi drafted)", async () => {
-  const { pid, mid, sid } = await setupModule("Giỏ hàng");
-  await api("POST", `/api/screens/${sid}/approve`, {});
-  await api("POST", `/api/modules/${mid}/docs/generate`, {});
-  const tDocs = await createTask(pid, "Duyệt tài liệu Giỏ hàng", { kind: "docs", id: mid, moduleId: mid });
-  await api("POST", `/api/modules/${mid}/docs/approve`, {});
-  assert.equal(status(tDocs), "done");
-
-  await api("POST", `/api/modules/${mid}/docs/generate`, {});
-  assert.deepEqual(steps(tDocs), ["todo→done", "done→redo", "redo→doing"]);
-  assert.equal(systemEvents(tDocs)[1].reason, "Tài liệu “Giỏ hàng” bị bỏ duyệt");
-
-  // Bỏ duyệt màn: BR-02 phát stale cho tài liệu (đang Nháp) – task đang làm giữ nguyên
-  await api("POST", `/api/screens/${sid}/approve`, { approved: false });
-  assert.equal(status(tDocs), "doing");
+test("stale: Xong / Đã duyệt → Đang làm, đang làm thì giữ", () => {
+  const { pid, mid } = setup("Giỏ hàng");
+  const ref = (sub: DocKind): ArtifactRef => ({ kind: "doc", id: mid, moduleId: mid, sub });
+  const tUc = task(pid, "UC", { kind: "doc", id: mid, moduleId: mid, sub: "UC_SPEC" });
+  const tSrs = task(pid, "SRS", { kind: "doc", id: mid, moduleId: mid, sub: "SRS" });
+  fire("artifact.done", ref("UC_SPEC"));
+  fire("artifact.approved", ref("UC_SPEC"));
+  fire("artifact.drafted", ref("SRS"));
+  fire("artifact.stale", ref("UC_SPEC"));
+  fire("artifact.stale", ref("SRS"));
+  assert.equal(state(tUc), "doing");
+  assert.equal(state(tSrs), "doing");
+  assert.match(sysEvents(tUc).at(-1)!.reason, /UC Specification – Giỏ hàng thành Lỗi thời/);
 });
 
-test("sơ đồ UC (gắn theo module): drafted → Đang làm, approved → Xong, stale → Cần làm lại", async () => {
-  const { pid, mid } = await setupModule("Thanh toán");
-  const tDiagram = await createTask(pid, "Vẽ sơ đồ UC", { kind: "diagram", id: mid, moduleId: mid });
-  // A5 chưa gộp: phát thẳng sự kiện như route sơ đồ sẽ làm (docs/api.md mục 3), trong tx() như service
-  const fire = (type: "artifact.drafted" | "artifact.approved" | "artifact.stale") =>
-    tx(() => emit({ type, artifact: { kind: "diagram", id: mid, moduleId: mid } }));
-  fire("artifact.drafted");
-  fire("artifact.approved");
-  fire("artifact.stale");
-  assert.deepEqual(steps(tDiagram), ["todo→doing", "doing→done", "done→redo"]);
-  assert.match(systemEvents(tDiagram)[2].reason, /Sơ đồ UC “Thanh toán” thành Lỗi thời.*FN-14/);
+test("sơ đồ: task cũ không có sub = Use Case; sơ đồ khác không bị động", () => {
+  const { pid, mid } = setup("Thanh toán");
+  const tOld = task(pid, "Sơ đồ UC cũ", { kind: "diagram", id: mid, moduleId: mid });
+  const tErd = task(pid, "ERD", { kind: "diagram", id: mid, moduleId: mid, sub: "ERD" });
+  assert.equal(tasks.getTask(tOld)!.artifactSub, "UC");
+  getDb().prepare("UPDATE tasks SET artifact_sub = NULL WHERE id = ?").run(tOld); // như dữ liệu trước đợt 5
+  fire("artifact.drafted", { kind: "diagram", id: mid, moduleId: mid }); // mã v2 phát không có sub
+  assert.equal(state(tOld), "doing");
+  assert.equal(state(tErd), "todo");
+  fire("artifact.done", { kind: "diagram", id: mid, moduleId: mid, sub: "ERD" });
+  assert.equal(state(tErd), "done");
+  assert.equal(sysEvents(tErd)[0].reason, "BA bấm Xong Sơ đồ ERD – Thanh toán");
 });
 
-test("người thao tác: actorId là thành viên thì ghi by_member_id; actorId lạ không làm hỏng thao tác", async () => {
-  const { pid, mid, sid } = await setupModule("Hồ sơ");
-  const tScreen = await createTask(pid, "Duyệt màn Hồ sơ", { kind: "screen", id: sid, moduleId: mid });
-  const memberId = randomUUID();
-  getDb().prepare("INSERT INTO members (id, name, role, created_at) VALUES (?, 'Lan', 'BA_LEAD', ?)").run(memberId, new Date().toISOString());
+test("mã v2: duyệt màn bằng route cũ → task Đã duyệt; bỏ duyệt → Đang làm; actorId lạ không làm hỏng thao tác", async () => {
+  const { pid, mid, sid } = setup("Hồ sơ");
+  const tScreen = task(pid, "Màn Đăng nhập", { kind: "screen", id: sid, moduleId: mid });
+  const lan = randomUUID();
+  getDb().prepare("INSERT INTO members (id, name, role, created_at) VALUES (?, 'Lan', 'BA_LEAD', ?)").run(lan, new Date().toISOString());
+  const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  const post = (path: string, body: unknown) => fetch(base + path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 
-  const ok = await api("POST", `/api/screens/${sid}/approve`, { actorId: memberId });
-  assert.equal(ok.status, 200);
-  assert.equal(systemEvents(tScreen)[0].by_member_id, memberId);
+  assert.equal((await post(`/api/screens/${sid}/approve`, { actorId: lan })).status, 200);
+  assert.equal(state(tScreen), "approved");
+  assert.equal(sysEvents(tScreen)[0].byMemberId, lan);
+  assert.equal(sysEvents(tScreen)[0].reason, "BA Lead duyệt Màn hình “Đăng nhập”");
 
-  const odd = await api("POST", `/api/screens/${sid}/approve`, { approved: false, actorId: "khong-ton-tai" });
-  assert.equal(odd.status, 200, JSON.stringify(odd.data));
-  assert.equal(status(tScreen), "redo");
-  assert.equal(systemEvents(tScreen)[1].by_member_id, null);
-  // Đăng ký 2 lần nhưng mỗi lần đổi chỉ ghi một dòng
-  assert.equal(systemEvents(tScreen).length, 2);
+  assert.equal((await post(`/api/screens/${sid}/approve`, { approved: false, actorId: "khong-ton-tai" })).status, 200);
+  assert.equal(state(tScreen), "doing");
+  assert.equal(sysEvents(tScreen)[1].byMemberId, null);
+  assert.equal(sysEvents(tScreen).length, 2, "đăng ký 2 lần nhưng mỗi lần đổi chỉ ghi một dòng");
+});
+
+test("Yêu cầu sửa khi task đang Đang làm: chỉ bật cờ, vẫn ghi một dòng lịch sử", () => {
+  const { pid, mid, sid } = setup("Đơn hàng");
+  const t = task(pid, "Màn", { kind: "screen", id: sid, moduleId: mid });
+  tasks.setTaskStatus(t, "doing");
+  fire("artifact.revision_requested", { kind: "screen", id: sid, moduleId: mid });
+  assert.equal(state(t), "doing+cờ");
+  const ev = sysEvents(t);
+  assert.equal(ev.length, 1);
+  assert.equal(`${ev[0].fromStatus}→${ev[0].toStatus}`, "doing→doing");
 });

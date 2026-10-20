@@ -82,7 +82,7 @@ export const WORK_STEPS: WorkStepItem[] = [
 ];
 
 export const PROJECT_MENU: ProjectMenuItem[] = [
-  // tasks: tạm dùng TasksView v2 (đang chạy) để app không mất màn khi C3 gộp trước C7; C7 thay bằng Kanban 4 cột.
+  // tasks: Kanban 4 cột Cần làm · Đang làm · Xong · Đã duyệt (C7).
   { key: "tasks", label: "Quản lý công việc", icon: "SquareKanban", owner: "C7", component: TasksView },
   { key: "stories", label: "Yêu cầu nghiệp vụ", icon: "BookText", owner: "C4", component: StoriesView },
   { key: "work", label: "Thực hiện công việc", icon: "Workflow", owner: "C3", steps: WORK_STEPS },
