@@ -9,7 +9,7 @@
 //   EditingBadge khi người khác cũng đang mở story đó.
 // - QUS chấm ngay trên trình duyệt bằng scoreStructured() (giống server), theo từng dòng + điểm tổng mỗi module.
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createStory, del, get, isConflict, listStories, reorderStories, updateStory } from "../api.ts";
 import { currentMemberId, useCurrentMember, withActor } from "../currentMember.ts";
 import { usePresence } from "../presence.ts";
@@ -89,6 +89,14 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
   const [pageConflict, setPageConflict] = useState(false);
   const [busy, setBusy] = useState(false);
   const [openQus, setOpenQus] = useState<Record<string, boolean>>({});
+  // Ô tiêu chí cần đặt con trỏ sau lần vẽ tới (Enter / "Thêm tiêu chí" tạo dòng mới).
+  const acRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [focusAc, setFocusAc] = useState<number | null>(null);
+  useEffect(() => {
+    if (focusAc === null) return;
+    acRefs.current[focusAc]?.focus();
+    setFocusAc(null);
+  }, [focusAc]);
 
   useEffect(() => setFilter(params[0] ?? ""), [params[0]]);
 
@@ -146,8 +154,10 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
       setRowConflict(false);
       await load();
     } catch (e: any) {
-      if (isConflict(e)) setRowConflict(true);
-      else toast(e.message, "err");
+      if (isConflict(e)) {
+        setRowConflict(true);
+        toast(`${e.message} – có người vừa sửa story này`, "err");
+      } else toast(e.message, "err");
     } finally {
       setBusy(false);
     }
@@ -225,7 +235,7 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
         <td colSpan={COLS}>
           <div className="box">
             <div className="qus-title-wrap">
-              <Badge tone="mint">{code}</Badge>
+              <Badge>{code}</Badge>
               <span>{d.id === NEW_ID ? "User story mới" : "Sửa user story"}</span>
               <EditingBadge names={others.map((o) => o.name)} />
               {original && (
@@ -260,12 +270,16 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
                   <div key={i} className="qus-title-wrap">
                     <span className="muted small">{i + 1}.</span>
                     <input
+                      ref={(el) => {
+                        acRefs.current[i] = el;
+                      }}
                       value={c}
                       onChange={(e) => setAc(i, e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
                           set({ acceptanceCriteria: [...d.acceptanceCriteria.slice(0, i + 1), "", ...d.acceptanceCriteria.slice(i + 1)] });
+                          setFocusAc(i + 1);
                         }
                       }}
                       placeholder="Ví dụ: Hiện tối đa 20 đơn, mới nhất trước"
@@ -282,7 +296,7 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
               </div>
             </Field>
             <div>
-              <Btn size="sm" kind="ghost" onClick={() => set({ acceptanceCriteria: [...d.acceptanceCriteria, ""] })} data-testid="story-ac-add">
+              <Btn size="sm" kind="ghost" onClick={() => (set({ acceptanceCriteria: [...d.acceptanceCriteria, ""] }), setFocusAc(d.acceptanceCriteria.length))} data-testid="story-ac-add">
                 <Icon name="plus" size="sm" /> Thêm tiêu chí
               </Btn>
             </div>

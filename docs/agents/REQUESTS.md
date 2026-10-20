@@ -246,3 +246,23 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Thay đổi: xem `QA_REPORT.md` mục 7. Component mới `useUI().confirm` đã thêm đủ 3 nơi (ui.tsx, `#/_gallery`, design-system.md).
 - Trạng thái: **Chấp nhận, đã làm** (commit `96a5a56`)
 - Quyết định của A0 (2026-10-20): các agent chủ tệp xem lại phần của mình khi rảnh; không chặn đợt 4.
+
+### R-050 – C9 / C0: route gợi ý màn và SuggestionsPanel đọc user story có cấu trúc
+- Đợt / agent yêu cầu: 5 – đợt 2 / C4
+- Tệp: `server/routes/suggest.ts` (A9, chưa có chủ đợt 5), `client/components/SuggestionsPanel.tsx` (C9) · `scripts/seed.ts` (C11)
+- Lý do: `shared/suggest.ts` (C4) đã nhận story có cấu trúc (`SuggestInput.stories: (string | StructuredStory)[]`, nguồn gợi ý = mã US-xx), nhưng route vẫn truyền `splitStories(m.requirementInput)`.
+- Thay đổi đề xuất: trong `getScreenSuggestions` đổi `stories: splitStories(m.requirementInput)` → `stories: moduleStories(m.id)` (`import { moduleStories } from "../repo/stories.ts"`). `SuggestionsPanel` điều kiện hiện khối: thay `splitStories(m.requirementInput).length > 0` bằng "module có story" (đọc `listStories(pid, { moduleId })`). `scripts/seed.ts` nên tạo story bằng `POST /api/projects/:id/stories` (hoặc chèn bảng `user_stories`) thay cho `requirementInput`, vì bước chuyển `d5.stories` chỉ chạy một lần lúc mở DB rỗng.
+- Trạng thái: Mở
+
+### R-051 – C0 (sau gộp): AI dùng `storiesText(moduleId)` thay `requirementInput`
+- Đợt / agent yêu cầu: 5 – đợt 2 / C4
+- Tệp: `server/service.ts`, `server/ai/pipelines.ts` (C9), `server/ai/docsPipelines.ts` (C5)
+- Thay đổi đề xuất: đầu vào AI lấy từ `storiesText(moduleId)` trong `server/repo/stories.ts` (mỗi story: `US-01 (High): As a …, I want …, so that ….` + tiêu chí chấp nhận). C5/C9 hiện đọc thẳng bảng – sau khi gộp nên đổi về hàm này cho thống nhất.
+- Trạng thái: Mở
+
+### R-052 – C2/C0: `deleteStory` trong `client/api.ts` nhận `baseRev`, `actorId`
+- Đợt / agent yêu cầu: 5 – đợt 2 / C4
+- Tệp: `client/api.ts` (khoá)
+- Lý do: `deleteStory(id)` không gửi được `baseRev`/`actorId` (DELETE không có body). Server đã đọc `baseRev`/`actorId` ở query. Tạm thời `StoriesView` gọi `del("/api/stories/:id?baseRev=…&actorId=…")`.
+- Thay đổi đề xuất: `deleteStory = (id, q: { baseRev?: number; actorId?: string } = {}) => del(`/api/stories/${enc(id)}${qs(...)}`)`.
+- Trạng thái: Mở
