@@ -12,6 +12,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { getDb } from "./db.ts";
 import { screenToHtml } from "../shared/exportHtml.ts";
+import { DIAGRAM_FILE, diagramMarkdown as sharedDiagramMarkdown } from "../shared/diagrams.ts";
 import type { UINode } from "../shared/design.ts";
 import {
   DIAGRAM_KIND_LABEL,
@@ -66,7 +67,8 @@ export const DOC_FILE: Record<DocKind, string> = {
 };
 
 /** Tên tệp sơ đồ: <kind>.md (chữ thường). */
-export const diagramFile = (kind: DiagramKind) => `${kind.toLowerCase()}.md`;
+/** Tên tệp sơ đồ – dùng chung bảng DIAGRAM_FILE của C6 (shared/diagrams.ts). */
+export const diagramFile = (kind: DiagramKind) => DIAGRAM_FILE[kind];
 
 interface ModuleRow {
   id: string;
@@ -221,18 +223,6 @@ function parseJson<T>(raw: string | null | undefined, fallback: T): T {
   }
 }
 
-function diagramMarkdown(kind: DiagramKind, moduleName: string, code: string, parts: DiagramPart[]): string {
-  const head = `# Sơ đồ ${DIAGRAM_KIND_LABEL[kind]} – ${moduleName}\n`;
-  const blocks: string[] = [];
-  if (kind === "SEQUENCE" && parts.length) {
-    for (const p of parts) blocks.push(`## ${[p.key, p.title].filter(Boolean).join(" – ")}\n\n${fence(p.code)}`);
-  } else if (code.trim()) {
-    blocks.push(fence(code));
-  } else {
-    for (const p of parts) blocks.push(`## ${[p.key, p.title].filter(Boolean).join(" – ")}\n\n${fence(p.code)}`);
-  }
-  return `${head}\n${blocks.length ? blocks.join("\n\n") : "_(Chưa có sơ đồ)_"}\n`;
-}
 
 export function testsMarkdown(moduleName: string, cases: TestCase[]): string {
   const lines = [`# Test case – ${moduleName}`, ""];
@@ -300,7 +290,7 @@ export function buildExport(ref: ArtifactRef): ExportResult {
     case "diagram": {
       const kind = ((ref.sub as DiagramKind) ?? "UC") as DiagramKind;
       const r = d.prepare("SELECT code, parts FROM module_diagrams WHERE module_id = ? AND kind = ?").get(moduleId, kind) as { code: string; parts: string } | undefined;
-      files.push({ path: `${dir}/diagrams/${diagramFile(kind)}`, content: diagramMarkdown(kind, m.name, r?.code ?? "", parseJson<DiagramPart[]>(r?.parts, [])) });
+      files.push({ path: `${dir}/diagrams/${diagramFile(kind)}`, content: sharedDiagramMarkdown({ kind, code: r?.code ?? "", parts: parseJson<DiagramPart[]>(r?.parts, []) }, m.name) });
       break;
     }
     case "screen": {
