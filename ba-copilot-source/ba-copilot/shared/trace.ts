@@ -144,6 +144,9 @@ const normName = (x: string) => words(x).join(" ");
 /** Story ↔ UC: UC nhắc mã story → chắc chắn; không thì ≥ 2 từ khoá của "I want" có trong tên/mô tả UC và ≥ 50% từ khoá. */
 export function storyMatchesUc(story: TraceStory, uc: UseCase): MatrixLink | null {
   const ucText = [uc.name, uc.description, uc.trigger, ...uc.preconditions, ...uc.businessRules, ...uc.assumptions].join(" ");
+  // C5 ghi thêm `storyCodes` vào UC (đợt 5) – có thì dùng, chắc chắn nhất
+  const codes = (uc as UseCase & { storyCodes?: unknown }).storyCodes;
+  if (Array.isArray(codes)) return codes.map(String).includes(story.code) ? { code: uc.code, inferred: false } : null;
   const codeRe = new RegExp(`\b${story.code.replace(/[-]/g, "\-")}\b`, "i");
   if (story.code && codeRe.test(ucText)) return { code: uc.code, inferred: false };
   const sw = [...wordSet(story.iWant)];
