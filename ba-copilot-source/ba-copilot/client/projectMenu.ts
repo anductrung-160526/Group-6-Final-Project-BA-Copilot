@@ -10,6 +10,7 @@
 import { createElement, type ComponentType } from "react";
 import { DIAGRAM_KINDS, DIAGRAM_KIND_LABEL, DOC_KINDS, DOC_KIND_LABEL } from "../shared/types.ts";
 import { Empty } from "./components/ui.tsx";
+import { DiagramsView } from "./views/DiagramsView.tsx";
 import { DocsView } from "./views/DocsView.tsx";
 import { FilesView } from "./views/FilesView.tsx";
 import { GitHistoryView } from "./views/GitHistoryView.tsx";
@@ -79,7 +80,7 @@ export const DIAGRAM_SUBS: MenuSub[] = DIAGRAM_KINDS.map((k) => ({ key: k, label
 
 export const WORK_STEPS: WorkStepItem[] = [
   { key: "docs", no: 1, label: "Tài liệu", icon: "FileText", owner: "C5", component: DocsView, subs: DOC_SUBS },
-  { key: "diagrams", no: 2, label: "Sơ đồ", icon: "Network", owner: "C6", component: placeholder<WorkStepProps>("Sơ đồ", "C6"), subs: DIAGRAM_SUBS },
+  { key: "diagrams", no: 2, label: "Sơ đồ", icon: "Network", owner: "C6", component: DiagramsView, subs: DIAGRAM_SUBS },
   { key: "prototype", no: 3, label: "Prototype", icon: "LayoutTemplate", owner: "C9", component: PrototypeStep },
   { key: "tests", no: 4, label: "Test case", icon: "FlaskConical", owner: "C9", component: TestsStep },
   { key: "trace", no: 5, label: "Truy vết", icon: "Route", owner: "C9", component: TraceStep },
