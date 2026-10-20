@@ -144,9 +144,9 @@ App chưa có chế độ tối nên chưa có bộ token tối.
 | `Drawer` | `title`, `onClose`, `footer?`, `actions?`, `testId?` | **Mọi panel** xem/sửa chi tiết bên phải (SCR-04 xem tệp, SCR-07 task). Rộng **40% màn hình** (`--drawer-w: 40vw`), tối thiểu 360px (`--drawer-min-w`), màn ≤ 768px phủ 100%. Prop `size` cũ **deprecated**: vẫn nhận để không vỡ mã, không còn đổi độ rộng. Sửa / Xoá trong chân ngăn dùng `RowActions variant="buttons"`. |
 | `Icon` | `name: IconName`, `size?`: `xs` 12 \| `sm` 14 \| `md` 16 (mặc định) \| `lg` 20 \| số px, `label?`, `className?` | Icon Lucide theo tên dùng chung (mục 3.1). Màu theo `currentColor` – muốn đổi màu thì đặt màu cho phần tử cha. Có `label` khi icon đứng một mình mang nghĩa; đi kèm chữ thì bỏ trống. Trong `Btn` đặt icon trước chữ. |
 | `IconBtn` | `icon`, `label` (bắt buộc → tooltip + `aria-label`), `tone?`: `default` \| `danger`, `size?` + thuộc tính `<button>` | Nút chỉ có icon: đóng, mở/thu, "thêm thao tác". Không tự tạo nút icon bằng `.icon-btn` + ký tự. |
-| `RowActions` | `onEdit?`, `onDelete?`, `deleteConfirm?` (`title`, `message?`, `okLabel?`), `editLabel?` ("Sửa"), `deleteLabel?` ("Xoá"), `variant?`: `icons` \| `buttons`, `disabled?`, `testId?` | Cặp Sửa / Xoá. Chỉ hiện nút có handler. Xoá **luôn** hỏi xác nhận bằng `useUI().confirm` (danger) rồi mới gọi `onDelete` (thiếu `deleteConfirm` thì hỏi "Xoá mục này?"). Cú bấm không lan lên dòng (`tr.clickable`). testId nút: `<testId>-edit` / `<testId>-delete` (mặc định `row-edit` / `row-delete`). |
+| `RowActions` | `onEdit?`, `onDelete?`, `deleteConfirm?` (`title`, `message?`, `okLabel?`), `editLabel?` ("Sửa"), `deleteLabel?` ("Xoá"), `variant?`: `icons` \| `buttons`, `disabled?`, `testId?`, `testIds?` (`{ edit?, delete? }` – giữ testId cũ của màn) | Cặp Sửa / Xoá. Chỉ hiện nút có handler. Xoá **luôn** hỏi xác nhận bằng `useUI().confirm` (danger) rồi mới gọi `onDelete` (thiếu `deleteConfirm` thì hỏi "Xoá mục này?"). Cú bấm không lan lên dòng (`tr.clickable`). testId nút: `<testId>-edit` / `<testId>-delete` (mặc định `row-edit` / `row-delete`). |
 | `SideNav` | `items: SideNavItem[]` (`key`, `label`, `href?`, `icon?`, `children?`, `step?`, `extra?`, `testId?`), `active`, `header?`, `onSelect?(key)`, `ariaLabel?`, `testId?` | **Menu trái nhiều cấp** của khung dự án. Mục cha mở/thu bằng nút mũi tên, tự mở khi mục con đang chọn. `step` hiện số bước trong vòng tròn (Tài liệu 1 → Sơ đồ 2 → …). `header` là chỗ chèn bộ chọn module. Mục đang chọn có `aria-current="page"`. Mục có `href` là liên kết, không có thì gọi `onSelect`. |
-| `ApprovalBar` | `status`: `none` \| `draft` \| `done` \| `approved` \| `outdated`, `revisionRequested?`, `isLead`, `onDone?`, `onApprove?`, `onRequestChange?`, `busy?`, `disabledReason?`, `testId?` ("approval-bar") | Thanh trạng thái đặt ở đầu **mọi màn sản phẩm** và trong ngăn chi tiết task. Chỉ hiển thị, màn gọi API. **Xong** (primary) khi `draft`/`outdated` và có `onDone`. **Yêu cầu sửa** (secondary) + **Duyệt** (primary) chỉ khi `isLead` và `status = done`. Không có ô nhập lý do. `disabledReason` khoá mọi nút và hiện lý do; `busy` khoá khi đang gửi. testId nút: `-done`, `-approve`, `-request-change`. |
+| `ApprovalBar` | `status`: `none` \| `draft` \| `done` \| `approved` \| `outdated` \| `todo` \| `doing`, `revisionRequested?`, `isLead`, `onStart?`, `onDone?`, `onApprove?`, `onRequestChange?`, `reopenApproved?`, `busy?`, `disabledReason?`, `testId?` ("approval-bar") | Thanh trạng thái đặt ở đầu **mọi màn sản phẩm** và trong ngăn chi tiết task. Chỉ hiển thị, màn gọi API. **Bắt đầu làm** (secondary) khi `todo` và có `onStart` (task không gắn sản phẩm, R-080). **Xong** (primary) khi `draft`/`outdated`/`doing` và có `onDone`. **Yêu cầu sửa** (secondary) + **Duyệt** (primary) chỉ khi `isLead` và `status = done`; `reopenApproved` cho thêm "Yêu cầu sửa" khi `approved` (task). Không có ô nhập lý do. `disabledReason` khoá mọi nút và hiện lý do; `busy` khoá khi đang gửi. testId nút: `-start`, `-done`, `-approve`, `-request-change`. |
 | `Empty` | `title`, `children?` | **Mọi trạng thái rỗng**: tiêu đề + câu hướng dẫn bước tiếp theo. |
 | `FileDrop` | `onFiles`, `accept?`, `multiple?` | Vùng kéo thả / bấm chọn tệp (SCR-03). |
 | `KanbanColumn` | `id`, `title`, `count?`, `onDropCard?(cardId, columnId)` | Cột bảng công việc; nhận thẻ kéo thả HTML5. |
@@ -189,6 +189,14 @@ Thư viện **Lucide** (`lucide-react` 1.x). `ui.tsx` chỉ import đích danh t
 | `settings` | Settings | Cài đặt |
 | `history` | History | Lịch sử, phiên bản |
 | `lock` | Lock | Chỉ BA Lead / bị khoá |
+| `download` | Download | Tải về / xuất tệp: Tải .md, Tải SVG, Xuất HTML, Xuất Excel, Xuất JSON, Tải về (R-060, R-102) |
+| `menu` | Menu | Nút mở menu trái ở màn hẹp (R-040) |
+| `calendar` | Calendar | Ngày, hạn |
+| `screen` / `doc` / `diagram` / `tests` | LayoutTemplate / FileText / Network / FlaskConical | Loại sản phẩm BA: màn hình, tài liệu, sơ đồ, bộ test case (R-080; `ARTIFACT_ICON` trong `TaskDialog.tsx`) |
+| `squareKanban` `bookText` `workflow` `folderOpen` `scrollText` `github` | SquareKanban, BookText, Workflow, FolderOpen, ScrollText, GitBranch | Menu trái dự án: Quản lý công việc, Yêu cầu nghiệp vụ, Thực hiện công việc, Kho tài liệu, Nhật ký AI, Lịch sử GitHub. `projectMenu.ts` ghi tên Lucide (vd `SquareKanban`), `ProjectShell` tra khoá viết thường chữ đầu (R-040) |
+| `fileText` `network` `layoutTemplate` `flaskConical` `route` | FileText, Network, LayoutTemplate, FlaskConical, Route | Tên Lucide của 5 bước "Thực hiện công việc" (Tài liệu, Sơ đồ, Prototype, Test case, Truy vết) – cùng icon với nhóm loại sản phẩm |
+
+Icon đứng giữa dòng chữ (ngoài flex) tự thẳng hàng với chữ (`.icon { vertical-align: -0.125em }`). Ký hiệu nằm **trong câu chữ** (≥, ≤, "Cần làm → Đang làm") giữ nguyên – đó là chữ, không phải icon.
 
 ### 3.2. Sửa / Xoá: icon hay nút chữ?
 
@@ -204,6 +212,7 @@ Trong cả hai trường hợp, **không** tự gọi `confirm` trước `onDele
 | Class | Dùng cho |
 |---|---|
 | `.page`, `.page-head`, `.crumbs` | Khung trang cấp dự án: đường dẫn, H1, nút Thêm mới bên phải |
+| `.project-shell` > `.project-head` + `.project-body` (`.project-nav` \| `.project-main`) | Khung dự án (`ProjectShell`): đầu trang tên dự án; menu trái 260px dính dưới thanh trên, cuộn riêng; nội dung bên phải. Màn ≤ 860px bỏ menu trái, mở menu trong `Drawer` bằng nút icon `menu` (R-040) |
 | `.side-nav` + `.side-nav-item.active` | **Menu trái**; mục đang chọn tự in đậm + nền mint-50 + vạch trái mint-500. Menu nhiều cấp dùng component `SideNav` (không tự dựng). |
 | `.tbl th.actions`, `.tbl td.actions` | Cột thao tác cuối bảng chứa `RowActions` (ôm sát, căn phải) |
 | `.notice`, `.notice-warn` | Thông báo nằm trong trang (dùng qua `ConflictNotice`) |

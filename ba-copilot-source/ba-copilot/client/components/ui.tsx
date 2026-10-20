@@ -5,30 +5,43 @@ import {
   ArrowRight,
   ArrowUp,
   BadgeCheck,
+  BookText,
+  Calendar,
   Check,
   ChevronDown,
   ChevronRight,
   ChevronUp,
   CircleCheck,
   Crosshair,
+  Download,
   Ellipsis,
   ExternalLink,
+  FileText,
+  FlaskConical,
   Folder,
+  FolderOpen,
   GitBranch,
   History,
   LayoutGrid,
+  LayoutTemplate,
   Lock,
   LogOut,
+  Menu,
+  Network,
   Pencil,
   Play,
   Plus,
   RefreshCw,
   RotateCcw,
+  Route,
+  ScrollText,
   Settings,
   Sparkles,
+  SquareKanban,
   Trash2,
   Upload,
   User,
+  Workflow,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -67,6 +80,25 @@ const ICONS = {
   settings: Settings,
   history: History,
   lock: Lock,
+  download: Download,
+  menu: Menu,
+  calendar: Calendar,
+  // Loại sản phẩm BA (R-080) – dùng chung cho task, thẻ liên quan
+  screen: LayoutTemplate,
+  doc: FileText,
+  diagram: Network,
+  tests: FlaskConical,
+  // Menu trái của dự án (R-040) – khoá = tên Lucide viết thường chữ đầu, ProjectShell tự tra theo projectMenu.ts
+  squareKanban: SquareKanban,
+  bookText: BookText,
+  workflow: Workflow,
+  folderOpen: FolderOpen,
+  scrollText: ScrollText,
+  fileText: FileText,
+  network: Network,
+  layoutTemplate: LayoutTemplate,
+  flaskConical: FlaskConical,
+  route: Route,
 } satisfies Record<string, LucideIcon>;
 export type IconName = keyof typeof ICONS;
 export const ICON_NAMES = Object.keys(ICONS) as IconName[];
@@ -309,6 +341,7 @@ export function RowActions({
   variant = "icons",
   disabled,
   testId,
+  testIds,
 }: {
   onEdit?: () => void;
   onDelete?: () => void | Promise<unknown>;
@@ -318,9 +351,11 @@ export function RowActions({
   variant?: "icons" | "buttons";
   disabled?: boolean;
   testId?: string;
+  /** Đặt riêng testId từng nút (giữ testId cũ của màn khi chuyển sang RowActions). */
+  testIds?: { edit?: string; delete?: string };
 }) {
   const { confirm } = useUI();
-  const tid = (s: string) => (testId ? `${testId}-${s}` : `row-${s}`);
+  const tid = (s: "edit" | "delete") => testIds?.[s] ?? (testId ? `${testId}-${s}` : `row-${s}`);
   const edit = (e: React.MouseEvent) => {
     e.stopPropagation();
     onEdit?.();
@@ -355,20 +390,25 @@ export function RowActions({
 }
 
 // ---------------------------------------------------------------- Thanh duyệt (Xong / Duyệt / Yêu cầu sửa)
-export type ApprovalStatus = "none" | "draft" | "done" | "approved" | "outdated";
+/** Trạng thái sản phẩm BA (ArtifactStatus) + trạng thái task không gắn sản phẩm (`todo` / `doing`, R-080). */
+export type ApprovalStatus = "none" | "draft" | "done" | "approved" | "outdated" | "todo" | "doing";
 /**
  * Thanh trạng thái + nút luồng duyệt, đặt ở đầu **mọi màn sản phẩm** và trong ngăn chi tiết task. Chỉ hiển thị, không gọi API.
- * - "Xong" (mọi BA): khi `draft` / `outdated` và có `onDone`.
+ * - "Bắt đầu làm" (task): khi `todo` và có `onStart`.
+ * - "Xong" (mọi BA): khi `draft` / `outdated` / `doing` và có `onDone`.
  * - "Yêu cầu sửa" + "Duyệt": chỉ khi `isLead` và `status = "done"` (nút nào có handler mới hiện).
+ *   `reopenApproved` cho BA Lead "Yêu cầu sửa" cả khi đã duyệt (task không gắn sản phẩm).
  * `disabledReason` khoá mọi nút và hiện lý do (vd "Bước Tài liệu chưa Xong"). `busy` khoá nút khi đang gửi.
  */
 export function ApprovalBar({
   status,
   revisionRequested,
   isLead,
+  onStart,
   onDone,
   onApprove,
   onRequestChange,
+  reopenApproved,
   busy,
   disabledReason,
   testId = "approval-bar",
@@ -376,16 +416,21 @@ export function ApprovalBar({
   status: ApprovalStatus;
   revisionRequested?: boolean;
   isLead: boolean;
+  onStart?: () => void;
   onDone?: () => void;
   onApprove?: () => void;
   onRequestChange?: () => void;
+  reopenApproved?: boolean;
   busy?: boolean;
   disabledReason?: string;
   testId?: string;
 }) {
   const off = !!busy || !!disabledReason;
-  const canDone = (status === "draft" || status === "outdated") && !!onDone;
-  const canReview = isLead && status === "done" && !!(onApprove || onRequestChange);
+  const canStart = status === "todo" && !!onStart;
+  const canDone = (status === "draft" || status === "outdated" || status === "doing") && !!onDone;
+  const canApprove = isLead && status === "done" && !!onApprove;
+  const canRequest = isLead && (status === "done" || (!!reopenApproved && status === "approved")) && !!onRequestChange;
+  const canReview = canApprove || canRequest;
   return (
     <div className="approval-bar" data-testid={testId} data-status={status}>
       <span className="approval-state">
@@ -393,22 +438,28 @@ export function ApprovalBar({
         <StatusBadge status={status} testId={`${testId}-status`} />
         {revisionRequested && <RevisionTag testId={`${testId}-revision`} />}
       </span>
-      {(canDone || canReview) && (
+      {(canStart || canDone || canReview) && (
         <span className="approval-actions">
           {disabledReason && <span className="muted small">{disabledReason}</span>}
+          {canStart && (
+            <Btn size="sm" onClick={onStart} disabled={off} title={disabledReason} data-testid={`${testId}-start`}>
+              <Icon name="play" size="sm" />
+              Bắt đầu làm
+            </Btn>
+          )}
           {canDone && (
             <Btn kind="primary" size="sm" onClick={onDone} disabled={off} title={disabledReason} data-testid={`${testId}-done`}>
               <Icon name="done" size="sm" />
               Xong
             </Btn>
           )}
-          {canReview && onRequestChange && (
+          {canRequest && (
             <Btn size="sm" onClick={onRequestChange} disabled={off} title={disabledReason} data-testid={`${testId}-request-change`}>
               <Icon name="revision" size="sm" />
               Yêu cầu sửa
             </Btn>
           )}
-          {canReview && onApprove && (
+          {canApprove && (
             <Btn kind="primary" size="sm" onClick={onApprove} disabled={off} title={disabledReason} data-testid={`${testId}-approve`}>
               <Icon name="approve" size="sm" />
               Duyệt
@@ -949,7 +1000,9 @@ export function IssueList({ issues, empty = "Không có vấn đề nào." }: { 
             <Badge tone={SEVERITY[i.severity][1]}>{i.code ?? SEVERITY[i.severity][0]}</Badge>
             <span>{i.message}</span>
           </div>
-          {i.suggestion && <div className="issue-sugg">→ Gợi ý: {i.suggestion}</div>}
+          {i.suggestion && <div className="issue-sugg">
+              <Icon name="arrowRight" size="xs" /> Gợi ý: {i.suggestion}
+            </div>}
         </div>
       ))}
     </div>
