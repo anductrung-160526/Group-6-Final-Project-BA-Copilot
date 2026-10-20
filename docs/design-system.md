@@ -154,6 +154,7 @@ App chưa có chế độ tối nên chưa có bộ token tối.
 | `IssueList` | `issues` (`severity`, `code?`, `message`, `suggestion?`), `empty?` | Danh sách lỗi theo mức: lỗi (đỏ) → cảnh báo (vàng) → gợi ý (xanh dương). |
 | `SuggestionCard` | `title`, `reason`, `onAccept`, `onDismiss` | Thẻ "Gợi ý tiếp theo" (SCR-16): tiêu đề, lý do, nút Tạo (`secondary`, vì một cột có nhiều thẻ – nút primary của vùng là "+ Mới") + Bỏ qua. |
 | `ToastItem` / `useUI().toast` | `kind`: `ok` \| `err` \| `info` | Thông báo góc dưới phải; lỗi giữ 7 giây, còn lại 3,5 giây. |
+| `GitOutcome` | `git` (`message`, `commitUrl?`) | Nội dung toast sau khi BA Lead **Duyệt**: thông báo GitHub của server + liên kết "Xem commit". `toast(<GitOutcome git={r.git} />, r.git.pushed ? "ok" : "info")` – `toast` nhận cả nội dung React. |
 | `useUI().run` | `label`, `fn` | Hiện lớp "AI đang xử lý…" và tự đổi lỗi thành toast. |
 | `useUI().confirm` | `title`, `message?`, `okLabel?`, `danger?` → `Promise<boolean>` | **Mọi câu hỏi xác nhận** (xoá, sinh lại, bỏ duyệt): hiện `Modal` với nút Huỷ + nút đồng ý (`danger` cho xoá). Không dùng `window.confirm`. |
 
