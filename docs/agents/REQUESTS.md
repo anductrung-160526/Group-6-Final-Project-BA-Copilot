@@ -44,3 +44,14 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Lý do: ngưỡng `< 400 ms` làm cổng số 1 đỏ khi máy bận (`v2-base` cũng trượt), dù mã mô hình không đổi.
 - Thay đổi: chỉ kiểm ngưỡng thời gian khi `PERF=1`; phần kiểm tra kết quả mô hình giữ nguyên.
 - Trạng thái: **Chấp nhận** (người dùng quyết định, 2026-10-20)
+
+### R-012 – A9: dọn CSS `.suggest-*` trong `client/styles.css`
+- Đợt / agent yêu cầu: 2 / A9
+- Tệp: `client/styles.css`, `docs/design-system.md` · Chủ tệp: A1
+- Lý do: khối gợi ý cũ trong `DesignTab.tsx` đã tách ra `client/components/SuggestionsPanel.tsx`, mỗi gợi ý vẽ bằng `SuggestionCard` (`.suggestion-*`). Ba class của thẻ cũ không còn mã nào dùng. Hai class khung (`.suggest-block`, `.suggest-list`) vẫn dùng làm khung panel trong cột trái (viền trên, danh sách dọc có khoảng cách) – A9 không tự viết kiểu mới.
+- Thay đổi đề xuất:
+  1. Xoá `.suggest-item`, `.suggest-name`, `.suggest-actions` (khối "SCR-16 Gợi ý tiếp theo" trong `styles.css`).
+  2. Giữ `.suggest-block`, `.suggest-list`; thêm 1 dòng vào bảng 3.1 của `docs/design-system.md`: "`.suggest-block`, `.suggest-list` – khung khối Gợi ý tiếp theo (SCR-16) ở cột trái Design Studio, chứa các `SuggestionCard`".
+  3. Nếu A1 muốn đổi tên hai class khung thì báo lại A9 để sửa `SuggestionsPanel.tsx` (2 chỗ).
+- Trạng thái: Mở
+- Quyết định của A0 (ngày):

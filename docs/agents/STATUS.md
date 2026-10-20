@@ -15,7 +15,7 @@ Người cập nhật: **A0**. Mỗi agent dán kết quả `npm test` / `npm ru
 | A6 | Công việc Kanban | 2 | `agent/a6-kanban` | ⏳ Sẵn sàng | — | — | |
 | A7 | Tự cập nhật trạng thái task | 2 | `agent/a7-tu-cap-nhat` | ⏳ Sẵn sàng | — | — | Gộp sau A6 |
 | A8 | Chất lượng yêu cầu (QUS) | 2 | `agent/a8-qus` | ⏳ Sẵn sàng | — | — | Phần lớn đã có; việc còn lại ghi ở khung "Hiện trạng" mục A8 trong kế hoạch (chính: FN-56, `ScoreBadge`/`IssueList`) |
-| A9 | Gợi ý màn tiếp theo | 2 | `agent/a9-goi-y` | ⏳ Sẵn sàng | — | — | Phần lớn đã có; việc còn lại ghi ở khung "Hiện trạng" mục A9 trong kế hoạch (chính: API + `suggestion_dismissals`, tách `SuggestionsPanel`, sửa 2 chỗ lệch hợp đồng). Gộp cuối đợt 2 |
+| A9 | Gợi ý màn tiếp theo | 2 | `agent/a9-goi-y` | ✅ Xong, chờ gộp (cuối đợt 2) | 70/70 ✅ (`suggest.test.ts` 10/10) | ✅ | FN-57 → FN-61 đạt. API + bảng `suggestion_dismissals`, `SuggestionsPanel` thay khối cũ trong `DesignTab.tsx`, hết 2 chỗ lệch hợp đồng. Mở R-012 (CSS `.suggest-*`, chủ A1). Xem nhật ký đợt 2 – A9 |
 | A10 | Dữ liệu demo | 3 | `agent/a10-seed` | ⏳ Chờ đợt 2 | — | — | |
 | A11 | Kiểm thử E2E & QA | 3 | `agent/a11-e2e` | ⏳ Chờ A10 | — | — | |
 | A12 | Tài liệu & Triển khai | 3, 4 | `agent/a12-trien-khai` | ⏳ Chờ A11 | — | — | |
@@ -133,4 +133,37 @@ Ba lựa chọn A2 tự chốt, A0 **xác nhận** (tài liệu v2 không quy đ
 **Đã xử lý (theo quyết định của người dùng):** phép đo `< 400 ms` trong `tests/transformer.test.ts` chỉ chạy khi `PERF=1`. Phần kiểm tra kết quả của mô hình vẫn chạy như cũ. Sau khi sửa: `npm test` 66/66 hai lần liên tiếp. Đo tốc độ riêng: `PERF=1 npx tsx --test tests/transformer.test.ts` (đang qua).
 
 **A8, A9:** mục A8 và A9 trong `docs/Ke_hoach_Agent_BA_Copilot_v2.md` đã có khung "Hiện trạng trên `v2-contract`", ghi rõ phần đã có, việc còn lại và 2 chỗ lệch hợp đồng của `suggest.ts`. Khi khởi chạy A8, A9, phải giữ nguyên khung đó trong prompt.
+
+---
+
+## Nhật ký đợt 2 – A9 (2026-10-20)
+
+**Nhánh:** `agent/a9-goi-y`, tạo từ `v2-contract` @ `1aabff2` (worktree `E:/wt-a9`).
+
+### Đã làm
+
+| Tệp | Nội dung |
+|---|---|
+| `shared/suggest.ts` | Dùng `ScreenSuggestion` của `shared/types.ts` (bỏ kiểu tự khai báo). Khoá story đổi sang `story:<hash>` (FNV-1a trên story đã bỏ dấu, bỏ dấu câu; hàm `storyKey()`), khớp `docs/api.md`. Thêm: đã có màn trùng tên đề xuất thì coi là đã phủ (tạo màn từ gợi ý FR/story thì gợi ý biến mất). Gộp gợi ý trùng tên màn **trước** khi lọc Bỏ qua, để Bỏ qua một gợi ý không làm gợi ý trùng tên ở nguồn khác hiện lên thay |
+| `server/routes/suggest.ts` | Thay 3 stub 501: `GET /api/modules/:id/suggestions` → `{ items, dismissed }`; `POST`/`DELETE …/suggestions/:key/dismiss` → `{ ok: true }`, lặp lại không lỗi. Lưu bảng `suggestion_dismissals`. Lỗi: module không có → `404`; khoá không đúng dạng `link:`/`fr:`/`story:` → `400` |
+| `client/components/SuggestionsPanel.tsx` | SCR-16 mới, dùng `SuggestionCard`. Tạo → mở hộp thoại Màn hình mới điền sẵn; Bỏ qua / Khôi phục gọi API (thay `localStorage`). Tự tải lại gợi ý mỗi khi module được tải lại (tạo màn, duyệt, sửa…). Lý do của gợi ý story có kèm nội dung story (FN-59) |
+| `client/views/DesignTab.tsx` | Đúng 2 điểm: (1) xoá khối gợi ý cũ (`screenDismissed`, `updateScreenDismissed`, `stories`, `hasSource`, `suggestions`, JSX `suggest-block`, 3 import) và thay bằng `<SuggestionsPanel m={m} onCreate={openNewScreen} />`; (2) thêm `openNewScreen(initialName, initialPrompt)` cho hộp thoại tạo màn. Không đụng state `dismissed` của gợi ý bố cục ML |
+| `tests/suggest.test.ts` | Ca (a) → (e) theo mục 3.4, thêm: khoá `story:<hash>` ổn định, Bỏ qua cả nhóm trùng tên, màn trùng tên thì hết gợi ý, hàm thuần; 3 test API (thứ tự, Bỏ qua/Khôi phục theo module + 400/404, tạo màn ở chế độ Mock thì gợi ý biến mất) |
+
+### Kiểm tra (`ba-copilot-source/ba-copilot`, Node v24.16.0)
+
+| Lệnh | Kết quả |
+|---|---|
+| `npm test` | ✅ `tests 70 · pass 70 · fail 0`, `duration_ms 17601` (66 cũ + 4 test mới trong `suggest.test.ts`, tệp này 10/10) |
+| `npm run build` | ✅ `public/app.js 329.9kb`, `public/app-style.css 41.2kb`, `Done` |
+| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+| Kịch bản giao diện (Mock, DB mới, Chrome chạy ẩn qua Playwright) | ✅ Tạo màn Đăng nhập → hiện gợi ý "Quên mật khẩu" với lý do `Nút "Quên mật khẩu?" ở màn Đăng nhập chưa có đích`, xếp trước gợi ý story. Bấm Tạo → hộp thoại có tên "Quên mật khẩu" và prompt điền sẵn. Sinh màn xong → gợi ý biến mất. Bỏ qua → ẩn, tải lại trang vẫn ẩn; Khôi phục → hiện lại. 0 lỗi console |
+
+`public/app.js`, `public/app-style.css` **không** commit (sản phẩm build) – A0 sinh lại sau khi gộp.
+
+### Điểm A0 cần làm khi gộp
+
+- **R-012** (`REQUESTS.md`): xoá `.suggest-item/.suggest-name/.suggest-actions` trong `styles.css`, giữ và ghi vào design system `.suggest-block/.suggest-list` (chủ tệp A1). Nếu số R-012 trùng với agent khác thì đổi số.
+- `DesignTab.tsx`: A9 gộp cuối, sau A3 (FN-03) và A6/A0 (`RelatedTasks`). Điểm A9 sửa nằm ở đầu hàm (khối state gợi ý cũ, đã xoá), cạnh `createScreen` (thêm `openNewScreen`) và cuối cột trái `<aside className="studio-left">`. Nếu A0 chèn `RelatedTasks` vào cột trái thì đặt **trên** dòng `<SuggestionsPanel …/>` hoặc ở cột phải, không lồng vào panel.
+- Chạy `npm run build` sau khi gộp để `public/` có panel mới.
 
