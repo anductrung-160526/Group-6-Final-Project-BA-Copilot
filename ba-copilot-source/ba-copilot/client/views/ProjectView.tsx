@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { get, post, del } from "../api.ts";
 import { Btn, Empty, Field, Modal, StatusBadge, useUI } from "../components/ui.tsx";
+import { QusPanel } from "../components/QusPanel.tsx";
 
 const SAMPLE = `- As a Khách hàng, I want đăng nhập bằng email và mật khẩu, so that tôi mua hàng nhanh hơn.
 - As a Khách hàng, I want đăng ký tài khoản mới.
@@ -13,6 +14,11 @@ export function ProjectView({ id }: { id: string }) {
   const [name, setName] = useState("");
   const [req, setReq] = useState("");
   const load = () => get(`/api/projects/${id}`).then(setData).catch((e) => toast(e.message, "err"));
+  // Story của các module có sẵn trong dự án, để QUS bắt trùng chéo module
+  const otherStories = useMemo(
+    () => (data?.modules ?? []).map((x: any) => ({ moduleName: x.name, text: x.requirementInput ?? "" })),
+    [data],
+  );
   useEffect(() => {
     load();
   }, [id]);
@@ -101,6 +107,7 @@ export function ProjectView({ id }: { id: string }) {
           </Field>
           <Field label="Yêu cầu nghiệp vụ / User story (không bắt buộc)" hint="Dán user story hoặc danh sách chức năng ở dạng tự do. AI dùng làm bối cảnh khi thiết kế và viết tài liệu.">
             <textarea rows={7} value={req} onChange={(e) => setReq(e.target.value)} placeholder={SAMPLE} />
+            <QusPanel text={req} others={otherStories} />
           </Field>
           <button className="link" onClick={() => setReq(SAMPLE)}>
             Dùng ví dụ mẫu

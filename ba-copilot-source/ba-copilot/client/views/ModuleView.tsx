@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { get, patch } from "../api.ts";
-import type { ModuleDetail } from "../../shared/types.ts";
+import type { Module, ModuleDetail } from "../../shared/types.ts";
+import type { OtherModuleStories } from "../../shared/qus.ts";
 import { Btn, Modal, StatusBadge, useUI } from "../components/ui.tsx";
+import { QusPanel } from "../components/QusPanel.tsx";
 import { DesignTab } from "./DesignTab.tsx";
 import { DocsTab } from "./DocsTab.tsx";
 import { TestsTab } from "./TestsTab.tsx";
@@ -21,6 +23,7 @@ export function ModuleView({ id, tab }: { id: string; tab: string }) {
   const [m, setM] = useState<ModuleDetail | null>(null);
   const [editReq, setEditReq] = useState(false);
   const [reqText, setReqText] = useState("");
+  const [otherStories, setOtherStories] = useState<OtherModuleStories[]>([]);
   const reload = useCallback(() => get<ModuleDetail>(`/api/modules/${id}`).then(setM).catch((e) => toast(e.message, "err")), [id]);
   useEffect(() => {
     reload();
@@ -49,6 +52,10 @@ export function ModuleView({ id, tab }: { id: string; tab: string }) {
             onClick={() => {
               setReqText(m.requirementInput);
               setEditReq(true);
+              // Story của các module khác cùng dự án, để QUS bắt trùng chéo module
+              get<{ modules: Module[] }>(`/api/projects/${m.projectId}`)
+                .then((p) => setOtherStories(p.modules.filter((x) => x.id !== m.id).map((x) => ({ moduleName: x.name, text: x.requirementInput }))))
+                .catch(() => setOtherStories([]));
             }}
           >
             Yêu cầu nghiệp vụ {m.requirementInput ? "✓" : "(trống)"}
@@ -96,6 +103,7 @@ export function ModuleView({ id, tab }: { id: string; tab: string }) {
         >
           <p className="muted small">AI dùng nội dung này làm bối cảnh khi sinh màn hình, Use Case và SRS. Có thể dán user story, function list hoặc mô tả tự do.</p>
           <textarea rows={14} value={reqText} onChange={(e) => setReqText(e.target.value)} />
+          <QusPanel text={reqText} others={otherStories} />
         </Modal>
       )}
     </div>

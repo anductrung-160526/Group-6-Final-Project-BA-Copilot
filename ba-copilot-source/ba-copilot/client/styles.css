@@ -1574,3 +1574,160 @@ select:focus {
     grid-template-columns: 1fr;
   }
 }
+/* ---------- QUS Quality Score Panel ---------- */
+.qus-panel {
+  border: 1px solid var(--line, #e3e6eb);
+  border-radius: 8px;
+  background: #fafbfc;
+  margin-top: 8px;
+  overflow: hidden;
+  font-size: 13px;
+}
+.qus-empty {
+  padding: 10px 14px;
+  color: var(--muted, #677283);
+  background: #f8f9fb;
+}
+.qus-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #fff;
+  border-bottom: 1px solid var(--line, #e3e6eb);
+  cursor: pointer;
+  user-select: none;
+}
+.qus-head:hover {
+  background: #f8f9fa;
+}
+.qus-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+.qus-body {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.qus-section-title {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--muted, #677283);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.qus-story-item {
+  background: #fff;
+  border: 1px solid var(--line, #e3e6eb);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.qus-story-item:last-child {
+  margin-bottom: 0;
+}
+.qus-story-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+.qus-story-title {
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+  flex: 1;
+}
+.qus-story-text {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--text, #1c2430);
+  line-height: 1.4;
+  word-break: break-word;
+}
+.qus-issues-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+.qus-issue {
+  border-radius: 5px;
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.qus-issue-error {
+  background: var(--red-soft, #fde8e7);
+  border-left: 3px solid var(--red, #b42318);
+}
+.qus-issue-warn {
+  background: var(--amber-soft, #fff3d6);
+  border-left: 3px solid var(--amber, #8a5a00);
+}
+.qus-issue-info {
+  background: var(--accent-soft, #e9eefe);
+  border-left: 3px solid var(--accent, #2f5bea);
+}
+.qus-issue-msg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+.qus-issue-sugg {
+  margin-top: 3px;
+  color: var(--muted, #677283);
+  font-size: 11px;
+}
+.qus-toggle-btn {
+  border: none;
+  background: none;
+  color: var(--muted, #677283);
+  font-size: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.qus-toggle-btn:hover {
+  background: #eef0f3;
+  color: var(--text, #1c2430);
+}
+
+
+/* ---------- SCR-16 Gợi ý tiếp theo ---------- */
+.suggest-block {
+  border-top: 1px solid var(--line, #e3e6eb);
+}
+.suggest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 8px 10px;
+}
+.suggest-item {
+  padding: 8px;
+  border: 1px solid var(--line, #e3e6eb);
+  border-radius: 6px;
+}
+.suggest-name {
+  font-weight: 600;
+}
+.suggest-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}

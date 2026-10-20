@@ -5,6 +5,9 @@ import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSta
 import { get, post, patch, del, download } from "../api.ts";
 import type { Annotation, ModuleDetail, ScreenVersion } from "../../shared/types.ts";
 import { findNode, nodeLabel, topMostIds, UINode } from "../../shared/design.ts";
+import { extractModel } from "../../shared/extract.ts";
+import { splitStories } from "../../shared/qus.ts";
+import { suggestNextScreens } from "../../shared/suggest.ts";
 import { Renderer } from "../components/Renderer.tsx";
 import { Badge, Btn, Empty, Field, Modal, StatusBadge, fmtTime, useUI } from "../components/ui.tsx";
 
@@ -41,6 +44,33 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
   const [newScreen, setNewScreen] = useState<{ name: string; prompt: string } | null>(null);
   const [drag, setDrag] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
   const [rects, setRects] = useState<Record<string, Rect>>({});
+  // Gợi ý màn tiếp theo (UC-29). Danh sách bỏ qua lưu theo module trên trình duyệt (FN-61).
+  const dismissKey = `suggest-dismissed:${m.id}`;
+  const [dismissed, setDismissed] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(dismissKey) ?? "[]");
+    } catch {
+      return [];
+    }
+  });
+  const updateDismissed = (next: string[]) => {
+    setDismissed(next);
+    try {
+      localStorage.setItem(dismissKey, JSON.stringify(next));
+    } catch {}
+  };
+  const stories = useMemo(() => splitStories(m.requirementInput), [m.requirementInput]);
+  const hasSource = stories.length > 0 || m.docs.requirements.some((r) => r.type === "FR") || m.screens.length > 0;
+  const suggestions = useMemo(
+    () =>
+      suggestNextScreens({
+        model: extractModel(m.screens.filter((s) => s.tree).map((s) => ({ id: s.id, name: s.name, tree: s.tree! }))),
+        requirements: m.docs.requirements,
+        stories,
+        dismissed,
+      }),
+    [m.screens, m.docs.requirements, stories, dismissed],
+  );
   const frameRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -256,6 +286,36 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
           ))}
           {!m.screens.length && <div className="muted small pad">Chưa có màn hình. Bấm "+ Mới" và mô tả màn hình bằng prompt.</div>}
         </div>
+        {hasSource && (
+          <div className="suggest-block" data-testid="suggest-block">
+            <div className="side-head">
+              <span>Gợi ý tiếp theo ({suggestions.length})</span>
+              {dismissed.length > 0 && (
+                <button className="link small" onClick={() => updateDismissed([])} title="Hiện lại các gợi ý đã bỏ qua">
+                  Khôi phục {dismissed.length}
+                </button>
+              )}
+            </div>
+            <div className="suggest-list">
+              {suggestions.map((s) => (
+                <div key={s.key} className="suggest-item" data-testid="suggest-item">
+                  <div className="suggest-name">{s.name}</div>
+                  <div className="muted small">{s.reason}</div>
+                  <div className="suggest-actions">
+                    {/* Không tự tạo màn (BR-06): chỉ mở hộp thoại với tên và prompt điền sẵn */}
+                    <Btn size="sm" kind="primary" onClick={() => setNewScreen({ name: s.name, prompt: s.prompt })}>
+                      Tạo
+                    </Btn>
+                    <Btn size="sm" kind="ghost" onClick={() => updateDismissed([...dismissed, s.key])}>
+                      Bỏ qua
+                    </Btn>
+                  </div>
+                </div>
+              ))}
+              {!suggestions.length && <div className="muted small">Đã phủ đủ yêu cầu</div>}
+            </div>
+          </div>
+        )}
       </aside>
 
       {/* Canvas */}
