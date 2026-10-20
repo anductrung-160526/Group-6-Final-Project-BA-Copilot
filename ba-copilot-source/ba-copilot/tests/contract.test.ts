@@ -6,7 +6,7 @@ import type { AddressInfo } from "node:net";
 import { DatabaseSync } from "node:sqlite";
 import { openDb, getDb, migrate, tx, COLUMNS } from "../server/db.ts";
 import { createApp } from "../server/app.ts";
-import { matchRoute, routes } from "../server/http.ts";
+import { matchRoute, routes, route, FileResponse } from "../server/http.ts";
 import { on, emit, clearHandlers, EVENT_TYPES } from "../server/events.ts";
 import * as repo from "../server/repo.ts";
 import * as svc from "../server/service.ts";
@@ -222,4 +222,34 @@ test("route: endpoint cũ vẫn chạy qua registry", async () => {
   const res = await fetch(base + "/api/projects");
   assert.equal(res.status, 200);
   assert.equal((await fetch(base + "/api/khong-co")).status, 404);
+});
+
+// ------------------------------------------------------------------ FileResponse (R-005)
+// Route thử chỉ đăng ký trong tiến trình test này (đường dẫn không có trong docs/api.md).
+const VN_NAME = "Tài liệu đặc tả \"Đợt 1\"; bản\\mới.pdf";
+route("GET", "/api/__test/file/attachment", () => new FileResponse(Buffer.from("%PDF-1.4"), VN_NAME, "application/pdf"));
+route("GET", "/api/__test/file/inline", () => new FileResponse(Buffer.from("%PDF-1.4"), VN_NAME, "application/pdf", "inline"));
+route("GET", "/api/__test/file/ascii", () => new FileResponse(Buffer.from("a,b\n"), "bao-cao.csv", "text/csv"));
+
+test("FileResponse: tên tiếng Việt tải về 200, filename= ASCII an toàn, filename*= giữ tên gốc", async () => {
+  const res = await fetch(base + "/api/__test/file/attachment");
+  assert.equal(res.status, 200);
+  const cd = res.headers.get("content-disposition")!;
+  assert.equal(cd, `attachment; filename="Tai lieu dac ta _Dot 1__ ban_moi.pdf"; filename*=UTF-8''${encodeURIComponent(VN_NAME)}`);
+  assert.equal(res.headers.get("content-type"), "application/pdf");
+  assert.equal(res.headers.get("x-content-type-options"), "nosniff");
+  assert.equal(Buffer.from(await res.arrayBuffer()).toString(), "%PDF-1.4");
+});
+
+test("FileResponse: disposition \"inline\" cho xem trước", async () => {
+  const res = await fetch(base + "/api/__test/file/inline");
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get("content-disposition")!, /^inline; filename="Tai lieu dac ta /);
+});
+
+test("FileResponse: mặc định vẫn attachment (tương thích chỗ gọi cũ)", async () => {
+  assert.equal(new FileResponse(Buffer.alloc(0), "a.txt", "text/plain").disposition, "attachment");
+  const res = await fetch(base + "/api/__test/file/ascii");
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get("content-disposition"), `attachment; filename="bao-cao.csv"; filename*=UTF-8''bao-cao.csv`);
 });

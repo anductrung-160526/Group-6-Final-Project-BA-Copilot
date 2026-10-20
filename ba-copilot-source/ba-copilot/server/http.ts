@@ -58,8 +58,14 @@ export function notImplemented(fn: string): Handler {
   return Object.assign(h, { [STUB]: true });
 }
 
+/** Phản hồi tệp nhị phân. disposition: "inline" (xem trong trình duyệt/iframe) hoặc "attachment" (tải về, mặc định). */
 export class FileResponse {
-  constructor(public data: Buffer, public filename: string, public contentType: string) {}
+  constructor(
+    public data: Buffer,
+    public filename: string,
+    public contentType: string,
+    public disposition: "inline" | "attachment" = "attachment",
+  ) {}
 }
 
 export const str = (v: unknown, max = 20000) => (typeof v === "string" ? v.slice(0, max) : "");

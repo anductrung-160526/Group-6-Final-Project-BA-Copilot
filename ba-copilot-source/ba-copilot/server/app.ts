@@ -187,6 +187,16 @@ async function readBody(req: IncomingMessage): Promise<any> {
   }
 }
 
+/** Tên tệp ASCII an toàn cho `filename="..."`: bỏ dấu tiếng Việt, ký tự lạ/`"`/`\`/`;` → `_`. */
+function asciiFilename(name: string): string {
+  return name
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .replace(/[^\x20-\x7e]|["\\;]/g, "_");
+}
+
 function send(res: ServerResponse, status: number, data: unknown) {
   res.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
   res.end(JSON.stringify(data));
@@ -220,7 +230,11 @@ export function createApp(opts: { publicDir: string }): Server {
         const body = await readBody(req);
         const out = await hit.route.handler({ req, res, params: hit.params, body, query: url.searchParams });
         if (out instanceof FileResponse) {
-          res.writeHead(200, { "content-type": out.contentType, "content-disposition": `attachment; filename="${out.filename}"; filename*=UTF-8''${encodeURIComponent(out.filename)}` });
+          res.writeHead(200, {
+            "content-type": out.contentType,
+            "content-disposition": `${out.disposition}; filename="${asciiFilename(out.filename)}"; filename*=UTF-8''${encodeURIComponent(out.filename)}`,
+            "x-content-type-options": "nosniff",
+          });
           res.end(out.data);
         } else send(res, 200, out ?? { ok: true });
         return;

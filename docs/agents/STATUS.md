@@ -134,3 +134,21 @@ Ba lựa chọn A2 tự chốt, A0 **xác nhận** (tài liệu v2 không quy đ
 
 **A8, A9:** mục A8 và A9 trong `docs/Ke_hoach_Agent_BA_Copilot_v2.md` đã có khung "Hiện trạng trên `v2-contract`", ghi rõ phần đã có, việc còn lại và 2 chỗ lệch hợp đồng của `suggest.ts`. Khi khởi chạy A8, A9, phải giữ nguyên khung đó trong prompt.
 
+
+## Nhật ký đợt 2 – A2 (R-005)
+
+**Việc:** sửa phản hồi tệp (`FileResponse`) để `/api/files/:id/preview` hiện được trong `<iframe>` và tên tệp tiếng Việt không còn gây lỗi 500.
+
+- `server/http.ts`: `FileResponse(data, filename, contentType, disposition: "inline" | "attachment" = "attachment")`. Chỗ gọi cũ 3 tham số chạy y như trước (attachment).
+- `server/app.ts`: `content-disposition` dùng `out.disposition`; `filename="..."` là bản ASCII (bỏ dấu NFD, đ→d, Đ→D, ký tự ngoài 0x20–0x7E và `"` `\` `;` → `_`); `filename*=UTF-8''` giữ tên gốc; thêm `x-content-type-options: nosniff`. Không đổi gì khác.
+- `tests/contract.test.ts`: 3 test mới (route thử `/api/__test/file/*` chỉ trong tiến trình test). Test tên tiếng Việt **tái hiện được lỗi trước khi sửa**: 500, `ERR_INVALID_CHAR`.
+- `docs/api.md` mục 0, dòng "Định dạng": thêm 1 câu về `inline`/`attachment` và tên ASCII. Không đổi method/path/trường.
+- **Cho A4:** bỏ phần bọc `res.writeHead` trong `server/routes/files.ts`, gọi `new FileResponse(buf, name, mime, "inline")` cho `/preview`.
+
+| Cổng | Kết quả |
+|---|---|
+| `npm test` | ✅ 69/69 pass (không bật `PERF`) |
+| `npm run build` | ✅ (đã hoàn `public/`, không commit) |
+| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+
+Lưu ý: lần chạy đầu `npm test` và `tsc` bị hết bộ nhớ vì máy đang chạy nhiều agent cùng lúc. Chạy lại thì qua, không liên quan đến thay đổi.
