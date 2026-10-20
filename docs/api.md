@@ -8,7 +8,7 @@ Kiểu dữ liệu (`Member`, `Task`, …) khai báo trong `shared/types.ts`. H�
 
 | Mục | Quy ước |
 |---|---|
-| Định dạng | JSON (`content-type: application/json`). Tải tệp trả nhị phân với `content-disposition`. |
+| Định dạng | JSON (`content-type: application/json`). Tải tệp trả nhị phân với `content-disposition`. `content-disposition` là `inline` (xem trước, vd `/preview`) hoặc `attachment` (tải về, mặc định), kèm `filename="..."` ASCII đã bỏ dấu và `filename*=UTF-8''...` giữ tên gốc; phản hồi tệp có `x-content-type-options: nosniff`. |
 | Lỗi | `{ "error": "<thông báo tiếng Việt>" }` với mã: `400` dữ liệu sai, `401` chưa đăng nhập, `404` không tìm thấy, `409` xung đột nghiệp vụ, `413` quá lớn, `501` **chưa triển khai** (stub), `502` lỗi AI. |
 | Người thao tác | Mọi `POST/PUT/PATCH/DELETE` nhận thêm trường tuỳ chọn `actorId` (mã `Member`, lấy từ `useCurrentMember()` của A3). Không có thì coi là ẩn danh. Server chuyển `actorId` vào sự kiện (mục 8). |
 | Ngày | Thời điểm: ISO 8601 (`createdAt`, `updatedAt`). Ngày thuần: `YYYY-MM-DD` (`dueDate`, `receivedAt`). |
