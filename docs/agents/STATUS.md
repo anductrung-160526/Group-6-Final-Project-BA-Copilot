@@ -158,3 +158,4 @@ Ba lựa chọn A2 tự chốt, A0 **xác nhận** (tài liệu v2 không quy đ
 - **R-007** – `repo.ts` / `app.ts` đọc và trả `author`/`authorId`, lưu `author_id` cho bình luận.
 - `client/routes.ts`: ngoài dòng `members`, A3 thêm 1 dòng `import { MembersView }` (cần cho dòng đó).
 - Menu thanh trên dạng **pill** (theo yêu cầu người dùng): ghép từ class có sẵn `.tpl-row` + `.chip` / `.chip-sel`, không thêm CSS mới. Gợi ý cho A1 (không bắt buộc): thêm biến thể `Tabs variant="pill"` vào `ui.tsx` + `#/_gallery` để màn khác dùng chung. Sau khi đổi: `npm test` 70/70 ✅, `npm run build` ✅, 0 lỗi console.
+- Cập nhật: menu pill chuyển thành component dùng chung `Tabs variant="pill"` (người dùng yêu cầu, sửa tệp của A1 – xem **R-008**). `npm test` 70/70 ✅, `npm run build` ✅ (`app.js 339.6kb`), 0 lỗi console ở `#/_gallery` và trang dự án.

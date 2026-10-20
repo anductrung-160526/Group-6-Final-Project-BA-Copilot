@@ -197,10 +197,26 @@ export interface TabItem<K extends string = string> {
   href?: string;
   testId?: string;
 }
-/** Thanh tab ngang. Tab đang chọn: chữ mint-700, gạch chân mint-500. */
-export function Tabs<K extends string>({ items, active, onChange, className = "" }: { items: TabItem<K>[]; active: K; onChange?: (key: K) => void; className?: string }) {
+/**
+ * Thanh tab ngang.
+ * - `line` (mặc định): tab đang chọn chữ mint-700, gạch chân mint-500 – dùng trong trang (tab module, tab dự án).
+ * - `pill`: nút bo tròn, tab đang chọn nền mint-50, chữ mint-700 đậm – dùng cho menu thanh trên, bộ lọc nhanh.
+ */
+export function Tabs<K extends string>({
+  items,
+  active,
+  onChange,
+  className = "",
+  variant = "line",
+}: {
+  items: TabItem<K>[];
+  active: K;
+  onChange?: (key: K) => void;
+  className?: string;
+  variant?: "line" | "pill";
+}) {
   return (
-    <nav className={`tabs ${className}`} role="tablist">
+    <nav className={`tabs ${variant === "pill" ? "tabs-pill" : ""} ${className}`} role="tablist">
       {items.map((t) => {
         const cls = `tab ${t.key === active ? "active" : ""}`;
         return t.href ? (

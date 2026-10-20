@@ -131,7 +131,7 @@ App chưa có chế độ tối nên chưa có bộ token tối.
 | `Select` | `value`, `options`, `onChange`, `placeholder?` | Mọi ô chọn một giá trị. |
 | `MemberPicker` | `members`, `value`, `onChange` | Chọn người phụ trách (khung giao diện; A3 nối dữ liệu). |
 | `Avatar` | `name?`, `size?` | Chữ cái đầu tên, dùng trên thẻ, danh sách. |
-| `Tabs` | `items` (`key`, `label`, `extra?`, `href?`), `active`, `onChange?` | Thanh tab ngang. Tab chọn: chữ mint-700 đậm, gạch chân mint-500. |
+| `Tabs` | `items` (`key`, `label`, `extra?`, `href?`), `active`, `onChange?`, `variant?`: `line` (mặc định) \| `pill` | Thanh tab ngang. `line`: tab chọn chữ mint-700 đậm, gạch chân mint-500 – dùng trong trang (tab module, tab dự án). `pill`: nút bo tròn viền xám, tab chọn nền mint-50 + chữ mint-700 đậm – dùng cho **menu thanh trên** và bộ lọc nhanh. |
 | `Modal` | `title`, `onClose`, `footer?`, `wide?` | **Mọi hộp thoại.** Esc / bấm nền để đóng. Nút chính đặt cuối footer. |
 | `Drawer` | `title`, `onClose`, `footer?`, `actions?`, `size`: `md` (480) \| `lg` (720) | **Mọi panel** xem/sửa chi tiết bên phải (SCR-04 xem tệp, SCR-07 task). |
 | `Empty` | `title`, `children?` | **Mọi trạng thái rỗng**: tiêu đề + câu hướng dẫn bước tiếp theo. |
@@ -163,7 +163,7 @@ App chưa có chế độ tối nên chưa có bộ token tối.
 
 | Màn | Áp dụng |
 |---|---|
-| Thanh trên (mọi màn) | Logo nền gradient mint, tên app Space Grotesk; nền trắng (không tô mint cả thanh để giữ 10%). |
+| Thanh trên (mọi màn) | Logo nền gradient mint, tên app Space Grotesk; nền trắng (không tô mint cả thanh để giữ 10%). Menu Công việc / Kho tài liệu / Thành viên dùng `Tabs variant="pill"`. |
 | SCR-08 Danh sách dự án | H1 30, thẻ `.tile` có tiêu đề Space Grotesk; nút **+ Dự án mới** là primary duy nhất. |
 | SCR-09 Chi tiết dự án | Nút **+ Module mới** primary; tab Module / Kho tài liệu theo `Tabs`; popup Tạo module dùng `Modal` + panel QUS. |
 | SCR-10 Design Studio | Cột trái là menu trái: màn đang chọn in đậm + nền mint-50 + vạch mint-500; nút **+ Mới** primary; khối Gợi ý tiếp theo theo `SuggestionCard`. |

@@ -206,6 +206,17 @@ export function Gallery() {
               { key: "c", label: "Test case" },
             ]}
           />
+          <div className="gallery-label">Tabs variant="pill" (menu thanh trên)</div>
+          <Tabs
+            variant="pill"
+            active={tab}
+            onChange={setTab}
+            items={[
+              { key: "a", label: "Công việc" },
+              { key: "b", label: "Kho tài liệu" },
+              { key: "c", label: "Thành viên" },
+            ]}
+          />
         </Section>
       </div>
 

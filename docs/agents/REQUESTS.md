@@ -76,3 +76,12 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Hiện trạng nếu chưa làm: danh sách phiên bản ở màn Thiết kế chưa hiện tên tác giả (dữ liệu đã lưu trong DB nhưng API chưa trả ra).
 - Trạng thái: Mở
 - Quyết định của A0 (ngày):
+
+### R-008 – A3 thêm `Tabs variant="pill"` vào design system
+- Đợt / agent: 2 / A3 (**người dùng yêu cầu trực tiếp**, 2026-10-20)
+- Tệp: `client/components/ui.tsx`, `client/styles.css`, `client/views/_Gallery.tsx`, `docs/design-system.md` · Chủ tệp: A1
+- Lý do: menu thanh trên (SCR-02) dùng kiểu nút bo tròn (pill) thay cho tab gạch chân.
+- Thay đổi: `Tabs` nhận thêm `variant?: "line" | "pill"` (mặc định `line`, chỗ gọi cũ không đổi); CSS `.tabs-pill` chỉ dùng token có sẵn; thêm mẫu vào `#/_gallery`; cập nhật dòng `Tabs` và "Thanh trên" trong `design-system.md`. `TopBar` dùng `<Tabs variant="pill">`.
+- Kiểm tra: tab `line` cũ giữ nguyên kiểu (gạch chân mint-500); `npm test` 70/70, build qua, 0 lỗi console.
+- Trạng thái: Mở – chờ A0 ghi vào sổ `OWNERSHIP.md` mục 4 và A1 xem lại
+- Quyết định của A0 (ngày):
