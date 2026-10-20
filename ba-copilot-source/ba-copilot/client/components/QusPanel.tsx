@@ -1,9 +1,12 @@
-// SCR-15 – Panel chất lượng QUS, dùng chung trong popup Tạo module (FN-53) và Sửa yêu cầu (FN-54).
-// Chấm ngay trên trình duyệt bằng shared/qus.ts, chờ 300 ms sau lần gõ cuối. Chỉ mang tính tư vấn (BR-05): không chặn lưu module.
+// SCR-15 – Chất lượng QUS. Chủ sở hữu: A8 → C4.
+// - QusPanel: panel trên văn bản tự do (popup Tạo module / Sửa yêu cầu cũ – còn tới khi C3 bỏ ô yêu cầu cũ).
+// - Đợt 5: QusToggle + QusDetail (điểm + lỗi theo từng dòng user story), QusSummary (điểm tổng của module) cho màn
+//   Yêu cầu nghiệp vụ; điểm tính bằng scoreStructured() trong shared/qus.ts.
+// Chấm ngay trên trình duyệt, chỉ mang tính tư vấn (BR-05): không chặn lưu.
 
 import React, { useEffect, useMemo, useState } from "react";
-import { qusRating, scoreStories, type OtherModuleStories, type QusIssue, type StoryScore } from "../../shared/qus.ts";
-import { Empty, IssueList, ScoreBadge, type IssueItem } from "./ui.tsx";
+import { qusRating, scoreStories, type OtherModuleStories, type QusIssue, type QusResult, type StoryScore } from "../../shared/qus.ts";
+import { Empty, Icon, IssueList, ScoreBadge, type IssueItem } from "./ui.tsx";
 
 const DEBOUNCE_MS = 300;
 const SEVERITY_LABEL: Record<QusIssue["severity"], string> = { error: "lỗi", warn: "cảnh báo", info: "gợi ý" };
@@ -30,7 +33,7 @@ const pressable = (onPress: () => void) => ({
   },
 });
 
-const toIssueItem = (i: QusIssue): IssueItem => ({ severity: i.severity, code: `${i.code} (${SEVERITY_LABEL[i.severity]})`, message: i.message, suggestion: i.suggestion });
+export const toIssueItem = (i: QusIssue): IssueItem => ({ severity: i.severity, code: `${i.code} (${SEVERITY_LABEL[i.severity]})`, message: i.message, suggestion: i.suggestion });
 const preview = (t: string) => (t.length > 80 ? t.slice(0, 77) + "…" : t);
 // Mặc định bung story có lỗi hoặc cảnh báo, thu story chỉ có gợi ý hoặc đạt chuẩn.
 const openByDefault = (s: StoryScore) => s.issues.some((i) => i.severity !== "info");
@@ -69,7 +72,9 @@ export function QusPanel({ text, others }: { text: string; others?: OtherModuleS
             {qusRating(result.total) === "poor" && " · Điểm chỉ để tham khảo, vẫn lưu được."}
           </div>
         </div>
-        <span className="muted small">{allOpen ? "Thu gọn tất cả ▲" : "Bung tất cả ▼"}</span>
+        <span className="muted small">
+          {allOpen ? "Thu gọn tất cả" : "Bung tất cả"} <Icon name={allOpen ? "chevronUp" : "chevronDown"} size="sm" />
+        </span>
       </div>
 
       <div className="qus-body">
@@ -83,7 +88,9 @@ export function QusPanel({ text, others }: { text: string; others?: OtherModuleS
                 {...pressable(() => setPicked((p) => ({ ...p, [s.index]: !open })))}
               >
                 <div className="qus-story-title">
-                  <span className="muted">{open ? "▾" : "▸"}</span>
+                  <span className="muted">
+                    <Icon name={open ? "chevronDown" : "chevronRight"} size="sm" />
+                  </span>
                   <span className="strong">#{s.index}</span>
                   <span className="qus-story-text" title={s.text}>
                     "{open ? s.text : preview(s.text)}"
@@ -91,11 +98,57 @@ export function QusPanel({ text, others }: { text: string; others?: OtherModuleS
                 </div>
                 <ScoreBadge score={s.score} showLabel={false} />
               </div>
-              {open && <IssueList issues={s.issues.map(toIssueItem)} empty="✓ Đạt chuẩn QUS" />}
+              {open && <IssueList issues={s.issues.map(toIssueItem)} empty="Đạt chuẩn QUS" />}
             </div>
           );
         })}
       </div>
     </div>
+  );
+}
+
+// =============================================================== Đợt 5 – QUS theo từng dòng user story (C4)
+
+const countOf = (issues: QusIssue[], sev: QusIssue["severity"]) => issues.filter((i) => i.severity === sev).length;
+
+/** Nút điểm QUS của một dòng story: badge điểm + mũi tên bung/thu chi tiết. Story chưa chấm (trống) → "—". */
+export function QusToggle({ score, open, onToggle, testId }: { score?: StoryScore; open: boolean; onToggle: () => void; testId?: string }) {
+  if (!score) return <span className="muted">—</span>;
+  const n = score.issues.length;
+  return (
+    <button
+      type="button"
+      className="link nowrap"
+      aria-expanded={open}
+      title={n ? `${n} vấn đề – bấm để ${open ? "thu gọn" : "xem chi tiết"}` : "Đạt chuẩn QUS"}
+      onClick={onToggle}
+      data-testid={testId}
+    >
+      <ScoreBadge score={score.score} showLabel={false} /> <Icon name={open ? "chevronUp" : "chevronDown"} size="sm" />
+    </button>
+  );
+}
+
+/** Chi tiết lỗi QUS của một story (câu đã ghép + danh sách lỗi theo mức). */
+export function QusDetail({ score }: { score: StoryScore }) {
+  return (
+    <div className="issue-list" data-testid="qus-detail">
+      <div className="muted small">Câu được chấm: "{score.text}"</div>
+      <IssueList issues={score.issues.map(toIssueItem)} empty="Đạt chuẩn QUS" />
+    </div>
+  );
+}
+
+/** Điểm tổng QUS của một module (trung bình các story) + số lỗi / cảnh báo / gợi ý. Không có story → không hiện. */
+export function QusSummary({ result, testId = "qus-module" }: { result: QusResult; testId?: string }) {
+  if (!result.stories.length) return null;
+  const all = result.stories.flatMap((s) => s.issues);
+  return (
+    <span className="qus-title-wrap" data-testid={testId}>
+      <ScoreBadge score={result.total} />
+      <span className="muted small">
+        QUS · {countOf(all, "error")} lỗi · {countOf(all, "warn")} cảnh báo · {countOf(all, "info")} gợi ý
+      </span>
+    </span>
   );
 }
