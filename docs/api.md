@@ -118,3 +118,132 @@ interface ArtifactEvent {
 | Sinh test case | `drafted` tests |
 
 Điểm phát do agent khác thêm: sơ đồ UC (A5, mục 3).
+
+---
+
+# Đợt 5 – hợp đồng mới (C2)
+
+Người viết: **C2**. Kế hoạch: `docs/Ke_hoach_Agent_BA_Copilot_v2_dot5.md`. Kiểu dữ liệu: `shared/types.ts` (khối "Đợt 5"). Bảng: `docs/erd.md` mục 8. Sau khi C0 gộp đợt 1, phần này **khoá** như các mục trên. Các mục 0–8 ở trên vẫn đúng, trừ những gì ghi đè dưới đây.
+
+## 5.0 Quy ước bổ sung
+
+| Mục | Quy ước |
+|---|---|
+| Lỗi có mã | Body lỗi có thêm `code` khi máy cần phân biệt: `409 { error: "Bản đã thay đổi – tải lại", code: "CONFLICT", rev }`, `401 { error, code: "UNAUTHENTICATED", mode: "app" \| "member" }`, `403 { error, code: "FORBIDDEN" }`. 409 **không** có `code` là xung đột nghiệp vụ cũ (vd xoá thành viên đang giữ task). Client: `ApiError.code`, `isConflict(e)`. |
+| Chặn đè (`rev`) | Mọi bản ghi sản phẩm (màn, story, tài liệu, sơ đồ, bộ test) có `rev`: bắt đầu `1`, **+1 mỗi lần ghi nội dung** (đổi trạng thái Xong/Duyệt không tăng). Chưa có bản ghi = `rev 0`. API ghi nhận `baseRev` (rev client đang sửa) trong body; server gọi `assertRev(rev hiện tại, baseRevOf(body))` (`server/http.ts`) **trước** khi ghi, rồi tăng rev (`bumpRev` trong `server/db.ts` hoặc `rev = rev + 1` trong SQL) và ghi `updated_by` = actor, `updated_at`. **Thiếu `baseRev` thì cho qua** (client cũ). |
+| Sửa sản phẩm đã Xong/Đã duyệt | Về Đang làm (`draft`), phát `artifact.drafted` – việc của chủ từng loại sản phẩm (C4–C7, C9) theo `docs/Ke_hoach…dot5.md` mục 1. |
+| Chế độ đăng nhập | **demo**: chưa thành viên nào có mật khẩu → mọi API chạy như trước, người thao tác = `actorId` client gửi. **member**: có ≥ 1 mật khẩu → mọi API (trừ `/api/login`, `/api/logout`, `/api/me`, `/api/settings`) cần phiên thành viên (cookie `bac_member`, HttpOnly, 30 ngày), thiếu → `401 mode "member"` (client chuyển `#/login`). Cổng `APP_PASSWORD` cũ giữ nguyên; phiên thành viên hợp lệ cũng qua cổng đó. |
+| Người thao tác | Chế độ member: server **ghi đè** `body.actorId` bằng mã trong phiên trước khi gọi handler → mọi chỗ `actor(body)` cũ tự đúng, client không giả mạo được. Handler mới dùng `requireMember(ctx)` / `requireLead(ctx)` (trả `Member \| null`). |
+| Quyền | `requireMember`: member → phải đăng nhập (401); demo → luôn qua. `requireLead`: member → phải vai `BA_LEAD` (403 `FORBIDDEN`); demo → chặn 403 nếu `actorId` là BA, không rõ người thì cho qua. |
+| `ArtifactRef` | `{ kind: "screen" \| "doc" \| "diagram" \| "tests", id, moduleId, sub? }`. screen: id = screenId. doc: id = moduleId, `sub` = `DocKind` (bắt buộc). diagram: id = moduleId, `sub` = `DiagramKind` (thiếu = `UC`). tests: id = moduleId. Trong URL `/api/artifacts/:kind/:id/...` thì `sub` đi ở query (GET) hoặc body (POST). `"docs"` (bộ tài liệu cũ) chỉ còn cho mã v2. |
+| `DocKind` | `BRD`, `UC_SPEC`, `SRS`, `FRD_NFR`, `API_SPEC` (đúng thứ tự bước; nhãn `DOC_KIND_LABEL`). Viết nguyên chữ hoa trong URL. |
+| `DiagramKind` | `CONTEXT`, `UC`, `SEQUENCE`, `BPMN`, `ERD` (nhãn `DIAGRAM_KIND_LABEL`). |
+| `ArtifactStatus` | `none` (chưa có) · `draft` (Đang làm) · `done` (Xong) · `approved` (Đã duyệt) · `outdated` (Lỗi thời) + cờ riêng `revisionRequested` (tag "Yêu cầu sửa"). Màn hình dùng chung (không có `none`). |
+| `TaskStatus` | `todo` · `doing` · `done` · `approved` + `Task.revisionRequested`. `redo` cũ được migration đổi thành `doing` + cờ **mỗi lần khởi động**; mã mới không ghi `redo`. |
+
+## 5.1 Đăng nhập, phiên, hiện diện, nhật ký – C2 (**đã chạy**)
+
+| Method | Path | Body / query | Trả về | Quyền | Client | Chủ |
+|---|---|---|---|---|---|---|
+| POST | `/api/login` | `{ name \| memberId, password }` → đăng nhập thành viên. Chỉ `{ password }` → cổng APP_PASSWORD cũ | `{ ok: true, member: Member }` (thành viên) · `{ ok: true }` (cũ) · `401` sai · `429` thử quá 10 lần/10 phút/IP | công khai | `login(b)` | C2 (màn: C3) |
+| POST | `/api/logout` | – | `{ ok: true }`, xoá cả 2 cookie | công khai | `logout()` | C2 |
+| GET | `/api/me` | – | `MeInfo = { member: Member \| null, mode: "demo" \| "member", appAuth: boolean }` | công khai | `getMe()` | C2 |
+| PUT | `/api/members/:id/password` | `{ password }` (rỗng = xoá; ≥ 6 ký tự) | `Member` (`hasPassword`) · `400` nếu mật khẩu đầu tiên không phải của BA Lead, hoặc xoá mật khẩu BA Lead cuối cùng khi người khác còn mật khẩu | chính mình hoặc `requireLead` | `setMemberPassword(id, pw)` | C2 (màn Quản trị: C3) |
+| POST | `/api/presence` | `{ kind: PresenceKind, id, sub? }` – gửi mỗi 30 giây | `PresenceEntry[]` người khác đang mở (trừ mình) | `requireMember` | `touchPresence(t)` / hook `usePresence` | C2 |
+| GET | `/api/presence` | query `kind`, `id`, `sub?` | `PresenceEntry[]` (trừ mình) | `requireMember` | `listPresence(t)` | C2 |
+| DELETE | `/api/presence` | `{ kind, id, sub? }` | `{ ok: true }` (rời màn) | `requireMember` | `leavePresence(t)` | C2 |
+| GET | `/api/projects/:id/runs` | query `moduleId?` | `PromptRun[]` mới nhất trước | `requireMember` | `listProjectRuns(pid, q)` | C2 (màn: C3) |
+| GET | `/api/settings` | – | thêm trường `memberAuth: boolean` | công khai | – | C2 |
+
+`PresenceKind = "screen" | "doc" | "diagram" | "tests" | "story"`; `id`, `sub` như `ArtifactRef` (story: id = storyId). Lưu trong bộ nhớ, hết hạn sau **90 giây** không nhịp (`server/presence.ts`). Chế độ demo: người gửi lấy từ `actorId` (hook tự gửi từ `currentMemberId()`); không rõ người thì không ghi nhịp, chỉ trả danh sách.
+
+## 5.2 User story – `server/routes/stories.ts` (C4, **501**)
+
+| Method | Path | Body / query | Trả về | Quyền | Client |
+|---|---|---|---|---|---|
+| GET | `/api/projects/:id/stories` | query `moduleId?` | `UserStory[]` theo `order` | `requireMember` | `listStories(pid, q)` |
+| POST | `/api/projects/:id/stories` | `UserStoryInput` | `UserStory` (mã `US-xx` tự đánh: `storyCode(nextStoryNumber(db, pid))`, `rev 1`) | `requireMember` | `createStory(pid, b)` |
+| POST | `/api/projects/:id/stories/reorder` | `{ ids: string[] }` | `UserStory[]` | `requireMember` | `reorderStories(pid, ids)` |
+| GET | `/api/stories/:id` | – | `UserStory` | `requireMember` | `getStory(id)` |
+| PATCH | `/api/stories/:id` | `UserStoryInput & { baseRev? }` | `UserStory` · `409 CONFLICT` | `requireMember` | `updateStory(id, b)` |
+| DELETE | `/api/stories/:id` | – | `{ ok: true }` | `requireMember` | `deleteStory(id)` |
+
+`UserStoryInput = { moduleId?, asA?, iWant?, soThat?, acceptanceCriteria?: string[], priority?: "High" \| "Medium" \| "Low" }`. `moduleId` phải thuộc dự án → `400`. QUS (`GET /api/modules/:id/qus`, C4) chuyển sang chấm trên story ghép lại thành câu.
+
+## 5.3 Tài liệu theo bước – `server/routes/docs.ts` (C5, **501**)
+
+| Method | Path | Body | Trả về | Quyền | Client |
+|---|---|---|---|---|---|
+| GET | `/api/modules/:id/docs` | – | `ModuleDoc[]` đủ 5 loại theo thứ tự `DOC_KINDS` (chưa sinh: `status "none"`, `rev 0`, `content ""`) | `requireMember` | `listModuleDocs(mid)` |
+| GET | `/api/modules/:id/docs/:kind` | – | `ModuleDoc` | `requireMember` | `getModuleDoc(mid, kind)` |
+| PUT | `/api/modules/:id/docs/:kind` | `{ content, data?, baseRev? }` | `ModuleDoc` (về `draft`) · `409 CONFLICT` | `requireMember` | `saveModuleDoc(mid, kind, b)` |
+| POST | `/api/modules/:id/docs/:kind/generate` | `{ baseRev? }` | `ModuleDoc` (`draft`) · `400` nếu bước trước chưa `done`/`approved` | `requireMember` | `generateModuleDoc(mid, kind, b)` |
+| POST | `/api/modules/:id/docs/:kind/refine` | `{ instruction, section?, baseRev? }` | `ModuleDoc` | `requireMember` | `refineModuleDoc(mid, kind, b)` |
+
+Sự kiện: ghi/sinh → `artifact.drafted { kind: "doc", id: moduleId, sub }`; các bước sau đang có → `artifact.stale`. `ModuleDoc.data`: UC_SPEC `{ useCases }`, FRD_NFR `{ requirements }`, SRS `{ srs }`. Route cũ `/api/modules/:id/docs/generate|refine|approve` giữ tới khi C9 chuyển `service.ts`.
+
+## 5.4 Sơ đồ theo bước – `server/routes/diagrams.ts` (C6, **501**)
+
+| Method | Path | Body | Trả về | Quyền | Client |
+|---|---|---|---|---|---|
+| GET | `/api/modules/:id/diagrams` | – | `ModuleDiagram[]` đủ 5 loại theo `DIAGRAM_KINDS` (chưa sinh: `none`, `rev 0`) | `requireMember` | `listModuleDiagrams(mid)` |
+| GET | `/api/modules/:id/diagrams/:kind` | – | `ModuleDiagram` | `requireMember` | `getModuleDiagram(mid, kind)` |
+| PUT | `/api/modules/:id/diagrams/:kind` | `{ code, parts?, baseRev? }` | `ModuleDiagram` (`draft`) · `400` Mermaid sai · `409 CONFLICT` | `requireMember` | `saveModuleDiagram(mid, kind, b)` |
+| POST | `/api/modules/:id/diagrams/:kind/generate` | `{ baseRev? }` | `ModuleDiagram` (`draft`) | `requireMember` | `generateModuleDiagram(mid, kind, b)` |
+
+SEQUENCE: `code` rỗng, mỗi UC một phần trong `parts: DiagramPart[] = { key: mã UC, title, code }`. Route cũ `/api/modules/:id/diagram` (số ít, `uc_diagrams`) giữ tới khi C6 thay `DiagramTab`.
+
+## 5.5 Xong / Duyệt / Yêu cầu sửa – `server/routes/approval.ts` (C7)
+
+| Method | Path | Body / query | Trả về | Quyền | Client | Hiện trạng |
+|---|---|---|---|---|---|---|
+| GET | `/api/artifacts/:kind/:id/state` | query `sub?` | `ArtifactState = { ref, status, revisionRequested, rev, updatedBy, updatedAt }` · `404` | `requireMember` | `getArtifactState(kind, id, sub)` | **Đã chạy** (C2) |
+| POST | `/api/artifacts/:kind/:id/done` | `{ sub?, baseRev? }` | `ApprovalResult` | `requireMember` | `markArtifactDone(kind, id, b)` | **501** |
+| POST | `/api/artifacts/:kind/:id/approve` | `{ sub?, baseRev? }` | `ApprovalResult` (+ `git: GitPushOutcome`) | `requireLead` | `approveArtifact(kind, id, b)` | **501** |
+| POST | `/api/artifacts/:kind/:id/request-change` | `{ sub? }` | `ApprovalResult` | `requireLead` | `requestArtifactChange(kind, id, b)` | **501** |
+
+`:kind` ∈ `screen | doc | diagram | tests` (sai → `400`; doc thiếu `sub` → `400`, dùng `parseArtifactRef()` trong `approval.ts`). `ApprovalResult = { state, tasks: Task[], git? }`. Luồng (kế hoạch mục 1): `done` chỉ từ `draft`/`outdated`, giữ `revisionRequested`; `approve` chỉ từ `done`, xoá cờ, gọi `pushApproved()` (C8) – chưa cấu hình repo vẫn duyệt, `git.pushed = false`; lỗi GitHub khi đã cấu hình → lỗi API, trạng thái không đổi; `request-change` chỉ từ `done`/`approved` → `draft` + cờ. Đọc/ghi trạng thái qua `getArtifactState` / `setArtifactState` (`server/db.ts`). Sự kiện: `artifact.done`, `artifact.approved`, `artifact.revision_requested`. Route cũ `POST /api/screens/:id/approve`, `/api/modules/:id/docs/approve`, `/api/modules/:id/diagram/approve` giữ tới khi C7/C9 bỏ nút cũ.
+
+## 5.6 GitHub – `server/routes/git.ts` (C8, **501**)
+
+| Method | Path | Body | Trả về | Quyền | Client |
+|---|---|---|---|---|---|
+| GET | `/api/projects/:id/git` | – | `ProjectGit \| null` – **không có token**, chỉ `hasToken` | `requireMember` | `getProjectGit(pid)` |
+| PUT | `/api/projects/:id/git` | `ProjectGitInput = { repo, branch?, token? }` (token thiếu = giữ, `""` = xoá; branch mặc định `main`) | `ProjectGit` | `requireLead` | `saveProjectGit(pid, b)` |
+| POST | `/api/projects/:id/git/test` | `Partial<ProjectGitInput>` (thiếu thì dùng cấu hình đã lưu) | `GitTestResult = { ok, message, branchExists?, defaultBranch? }` | `requireLead` | `testProjectGit(pid, b)` |
+| GET | `/api/projects/:id/git/history` | – | `GitHistory = { configured, repo, branch, commits: GitCommit[], pushes: GitPush[] }` | `requireMember` | `getGitHistory(pid)` |
+
+Token chỉ đọc ở server (`project_git.token`, mặc định lấy biến `GITHUB_TOKEN` nếu dự án chưa có – C8 quyết). Không bao giờ ghi token vào log, lỗi trả về hay `prompt_runs`.
+
+## 5.7 Prototype – `server/routes/prototype.ts` (C9, **501**)
+
+| Method | Path | Trả về | Quyền | Client |
+|---|---|---|---|---|
+| GET | `/api/screens/:id/export/html` | HTML tĩnh tự chứa (`FileResponse` `text/html`, `attachment`) từ `shared/exportHtml.ts` | `requireMember` | `screenHtmlUrl(sid)` |
+
+**Bổ sung vào endpoint cũ (C2 đã làm):** `PATCH /api/screens/:id`, `POST /api/screens/:id/edit`, `/revert`, `/layout/accept`, `/manual` nhận `baseRev?` → `409 CONFLICT` khi lệch; ghi xong `screens.rev + 1`, `updated_by`, `updated_at`. `Screen.rev`, `revisionRequested` có trong kiểu nhưng `toScreen()` (C9) cần đọc thêm cột để trả ra; trong lúc chờ dùng `GET /api/artifacts/screen/:id/state`.
+
+## 5.8 Sự kiện đợt 5 – `server/events.ts`
+
+`EVENT_TYPES_V5 = ["artifact.drafted", "artifact.done", "artifact.approved", "artifact.revision_requested", "artifact.stale"]`; `EVENT_TYPES` = đợt 5 + `"artifact.unapproved"` (cũ, chỉ mã v2 còn phát). `ArtifactEvent.artifact` là `ArtifactRef` có `sub`.
+
+| Thao tác | Sự kiện | Ai phát |
+|---|---|---|
+| Sinh / sửa nội dung sản phẩm | `artifact.drafted` | C4–C6, C9 |
+| BA bấm Xong | `artifact.done` | C7 |
+| BA Lead Duyệt | `artifact.approved` | C7 |
+| BA Lead Yêu cầu sửa | `artifact.revision_requested` | C7 |
+| Bước trước sinh lại / đổi | `artifact.stale` cho các bước sau | C5, C6, C9 |
+
+## 5.9 Bảng tổng hợp chủ sở hữu
+
+| Nhóm | Tệp route | Chủ | Trạng thái |
+|---|---|---|---|
+| Đăng nhập, me, mật khẩu, presence, nhật ký dự án | `server/app.ts` | C2 | Đã chạy |
+| Chặn đè màn (`baseRev`) | `server/app.ts` | C2 | Đã chạy |
+| User story | `server/routes/stories.ts` | C4 | 501 |
+| Tài liệu | `server/routes/docs.ts` | C5 | 501 |
+| Sơ đồ | `server/routes/diagrams.ts` | C6 | 501 |
+| Trạng thái sản phẩm | `server/routes/approval.ts` | C7 | `state` đã chạy, 3 lệnh 501 |
+| GitHub | `server/routes/git.ts` | C8 | 501 |
+| Xuất HTML | `server/routes/prototype.ts` | C9 | 501 |

@@ -196,6 +196,50 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Trạng thái: **Chấp nhận, đã làm**
 - Quyết định của A0 (2026-10-20): A0 làm thay A1: xoá `.suggest-item/.suggest-name/.suggest-actions`, giữ hai class khung và thêm dòng vào `design-system.md` mục 3.1. Commit `195af3e`.
 
+> Ghi chú C2 (đợt 5): C2 lấy dải **R-030 → R-039** (số tạm), C0 đánh lại khi gộp nếu trùng.
+
+### R-030 – C0: bỏ giá trị cũ khỏi kiểu sau khi gộp xong đợt 2
+- Đợt / agent yêu cầu: 5 – đợt 1 / C2
+- Tệp: `shared/types.ts`, `server/db.ts`, `server/events.ts` · Chủ tệp: C2 (khoá sau đợt 1)
+- Lý do: để mã v2 còn biên dịch và chạy khi hợp đồng đợt 5 vào trước, C2 giữ tạm: `TaskStatus` có `"redo"`, `ArtifactKind` có `"docs"`, `ArtifactEventType` có `"artifact.unapproved"`, `UcDiagramStatus`; CHECK của `tasks` còn nhận `'redo'`, `'docs'`. Migration đổi `redo` → `doing` + cờ mỗi lần khởi động.
+- Thay đổi đề xuất: khi C7 (taskRules, tasks), C9 (service.ts), C6 (diagram.ts), C5 (DocsTab) không còn dùng → xoá 4 giá trị trên khỏi union, `EVENT_TYPES` = `EVENT_TYPES_V5`; (tuỳ chọn) dựng lại bảng `tasks` với CHECK không còn `redo`/`docs` sau khi đổi task `docs` cũ sang `doc` + `sub`.
+- Trạng thái: Mở
+
+### R-031 – C2 sửa tối thiểu `shared/taskRules.ts` để biên dịch
+- Đợt / agent: 5 – đợt 1 / C2 (tự báo)
+- Tệp: `shared/taskRules.ts`, `tests/taskRules.test.ts` · Chủ tệp: C7 (đợt 2)
+- Lý do: thêm `"doc"` vào `ArtifactKind` và 2 sự kiện mới làm `Record<ArtifactKind,…>` và `switch` của `statusReason` báo lỗi `tsc` (TS2741, TS2366). Không có cách nào giữ đúng hợp đồng mà không chạm tệp này.
+- Thay đổi đã làm: `KIND_LABEL` thêm `doc: "Tài liệu"`; `statusReason` thêm 2 nhánh `artifact.done` ("… đã Xong"), `artifact.revision_requested` ("… bị yêu cầu sửa"). `nextStatus` **không đổi** (2 sự kiện mới → giữ nguyên). Test: kiểu `TABLE` nới thành `Partial<…>`, dữ liệu bảng không đổi.
+- Trạng thái: **Đã làm** – C7 thay toàn bộ khi làm quy tắc mới.
+
+### R-032 – C3: thành viên và đăng nhập theo hợp đồng đợt 5
+- Đợt / agent yêu cầu: 5 – đợt 1 / C2
+- Tệp: `server/repo/members.ts`, `server/auth.ts`, `client/currentMember.ts` · Chủ tệp: C3
+- Thay đổi đề xuất:
+  - `toMember()` thêm `hasPassword: !!r.password_hash`; **không bao giờ** đưa `password_hash` ra API.
+  - `countOpenTasks()` đếm task chưa xong theo trạng thái mới: `status NOT IN ('done','approved')`.
+  - Màn đăng nhập ở `#/login` (client `api.ts` tự chuyển tới khi nhận `401 mode "member"`); gọi `login({ name, password })`, `getMe()`, `logout()`; màn Quản trị đặt mật khẩu bằng `setMemberPassword(id, pw)`. Phiên, băm mật khẩu, `requireMember`/`requireLead` nằm ở `server/http.ts` (C2) – C3 có thể chuyển sang `auth.ts` nhưng giữ tên hàm export.
+  - `client/presence.ts` (C2) dùng `currentMemberId()` cho chế độ demo; nếu C3 bỏ ô "Tôi là…" thì giữ hàm này (trả `undefined` cũng được).
+- Trạng thái: Mở
+
+### R-033 – C9: đọc cột mới của màn và bộ test
+- Đợt / agent yêu cầu: 5 – đợt 1 / C2
+- Tệp: `server/repo.ts`, `server/service.ts` · Chủ tệp: C9
+- Thay đổi đề xuất: `toScreen()` thêm `rev`, `revisionRequested: !!r.revision_requested`, `updatedBy`, `updatedAt`; `toModule()` thêm `testsRev`, `testsRevisionRequested`; sinh/sửa test case gọi `bumpRev({ kind: "tests", id: moduleId, moduleId }, actorId)`. Route sửa màn trong `app.ts` đã nhận `baseRev` và tăng `screens.rev` (C2) – client chỉ cần gửi `baseRev`.
+- Trạng thái: Mở
+
+### R-034 – C7: task theo hợp đồng đợt 5
+- Đợt / agent yêu cầu: 5 – đợt 1 / C2
+- Tệp: `server/repo/tasks.ts`, `server/routes/tasks.ts`, `client/views/TaskDialog.tsx` · Chủ tệp: C7
+- Thay đổi đề xuất: `toTask()` thêm `revisionRequested`, `artifactSub`; `TASK_STATUSES` = `TASK_STATUSES_V5`; `ARTIFACT_KINDS` = `ARTIFACT_KINDS_V5`; ghi/đọc `artifact_sub`; `listArtifacts` trả một dòng cho mỗi tài liệu/sơ đồ (`kind "doc"/"diagram"` + `sub`); task cũ `artifact_type = 'docs'` đổi sang `doc` + sub phù hợp (hoặc giữ hiển thị "Tài liệu (cũ)").
+- Trạng thái: Mở
+
+### R-035 – C0: bổ sung 2 tệp route mới vào bảng sở hữu
+- Đợt / agent yêu cầu: 5 – đợt 1 / C2
+- Tệp: `docs/agents/OWNERSHIP.md`, kế hoạch đợt 5 mục 2 · Chủ tệp: C0
+- Lý do: C2 tạo khung `server/routes/diagrams.ts` (5 sơ đồ, chủ **C6** – C6 có thể gộp vào `diagram.ts`) và `server/routes/prototype.ts` (xuất HTML, chủ **C9**), ngoài 4 tệp khung có tên trong kế hoạch. Không ai khác đăng ký các route này được vì `app.ts`/`index.ts` là của C2.
+- Trạng thái: Mở
+
 ### R-024 – A0 sửa lỗi QA Q-05 → Q-13 trên tệp của nhiều agent
 - Đợt / agent: 3 / A0 (người dùng yêu cầu trực tiếp "sửa các lỗi đang có", 2026-10-20)
 - Tệp: `styles.css`, `ui.tsx`, `_Gallery.tsx`, `design-system.md` (A1) · `e2e/e2e.mjs` (chưa có chủ) · `MembersView.tsx` (A3) · `FilesView.tsx` (A4) · `DiagramTab.tsx` (A5) · `TaskDialog.tsx` (A6) · `taskAutomation.ts` (A7) · `shared/suggest.ts`, `tests/suggest.test.ts` (A9) · `DesignTab.tsx`, `DocsTab.tsx`, `TestsTab.tsx`, `Home.tsx`, `ProjectView.tsx` (dùng chung / chưa có chủ)
