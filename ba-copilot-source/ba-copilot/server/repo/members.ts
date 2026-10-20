@@ -34,10 +34,18 @@ export function updateMember(id: string, patch: Partial<Pick<Member, "name" | "r
   return getMember(id);
 }
 
-/** Số task chưa Xong (todo, doing, redo) đang giao cho thành viên – khác 0 thì không cho xoá. */
+/**
+ * Số task chưa xong (Cần làm, Đang làm) đang giao cho thành viên – khác 0 thì không cho xoá.
+ * Đợt 5 (R-032): Xong và Đã duyệt đều tính là đã xong; `redo` cũ (nếu còn) vẫn tính là chưa xong.
+ */
 export function countOpenTasks(memberId: string): number {
-  const r = getDb().prepare("SELECT COUNT(*) AS n FROM tasks WHERE assignee_id = ? AND status <> 'done'").get(memberId) as Row;
+  const r = getDb().prepare("SELECT COUNT(*) AS n FROM tasks WHERE assignee_id = ? AND status NOT IN ('done', 'approved')").get(memberId) as Row;
   return Number(r.n);
+}
+
+/** true khi hệ thống đã có ít nhất một BA Lead (khi chưa có thì ai cũng quản trị được để tạo người đầu tiên). */
+export function hasLead(): boolean {
+  return !!getDb().prepare("SELECT 1 FROM members WHERE role = 'BA_LEAD' LIMIT 1").get();
 }
 
 export function deleteMember(id: string): void {
