@@ -4,19 +4,7 @@ import type { Module, ModuleDetail } from "../../shared/types.ts";
 import type { OtherModuleStories } from "../../shared/qus.ts";
 import { Btn, Modal, StatusBadge, useUI } from "../components/ui.tsx";
 import { QusPanel } from "../components/QusPanel.tsx";
-import { DesignTab } from "./DesignTab.tsx";
-import { DocsTab } from "./DocsTab.tsx";
-import { TestsTab } from "./TestsTab.tsx";
-import { TraceTab } from "./TraceTab.tsx";
-import { LogsTab } from "./LogsTab.tsx";
-
-const TABS = [
-  { key: "design", label: "1. Thiết kế" },
-  { key: "docs", label: "2. Tài liệu" },
-  { key: "tests", label: "3. Test case" },
-  { key: "trace", label: "4. Truy vết" },
-  { key: "logs", label: "Nhật ký AI" },
-];
+import { MODULE_TABS } from "./moduleTabs.ts";
 
 export function ModuleView({ id, tab }: { id: string; tab: string }) {
   const { toast, run } = useUI();
@@ -30,13 +18,7 @@ export function ModuleView({ id, tab }: { id: string; tab: string }) {
   }, [reload]);
 
   if (!m) return <div className="page muted">Đang tải…</div>;
-  const approvedScreens = m.screens.filter((s) => s.status === "approved").length;
-  const step = (key: string) => {
-    if (key === "design") return m.screens.length ? (approvedScreens ? `${approvedScreens}/${m.screens.length} đã duyệt` : `${m.screens.length} màn hình`) : "Chưa có";
-    if (key === "docs") return m.docsStatus;
-    if (key === "tests") return m.testsStatus;
-    return "";
-  };
+  const Active = MODULE_TABS.find((t) => t.key === tab)?.component;
 
   return (
     <div className="module">
@@ -66,8 +48,8 @@ export function ModuleView({ id, tab }: { id: string; tab: string }) {
           </a>
         </div>
         <nav className="tabs" role="tablist">
-          {TABS.map((t) => {
-            const st = step(t.key);
+          {MODULE_TABS.map((t) => {
+            const st = t.note?.(m) ?? "";
             return (
               <a key={t.key} href={`#/m/${id}/${t.key}`} role="tab" aria-selected={tab === t.key} className={`tab ${tab === t.key ? "active" : ""}`} data-testid={`tab-${t.key}`}>
                 {t.label}
@@ -78,11 +60,7 @@ export function ModuleView({ id, tab }: { id: string; tab: string }) {
         </nav>
       </div>
       <div className="module-body">
-        {tab === "design" && <DesignTab m={m} reload={reload} />}
-        {tab === "docs" && <DocsTab m={m} reload={reload} />}
-        {tab === "tests" && <TestsTab m={m} reload={reload} />}
-        {tab === "trace" && <TraceTab m={m} />}
-        {tab === "logs" && <LogsTab moduleId={m.id} />}
+        {Active && <Active m={m} reload={reload} />}
       </div>
       {editReq && (
         <Modal

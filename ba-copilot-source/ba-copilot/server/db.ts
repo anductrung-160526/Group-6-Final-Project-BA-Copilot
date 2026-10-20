@@ -83,13 +83,80 @@ CREATE TABLE IF NOT EXISTS files (
 );
 CREATE INDEX IF NOT EXISTS idx_files_project ON files(project_id);
 CREATE INDEX IF NOT EXISTS idx_files_module ON files(module_id);
+
+-- v2 (mục 5 tài liệu v2) – sơ đồ quan hệ: docs/erd.md
+CREATE TABLE IF NOT EXISTS members (
+  id TEXT PRIMARY KEY, name TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'BA' CHECK(role IN ('BA','BA_LEAD')), created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS uc_diagrams (
+  module_id TEXT PRIMARY KEY REFERENCES modules(id) ON DELETE CASCADE, code TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','approved','stale')),
+  approved_at TEXT, updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS tasks (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  module_id TEXT REFERENCES modules(id) ON DELETE SET NULL,
+  title TEXT NOT NULL, description TEXT NOT NULL DEFAULT '',
+  assignee_id TEXT REFERENCES members(id) ON DELETE SET NULL,
+  due_date TEXT, priority TEXT NOT NULL DEFAULT 'Medium' CHECK(priority IN ('High','Medium','Low')),
+  status TEXT NOT NULL DEFAULT 'todo' CHECK(status IN ('todo','doing','done','redo')),
+  artifact_type TEXT CHECK(artifact_type IN ('screen','docs','diagram','tests')), artifact_id TEXT,
+  created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_tasks_project ON tasks(project_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_artifact ON tasks(artifact_type, artifact_id);
+CREATE TABLE IF NOT EXISTS task_events (
+  id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+  from_status TEXT, to_status TEXT NOT NULL,
+  by_member_id TEXT REFERENCES members(id) ON DELETE SET NULL, by_system INTEGER NOT NULL DEFAULT 0,
+  reason TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_task_events_task ON task_events(task_id);
+CREATE TABLE IF NOT EXISTS suggestion_dismissals (
+  module_id TEXT NOT NULL REFERENCES modules(id) ON DELETE CASCADE, key TEXT NOT NULL, created_at TEXT NOT NULL,
+  PRIMARY KEY (module_id, key)
+);
 `;
+
+/**
+ * Cột thêm vào bảng đã có. DB cũ được nâng cấp bằng migrate(): thiếu cột nào thì ALTER TABLE ADD COLUMN cột đó.
+ * Cột có REFERENCES phải mặc định NULL (giới hạn của SQLite khi bật foreign_keys).
+ */
+export const COLUMNS: { table: string; column: string; ddl: string }[] = [
+  { table: "modules", column: "qus_score", ddl: "qus_score INTEGER" },
+  { table: "modules", column: "qus_checked_at", ddl: "qus_checked_at TEXT" },
+  { table: "screen_versions", column: "author", ddl: "author TEXT NOT NULL DEFAULT ''" },
+  { table: "screen_versions", column: "author_id", ddl: "author_id TEXT REFERENCES members(id) ON DELETE SET NULL" },
+  { table: "annotations", column: "author_id", ddl: "author_id TEXT REFERENCES members(id) ON DELETE SET NULL" },
+  { table: "files", column: "sender", ddl: "sender TEXT NOT NULL DEFAULT ''" },
+  { table: "files", column: "received_at", ddl: "received_at TEXT" },
+  { table: "files", column: "note", ddl: "note TEXT NOT NULL DEFAULT ''" },
+  { table: "files", column: "uploaded_by", ddl: "uploaded_by TEXT REFERENCES members(id) ON DELETE SET NULL" },
+];
+
+/** Idempotent: gọi bao nhiêu lần cũng được. Trả về danh sách cột vừa thêm ("bảng.cột"). */
+export function migrate(d: DatabaseSync = getDb()): string[] {
+  const added: string[] = [];
+  const cols = new Map<string, Set<string>>();
+  for (const c of COLUMNS) {
+    if (!cols.has(c.table)) cols.set(c.table, new Set((d.prepare(`PRAGMA table_info(${c.table})`).all() as { name: string }[]).map((r) => r.name)));
+    const have = cols.get(c.table)!;
+    if (have.has(c.column)) continue;
+    d.exec(`ALTER TABLE ${c.table} ADD COLUMN ${c.ddl}`);
+    have.add(c.column);
+    added.push(`${c.table}.${c.column}`);
+  }
+  return added;
+}
 
 export function openDb(file: string): DatabaseSync {
   if (file !== ":memory:") mkdirSync(dirname(file), { recursive: true });
   db = new DatabaseSync(file);
   db.exec("PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;");
   db.exec(SCHEMA);
+  migrate(db);
   return db;
 }
 
@@ -98,9 +165,20 @@ export function getDb(): DatabaseSync {
   return db;
 }
 
+// Lồng được: tx() gọi bên trong tx() khác (vd handler sự kiện) chạy chung transaction ngoài cùng.
+let depth = 0;
 export function tx<T>(fn: () => T): T {
   const d = getDb();
+  if (depth > 0) {
+    depth++;
+    try {
+      return fn();
+    } finally {
+      depth--;
+    }
+  }
   d.exec("BEGIN");
+  depth = 1;
   try {
     const r = fn();
     d.exec("COMMIT");
@@ -108,5 +186,7 @@ export function tx<T>(fn: () => T): T {
   } catch (e) {
     d.exec("ROLLBACK");
     throw e;
+  } finally {
+    depth = 0;
   }
 }

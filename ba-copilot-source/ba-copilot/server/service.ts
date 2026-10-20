@@ -6,10 +6,12 @@ import { applyPatch } from "../shared/patch.ts";
 import { cloneTree, collectIds, diffTrees, findNode, findParent, isContainer, newId, nodeLabel, topMostIds, UINode, validateTree } from "../shared/design.ts";
 import { extractModel, DesignModel } from "../shared/extract.ts";
 import { buildTrace } from "../shared/trace.ts";
-import type { Requirement, SequenceDiagram, UseCase } from "../shared/types.ts";
+import type { ArtifactEventType, DocStatus, Requirement, SequenceDiagram, UseCase } from "../shared/types.ts";
 import { Box, completeLayout, nextElements, nextInContainer, RecursiveModel, toGrid } from "../shared/recursive.ts";
 import { defaultNode } from "../shared/layoutDefaults.ts";
 import { getRecursive } from "./nextModel.ts";
+import { tx } from "./db.ts";
+import { emit } from "./events.ts";
 
 export class BizError extends Error {
   constructor(message: string, public status = 400) {
@@ -29,18 +31,39 @@ function mustScreen(id: string) {
   return s;
 }
 
+// ------------------------------------------------------------- Sự kiện vòng đời sản phẩm (server/events.ts)
+// Gọi bên trong tx() để handler (vd tự cập nhật task – A7) chạy chung transaction với thao tác ghi.
+function screenEvent(type: "artifact.drafted" | "artifact.approved" | "artifact.unapproved", screen: { id: string; moduleId: string }, actorId?: string) {
+  emit({ type, artifact: { kind: "screen", id: screen.id, moduleId: screen.moduleId }, actorId });
+}
+function moduleEvent(type: ArtifactEventType, kind: "docs" | "tests", moduleId: string, actorId?: string) {
+  emit({ type, artifact: { kind, id: moduleId, moduleId }, actorId });
+}
+const live = (s: DocStatus) => s !== "none" && s !== "outdated";
+
+/** BR-02: tài liệu và test của module thành Lỗi thời; phát artifact.stale cho phần vừa chuyển sang Lỗi thời. */
+function markStale(moduleId: string, actorId?: string) {
+  const before = repo.getModule(moduleId);
+  repo.markOutdated(moduleId);
+  if (before && live(before.docsStatus)) moduleEvent("artifact.stale", "docs", moduleId, actorId);
+  if (before && live(before.testsStatus)) moduleEvent("artifact.stale", "tests", moduleId, actorId);
+}
+
 // ------------------------------------------------------------- Design Studio
-export async function createScreenFromPrompt(moduleId: string, prompt: string, name: string) {
+export async function createScreenFromPrompt(moduleId: string, prompt: string, name: string, actorId?: string) {
   const m = mustModule(moduleId);
   if (!prompt.trim()) throw new BizError("Prompt không được để trống");
   const others = repo.listScreens(moduleId).map((s) => s.name);
   const result = await ai.generateScreen({ moduleId, prompt, name: name.trim(), requirementInput: m.requirementInput, otherScreens: others });
-  const screen = repo.createScreen(moduleId, result.name);
-  const version = repo.addVersion(screen.id, { kind: "generate", prompt, tree: result.tree });
-  return { screen: repo.getScreen(screen.id), version };
+  return tx(() => {
+    const screen = repo.createScreen(moduleId, result.name);
+    const version = repo.addVersion(screen.id, { kind: "generate", prompt, tree: result.tree });
+    screenEvent("artifact.drafted", screen, actorId);
+    return { screen: repo.getScreen(screen.id), version };
+  });
 }
 
-export async function editScreenWithPrompt(screenId: string, input: { prompt: string; nodeIds: string[]; annotationIds: string[] }) {
+export async function editScreenWithPrompt(screenId: string, input: { prompt: string; nodeIds: string[]; annotationIds: string[] }, actorId?: string) {
   const screen = mustScreen(screenId);
   if (!screen.currentVersionId) throw new BizError("Màn hình chưa có phiên bản");
   const current = repo.getVersion(screen.currentVersionId)!;
@@ -67,42 +90,44 @@ export async function editScreenWithPrompt(screenId: string, input: { prompt: st
   if (!changed.length && !diff.removed.length) {
     return { version: null, summary: summary || "Không có thay đổi nào được áp dụng", rejected: result.rejected.map((r) => ({ reason: r.reason })), diff };
   }
-  const version = repo.addVersion(screenId, {
-    kind: "edit",
-    prompt: [input.prompt, ...annotations.map((a) => `[Bình luận] ${a.comment}`)].filter(Boolean).join("\n"),
-    scope: selected.length ? "region" : "global",
-    selectedIds: selected,
-    changedIds: changed,
-    rejected: result.rejected.map((r) => ({ reason: r.reason })),
-    tree: result.tree,
+  const version = tx(() => {
+    const version = repo.addVersion(screenId, {
+      kind: "edit",
+      prompt: [input.prompt, ...annotations.map((a) => `[Bình luận] ${a.comment}`)].filter(Boolean).join("\n"),
+      scope: selected.length ? "region" : "global",
+      selectedIds: selected,
+      changedIds: changed,
+      rejected: result.rejected.map((r) => ({ reason: r.reason })),
+      tree: result.tree,
+    });
+    if (annotations.length) repo.setAnnotationStatus(annotations.map((a) => a.id), "sent");
+    draftAfterChange(screen, actorId);
+    return version;
   });
-  if (annotations.length) repo.setAnnotationStatus(annotations.map((a) => a.id), "sent");
-  if (screen.status === "approved") {
-    repo.updateScreen(screenId, { status: "draft" });
-    repo.markOutdated(screen.moduleId); // BR-02
-  }
   return { version, summary, rejected: version.rejected, diff };
 }
 
-export function revertScreen(screenId: string, versionId: string) {
+export function revertScreen(screenId: string, versionId: string, actorId?: string) {
   const screen = mustScreen(screenId);
   const target = repo.getVersion(versionId);
   if (!target || target.screenId !== screenId) throw new BizError("Phiên bản không hợp lệ");
   const current = screen.currentVersionId ? repo.getVersion(screen.currentVersionId) : null;
   const diff = current ? diffTrees(current.tree, target.tree) : { added: [], changed: [], removed: [] };
-  const version = repo.addVersion(screenId, { kind: "revert", prompt: `Khôi phục phiên bản v${target.number}`, changedIds: [...diff.added, ...diff.changed], tree: target.tree });
-  if (screen.status === "approved") {
-    repo.updateScreen(screenId, { status: "draft" });
-    repo.markOutdated(screen.moduleId);
-  }
-  return version;
+  return tx(() => {
+    const version = repo.addVersion(screenId, { kind: "revert", prompt: `Khôi phục phiên bản v${target.number}`, changedIds: [...diff.added, ...diff.changed], tree: target.tree });
+    draftAfterChange(screen, actorId);
+    return version;
+  });
 }
 
-export function setScreenApproval(screenId: string, approved: boolean) {
+export function setScreenApproval(screenId: string, approved: boolean, actorId?: string) {
   const screen = mustScreen(screenId);
-  repo.updateScreen(screenId, { status: approved ? "approved" : "draft" });
-  if (!approved) repo.markOutdated(screen.moduleId);
-  return repo.getScreen(screenId);
+  return tx(() => {
+    repo.updateScreen(screenId, { status: approved ? "approved" : "draft" });
+    screenEvent(approved ? "artifact.approved" : "artifact.unapproved", screen, actorId);
+    if (!approved) markStale(screen.moduleId, actorId);
+    return repo.getScreen(screenId);
+  });
 }
 
 // ------------------------------------------------------------- Gợi ý bố cục (Li et al. 2020: layout auto-completion)
@@ -166,7 +191,7 @@ export interface AcceptItem { ref: string; parentId: string; index: number; type
  * Chấp nhận gợi ý bố cục: chèn phần tử (props mặc định trung tính) vào đúng container và vị trí chèn của gợi ý → phiên bản mới.
  * items: phần tử có parentId là node đã có, hoặc là `ref` (tempId) của phần tử khác trong cùng lần chấp nhận.
  */
-export function acceptLayout(screenId: string, input: { versionId: string; items: AcceptItem[] }) {
+export function acceptLayout(screenId: string, input: { versionId: string; items: AcceptItem[] }, actorId?: string) {
   const { screen, v } = currentVersion(screenId);
   if (input.versionId && input.versionId !== v.id) throw new BizError("Màn hình đã thay đổi – gợi ý cũ không còn đúng, hãy tải lại gợi ý", 409);
   if (!input.items.length || input.items.length > 100) throw new BizError("Danh sách phần tử không hợp lệ");
@@ -202,20 +227,23 @@ export function acceptLayout(screenId: string, input: { versionId: string; items
   const valid = validateTree(tree);
   if (!valid.ok) throw new BizError(`Kết quả không hợp lệ: ${valid.errors.slice(0, 3).join("; ")}`);
   const desc = roots.map((r) => `${r.node.type} vào ${nodeLabel(findNode(v.tree, r.item.parentId)!)}`).join(", ");
-  const version = repo.addVersion(screenId, {
-    kind: "layout",
-    prompt: `Chấp nhận gợi ý bố cục (Recursive, Li et al. 2020): thêm ${added.length} phần tử – ${desc}`,
-    scope: "region",
-    selectedIds: [...byParent.keys()],
-    changedIds: added,
-    tree,
+  const version = tx(() => {
+    const version = repo.addVersion(screenId, {
+      kind: "layout",
+      prompt: `Chấp nhận gợi ý bố cục (Recursive, Li et al. 2020): thêm ${added.length} phần tử – ${desc}`,
+      scope: "region",
+      selectedIds: [...byParent.keys()],
+      changedIds: added,
+      tree,
+    });
+    draftAfterChange(screen, actorId);
+    return version;
   });
-  draftAfterChange(screen);
   return { version, added };
 }
 
 /** Sửa tay trên canvas: xóa phần tử, hoặc đổi thứ tự trong container (lên/xuống). */
-export function manualEdit(screenId: string, input: { op: "remove" | "up" | "down"; id: string }) {
+export function manualEdit(screenId: string, input: { op: "remove" | "up" | "down"; id: string }, actorId?: string) {
   const { screen, v } = currentVersion(screenId);
   const tree = cloneTree(v.tree);
   const node = findNode(tree, input.id);
@@ -235,15 +263,21 @@ export function manualEdit(screenId: string, input: { op: "remove" | "up" | "dow
     changed = [node.id];
     what = `chuyển ${nodeLabel(node)} ${input.op === "up" ? "lên" : "xuống"}`;
   }
-  const version = repo.addVersion(screenId, { kind: "manual", prompt: `Sửa tay: ${what}`, scope: "region", selectedIds: [parent.id], changedIds: changed, tree });
-  draftAfterChange(screen);
+  const version = tx(() => {
+    const version = repo.addVersion(screenId, { kind: "manual", prompt: `Sửa tay: ${what}`, scope: "region", selectedIds: [parent.id], changedIds: changed, tree });
+    draftAfterChange(screen, actorId);
+    return version;
+  });
   return { version };
 }
 
-function draftAfterChange(screen: { id: string; status: string; moduleId: string }) {
+/** Màn vừa có phiên bản mới: phát artifact.drafted; nếu màn đang Đã duyệt thì về Nháp và áp BR-02. Gọi trong tx(). */
+function draftAfterChange(screen: { id: string; status: string; moduleId: string }, actorId?: string) {
+  screenEvent("artifact.drafted", screen, actorId);
   if (screen.status === "approved") {
     repo.updateScreen(screen.id, { status: "draft" });
-    repo.markOutdated(screen.moduleId); // BR-02
+    screenEvent("artifact.unapproved", screen, actorId);
+    markStale(screen.moduleId, actorId); // BR-02
   }
 }
 
@@ -260,7 +294,7 @@ export function getDesignModel(moduleId: string): DesignModel {
   return extractModel(screens.map((s) => ({ id: s.id, name: s.name, tree: s.tree! })));
 }
 
-export async function generateDocs(moduleId: string) {
+export async function generateDocs(moduleId: string, actorId?: string) {
   const m = mustModule(moduleId);
   const model = approvedModel(moduleId);
   const { useCases, requirements } = await ai.generateUseCases({ moduleId, moduleName: m.name, requirementInput: m.requirementInput, model });
@@ -269,13 +303,18 @@ export async function generateDocs(moduleId: string) {
     ai.generateSrs({ moduleId, moduleName: m.name, requirementInput: m.requirementInput, model, useCases, requirements }),
     ai.generateSequences({ moduleId, useCases, model }),
   ]);
-  repo.saveSrs(moduleId, srs);
-  repo.saveSequences(moduleId, sequences);
-  repo.updateModule(moduleId, { docsStatus: "draft", testsStatus: m.testsStatus === "none" ? "none" : "outdated" });
+  tx(() => {
+    repo.saveSrs(moduleId, srs);
+    repo.saveSequences(moduleId, sequences);
+    repo.updateModule(moduleId, { docsStatus: "draft", testsStatus: m.testsStatus === "none" ? "none" : "outdated" });
+    if (m.docsStatus === "approved") moduleEvent("artifact.unapproved", "docs", moduleId, actorId);
+    moduleEvent("artifact.drafted", "docs", moduleId, actorId);
+    if (live(m.testsStatus)) moduleEvent("artifact.stale", "tests", moduleId, actorId);
+  });
   return repo.getDocs(moduleId);
 }
 
-export async function refineDoc(moduleId: string, target: string, instruction: string) {
+export async function refineDoc(moduleId: string, target: string, instruction: string, actorId?: string) {
   const m = mustModule(moduleId);
   if (!instruction.trim()) throw new BizError("Nhập yêu cầu chỉnh");
   const docs = repo.getDocs(moduleId);
@@ -299,8 +338,13 @@ export async function refineDoc(moduleId: string, target: string, instruction: s
     const next: UseCase = await ai.refineUseCase({ moduleId, uc, instruction, model });
     repo.saveUseCase(moduleId, next);
   }
-  if (m.docsStatus === "approved") repo.updateModule(moduleId, { docsStatus: "draft" });
-  if (m.testsStatus !== "none") repo.updateModule(moduleId, { testsStatus: "outdated" });
+  tx(() => {
+    if (m.docsStatus === "approved") repo.updateModule(moduleId, { docsStatus: "draft" });
+    if (m.testsStatus !== "none") repo.updateModule(moduleId, { testsStatus: "outdated" });
+    if (m.docsStatus === "approved") moduleEvent("artifact.unapproved", "docs", moduleId, actorId);
+    moduleEvent("artifact.drafted", "docs", moduleId, actorId);
+    if (live(m.testsStatus)) moduleEvent("artifact.stale", "tests", moduleId, actorId);
+  });
   return repo.getDocs(moduleId);
 }
 
@@ -310,22 +354,28 @@ export function updateRequirements(moduleId: string, reqs: Requirement[]) {
   return repo.getDocs(moduleId);
 }
 
-export function approveDocs(moduleId: string, approved: boolean) {
+export function approveDocs(moduleId: string, approved: boolean, actorId?: string) {
   const m = mustModule(moduleId);
   if (m.docsStatus === "none") throw new BizError("Chưa có tài liệu để duyệt");
-  repo.updateModule(moduleId, { docsStatus: approved ? "approved" : "draft" });
-  return repo.getModule(moduleId);
+  return tx(() => {
+    repo.updateModule(moduleId, { docsStatus: approved ? "approved" : "draft" });
+    moduleEvent(approved ? "artifact.approved" : "artifact.unapproved", "docs", moduleId, actorId);
+    return repo.getModule(moduleId);
+  });
 }
 
 // ------------------------------------------------------------- Tests
-export async function generateTests(moduleId: string) {
+export async function generateTests(moduleId: string, actorId?: string) {
   const m = mustModule(moduleId);
   if (m.docsStatus !== "approved") throw new BizError("Cần duyệt tài liệu (Approved) trước khi sinh test case");
   const docs = repo.getDocs(moduleId);
   const model = getDesignModel(moduleId);
   const tests = await ai.generateTests({ moduleId, useCases: docs.useCases, requirements: docs.requirements, model });
-  repo.saveTests(moduleId, tests);
-  repo.updateModule(moduleId, { testsStatus: "draft" });
+  tx(() => {
+    repo.saveTests(moduleId, tests);
+    repo.updateModule(moduleId, { testsStatus: "draft" });
+    moduleEvent("artifact.drafted", "tests", moduleId, actorId);
+  });
   return tests;
 }
 

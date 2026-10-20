@@ -8,7 +8,7 @@ Người cập nhật: **A0**. Mỗi agent dán kết quả `npm test` / `npm ru
 |---|---|---|---|---|---|---|---|
 | A0 | Tích hợp & Điều phối | 0, 4 | `v2-base` | ✅ Đợt 0 xong | 48/48 (xem lưu ý) | ✅ | Xem nhật ký đợt 0 |
 | A1 | Design System | 1 | `agent/a1-design-system` | ⏳ Chưa bắt đầu | — | — | |
-| A2 | Nền tảng dữ liệu & hợp đồng | 1 | `agent/a2-nen-tang` | ⏳ Chưa bắt đầu | — | — | Đường găng của đợt 2 |
+| A2 | Nền tảng dữ liệu & hợp đồng | 1 | `agent/a2-nen-tang` | 🟡 Xong, chờ A0 duyệt `api.md`/`erd.md` | 59/59 ✅ | ✅ | Tạo từ `v2-base` (chưa có `v2-contract`). Xem nhật ký đợt 1 – A2 |
 | A3 | Thành viên & thanh trên | 2 | `agent/a3-thanh-vien` | ⏳ Chờ A1, A2 | — | — | |
 | A4 | Kho tài liệu | 2 | `agent/a4-kho-tai-lieu` | ⏳ Chờ A1, A2 | — | — | Code C4 đã có trên `v2-base` |
 | A5 | Sơ đồ UC | 2 | `agent/a5-so-do-uc` | ⏳ Chờ A1, A2 | — | — | |
@@ -68,3 +68,22 @@ Các tệp `types.ts`, `db.ts`, `app.ts`, `service.ts`, `repo.ts`, `tests/api.te
 | `npx tsc --noEmit` | ✅ Không lỗi kiểu |
 
 **Lưu ý – test chập chờn:** `tests/transformer.test.ts` › *"mô hình đã huấn luyện: khớp số học với PyTorch và gợi ý hợp lý"* có một phép đo thời gian cứng `suy luận cây 120 node < 400 ms`. Khi chạy cả bộ test song song, máy bận nên đôi lúc vượt 400 ms. Chạy riêng tệp này 3/3 lần đều pass. Đây là lỗi môi trường chạy, không do lần gộp gây ra (tệp này đến từ `trung_ba` và không bị đụng tới). Tệp không thuộc agent nào trong v2, nên **chưa sửa**. Đề xuất: nới ngưỡng hoặc bỏ qua phép đo thời gian khi chạy chung. Cần chủ nhánh `trung_ba` quyết định.
+
+---
+
+## Nhật ký đợt 1 – A2 (2026-10-20)
+
+**Nhánh:** `agent/a2-nen-tang`, tạo từ `v2-base` @ `3f7f23a` (nhánh `v2-contract` chưa tồn tại; A0 tạo khi gộp A1 + A2).
+
+### Kiểm tra (`ba-copilot-source/ba-copilot`, Node v24.16.0)
+
+| Lệnh | Kết quả |
+|---|---|
+| `npm test` | ✅ `tests 59 · pass 59 · fail 0` (48 test cũ + 11 test hợp đồng mới trong `tests/contract.test.ts`), `duration_ms 6326` |
+| `npm run build` | ✅ `public/app.js 310.5kb`, `public/app-style.css 24.3kb`, `Done` |
+| `npx tsc --noEmit` | ✅ Không lỗi kiểu |
+| Chạy app (Mock, DB mới) + Chrome | ✅ Trang chủ, dự án, Kho tài liệu (`#/p/:id/files[/:moduleId]`), 5 tab module mở đúng, huy hiệu tab như cũ, 0 lỗi console |
+| `migrate()` trên bản sao `data/ba-copilot.db` | ✅ Thêm cột, dữ liệu cũ còn nguyên, `PRAGMA foreign_key_check` 0 lỗi |
+| ERD Mermaid | ✅ Vẽ được bằng `public/vendor/mermaid.min.js` |
+
+`public/app.js`, `public/app-style.css` **không** commit (sản phẩm build) – A0 sinh lại sau khi gộp.
