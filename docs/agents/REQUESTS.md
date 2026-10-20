@@ -232,13 +232,13 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Đợt / agent yêu cầu: 5 – đợt 1 / C2
 - Tệp: `server/repo/tasks.ts`, `server/routes/tasks.ts`, `client/views/TaskDialog.tsx` · Chủ tệp: C7
 - Thay đổi đề xuất: `toTask()` thêm `revisionRequested`, `artifactSub`; `TASK_STATUSES` = `TASK_STATUSES_V5`; `ARTIFACT_KINDS` = `ARTIFACT_KINDS_V5`; ghi/đọc `artifact_sub`; `listArtifacts` trả một dòng cho mỗi tài liệu/sơ đồ (`kind "doc"/"diagram"` + `sub`); task cũ `artifact_type = 'docs'` đổi sang `doc` + sub phù hợp (hoặc giữ hiển thị "Tài liệu (cũ)").
-- Trạng thái: Mở
+- Trạng thái: **Đã làm** – C7 (C0 đóng khi gộp đợt 5, 2026-10-20)
 
 ### R-035 – C0: bổ sung 2 tệp route mới vào bảng sở hữu
 - Đợt / agent yêu cầu: 5 – đợt 1 / C2
 - Tệp: `docs/agents/OWNERSHIP.md`, kế hoạch đợt 5 mục 2 · Chủ tệp: C0
 - Lý do: C2 tạo khung `server/routes/diagrams.ts` (5 sơ đồ, chủ **C6** – C6 có thể gộp vào `diagram.ts`) và `server/routes/prototype.ts` (xuất HTML, chủ **C9**), ngoài 4 tệp khung có tên trong kế hoạch. Không ai khác đăng ký các route này được vì `app.ts`/`index.ts` là của C2.
-- Trạng thái: Mở
+- Trạng thái: **Đã làm** – C0 ghi bảng sở hữu (ae46494) (C0 đóng khi gộp đợt 5, 2026-10-20)
 
 ### R-024 – A0 sửa lỗi QA Q-05 → Q-13 trên tệp của nhiều agent
 - Đợt / agent: 3 / A0 (người dùng yêu cầu trực tiếp "sửa các lỗi đang có", 2026-10-20)
@@ -253,7 +253,7 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Lý do: (1) `projectMenu.ts` ghi tên icon Lucide (`SquareKanban`, `BookText`, `Workflow`, `FolderOpen`, `ScrollText`, `GitBranch`, `FileText`, `Network`, `LayoutTemplate`, `FlaskConical`, `Route`) nhưng bảng `ICONS` của `Icon` chưa có, và chưa có icon "menu" (nút mở menu trái ở màn hẹp). (2) Chưa có lớp CSS cho khung 2 cột "menu trái + nội dung" của dự án.
 - Cách tạm C3 đã làm (trong `ProjectShell.tsx`): `menuIcon()` dùng icon trùng tên nếu `ICONS` có (nguyên dạng hoặc viết thường chữ đầu, vd `squareKanban`), không thì dùng icon gần nghĩa có sẵn (grid, user, play, folder, ai, github); các bước 1–5 chỉ hiện số bước. Nút mở menu dùng icon `more`. Bố cục dùng lại `.module-head` + `.doc-layout` / `.doc-nav` / `.doc-main` (điểm gãy 860px sẵn có – nên menu thu gọn ở ≤ 860px, gồm cả ≤ 768px) và 2 thuộc tính inline chỉ dùng token (`paddingBottom: var(--space-3)`, `paddingTop: var(--space-4)`).
 - Thay đổi đề xuất: thêm vào `ICONS` các khoá `squareKanban, bookText, workflow, folderOpen, scrollText, fileText, network, layoutTemplate, flaskConical, route, menu` (Lucide cùng tên) → `ProjectShell` tự dùng, không phải sửa. Thêm lớp `.project-shell` / `.project-nav` (menu trái dính dưới thanh trên, cuộn riêng) nếu C10 muốn tách khỏi `.doc-layout`, rồi bỏ 2 style inline.
-- Trạng thái: Mở
+- Trạng thái: **Đã làm** – C10 (C0 đóng khi gộp đợt 5, 2026-10-20)
 
 ### R-041 – C3 cần route sửa dự án (`PATCH /api/projects/:id`) trong `app.ts`
 - Đợt / agent yêu cầu: 5 – đợt 2 / C3
@@ -274,7 +274,7 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Tệp: `client/components/ui.tsx`, `docs/design-system.md` mục 3.1 · Chủ tệp: C1 (đợt 3: C10)
 - Lý do: màn Tài liệu có nút "Tải .md"; bảng `ICONS` chưa có icon tải về (chỉ có `upload`). C5 tạm để nút chữ không icon.
 - Thay đổi đề xuất: thêm `download: Download` (Lucide) vào `ICONS` + dòng bảng 3.1; C10 gắn `<Icon name="download" />` vào nút `doc-download` trong `client/views/DocsView.tsx`.
-- Trạng thái: Mở
+- Trạng thái: **Đã làm** – C10 (C0 đóng khi gộp đợt 5, 2026-10-20)
 
 ### R-061 – C9: đọc UC / FR từ `module_docs` của C5 cho test case và truy vết
 - Đợt / agent yêu cầu: 5 – đợt 2 / C5
@@ -304,7 +304,7 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Tệp: `client/components/ui.tsx`, `#/_gallery`, `docs/design-system.md` · Chủ tệp: C1
 - Lý do: (1) bảng `ICONS` chưa có icon cho màn / tài liệu / sơ đồ / bộ test – C7 tạm dùng `grid` / `folder` / `target` / `check` trong một bảng duy nhất `ARTIFACT_ICON` (`client/views/TaskDialog.tsx`). (2) `ApprovalBar` chỉ nhận `ArtifactStatus`; task không gắn sản phẩm có trạng thái `todo/doing` nên C7 tạm dựng cùng bố cục bằng class `.approval-bar` + `StatusBadge` + `Btn` trong `TaskDialog.tsx`.
 - Thay đổi đề xuất: thêm icon `screen` (LayoutTemplate), `doc` (FileText), `diagram` (Network), `tests` (FlaskConical); (tuỳ chọn) `ApprovalBar` thêm prop `onStart` + nhận `todo/doing` (doing = cho bấm Xong). C0/C7 đổi `ARTIFACT_ICON` và phần thanh tạm sau khi có.
-- Trạng thái: Mở
+- Trạng thái: **Đã làm** – C10 (C0 đóng khi gộp đợt 5, 2026-10-20)
 
 ### R-081 – C2/C0: `client/api.ts` thêm `artifactSub` cho task
 - Đợt / agent yêu cầu: 5 – đợt 2 / C7
@@ -317,7 +317,7 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Tệp: `shared/types.ts`, `docs/api.md` mục 5.6 · Chủ tệp: C2 (khoá – C0 gộp)
 - Lý do: `GET /api/projects/:id/git/history` gọi GitHub để lấy commit; GitHub lỗi (sai token, mất mạng) thì vẫn phải trả nhật ký `git_pushes` trong app. C8 đang trả thêm trường `commitsError?: string` (câu tiếng Việt) và khai báo kiểu tạm `GitHistory & { commitsError?: string }` trong `server/routes/git.ts`, `client/views/GitHistoryView.tsx`.
 - Thay đổi đề xuất: `GitHistory` thêm `commitsError?: string`; ghi một dòng vào bảng 5.6.
-- Trạng thái: Mở
+- Trạng thái: Mở – C8 khai báo kiểu tạm – giữ, chưa đưa vào types.ts
 
 ### R-091 – C7: lỗi GitHub khi Duyệt là `HttpError` 502
 - Đợt / agent yêu cầu: 5 – đợt 2 / C8
@@ -342,11 +342,11 @@ Người xử lý: **A0**. Agent muốn sửa tệp không thuộc dòng của m
 - Tệp: `server/app.ts` · Chủ tệp: C2 (khoá)
 - Lý do: `POST /api/modules/:id/tests/generate` trong `app.ts` không truyền `baseRev`. C9 đăng ký lại cùng đường dẫn trong `server/routes/prototype.ts` (tệp route nạp trước nên được ưu tiên) để nhận `baseRev` + `actorId`; body/kết quả giữ nguyên (`TestCase[]`). Thêm `GET /api/modules/:id/tests/readiness` → `{ ready, reason, source: "v5"|"legacy"|null, frdStatus }`.
 - Thay đổi đề xuất: xoá dòng route tests/generate trong `app.ts`; ghi 2 endpoint vào `docs/api.md` mục 5.7.
-- Trạng thái: Mở
+- Trạng thái: **Đã làm** – C0 (382d3ff) (C0 đóng khi gộp đợt 5, 2026-10-20)
 
 ### R-102 – C1: thêm icon "download" (Tải về)
 - Đợt / agent yêu cầu: 5 – đợt 2 / C9
 - Tệp: `client/components/ui.tsx`, `docs/design-system.md` · Chủ tệp: C1
 - Lý do: nút "Xuất HTML", "Xuất Excel" (C9) và các nút tải tệp khác chưa có icon phù hợp (bảng `ICONS` chỉ có `upload`). Tạm để nút chỉ có chữ.
 - Thay đổi đề xuất: thêm `download: Download` (Lucide) vào `ICONS` + bảng mục 3.1.
-- Trạng thái: Mở
+- Trạng thái: **Đã làm** – C10 (C0 đóng khi gộp đợt 5, 2026-10-20)
