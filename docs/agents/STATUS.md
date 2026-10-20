@@ -443,7 +443,7 @@ Lưu ý: lần chạy đầu `npm test` và `tsc` bị hết bộ nhớ vì máy
 
 ### Tồn đọng (không chặn đợt 3)
 
-- **Tràn ngang ở 375 px** (E2E A11 ghi nhận): dự án 501 px, công việc 671 px, kho tài liệu 430 px, gallery 418 px, thành viên 395 px, thiết kế/tài liệu/sơ đồ 377 px. Thuộc A1 + chủ màn.
+- **Tràn ngang ở 375 px** (E2E A11 ghi nhận, trùng Q-05 → Q-08): công việc 671 px, kho tài liệu 430 px, gallery 418 px, thành viên 395 px, thiết kế/tài liệu/sơ đồ 377 px. Thuộc A1 + chủ màn. Riêng trang dự án (501 px, do cột Chất lượng của R-022) A0 đã sửa bằng `.table-wrap`, commit `78ae37b`.
 - **`e2e/e2e.mjs` không tự khởi động máy chủ trên Windows** (`spawn npx ENOENT`) và cần Chromium của Playwright (`npx playwright install`) hoặc `CHROME_PATH`. Lỗi sẵn có, tệp chưa có chủ.
 - Khối "Công việc liên quan" ở cột trái Design Studio dính sát mép (không có lớp đệm cho cột hẹp). A1 xem có cần khung riêng.
 - Tuỳ chọn của A7: `taskAutomation.ts` vẫn tự viết SQL thay vì gọi `setTaskStatus`/`listTasksByArtifact` của A6. Chạy đúng, test xanh.
