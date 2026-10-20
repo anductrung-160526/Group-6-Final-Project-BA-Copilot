@@ -1,6 +1,6 @@
 // Design Studio: prompt sinh màn hình, khoanh vùng (click / kéo khung), bình luận theo vùng,
 // gửi bình luận vào prompt, prompt sửa theo vùng, lịch sử phiên bản, xem thử prototype,
-// gợi ý bố cục (Recursive Transformer, Li et al. 2020): khung mờ phần tử tiếp theo trên canvas + "Hoàn thành bố cục".
+// gợi ý bố cục (Recursive Transformer, Li et al. 2020): khung mờ phần tử tiếp theo trên canvas + "Tự hoàn thiện bố cục".
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { get, post, patch, del, download } from "../api.ts";
@@ -24,6 +24,15 @@ const TEMPLATES = [
   { name: "Trang chủ", prompt: "Dashboard tổng quan cho quản trị viên: các chỉ số doanh thu, đơn hàng, khách hàng mới và bảng đơn hàng gần đây." },
 ];
 
+// tên thành phần hiển thị cho người dùng (giá trị lưu trữ vẫn là tên loại tiếng Anh)
+const TYPE_VI: Record<string, string> = {
+  Page: "Trang", Header: "Thanh đầu trang", Sidebar: "Thanh bên", Section: "Khu vực", Card: "Thẻ", Row: "Hàng", Column: "Cột", Form: "Biểu mẫu",
+  List: "Danh sách", Modal: "Hộp thoại", Heading: "Tiêu đề", Text: "Đoạn chữ", Button: "Nút", Link: "Liên kết", Input: "Ô nhập",
+  Textarea: "Ô nhập nhiều dòng", Select: "Danh sách chọn", Checkbox: "Ô đánh dấu", Radio: "Nút chọn một", DatePicker: "Chọn ngày",
+  Table: "Bảng", Image: "Hình ảnh", Badge: "Nhãn", Alert: "Thông báo", Stat: "Chỉ số", Avatar: "Ảnh đại diện", Divider: "Đường phân cách", Pagination: "Phân trang",
+};
+const vi = (t?: string | null) => (t ? TYPE_VI[t] ?? t : "");
+const viLabel = (l: string) => l.replace(/^\w+/, (m) => TYPE_VI[m] ?? m);
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase().trim();
 
 export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promise<unknown> }) {
@@ -177,7 +186,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
     const c = cur.candidates.find((x) => x.type === curType)!;
     if (await acceptItems(next.versionId, [{ ref: "a", parentId: cur.parentId, index: cur.index, type: curType }])) {
       logSugg(cur, curType, c.p, "applied");
-      toast(`Đã thêm ${curType} vào ${cur.parentLabel} – đổi nội dung bằng Prompt sửa thiết kế`, "ok");
+      toast(`Đã thêm ${vi(curType)} vào ${viLabel(cur.parentLabel)} – đổi nội dung bằng ô "Yêu cầu AI sửa thiết kế"`, "ok");
     }
   };
   const dismissNext = () => {
@@ -187,14 +196,14 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
     setPick(0);
   };
 
-  // "Hoàn thành bố cục" trong vùng đang chọn hoặc cả màn
+  // "Tự hoàn thiện bố cục" trong vùng đang chọn hoặc cả màn
   const runComplete = async () => {
     if (!screen) return;
     const layout = measureLayout();
     if (!layout) return;
-    const r = await run("Mô hình đang hoàn thành bố cục…", () => post<{ versionId: string; items: GenItem[] }>(`/api/screens/${screen.id}/suggestions`, { mode: "complete", nodeIds: selected, layout }));
+    const r = await run("AI đang hoàn thiện bố cục…", () => post<{ versionId: string; items: GenItem[] }>(`/api/screens/${screen.id}/suggestions`, { mode: "complete", nodeIds: selected, layout }));
     if (!r) return;
-    if (!r.items.length) return toast("Mô hình cho rằng bố cục đã đủ (EOS ở mọi container)", "info");
+    if (!r.items.length) return toast("Bố cục đã khá đầy đủ – AI không thấy cần thêm thành phần nào", "info");
     setComplete({ versionId: r.versionId, items: r.items, on: new Set(r.items.map((g) => g.tempId)) });
     setPanel("suggest");
   };
@@ -223,7 +232,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
     if (!list.length) return setComplete(null);
     if (await acceptItems(complete.versionId, list)) {
       for (const g of complete.items) logSugg(g, g.type, g.p, complete.on.has(g.tempId) ? "applied" : "dismissed");
-      toast(`Đã thêm ${list.length} phần tử theo gợi ý bố cục`, "ok");
+      toast(`Đã thêm ${list.length} thành phần theo gợi ý của AI`, "ok");
       setComplete(null);
     }
   };
@@ -567,7 +576,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
               </div>
             </div>
             <div className="hint muted small">
-              {mode === "select" && "Click để chọn phần tử · Shift+click chọn nhiều · Esc bỏ chọn · Delete xóa phần tử · Tab chấp nhận khung mờ gợi ý"}
+              {mode === "select" && "Bấm để chọn · Shift+bấm để chọn nhiều · Esc bỏ chọn · Delete xóa · Tab dùng gợi ý"}
               {mode === "region" && "Kéo chuột để khoanh vùng – các phần tử nằm trọn trong khung sẽ được chọn"}
               {mode === "prototype" && "Bấm nút/liên kết có điều hướng để chuyển màn hình như prototype"}
             </div>
@@ -609,12 +618,12 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
                   }}
                   data-testid="layout-toggle"
                 />{" "}
-                Hiện khung mờ phần tử tiếp theo trên canvas
+                Hiện bản xem trước gợi ý trên màn hình
               </label>
 
               {complete ? (
                 <div className="box box-accent">
-                  <div className="box-title">Hoàn thành bố cục – {complete.items.length} phần tử</div>
+                  <div className="box-title">Tự hoàn thiện bố cục – {complete.items.length} thành phần</div>
                   <div className="gen-list">
                     {complete.items.map((g) => {
                       const depth = (() => {
@@ -630,15 +639,15 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
                       const genParent = complete.items.find((x) => x.tempId === g.parentId);
                       return (
                         <label key={g.tempId} className="gen-item" style={{ paddingLeft: 4 + depth * 14 }}>
-                          <input type="checkbox" checked={complete.on.has(g.tempId)} onChange={() => toggleGen(g.tempId)} /> <strong>{g.type}</strong>{" "}
-                          <span className="muted small">trong {parent ? nodeLabel(parent) : `${genParent?.type ?? ""} (mới)`} · {Math.round(g.p * 100)}%</span>
+                          <input type="checkbox" checked={complete.on.has(g.tempId)} onChange={() => toggleGen(g.tempId)} /> <strong>{vi(g.type)}</strong>{" "}
+                          <span className="muted small">trong {parent ? viLabel(nodeLabel(parent)) : `${vi(genParent?.type)} (mới)`} · độ tin cậy {Math.round(g.p * 100)}%</span>
                         </label>
                       );
                     })}
                   </div>
                   <div className="sugg-actions">
                     <Btn size="sm" kind="primary" disabled={!complete.on.size || !!previewing} onClick={acceptComplete} data-testid="accept-complete">
-                      Chấp nhận {complete.on.size} phần tử (Tab)
+                      Thêm {complete.on.size} thành phần (Tab)
                     </Btn>
                     <Btn size="sm" kind="ghost" onClick={() => setComplete(null)}>
                       Hủy (Esc)
@@ -647,35 +656,35 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
                 </div>
               ) : (
                 <>
-                  <div className="muted small">{selected.length ? "Phần tử tiếp theo trong container đang chọn" : "Phần tử tiếp theo – chọn một container để hỏi riêng vị trí đó"}</div>
+                  <div className="muted small">{selected.length ? "Gợi ý thành phần tiếp theo cho khu vực đang chọn" : "Gợi ý thành phần tiếp theo – chọn một khu vực để xem gợi ý riêng cho khu vực đó"}</div>
                   {!layoutOn ? (
-                    <div className="muted small pad">Đang tắt gợi ý.</div>
+                    <div className="muted small pad">Gợi ý đang tắt.</div>
                   ) : !next ? (
-                    <div className="muted small pad">Đang tính…</div>
+                    <div className="muted small pad">AI đang phân tích bố cục…</div>
                   ) : !cur ? (
-                    <div className="muted small pad">Mô hình cho rằng bố cục đã đủ (dự đoán EOS ở mọi container). Chọn một container để xem các loại phần tử có thể thêm.</div>
+                    <div className="muted small pad">Bố cục có vẻ đã đầy đủ. Chọn một khu vực nếu muốn xem thành phần nào có thể thêm.</div>
                   ) : (
                     <div className="sugg" data-testid="suggestion">
                       <div className="sugg-head">
-                        <Badge tone="blue">Tiếp theo</Badge>
-                        <span className="sugg-title">trong {cur.parentLabel}</span>
+                        <Badge tone="blue">Gợi ý tiếp theo</Badge>
+                        <span className="sugg-title">trong khu vực {viLabel(cur.parentLabel)}</span>
                       </div>
-                      {cur.eos && <div className="muted small">Mô hình cho rằng container này đã đủ (EOS {Math.round(cur.pEos * 100)}%). Có thể vẫn chọn một loại bên dưới.</div>}
+                      {cur.eos && <div className="muted small">Khu vực này có vẻ đã đầy đủ (độ tin cậy {Math.round(cur.pEos * 100)}%). Bạn vẫn có thể thêm một thành phần bên dưới.</div>}
                       <div className="cand-list">
                         {cur.candidates.map((c, i) => (
                           <button key={c.type} className={`cand ${curType === c.type ? "on" : ""}`} onClick={() => setPick(i)} data-testid="candidate">
-                            <span>{c.type}</span>
+                            <span>{vi(c.type)}</span>
                             <span className="cand-bar">
                               <span style={{ width: `${Math.round(c.p * 100)}%` }} />
                             </span>
                             <span className="muted small">{Math.round(c.p * 100)}%</span>
                           </button>
                         ))}
-                        {!cur.eos && <div className="muted small">Kết thúc (EOS): {Math.round(cur.pEos * 100)}%</div>}
+                        {!cur.eos && <div className="muted small">Khả năng khu vực đã đủ: {Math.round(cur.pEos * 100)}%</div>}
                       </div>
                       <div className="sugg-actions">
                         <Btn size="sm" kind="primary" disabled={!!previewing} onClick={acceptNext} data-testid="accept-next">
-                          Thêm {curType} {cur.eos ? "" : "(Tab)"}
+                          Thêm {vi(curType)} {cur.eos ? "" : "(Tab)"}
                         </Btn>
                         {!cur.eos && (
                           <Btn size="sm" kind="ghost" onClick={dismissNext}>
@@ -685,12 +694,12 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
                       </div>
                       {items.length > 1 && (
                         <div className="muted small">
-                          Vị trí khác:{" "}
+                          Gợi ý ở khu vực khác:{" "}
                           {items.map((e, i) => (
                             <React.Fragment key={e.parentId}>
                               {i > 0 && " · "}
                               <button className={`link small ${i === which ? "strong" : ""}`} onClick={() => { setWhich(i); setPick(0); }}>
-                                {e.candidates[0].type} trong {e.parentLabel}
+                                {vi(e.candidates[0].type)} trong {viLabel(e.parentLabel)}
                               </button>
                             </React.Fragment>
                           ))}
@@ -699,16 +708,16 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
                     </div>
                   )}
                   <div className="box">
-                    <div className="box-title">Hoàn thành bố cục</div>
-                    <div className="muted small">Mô hình sinh tiếp toàn bộ phần còn thiếu {selected.length ? "trong vùng đang chọn" : "của cả màn"}, hiện thành khung mờ để chấp nhận từng phần.</div>
+                    <div className="box-title">Tự hoàn thiện bố cục</div>
+                    <div className="muted small">AI đề xuất toàn bộ phần còn thiếu {selected.length ? "trong vùng đang chọn" : "của cả màn hình"}. Bạn xem trước và chọn giữ lại từng thành phần.</div>
                     <Btn size="sm" disabled={!!previewing || !layoutOn} onClick={runComplete} data-testid="run-complete">
-                      ✦ Hoàn thành bố cục
+                      ✦ Tự hoàn thiện bố cục
                     </Btn>
                   </div>
                 </>
               )}
               <div className="muted small sugg-foot">
-                Recursive Transformer Tree Decoder (Li et al. 2020){next?.model ? ` · học từ ${next.model.trees.toLocaleString("vi-VN")} cây giao diện (${next.model.roots} màn gốc)` : ""}. Gợi ý gồm loại, vị trí và kích thước phần tử – không gồm nội dung; đổi chữ bằng Prompt sửa thiết kế.
+                <span title="Recursive Transformer Tree Decoder (Li et al. 2020)">Gợi ý bằng AI{next?.model ? `, học từ ${next.model.roots} mẫu màn hình nghiệp vụ` : ""}</span>. AI gợi ý loại thành phần, vị trí và kích thước – chưa gồm nội dung chữ; bạn đổi chữ bằng ô "Yêu cầu AI sửa thiết kế".
               </div>
             </div>
           )}
@@ -792,7 +801,7 @@ export function DesignTab({ m, reload }: { m: ModuleDetail; reload: () => Promis
               </div>
 
               <div className="box box-accent">
-                <div className="box-title">Prompt sửa thiết kế</div>
+                <div className="box-title">Yêu cầu AI sửa thiết kế</div>
                 <textarea rows={3} value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder={selected.length ? "VD: Thêm nút “Đăng nhập bằng Google” bên dưới" : "VD: Chuyển bố cục sang 2 cột"} data-testid="edit-prompt" />
                 <div className="muted small">
                   Gửi: {selected.length ? `${selected.length} vùng` : "toàn màn hình"} · {checked.size} bình luận{prompt.trim() ? " · 1 yêu cầu" : ""}

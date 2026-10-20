@@ -29,8 +29,8 @@ Mở trình duyệt tại **http://localhost:3000**.
    - **Gửi bình luận vào prompt**: tick các bình luận cần xử lý, nhập thêm yêu cầu nếu muốn, rồi bấm *Sửa vùng đã khoanh*. AI chỉ được sửa trong vùng; thao tác ra ngoài vùng sẽ bị server chặn.
    - Mỗi lần sửa tạo ra một **phiên bản** mới. Có thể xem lại, khôi phục, và phần thay đổi được tô xanh.
    - Chế độ *Xem thử* dùng để bấm nút hoặc link chuyển màn hình như một prototype.
-   - **Gợi ý bố cục** (tab *Gợi ý*): sau mỗi thay đổi, khung mờ tím trên canvas cho biết phần tử nên đặt tiếp theo (loại, vị trí, kích thước). **Tab** để chấp nhận, **Esc** để bỏ qua, hoặc chọn loại khác trong top-3. Chọn một container để hỏi riêng chỗ đó. Nút **Hoàn thành bố cục** sinh toàn bộ phần còn thiếu (trong vùng chọn hoặc cả màn) thành khung mờ để chấp nhận từng phần.
-   - **Sửa tay**: chọn phần tử rồi nhấn **Delete** để xóa; tab *Thành phần* có nút ↑/↓ để đổi thứ tự. Nội dung chữ vẫn đổi bằng *Prompt sửa thiết kế*.
+   - **Gợi ý bố cục** (tab *Gợi ý*): sau mỗi thay đổi, khung mờ tím trên canvas cho biết phần tử nên đặt tiếp theo (loại, vị trí, kích thước). **Tab** để chấp nhận, **Esc** để bỏ qua, hoặc chọn loại khác trong top-3. Chọn một container để hỏi riêng chỗ đó. Nút **Tự hoàn thiện bố cục** sinh toàn bộ phần còn thiếu (trong vùng chọn hoặc cả màn) thành khung mờ để chấp nhận từng phần.
+   - **Sửa tay**: chọn phần tử rồi nhấn **Delete** để xóa; tab *Thành phần* có nút ↑/↓ để đổi thứ tự. Nội dung chữ vẫn đổi bằng *Yêu cầu AI sửa thiết kế*.
    - Bấm **Duyệt thiết kế** khi hoàn tất.
 3. **Tài liệu**: bấm *Sinh tài liệu* để tạo Use Case, SRS (ISO/IEC/IEEE 29148), Sequence diagram (Mermaid) và danh sách yêu cầu FR/NFR. Mỗi mục có thể chỉnh lại bằng prompt. Sau đó **Duyệt tài liệu** và xuất ra **Word**.
 4. **Test case**: sinh test theo kịch bản (luồng chính, luồng thay thế, ngoại lệ) và giá trị biên. Xuất ra **Excel** gồm 2 sheet: Test case và Truy vết.
@@ -86,14 +86,14 @@ Tính năng **chỉ dùng phương pháp của Li et al. (2020)**, *Auto Complet
   - Sau mỗi thay đổi, mô hình giải mã một bước và hiện **khung mờ** trên canvas: loại, vị trí và kích thước theo khung bao dự đoán.
   - **Tab** chấp nhận, **Esc** bỏ qua. Panel có **top-3 loại** kèm xác suất và xác suất EOS ("mô hình cho rằng đã đủ").
   - Chọn một container để hỏi riêng container đó; không chọn gì thì xét mọi container.
-- **Hoàn thành bố cục:** giải mã tham lam tới EOS (kể cả container vừa sinh) trong vùng chọn hoặc cả màn, rồi chấp nhận từng phần.
+- **Tự hoàn thiện bố cục:** giải mã tham lam tới EOS (kể cả container vừa sinh) trong vùng chọn hoặc cả màn, rồi chấp nhận từng phần.
 - **Đầu vào:** cây đang thiết kế và khung bao từng phần tử đo trên canvas, rời rạc hóa theo lưới 32 ô ngang × ô dọc 40 px (lưới đọc từ config của mô hình).
-- **Đầu ra:** loại, cờ lá, khung bao. Phần tử chèn vào có props trung tính; nội dung chữ đổi bằng Prompt sửa thiết kế.
+- **Đầu ra:** loại, cờ lá, khung bao. Phần tử chèn vào có props trung tính; nội dung chữ đổi bằng ô Yêu cầu AI sửa thiết kế.
 - **Mô hình:** `model/recursive-layout.json`, hidden 256, 4 lớp, lưới **32 ô ngang × ô dọc 40 px**, kiến trúc đúng bài báo (không embedding vị trí). Huấn luyện hai bước: **tiền huấn luyện trên 23.382 cây WebSight**, rồi **tinh chỉnh trên 785 màn gốc của nhóm** (13.168 cây train, chia 80/10/10) có tăng cường bố cục ×2 và dropout 0,2. Test 38 màn: **Next chặt 19,7%** (bản 500 màn trước: 8,8%), IoU ≥ 0,5 33,8%, Edit 37,0 s (không gợi ý: 60,5 s). Ngoài bài báo: WebSight, lưới thô, tăng cường, dropout. Chi tiết và lưu ý (không có ablation, test nhỏ): `dataset/export/eval/DATA-LIMITED.md`.
   - Suy luận thuần TypeScript (`shared/recursive.ts`), khớp PyTorch (`tests/recursive.test.ts`).
-  - Độ trễ trên CPU (42 màn test): hỏi một container khoảng 20–60 ms; xét cả màn trung vị 0,3 s (tối đa 0,9 s); Hoàn thành bố cục trung vị 0,4 s (tối đa khoảng 6 s với màn lớn).
+  - Độ trễ trên CPU (42 màn test): hỏi một container khoảng 20–60 ms; xét cả màn trung vị 0,3 s (tối đa 0,9 s); Tự hoàn thiện bố cục trung vị 0,4 s (tối đa khoảng 6 s với màn lớn).
 - **Kết quả:** `dataset/export/eval/DATA-LIMITED.md` (mô hình hiện tại), `STRICT-NEXT.md` (chọn lưới), `LAYOUT-SUGGEST.md` (mô phỏng KLM, chấm trên mô hình 400 màn trước đây).
-  - Mô phỏng KLM cho thấy gợi ý từng bước tiết kiệm khoảng 39–48% thời gian thao tác so với tự làm tay; Hoàn thành bố cục tiết kiệm 16–43%.
+  - Mô phỏng KLM cho thấy gợi ý từng bước tiết kiệm khoảng 39–48% thời gian thao tác so với tự làm tay; Tự hoàn thiện bố cục tiết kiệm 16–43%.
   - Có bảng độ chính xác theo từng loại phần tử.
   - Đối chiếu từng điểm với bài báo: `dataset/export/eval/PAPER-METHOD.md`.
 - **Giới hạn:**
