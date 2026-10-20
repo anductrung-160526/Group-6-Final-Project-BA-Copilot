@@ -11,6 +11,7 @@ import { createElement, type ComponentType } from "react";
 import { DIAGRAM_KINDS, DIAGRAM_KIND_LABEL, DOC_KINDS, DOC_KIND_LABEL } from "../shared/types.ts";
 import { Empty } from "./components/ui.tsx";
 import { FilesView } from "./views/FilesView.tsx";
+import { GitHistoryView } from "./views/GitHistoryView.tsx";
 import { TasksView } from "./views/TasksView.tsx";
 
 /** Mục cấp 1 của menu trái. */
@@ -85,7 +86,7 @@ export const PROJECT_MENU: ProjectMenuItem[] = [
   { key: "work", label: "Thực hiện công việc", icon: "Workflow", owner: "C3", steps: WORK_STEPS },
   { key: "files", label: "Kho tài liệu", icon: "FolderOpen", owner: "A4", component: FilesView },
   { key: "logs", label: "Nhật ký AI", icon: "ScrollText", owner: "C3", component: placeholder<ProjectPageProps>("Nhật ký AI", "C3") },
-  { key: "git", label: "Lịch sử GitHub", icon: "GitBranch", owner: "C8", component: placeholder<ProjectPageProps>("Lịch sử GitHub", "C8") },
+  { key: "git", label: "Lịch sử GitHub", icon: "GitBranch", owner: "C8", component: GitHistoryView },
 ];
 
 /** Mục mở mặc định khi bấm vào dự án (quyết định mục 3 "C3"). */
