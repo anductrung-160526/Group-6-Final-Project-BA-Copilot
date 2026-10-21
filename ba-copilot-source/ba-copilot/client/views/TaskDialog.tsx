@@ -25,17 +25,17 @@ import { loadDoneBlockReason } from "../prereq.ts";
 // ---------------------------------------------------------------- Nhãn dùng chung cho Kanban, ngăn chi tiết, RelatedTasks
 /** 4 cột / trạng thái task đợt 5 (kế hoạch đợt 5, mục 1). */
 export const TASK_STATUS: { key: Exclude<TaskStatus, "redo">; label: string; tone: BadgeTone }[] = [
-  { key: "todo", label: "Cần làm", tone: "gray" },
-  { key: "doing", label: "Đang làm", tone: "blue" },
-  { key: "done", label: "Xong", tone: "orange" },
-  { key: "approved", label: "Đã duyệt", tone: "green" },
+  { key: "todo", label: "To do", tone: "gray" },
+  { key: "doing", label: "In progress", tone: "blue" },
+  { key: "done", label: "Done", tone: "orange" },
+  { key: "approved", label: "Approved", tone: "green" },
 ];
 export const statusInfo = (s: TaskStatus) => TASK_STATUS.find((x) => x.key === normStatus(s)) ?? TASK_STATUS[0];
 
 export const TASK_PRIORITY: { key: TaskPriority; label: string; tone: BadgeTone }[] = [
-  { key: "High", label: "Cao", tone: "red" },
-  { key: "Medium", label: "Trung bình", tone: "orange" },
-  { key: "Low", label: "Thấp", tone: "gray" },
+  { key: "High", label: "High", tone: "red" },
+  { key: "Medium", label: "Medium", tone: "orange" },
+  { key: "Low", label: "Low", tone: "gray" },
 ];
 export const priorityInfo = (p: TaskPriority) => TASK_PRIORITY.find((x) => x.key === p) ?? TASK_PRIORITY[1];
 export const priorityBadge = (p: TaskPriority) => <Badge tone={priorityInfo(p).tone}>{priorityInfo(p).label}</Badge>;
@@ -61,7 +61,7 @@ export function artifactLabel(
   if (!t.artifactType || !t.artifactId) return null;
   if (t.artifactType === "docs") return { text: artifactTitle("docs", null, moduleName?.(t.artifactId) ?? ""), missing: false, kind: "docs" };
   const a = findArtifact(t, artifacts);
-  return a ? { text: a.label, missing: false, kind: a.kind } : { text: "Sản phẩm đã xoá", missing: true, kind: t.artifactType };
+  return a ? { text: a.label, missing: false, kind: a.kind } : { text: "Deleted artifact", missing: true, kind: t.artifactType };
 }
 
 /** Đường dẫn mở sản phẩm trong "Thực hiện công việc". */
@@ -205,7 +205,7 @@ export function TaskDialog({
   }, [reload]);
 
   const moduleName = (id: string | null) => (id ? (modules.find((m) => m.id === id)?.name ?? null) : null);
-  const memberName = (id: string | null) => (id ? (members.find((m) => m.id === id)?.name ?? "Thành viên đã xoá") : null);
+  const memberName = (id: string | null) => (id ? (members.find((m) => m.id === id)?.name ?? "Deleted member") : null);
 
   // Sản phẩm chọn được: theo module đang chọn (hoặc cả dự án). Giữ lựa chọn cũ nếu sản phẩm đã xoá / bộ tài liệu cũ.
   const artifactOptions = useMemo(() => {
@@ -213,7 +213,7 @@ export function TaskDialog({
     const opts = list.map((a) => ({ value: artifactKey(a.kind, a.id, a.sub), label: f.moduleId ? a.label : `${a.moduleName} · ${a.label}` }));
     if (f.artifact && !artifacts.some((a) => artifactKey(a.kind, a.id, a.sub) === f.artifact)) {
       const lb = task ? artifactLabel(task, artifacts, moduleName) : null;
-      opts.unshift({ value: f.artifact, label: lb?.text ?? "Sản phẩm đã xoá" });
+      opts.unshift({ value: f.artifact, label: lb?.text ?? "Deleted artifact" });
     }
     return opts;
   }, [artifacts, f.moduleId, f.artifact]);
@@ -230,7 +230,7 @@ export function TaskDialog({
     });
 
   const save = async () => {
-    if (!f.title.trim()) return toast("Hãy nhập tiêu đề công việc", "err");
+    if (!f.title.trim()) return toast("Enter a task title", "err");
     const body: TaskInput & { artifactSub?: string | null } = {
       title: f.title.trim(),
       description: f.description,
@@ -249,7 +249,7 @@ export function TaskDialog({
     setSaving(true);
     try {
       const saved = task ? await updateTask(task.id, body) : await createTask(projectId, { ...body, status: initial?.status === "doing" ? "doing" : "todo", actorId: me?.id });
-      toast(task ? "Đã lưu công việc" : "Đã tạo công việc", "ok");
+      toast(task ? "Task saved" : "Task created", "ok");
       onSaved(saved);
     } catch (e) {
       toast((e as Error).message, "err");
@@ -262,7 +262,7 @@ export function TaskDialog({
     if (!task) return;
     try {
       await deleteTask(task.id);
-      toast("Đã xoá công việc", "ok");
+      toast("Task deleted", "ok");
       onDeleted(task.id);
     } catch (e) {
       toast((e as Error).message, "err");
@@ -289,41 +289,41 @@ export function TaskDialog({
   if (editing || !cur) {
     return (
       <Drawer
-        title={task ? "Sửa công việc" : "Công việc mới"}
+        title={task ? "Edit task" : "New task"}
         onClose={onClose}
         testId="task-drawer"
         footer={
           <>
             <span className="spacer" />
             <Btn kind="ghost" onClick={task ? () => (setF(fromTask(cur!)), setEditing(false)) : onClose}>
-              Huỷ
+              Cancel
             </Btn>
             <Btn kind="primary" onClick={save} disabled={saving} data-testid="task-save">
-              {saving ? "Đang lưu…" : task ? "Lưu" : "Tạo công việc"}
+              {saving ? "Saving…" : task ? "Save" : "Create task"}
             </Btn>
           </>
         }
       >
-        <Field label="Tiêu đề *">
-          <input value={f.title} onChange={(e) => set("title", e.target.value)} placeholder="vd Viết BRD module Xác thực" autoFocus data-testid="task-title" />
+        <Field label="Title *">
+          <input value={f.title} onChange={(e) => set("title", e.target.value)} placeholder="e.g. Write the BRD for the Authentication module" autoFocus data-testid="task-title" />
         </Field>
-        <Field label="Mô tả">
-          <textarea rows={4} value={f.description} onChange={(e) => set("description", e.target.value)} placeholder="Việc cần làm, tiêu chí xong…" data-testid="task-desc" />
+        <Field label="Description">
+          <textarea rows={4} value={f.description} onChange={(e) => set("description", e.target.value)} placeholder="What needs doing, definition of done…" data-testid="task-desc" />
         </Field>
-        <Field label="Người làm" hint={members.length ? undefined : "Chưa có thành viên – thêm ở Quản trị hệ thống."}>
+        <Field label="Assignee" hint={members.length ? undefined : "No members yet – add them under Administration."}>
           <MemberPicker members={members.map((m) => ({ id: m.id, name: m.name, role: ROLE_LABEL[m.role] }))} value={f.assigneeId} onChange={(v) => set("assigneeId", v)} testId="task-assignee" />
         </Field>
-        <Field label="Hạn">
+        <Field label="Due date">
           <input type="date" value={f.dueDate} onChange={(e) => set("dueDate", e.target.value)} data-testid="task-due" />
         </Field>
-        <Field label="Ưu tiên">
+        <Field label="Priority">
           <Select value={f.priority} options={TASK_PRIORITY.map((p) => ({ value: p.key, label: p.label }))} onChange={(v) => set("priority", (v || "Medium") as TaskPriority)} testId="task-priority" />
         </Field>
         <Field label="Module">
-          <Select value={f.moduleId} placeholder="Cấp dự án (không thuộc module)" options={modules.map((m) => ({ value: m.id, label: m.name }))} onChange={pickModule} testId="task-module" />
+          <Select value={f.moduleId} placeholder="Project level (no module)" options={modules.map((m) => ({ value: m.id, label: m.name }))} onChange={pickModule} testId="task-module" />
         </Field>
-        <Field label="Sản phẩm gắn kèm" hint="Màn hình, tài liệu, sơ đồ hoặc bộ test của module. Task gắn sản phẩm đổi trạng thái theo sản phẩm.">
-          <Select value={f.artifact} placeholder="Không gắn sản phẩm" options={artifactOptions} onChange={pickArtifact} testId="task-artifact" />
+        <Field label="Linked artifact" hint="A screen, document, diagram or test suite of the module. A task linked to an artifact follows the artifact's status.">
+          <Select value={f.artifact} placeholder="No linked artifact" options={artifactOptions} onChange={pickArtifact} testId="task-artifact" />
         </Field>
       </Drawer>
     );
@@ -348,11 +348,11 @@ export function TaskDialog({
             testId="task"
             onEdit={() => setEditing(true)}
             onDelete={remove}
-            deleteConfirm={{ title: "Xoá công việc?", message: `Xoá “${t.title}” cùng toàn bộ lịch sử trạng thái. Không khôi phục được.` }}
+            deleteConfirm={{ title: "Delete task?", message: `Delete “${t.title}” and its entire status history. This cannot be undone.` }}
           />
           <span className="spacer" />
           <Btn kind="ghost" onClick={onClose}>
-            Đóng
+            Close
           </Btn>
         </>
       }
@@ -364,9 +364,9 @@ export function TaskDialog({
           isLead={isLead}
           busy={busy}
           disabledReason={art!.status === "draft" || art!.status === "outdated" ? (doneLock ?? undefined) : undefined}
-          onDone={() => move("done", "Đã bấm Xong")}
-          onApprove={() => move("approved", "Đã duyệt")}
-          onRequestChange={() => move("doing", "Đã yêu cầu sửa")}
+          onDone={() => move("done", "Marked as done")}
+          onApprove={() => move("approved", "Approved")}
+          onRequestChange={() => move("doing", "Changes requested")}
           testId="task-approval"
         />
       ) : (
@@ -376,10 +376,10 @@ export function TaskDialog({
           revisionRequested={t.revisionRequested}
           isLead={isLead}
           busy={busy}
-          onStart={() => move("doing", "Đã chuyển sang Đang làm")}
-          onDone={() => move("done", "Đã bấm Xong")}
-          onApprove={() => move("approved", "Đã duyệt")}
-          onRequestChange={() => move("doing", "Đã yêu cầu sửa")}
+          onStart={() => move("doing", "Moved to In progress")}
+          onDone={() => move("done", "Marked as done")}
+          onApprove={() => move("approved", "Approved")}
+          onRequestChange={() => move("doing", "Changes requested")}
           reopenApproved
           testId="task-approval"
         />
@@ -388,18 +388,18 @@ export function TaskDialog({
       {linked && (
         // Không đặt nút trong Field (<label> sẽ chuyển cú bấm vào nút).
         <div className="toolbar" data-testid="task-status-row">
-          <span className="muted small">Công việc</span>
+          <span className="muted small">Task</span>
           <StatusBadge status={s} testId="task-status" />
           {t.revisionRequested && <RevisionTag testId="task-revision" />}
           {s === "todo" && (
-            <Btn size="sm" kind="ghost" onClick={() => move("doing", "Đã chuyển sang Đang làm")} disabled={busy} data-testid="task-start">
+            <Btn size="sm" kind="ghost" onClick={() => move("doing", "Moved to In progress")} disabled={busy} data-testid="task-start">
               <Icon name="play" size="sm" />
-              Bắt đầu làm
+              Start work
             </Btn>
           )}
         </div>
       )}
-      <Field label="Sản phẩm gắn kèm">
+      <Field label="Linked artifact">
         {lb ? (
           <span data-testid="task-artifact-view">
             <Icon name={ARTIFACT_ICON[lb.kind]} size="sm" />{" "}
@@ -412,37 +412,37 @@ export function TaskDialog({
             )}
           </span>
         ) : (
-          <span className="muted">Không gắn sản phẩm</span>
+          <span className="muted">No linked artifact</span>
         )}
       </Field>
       {t.description && (
-        <Field label="Mô tả">
+        <Field label="Description">
           <span className="clamp">{t.description}</span>
         </Field>
       )}
-      <Field label="Người làm">
-        <span>{memberName(t.assigneeId) ?? <span className="muted">Chưa giao</span>}</span>
+      <Field label="Assignee">
+        <span>{memberName(t.assigneeId) ?? <span className="muted">Unassigned</span>}</span>
       </Field>
-      <Field label="Hạn · Ưu tiên">
+      <Field label="Due date · Priority">
         <span>
-          {t.dueDate ? isOverdue(t) ? <Badge tone="red">Quá hạn {fmtDate(t.dueDate)}</Badge> : fmtDate(t.dueDate) : <span className="muted">Không có hạn</span>} · {priorityBadge(t.priority)}
+          {t.dueDate ? isOverdue(t) ? <Badge tone="red">Overdue {fmtDate(t.dueDate)}</Badge> : fmtDate(t.dueDate) : <span className="muted">No due date</span>} · {priorityBadge(t.priority)}
         </span>
       </Field>
       <Field label="Module">
-        <span>{moduleName(t.moduleId) ?? <span className="muted">Cấp dự án</span>}</span>
+        <span>{moduleName(t.moduleId) ?? <span className="muted">Project level</span>}</span>
       </Field>
 
       {detail && (
         <div className="box">
           <div className="box-title">
-            <Icon name="history" size="sm" /> Lịch sử trạng thái
+            <Icon name="history" size="sm" /> Status history
           </div>
           {detail.events.map((e) => (
             <div key={e.id} className="small" data-testid="task-event">
-              <span className="muted">{fmtTime(e.createdAt)}</span> · {e.fromStatus ? (normStatus(e.fromStatus) === normStatus(e.toStatus) ? "Giữ " : `${statusInfo(e.fromStatus).label} → `) : "Tạo ở "}
+              <span className="muted">{fmtTime(e.createdAt)}</span> · {e.fromStatus ? (normStatus(e.fromStatus) === normStatus(e.toStatus) ? "Kept " : `${statusInfo(e.fromStatus).label} → `) : "Created in "}
               <strong>{statusInfo(e.toStatus).label}</strong>
               {" · "}
-              {memberName(e.byMemberId) ?? (e.bySystem ? "Hệ thống" : "Không rõ người")}
+              {memberName(e.byMemberId) ?? (e.bySystem ? "System" : "Unknown user")}
               {e.reason ? <span className="muted"> ({e.reason})</span> : null}
             </div>
           ))}

@@ -144,7 +144,7 @@ export function ProjectGitSettings({ projectId, onClose, onSaved }: { projectId:
               </Btn>
             </div>
           )}
-          <Field label="Branch for approved artifacts" hint='Default "main". If the branch does not exist, the app creates it from the repository\'s default branch on the first approval.'>
+          <Field label="Branch for approved artifacts" hint={`Default "main". If the branch does not exist, the app creates it from the repository's default branch on the first approval.`}>
             <input value={branch} onChange={(e) => setBranch(e.target.value)} placeholder="main" data-testid="git-branch" />
           </Field>
           {result && (

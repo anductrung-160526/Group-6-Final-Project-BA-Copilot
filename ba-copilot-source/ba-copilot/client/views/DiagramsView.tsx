@@ -296,12 +296,12 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
                     </div>
                   )}
                   <textarea ref={editor} value={text} onChange={(e) => setText(e.target.value)} rows={isSeq ? 14 : 24} spellCheck={false} aria-label="Diagram Mermaid code" data-testid="diagram-code" />
-                  {dirty && <span className="muted small">Có thay đổi chưa lưu</span>}
+                  {dirty && <span className="muted small">Unsaved changes</span>}
                 </div>
               );
               const previewBox = (
                 <div className="box">
-                  <div className="box-title">Xem trước</div>
+                  <div className="box-title">Preview</div>
                   {preview.trim() ? <Mermaid code={preview} name={isSeq ? `sequence-${part?.key ?? ""}` : `diagram-${kind.toLowerCase()}`} /> : <Empty title="No code to render yet" />}
                 </div>
               );

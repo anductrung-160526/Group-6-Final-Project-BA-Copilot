@@ -213,6 +213,7 @@ function UseCaseView({ uc, screenName, moduleId }: { uc: UseCase; screenName: (i
       <ol className="main-flow">
         {uc.mainFlow.map((s) => (
           <li key={s.no}>
+            {/* vi-keep: actor "Hệ thống" trong UC cũ */}
             <span className={`actor ${/^(?:system|hệ thống)$/i.test(s.actor) ? "sys" : ""}`}>{s.actor}</span> {s.text}
             {s.screenId && (
               <a className="screen-link" href={`#/m/${moduleId}/design`} title="Open screen">

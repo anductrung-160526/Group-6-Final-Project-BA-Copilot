@@ -30,7 +30,7 @@ const COLS = 9;
 const NEW_ID = "__new__";
 /** Nhóm tạm chứa dòng mới chưa chọn module (hoặc chọn module khác bộ lọc đang xem). */
 const NEW_GROUP = "new";
-const NEED_MODULE = "Tạo module trước rồi mới thêm user story";
+const NEED_MODULE = "Create a module before adding user stories";
 
 /** Nội dung đang sửa của một dòng. */
 interface Draft {
@@ -135,15 +135,15 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
     return m;
   }, [qus]);
 
-  if (!stories || !modules) return <div className="page muted">Đang tải…</div>;
+  if (!stories || !modules) return <div className="page muted">Loading…</div>;
 
-  const moduleName = (id: string | null) => (id ? modules.find((m) => m.id === id)?.name ?? "Module đã xoá" : "Chưa gắn module");
+  const moduleName = (id: string | null) => (id ? modules.find((m) => m.id === id)?.name ?? "Deleted module" : "No module");
   const original = draft && draft.id !== NEW_ID ? stories.find((s) => s.id === draft.id) : undefined;
   const dirty = !!draft && (draft.id === NEW_ID ? !sameDraft(draft, emptyDraft(draft.moduleId)) : !!original && !sameDraft(draft, draftOf(original)));
 
   /** Bắt đầu sửa / thêm – đang sửa dở dòng khác thì hỏi bỏ thay đổi. */
   const startEdit = async (next: Draft) => {
-    if (dirty && !(await confirm({ title: "Bỏ thay đổi đang sửa?", message: "Nội dung chưa lưu của dòng đang sửa sẽ mất.", okLabel: "Bỏ thay đổi", danger: true }))) return;
+    if (dirty && !(await confirm({ title: "Discard unsaved changes?", message: "Unsaved content in the row being edited will be lost.", okLabel: "Discard changes", danger: true }))) return;
     setRowConflict(false);
     setDraft(next);
   };
@@ -158,11 +158,11 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
   const createModule = async () => {
     const name = (newModule ?? "").trim();
     if (!name) return;
-    const m = await run("Đang tạo module", () => post<Module>(`/api/projects/${encodeURIComponent(projectId)}/modules`, { name }));
+    const m = await run("Creating module", () => post<Module>(`/api/projects/${encodeURIComponent(projectId)}/modules`, { name }));
     if (!m) return;
     setNewModule(null);
     window.dispatchEvent(new Event("bacopilot:modules-changed")); // ProjectShell tải lại module cho menu trái
-    toast(`Đã tạo module ${m.name} – thêm user story cho module này`, "ok");
+    toast(`Module ${m.name} created – add user stories to it`, "ok");
     await load().catch((e) => toast(e.message, "err"));
     pickFilter(m.id);
   };
@@ -170,20 +170,20 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
   const save = async () => {
     if (!draft) return;
     const d = draft;
-    if (!d.moduleId || !modules.some((m) => m.id === d.moduleId)) return toast(noModule ? NEED_MODULE : "Chọn module cho user story", "err");
-    if (isBlankStructured(d)) return toast("Nhập ít nhất một trong ba ô As a / I want / So that", "err");
+    if (!d.moduleId || !modules.some((m) => m.id === d.moduleId)) return toast(noModule ? NEED_MODULE : "Select a module for the user story", "err");
+    if (isBlankStructured(d)) return toast("Fill in at least one of As a / I want / So that", "err");
     setBusy(true);
     try {
       const saved =
         d.id === NEW_ID ? await createStory(projectId, withActor(payloadOf(d))) : await updateStory(d.id, withActor({ ...payloadOf(d), baseRev: d.baseRev }));
-      toast(d.id === NEW_ID ? `Đã thêm ${saved.code}` : `Đã lưu ${saved.code}`, "ok");
+      toast(d.id === NEW_ID ? `Added ${saved.code}` : `Saved ${saved.code}`, "ok");
       setDraft(null);
       setRowConflict(false);
       await load();
     } catch (e: any) {
       if (isConflict(e)) {
         setRowConflict(true);
-        toast(`${e.message} – có người vừa sửa story này`, "err");
+        toast(`${e.message} – someone just edited this story`, "err");
       } else toast(e.message, "err");
     } finally {
       setBusy(false);
@@ -197,7 +197,7 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
       const list = await load();
       const fresh = draft ? list.find((s) => s.id === draft.id) : undefined;
       setDraft(fresh ? draftOf(fresh) : null);
-      if (!fresh) toast("Story này đã bị xoá", "info");
+      if (!fresh) toast("This story has been deleted", "info");
       setRowConflict(false);
     } finally {
       setBusy(false);
@@ -208,7 +208,7 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
     try {
       const q = new URLSearchParams({ baseRev: String(s.rev), ...(currentMemberId() ? { actorId: currentMemberId()! } : {}) });
       await del(`/api/stories/${encodeURIComponent(s.id)}?${q}`);
-      toast(`Đã xoá ${s.code}`, "ok");
+      toast(`Deleted ${s.code}`, "ok");
       if (draft?.id === s.id) setDraft(null);
       await load();
     } catch (e: any) {
@@ -245,12 +245,12 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
     }))
     .filter((g) => filter || g.list.length || g.hasNew);
   // Dòng mới chưa chọn module / chọn module khác bộ lọc: hiện ở nhóm tạm trên cùng cho tới khi lưu.
-  if (newKey !== null && !groups.some((g) => g.hasNew)) groups.unshift({ key: NEW_GROUP, name: "User story mới", list: [], hasNew: true });
+  if (newKey !== null && !groups.some((g) => g.hasNew)) groups.unshift({ key: NEW_GROUP, name: "New user story", list: [], hasNew: true });
 
   const unassigned = stories.filter((s) => !s.moduleId).length;
   const filterOptions = [
     ...modules.map((m) => ({ value: m.id, label: m.name })),
-    ...(unassigned || filter === NO_MODULE ? [{ value: NO_MODULE, label: "Chưa gắn module" }] : []),
+    ...(unassigned || filter === NO_MODULE ? [{ value: NO_MODULE, label: "No module" }] : []),
   ];
   const moduleOptions = modules.map((m) => ({ value: m.id, label: m.name }));
 
@@ -265,41 +265,41 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
           <div className="box">
             <div className="qus-title-wrap">
               <Badge>{code}</Badge>
-              <span>{d.id === NEW_ID ? "User story mới" : "Sửa user story"}</span>
+              <span>{d.id === NEW_ID ? "New user story" : "Edit user story"}</span>
               <EditingBadge names={others.map((o) => o.name)} />
               {original && (
                 <span className="muted small">
-                  Bản {original.rev}
-                  {original.updatedAt ? ` · sửa ${fmtTime(original.updatedAt)}` : ""}
-                  {by ? ` bởi ${by}` : ""}
+                  Revision {original.rev}
+                  {original.updatedAt ? ` · edited ${fmtTime(original.updatedAt)}` : ""}
+                  {by ? ` by ${by}` : ""}
                 </span>
               )}
             </div>
             {rowConflict && <ConflictNotice onReload={reloadRow} busy={busy} />}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "var(--space-3)" }}>
-              <Field label="Vai trò">
-                <input value={d.asA} onChange={(e) => set({ asA: e.target.value })} placeholder="As a … (vai trò)" autoFocus data-testid="story-asA" />
+              <Field label="Role">
+                <input value={d.asA} onChange={(e) => set({ asA: e.target.value })} placeholder="As a … (role)" autoFocus data-testid="story-asA" />
               </Field>
-              <Field label="Mong muốn">
-                <input value={d.iWant} onChange={(e) => set({ iWant: e.target.value })} placeholder="I want … (mong muốn)" data-testid="story-iWant" />
+              <Field label="Goal">
+                <input value={d.iWant} onChange={(e) => set({ iWant: e.target.value })} placeholder="I want … (goal)" data-testid="story-iWant" />
               </Field>
-              <Field label="Lợi ích">
-                <input value={d.soThat} onChange={(e) => set({ soThat: e.target.value })} placeholder="So that … (lợi ích)" data-testid="story-soThat" />
+              <Field label="Benefit">
+                <input value={d.soThat} onChange={(e) => set({ soThat: e.target.value })} placeholder="So that … (benefit)" data-testid="story-soThat" />
               </Field>
               <Field label="Module">
                 <Select
                   value={d.moduleId}
                   onChange={(v) => set({ moduleId: v })}
                   options={moduleOptions}
-                  placeholder={d.moduleId ? undefined : "Chọn module…"}
+                  placeholder={d.moduleId ? undefined : "Select module…"}
                   testId="story-module"
                 />
               </Field>
-              <Field label="Độ ưu tiên">
+              <Field label="Priority">
                 <Select value={d.priority} onChange={(v) => v && set({ priority: v })} options={PRIORITIES.map((p) => ({ value: p, label: p }))} testId="story-priority" />
               </Field>
             </div>
-            <Field label="Tiêu chí chấp nhận" hint="Mỗi dòng một tiêu chí kiểm chứng được. Dòng trống không được lưu.">
+            <Field label="Acceptance Criteria" hint="One verifiable criterion per line. Empty lines are not saved.">
               <div className="issue-list">
                 {d.acceptanceCriteria.map((c, i) => (
                   <div key={i} className="qus-title-wrap">
@@ -317,13 +317,13 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
                           setFocusAc(i + 1);
                         }
                       }}
-                      placeholder="Ví dụ: Hiện tối đa 20 đơn, mới nhất trước"
-                      aria-label={`Tiêu chí ${i + 1}`}
+                      placeholder="E.g. Show at most 20 orders, newest first"
+                      aria-label={`Criterion ${i + 1}`}
                       data-testid="story-ac"
                     />
                     <IconBtn
                       icon="close"
-                      label="Xoá tiêu chí"
+                      label="Remove criterion"
                       onClick={() => set({ acceptanceCriteria: d.acceptanceCriteria.length > 1 ? d.acceptanceCriteria.filter((_, j) => j !== i) : [""] })}
                     />
                   </div>
@@ -332,26 +332,26 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
             </Field>
             <div>
               <Btn size="sm" kind="ghost" onClick={() => (set({ acceptanceCriteria: [...d.acceptanceCriteria, ""] }), setFocusAc(d.acceptanceCriteria.length))} data-testid="story-ac-add">
-                <Icon name="plus" size="sm" /> Thêm tiêu chí
+                <Icon name="plus" size="sm" /> Add criterion
               </Btn>
             </div>
             {live && (
               <div className="issue-list" data-testid="story-live-qus">
                 <div className="qus-title-wrap">
-                  <span className="small">Chất lượng (QUS)</span>
+                  <span className="small">Quality (QUS)</span>
                   <ScoreBadge score={live.score} />
-                  <span className="muted small">Chỉ để tham khảo, vẫn lưu được.</span>
+                  <span className="muted small">For reference only; you can still save.</span>
                 </div>
-                <IssueList issues={live.issues.map(toIssueItem)} empty="Đạt chuẩn QUS" />
+                <IssueList issues={live.issues.map(toIssueItem)} empty="Meets the QUS criteria" />
               </div>
             )}
             <div className="qus-title-wrap">
               <span className="spacer" />
               <Btn onClick={() => (setDraft(null), setRowConflict(false))} disabled={busy} data-testid="story-cancel">
-                Huỷ
+                Cancel
               </Btn>
               <Btn kind="primary" onClick={save} disabled={busy || rowConflict} data-testid="story-save">
-                {d.id === NEW_ID ? "Thêm" : "Lưu"}
+                {d.id === NEW_ID ? "Add" : "Save"}
               </Btn>
             </div>
           </div>
@@ -369,7 +369,7 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
       <React.Fragment key={s.id}>
         <tr data-testid={`story-row-${s.code}`}>
           <td className="nowrap strong">{s.code}</td>
-          <td>{s.moduleId ? moduleName(s.moduleId) : <Badge tone="amber">Chưa gắn module</Badge>}</td>
+          <td>{s.moduleId ? moduleName(s.moduleId) : <Badge tone="amber">No module</Badge>}</td>
           <td>{text(s.asA)}</td>
           <td>{text(s.iWant)}</td>
           <td>{text(s.soThat)}</td>
@@ -381,7 +381,7 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
                 ))}
               </ol>
             ) : (
-              <span className="muted small">Chưa có</span>
+              <span className="muted small">None yet</span>
             )}
           </td>
           <td>
@@ -392,12 +392,12 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
           </td>
           <td className="actions">
             <span className="row-actions">
-              <IconBtn icon="up" label="Chuyển lên" onClick={() => move(list, idx, -1)} disabled={idx === 0} />
-              <IconBtn icon="down" label="Chuyển xuống" onClick={() => move(list, idx, 1)} disabled={idx === list.length - 1} />
+              <IconBtn icon="up" label="Move up" onClick={() => move(list, idx, -1)} disabled={idx === 0} />
+              <IconBtn icon="down" label="Move down" onClick={() => move(list, idx, 1)} disabled={idx === list.length - 1} />
               <RowActions
                 onEdit={() => startEdit(draftOf(s))}
                 onDelete={() => remove(s)}
-                deleteConfirm={{ title: `Xoá ${s.code}?`, message: "Tài liệu đang có của module sẽ thành Bản cũ." }}
+                deleteConfirm={{ title: `Delete ${s.code}?`, message: "The module's existing documents will become Outdated." }}
                 testId={`story-${s.code}`}
               />
             </span>
@@ -418,8 +418,8 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
     <div className="page" data-testid="stories-view">
       <div className="page-head">
         <div>
-          <h1>Yêu cầu nghiệp vụ</h1>
-          <p className="muted">{stories.length} user story · mỗi story gắn một module, viết theo mẫu As a / I want / So that kèm tiêu chí chấp nhận</p>
+          <h1>Business Requirements</h1>
+          <p className="muted">{stories.length} {stories.length === 1 ? "user story" : "user stories"} · each story belongs to one module and follows the As a / I want / So that template with acceptance criteria</p>
         </div>
         <div className="qus-title-wrap">
           {noModule && (
@@ -431,14 +431,14 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
             <Icon name="plus" size="sm" /> Module
           </Btn>
           <Btn kind="primary" onClick={addStory} disabled={busy || noModule} title={noModule ? NEED_MODULE : undefined} data-testid="story-add">
-            <Icon name="plus" size="sm" /> Thêm user story
+            <Icon name="plus" size="sm" /> Add user story
           </Btn>
         </div>
       </div>
 
       {filterOptions.length > 0 && (
         <div className="filters" style={{ margin: "0 0 var(--space-4)" }}>
-          <Select value={filter} onChange={pickFilter} placeholder="Tất cả module" options={filterOptions} testId="stories-module-filter" />
+          <Select value={filter} onChange={pickFilter} placeholder="All modules" options={filterOptions} testId="stories-module-filter" />
         </div>
       )}
 
@@ -453,11 +453,11 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
 
       {noModule && (
         <div data-testid="stories-no-module">
-          <Empty title="Chưa có module">
-            Tạo module trước rồi mới thêm user story. Module là một nhóm chức năng (VD: Xác thực, Quản lý đơn hàng); mỗi user story thuộc một module.
+          <Empty title="No modules yet">
+            Create a module before adding user stories. A module is a group of features (e.g. Authentication, Order Management); each user story belongs to one module.
             <div style={{ marginTop: "var(--space-3)" }}>
               <Btn kind="primary" onClick={() => setNewModule("")} data-testid="new-module-empty">
-                <Icon name="plus" size="sm" /> Tạo module
+                <Icon name="plus" size="sm" /> Create module
               </Btn>
             </div>
           </Empty>
@@ -465,9 +465,9 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
       )}
 
       {noModule && stories.length === 0 ? null : stories.length === 0 && !draft ? (
-        <Empty title="Chưa có user story nào">
-          Bấm "+ Thêm user story" để thêm dòng đầu tiên: chọn module, nhập vai trò (As a), mong muốn (I want), lợi ích (So that) và các tiêu chí chấp nhận.
-          Tài liệu BRD của module sẽ được sinh từ các story này.
+        <Empty title="No user stories yet">
+          Click "+ Add user story" to add the first row: select a module, then enter the role (As a), goal (I want), benefit (So that) and acceptance criteria.
+          The module's BRD will be generated from these stories.
         </Empty>
       ) : (
         groups.map((g) => {
@@ -481,32 +481,32 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
               </div>
               {g.key === NO_MODULE && g.list.length > 0 && (
                 <p className="muted small" data-testid="stories-unassigned-hint">
-                  Các story này chưa thuộc module nào (module cũ đã bị xoá). Bấm Sửa, chọn module rồi Lưu để gắn lại.
+                  These stories do not belong to any module (their module was deleted). Click Edit, select a module, then Save to reassign them.
                 </p>
               )}
               {g.list.length === 0 && !g.hasNew ? (
-                <Empty title={g.key === NO_MODULE ? "Không có story nào chưa gắn module" : "Module này chưa có user story"}>
-                  {g.key === NO_MODULE ? "Mọi user story đều đã gắn module." : `Bấm "+ Thêm user story" để thêm story cho module ${g.name}.`}
+                <Empty title={g.key === NO_MODULE ? "No stories without a module" : "This module has no user stories yet"}>
+                  {g.key === NO_MODULE ? "Every user story belongs to a module." : `Click "+ Add user story" to add stories to module ${g.name}.`}
                 </Empty>
               ) : (
                 <div className="table-wrap">
                   <table className="tbl" data-testid="stories-table">
                     <thead>
                       <tr>
-                        <th>Mã</th>
+                        <th>ID</th>
                         <th>Module</th>
                         <th>As a</th>
                         <th>I want</th>
                         <th>So that</th>
-                        <th>Tiêu chí chấp nhận</th>
-                        <th>Ưu tiên</th>
+                        <th>Acceptance Criteria</th>
+                        <th>Priority</th>
                         <th>QUS</th>
                         <th className="actions" />
                       </tr>
                     </thead>
                     <tbody>
                       {g.list.map((s, i) => row(s, g.list, i))}
-                      {g.hasNew && draft && editor(draft, "Mới")}
+                      {g.hasNew && draft && editor(draft, "New")}
                     </tbody>
                   </table>
                 </div>
@@ -518,25 +518,25 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
 
       {newModule !== null && (
         <Modal
-          title="Module mới"
+          title="New module"
           onClose={() => setNewModule(null)}
           footer={
             <>
-              <Btn onClick={() => setNewModule(null)}>Huỷ</Btn>
+              <Btn onClick={() => setNewModule(null)}>Cancel</Btn>
               <Btn kind="primary" disabled={!newModule.trim()} onClick={createModule} data-testid="create-module">
-                Tạo module
+                Create module
               </Btn>
             </>
           }
         >
-          <Field label="Tên module" hint="Tạo xong, thêm user story cho module ngay tại màn này. Tài liệu, sơ đồ, prototype… làm ở mục Thực hiện công việc.">
+          <Field label="Module name" hint="Once created, add user stories to the module right here. Documents, diagrams, prototypes… are produced under Deliverables.">
             <input
               autoFocus
               value={newModule}
               maxLength={200}
               onChange={(e) => setNewModule(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && createModule()}
-              placeholder="VD: Xác thực người dùng"
+              placeholder="E.g. User Authentication"
               data-testid="module-name"
             />
           </Field>

@@ -84,7 +84,7 @@ export function FileDrawer({
       actions={
         <Btn size="sm" onClick={() => dl(file)} data-testid="drawer-download">
           <Icon name="download" size="sm" />
-          Tải về
+          Download
         </Btn>
       }
       footer={
