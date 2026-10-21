@@ -18696,7 +18696,9 @@ var MSG = {
   projectDescTooLong: `Description must be at most ${thousands(PROJECT_DESC_MAX)} characters`,
   moduleNameRequired: "Module name is required",
   moduleNameTooLong: `Module name must be at most ${MODULE_NAME_MAX} characters`,
-  duplicateProject: (name2) => `A project named \u201C${name2}\u201D already exists. Please choose another name.`
+  duplicateProject: (name2) => `A project named \u201C${name2}\u201D already exists. Please choose another name.`,
+  duplicateModule: (name2) => `A module named \u201C${name2}\u201D already exists in this project. Please choose another name.`,
+  duplicateMember: (name2) => `A member named \u201C${name2}\u201D already exists. Please choose another name.`
 };
 function projectNameError(name2) {
   if (!name2) return MSG.projectNameRequired;
@@ -18787,6 +18789,12 @@ function updateModule(id, patch) {
   if (!cols.length) return;
   getDb().prepare(`UPDATE modules SET ${cols.join(", ")} WHERE id = ?`).run(...vals, id);
 }
+function findModuleByName(projectId, name2, exceptId) {
+  const key2 = projectNameKey(name2);
+  const rows = getDb().prepare("SELECT * FROM modules WHERE project_id = ?").all(projectId);
+  const r = rows.find((x) => x.id !== exceptId && projectNameKey(String(x.name ?? "")) === key2);
+  return r ? toModule(r) : null;
+}
 function deleteModule(id) {
   getDb().prepare("DELETE FROM modules WHERE id = ?").run(id);
 }
@@ -18853,7 +18861,17 @@ function updateScreen(id, patch) {
   getDb().prepare(`UPDATE screens SET ${cols.join(", ")} WHERE id = ?`).run(...vals, id);
 }
 function deleteScreen(id) {
-  getDb().prepare("DELETE FROM screens WHERE id = ?").run(id);
+  tx(() => {
+    const d = getDb();
+    const at = now();
+    const name2 = d.prepare("SELECT name FROM screens WHERE id = ?").get(id)?.name ?? "";
+    const linked = d.prepare("SELECT id, status FROM tasks WHERE artifact_type = 'screen' AND artifact_id = ?").all(id);
+    const ev = d.prepare("INSERT INTO task_events (id, task_id, from_status, to_status, by_member_id, by_system, reason, created_at) VALUES (?, ?, ?, ?, NULL, 1, ?, ?)");
+    for (const t of linked) ev.run(uid(), t.id, t.status, t.status, `Linked screen \u201C${name2}\u201D was deleted`, at);
+    d.prepare("UPDATE tasks SET artifact_type = NULL, artifact_id = NULL, artifact_sub = NULL, updated_at = ? WHERE artifact_type = 'screen' AND artifact_id = ?").run(at, id);
+    d.prepare("DELETE FROM annotations WHERE screen_id = ?").run(id);
+    d.prepare("DELETE FROM screens WHERE id = ?").run(id);
+  });
 }
 function addVersion(screenId, v) {
   return tx(() => {
@@ -19339,6 +19357,11 @@ function compactTree(n) {
   if (n.children) out.children = n.children.map(compactTree);
   return out;
 }
+function tableDataColumns(columns, rowActions) {
+  const idx = columns.map((_, i) => i);
+  if (!rowActions.length) return idx;
+  return idx.filter((i) => !/^(?:actions?|thao tác)$/iu.test(columns[i].trim()));
+}
 
 // server/ai/client.ts
 function aiConfig() {
@@ -19533,9 +19556,9 @@ function ucSourceHash(useCases) {
   }
   return (h2 >>> 0).toString(16).padStart(8, "0");
 }
-var SOURCE_MARK = "%% nguon-uc:";
+var SOURCE_MARK = "%% uc-source:";
 function readSourceHash(code) {
-  const m = String(code ?? "").match(/^\s*%% nguon-uc:\s*([0-9a-f]{8})\s*$/m);
+  const m = String(code ?? "").match(/^\s*%% (?:uc-source|nguon-uc):\s*([0-9a-f]{8})\s*$/m);
   return m ? m[1] : null;
 }
 function buildUcMermaid(useCases, actors = [], relations) {
@@ -19667,7 +19690,7 @@ var SYSTEM = "System";
 var isSys = (a) => /^(?:system|the system|hệ thống)$/i.test(String(a ?? "").trim());
 var sysStep = (s2) => /^(?:system|hệ thống)\b/i.test(s2);
 function entityFrom(prompt, fallback) {
-  const m = prompt.match(/(?:quản lý|danh sách|thêm|tạo|chỉnh sửa|form|màn hình)\s+([\p{L}\d ]{2,40}?)(?:[,.;:\n]|$| gồm| có| với| cho)/iu) ?? prompt.match(/(?:manage|management of|list of|add(?: new)?|create|edit|new)\s+(?:an?\s+|the\s+)?([\p{L}\d ]{2,40}?)(?:[,.;:\n]|$| with| including| for| by)/iu) ?? prompt.match(/([\p{L}]+(?: [\p{L}]+)?)\s+(?:management|list)\b/iu);
+  const m = prompt.match(/(?:quản lý|danh sách|thêm|tạo|chỉnh sửa|form|màn hình)\s+(?!(?:with|for|to|of|and|has|including)\b)([\p{L}\d ]{2,40}?)(?:[,.;:\n]|$| gồm| có| với| cho)/iu) ?? prompt.match(/(?:manage|management of|list of|add(?: new)?|create|edit|new)\s+(?:an?\s+|the\s+)?([\p{L}\d ]{2,40}?)(?:[,.;:\n]|$| with| including| for| by)/iu) ?? prompt.match(/([\p{L}]+(?: [\p{L}]+)?)\s+(?:management|list)\b/iu) ?? prompt.match(/^(?:an?\s+|the\s+)?([\p{L}]+(?: [\p{L}]+){0,2}?)\s+(?:form|screen|page)\b/iu);
   const e = (m?.[1] ?? fallback).trim();
   return e.charAt(0).toUpperCase() + e.slice(1);
 }
@@ -19696,9 +19719,15 @@ var ACTIONS = [
 ];
 var SECONDARY_BTN = /hủy|huỷ|quay lại|từ chối|cancel|\bback\b|reject/i;
 var splitList = (s2) => s2.split(/\s*(?:,|;|\/)\s*|\s+(?:và|hoặc|and|or)\s+/).map((x) => x.replace(/["“”']/g, "").trim()).filter((x) => x && x.length <= 40);
+var CONTAINER_WORDS = /\b(?:screen|page|form|list|dialog|modal|popup|view|panel|management|dashboard|table|section|card|toolbar|header|footer|menu|area|màn hình|trang|danh sách)\b/iu;
+function labelAfterContainer(phrase) {
+  const m = phrase.match(/^(.*?)\bwith\b\s*(.*)$/iu);
+  if (!m || !CONTAINER_WORDS.test(m[1])) return phrase.trim();
+  return labelAfterContainer(m[2]);
+}
 var actionOf = (label3) => ACTIONS.find(([re]) => re.test(label3.toLowerCase()))?.[1] ?? "click";
 var cap = (s2) => s2.charAt(0).toUpperCase() + s2.slice(1);
-var stripArticle = (s2) => s2.replace(/^(?:a|an|the|with)\s+/i, "").trim();
+var stripArticle = (s2) => s2.replace(/^(?:(?:a|an|the|with|and|or)\s+)+/i, "").trim();
 function mockFromPrompt(prompt, name2) {
   const text2 = prompt.trim();
   const p2 = text2.toLowerCase();
@@ -19761,8 +19790,10 @@ function mockFromPrompt(prompt, name2) {
   field(/đồng ý|điều khoản|\bagree\b|\bterms\b/, "Checkbox", { label: "I agree to the terms of use" });
   const tenX = blank(text2).match(/(?<![Hh]ọ )\btên\s+([\p{L}]+(?:\s[\p{L}]+)?)/u);
   if (tenX && !/^(đăng|tài khoản)/i.test(tenX[1])) field(new RegExp(`t\xEAn\\s+${tenX[1].toLowerCase()}`), "Input", { label: `${cap(tenX[1].toLowerCase())} name` });
+  const NAME_LINK = /^(with|and|or|of|for|to|in|its|their)$/;
   const nameX = pf.match(/\b([a-z]+) name\b/);
-  if (nameX && !/^(full|user|first|last|file|by|the|a|an|your|my|display)$/.test(nameX[1])) field(new RegExp(`\\b${nameX[1]} name\\b`), "Input", { label: `${cap(nameX[1])} name` });
+  if (nameX && !NAME_LINK.test(nameX[1]) && !/^(full|user|first|last|file|by|the|a|an|your|my|display)$/.test(nameX[1])) field(new RegExp(`\\b${nameX[1]} name\\b`), "Input", { label: `${cap(nameX[1])} name` });
+  else if (!nameX || NAME_LINK.test(nameX[1])) field(/(?:^\s*|[,:;(]\s*|\b(?:with|and)\s+)name\b/, "Input", { label: "Name" });
   constrain();
   const isList = /\bbảng\b|danh sách|\btable\b|\blist\b/.test(p2) && !/^màn hình (đăng|quên)|^(?:the )?(?:login|log in|sign in|sign up|register|registration|forgot password) (?:screen|page|form)/.test(p2);
   const iSearch = at(/tìm kiếm|tra cứu|\bsearch\b|look ?up/);
@@ -19773,15 +19804,20 @@ function mockFromPrompt(prompt, name2) {
     const i = at(/khoảng thời gian|từ ngày|date range|from date/);
     tools.push({ at: i, node: { type: "DatePicker", props: { label: "From date", name: "from_date" } } }, { at: i + 1, node: { type: "DatePicker", props: { label: "To date", name: "to_date" } } });
   }
-  const addButtons = (index, raw) => {
-    for (const lb of splitList(raw.replace(/\s+(vào|ở|bên|phía|cuối|dưới|trên|at|on|in|below|above)\s.*$/i, ""))) {
+  const SEARCH_BOX = /^(?:ô tìm kiếm|search\s+(?:box|bar|field|input))$/iu;
+  const addButtons = (index, raw, exact = false) => {
+    const plain = raw.replace(/^.*\b(?:actions?|thao tác)\s*(?:,|\band\b|\bvà\b)\s*/iu, "").replace(/\s+(?:vào|ở|bên|phía|cuối|dưới|trên)\s.*$|\s+(?:at|on|in|below|above)\s+(?:the|a|an|top|bottom|left|right|each|every)\b.*$/iu, "");
+    for (const lb of exact ? [raw.trim()] : splitList(plain)) {
       const label3 = cap(stripArticle(lb));
+      if (SEARCH_BOX.test(label3)) continue;
       if (label3 && !buttons.some((b) => String(b.node.props.label).toLowerCase() === label3.toLowerCase())) buttons.push({ at: index, node: { type: "Button", props: { label: label3 } } });
     }
   };
   for (const m of text2.matchAll(/nút\s+([^.;:\n]+?)(?=$|[.;:\n]|,\s*(?:có|bảng|phân trang|link|liên kết)\b)/giu)) addButtons(m.index, m[1]);
   for (const m of text2.matchAll(/\bbuttons?\s*(?::\s*|(?=["“]))([^.;:\n]+?)(?=$|[.;:\n]|,\s*(?:with|table|pagination|link|has)\b)/gi)) addButtons(m.index, m[1]);
-  for (const m of text2.matchAll(/(?:^|[,.;:\n]|\bwith\b)\s*([^,.;:\n]+?)\s+buttons?\b/gi)) addButtons(m.index, m[1]);
+  for (const m of text2.matchAll(/((?:["“][^"”\n]+["”]\s*(?:,|\band\b|\bor\b|\bvà\b)?\s*)+)\s*buttons?\b/giu))
+    for (const q of m[1].matchAll(/["“]([^"”\n]+)["”]/gu)) addButtons(m.index, q[1], true);
+  for (const m of text2.matchAll(/(?:^|[,.;:\n])\s*([^,.;:\n]+?)\s+buttons?\b/gi)) if (!/["“”]/.test(m[1])) addButtons(m.index, labelAfterContainer(m[1]));
   if (/xuất excel|export (?:to )?excel/.test(p2) && !buttons.some((b) => /xuất|export/i.test(String(b.node.props.label)))) buttons.push({ at: at(/xuất excel|export (?:to )?excel/), node: { type: "Button", props: { label: "Export Excel" } } });
   if (/quên mật khẩu|forgot(?:ten)? password/.test(p2) && !/^màn hình quên|^quên|^forgot/.test(p2)) links.push({ at: at(/quên mật khẩu|forgot(?:ten)? password/), node: { type: "Link", props: { text: "Forgot password?", navigateTo: "Forgot password" } } });
   if (/(link|liên kết)\s+đăng ký|đăng ký tài khoản|sign ?up link|register link|create (?:an )?account/.test(p2) && /đăng nhập|log ?in|sign in/.test(p2)) links.push({ at: at(/đăng ký|sign ?up|register|create (?:an )?account/), node: { type: "Link", props: { text: "Create an account", navigateTo: "Sign up" } } });
@@ -19815,7 +19851,10 @@ function mockFromPrompt(prompt, name2) {
   if (hasTable) {
     const cols = text2.match(/(?:cột|columns?)\s+([^.;\n]+?)(?=$|[.;\n]|,\s*(?:thao tác|nút|phân trang|có|xuất|actions?|buttons?|pagination|with|export)\b)/i)?.[1];
     const acts = p2.match(/(xem\/sửa\/xóa|xem\/sửa\/xoá|sửa\/xóa|sửa\/xoá|sửa và xóa|view\/edit\/delete|edit\/delete|edit and delete)/)?.[1];
-    children.push({ type: "Table", props: { columns: [...cols ? splitList(cols).map(cap) : ["Code", "Name", "Status"], ...acts ? ["Actions"] : []], rows: [], ...acts ? { rowActions: splitList(acts).map(cap) } : {} } });
+    const colList = cols ? splitList(cols) : [];
+    const stop = colList.findIndex((c) => /\b(?:actions?|buttons?|pagination|thao tác|nút|phân trang)\b/iu.test(c) || /^(?:edit|delete|view|xem|sửa|xóa|xoá)$/iu.test(c));
+    const colNames = (stop >= 0 ? colList.slice(0, stop) : colList).map(cap);
+    children.push({ type: "Table", props: { columns: [...colNames.length ? colNames : ["Code", "Name", "Status"], ...acts ? ["Actions"] : []], rows: [], ...acts ? { rowActions: splitList(acts).map(cap) } : {} } });
     if (hasTable && formBtns.length && fields2.length === 0) children.push({ type: "Row", props: { gap: 8 }, children: formBtns.map(btn) });
   }
   if (/phân trang|pagination|paging/.test(p2)) children.push({ type: "Pagination", props: { pages: 5 } });
@@ -20005,7 +20044,7 @@ function mockEditOps(tree, selectedIds, instruction) {
   const setType = text2.match(/(?:kiểu|type)\s+(email|password|number|tel|text)\b/i)?.[1];
   const minLen = text2.match(/(?:tối thiểu|at least|min(?:imum)?)\s+(\d+)\s*(?:ký tự|characters?|chars?)/i)?.[1];
   const addButton = text2.match(/(?:thêm|add)\s+(?:an?\s+)?(?:nút|button)\s*["“]?([^"”\n,.]+)["”]?/i) ?? text2.match(/\badd\s+(?:an?\s+|the\s+)?["“]?([^"”\n,.]+?)["”]?\s+button\b/i);
-  const addField = /\((?!Input\))[A-Z]\w+\)|ô (tích|chọn|nhập nhiều)|checkbox|drop-?down|\bselect\b|text ?area|date picker/i.test(text2) ? null : text2.match(/thêm\s+(?:ô|trường|field)(?:\s+nhập)?\s*["“]?([^"”\n,.(]+?)["”]?(?=\s*[(,.]|\s+vào|$)/i) ?? text2.match(/\badd\s+(?:an?\s+)?(?:new\s+)?(?:field|input)\s*["“]?([^"”\n,.(]+?)["”]?(?=\s*[(,.]|\s+(?:to|into|in)\b|$)/i) ?? text2.match(/\badd\s+(?:an?\s+|the\s+)?["“]?([^"”\n,.(]+?)["”]?\s+(?:field|input)\b/i);
+  const addField = /\((?!Input\))[A-Z]\w+\)|ô (tích|chọn|nhập nhiều)|checkbox|drop-?down|\bselect\b|text ?area|date picker/i.test(text2) ? null : text2.match(/thêm\s+(?:ô|trường|field)(?:\s+nhập)?\s*["“]?([^"”\n,.(]+?)["”]?(?=\s*[(,.]|\s+vào|$)/i) ?? text2.match(/\badd\s+(?:an?\s+)?(?:new\s+)?(?:field|input)\s*["“]?([^"”\n,.(]+?)["”]?(?=\s*[(,.]|\s+(?:to|into|in)\b|$)/i) ?? text2.match(/\badd\s+(?:an?\s+|the\s+)?["“]?([^"”\n,.(]+?)["”]?\s+(?:field|input)\b/i) ?? text2.match(/\badd\s+(?:an?\s+|the\s+)?["“]?(search)\s+(?:box|bar)\b(?!["”]?\s+buttons?\b)/i);
   const addCols = text2.match(/(?:thêm|add)\s+(?:các\s+|the\s+)?(?:cột|columns?)\s+["“]?([^"”\n.]+?)["”]?(?=\s+(?:vào|to)\b|\s*[.]|$)/i)?.[1];
   const addRowActs = text2.match(/(?:thêm|add)\s+(?:các\s+|the\s+)?(?:thao tác|(?:row\s+)?actions?)\s+([^\n.]+?)(?=\s+(?:vào|cho|to|for)\b|\s*[.]|$)/i)?.[1];
   const addRange = /(?:thêm|add)[^.\n]*(khoảng thời gian|từ ngày|date range|from date)/i.test(text2);
@@ -20491,6 +20530,9 @@ function isCovered(text2, vocabularies) {
   return vocabularies.some((v) => kw.filter((k) => v.has(k)).length / kw.length >= COVERAGE_THRESHOLD);
 }
 var VALIDATION_FR = /^(?:(?:hệ thống|the system)\s+(?:phải|shall|must|should)\s+)?(?:kiểm tra|validate)\s*:/iu;
+var RULE_FR = /^(?:(?:hệ thống|the system)\s+(?:phải|shall|must|should)\s+)?(?:(?:check|confirm|đảm bảo|bảo đảm)(?:\s+that)?\s*:|(?:ensure|verify|validate)\b)/iu;
+var ACCEPTANCE = /^(?:(?:given|when|then)\s+\S|(?:acceptance criteria|ac\s*\d+)\s*[:.-])/iu;
+var RULE_PHRASE = /^(?:(?:ensure|verify|validate|check|confirm|đảm bảo|bảo đảm)(?:\s+that)?\s*:|(?:ensure|verify|validate|check|confirm)\s+that\b)/iu;
 var LEAD = /^(?:hệ thống|the system)\s+(?:phải|shall|must|should)\s+(?:cho phép\s+(?:\S+\s+){0,4}?thực hiện\s+|allow\s+(?:\S+\s+){0,3}?to\s+)?/iu;
 var CLAUSE_WORDS = /* @__PURE__ */ new Set(["\u0111\u1EC3", "nh\u1EB1m", "theo", "khi", "trong", "cho", "when", "for", "by", "so", "via"]);
 var TRAILING_WORDS = /* @__PURE__ */ new Set(["v\xE0", "ho\u1EB7c", "c\u1EE7a", "c\xE1c", "v\u1EDBi", "and", "or", "of", "the", "a", "an", "to", "with"]);
@@ -20501,7 +20543,7 @@ function mockScreenName(text2) {
   if (quoted) {
     words2 = quoted.trim().replace(/^(?:mở màn hình|open(?: the)? screen)\s+/iu, "").replace(/\s*\(([^)]+)\)\s*$/u, " \u2013 $1").split(/\s+/);
   } else {
-    const core = text2.replace(/\s*[(（][^)）]*[)）]?/gu, " ").replace(/[.。!?]+$/u, "").trim().replace(LEAD, "");
+    const core = text2.replace(/\s*[(（][^)）]*[)）]?/gu, " ").replace(/[.。!?]+$/u, "").trim().replace(LEAD, "").replace(/^to\s+/iu, "");
     for (const w of core.split(/\s+/)) {
       if (words2.length && CLAUSE_WORDS.has(w.toLowerCase())) break;
       words2.push(w);
@@ -20512,13 +20554,17 @@ function mockScreenName(text2) {
   const name2 = words2.join(" ").replace(/[\s:;,–-]+$/u, "");
   return name2.charAt(0).toUpperCase() + name2.slice(1);
 }
+function isAcceptancePhrase(text2) {
+  const t = text2.trim().replace(/^[-*•\s]+/u, "");
+  return RULE_PHRASE.test(t) || VALIDATION_FR.test(t) || ACCEPTANCE.test(t);
+}
 function mockMissingScreens(model2, sources) {
   const vocabularies = model2.screens.map(screenVocabulary);
   const out = [];
   for (const src of sources) {
-    if (src.kind === "fr" && VALIDATION_FR.test(src.text)) continue;
+    if (src.kind === "fr" && (VALIDATION_FR.test(src.text) || RULE_FR.test(src.text))) continue;
     const text2 = src.kind === "story" ? parseStory(src.text).means ?? src.text : src.text;
-    if (isCovered(text2, vocabularies)) continue;
+    if (isAcceptancePhrase(text2) || isCovered(text2, vocabularies)) continue;
     out.push({ key: src.key, name: mockScreenName(text2) });
   }
   return out;
@@ -21046,6 +21092,7 @@ async function suggestMissingScreens(args) {
 Rules:
 - A source is covered when an existing screen lets the user do what it asks (its fields, actions, tables or links), even if the wording differs.
 - Do not propose a screen for a source that is only a validation rule, a field constraint or a small action that belongs on an existing screen.
+- Business rules and acceptance criteria ("ensure that \u2026", "verify \u2026", Given/When/Then) are not screens: skip them; never start a screen name with such words.
 - Screen name: short noun phrase in English Title Case, at most 8 words, e.g. "Order History", "Add Product". Do not reuse the name of an existing screen.
 - reason: one sentence saying what the user cannot do yet on the existing screens.
 - Use only the source refs below (S1, S2\u2026). Return an empty list when every source is covered.
@@ -21088,6 +21135,7 @@ ${screens.length ? JSON.stringify(screens) : "(none)"}`;
         const name2 = String(x?.name ?? "").trim().replace(/\s+/g, " ");
         if (!src) errors.push(`Unknown sourceRef: ${x?.sourceRef}`);
         else if (!name2 || name2.length > 120) errors.push(`${x.sourceRef}: invalid name`);
+        else if (isAcceptancePhrase(name2)) continue;
         else if (!seen.has(src.key)) {
           seen.add(src.key);
           out.push({ key: src.key, name: name2, reason: String(x?.reason ?? "").trim().slice(0, 300) || void 0 });
@@ -22133,6 +22181,159 @@ function cascadeOutdated(moduleId, actorId) {
   return changed;
 }
 
+// server/repo/stories.ts
+import { randomUUID as randomUUID3 } from "node:crypto";
+var STORY_PRIORITIES = ["High", "Medium", "Low"];
+var NO_MODULE = "none";
+var MAX_TEXT = 2e3;
+var MAX_CRITERIA = 50;
+function parseCriteria(raw) {
+  try {
+    const v = JSON.parse(String(raw ?? "[]"));
+    return Array.isArray(v) ? v.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+var toStory = (r) => ({
+  id: r.id,
+  projectId: r.project_id,
+  moduleId: r.module_id ?? null,
+  code: r.code,
+  asA: r.as_a ?? "",
+  iWant: r.i_want ?? "",
+  soThat: r.so_that ?? "",
+  acceptanceCriteria: parseCriteria(r.acceptance_criteria),
+  priority: r.priority,
+  order: Number(r.ord),
+  rev: Number(r.rev),
+  createdAt: r.created_at,
+  updatedBy: r.updated_by ?? null,
+  updatedAt: r.updated_at ?? null
+});
+var ORDER_BY = "ORDER BY ord, created_at, code";
+function listStories(projectId, moduleId) {
+  const d = getDb();
+  const rows = !moduleId ? d.prepare(`SELECT * FROM user_stories WHERE project_id = ? ${ORDER_BY}`).all(projectId) : moduleId === NO_MODULE ? d.prepare(`SELECT * FROM user_stories WHERE project_id = ? AND module_id IS NULL ${ORDER_BY}`).all(projectId) : d.prepare(`SELECT * FROM user_stories WHERE project_id = ? AND module_id = ? ${ORDER_BY}`).all(projectId, moduleId);
+  return rows.map(toStory);
+}
+function moduleStories(moduleId) {
+  return getDb().prepare(`SELECT * FROM user_stories WHERE module_id = ? ${ORDER_BY}`).all(moduleId).map(toStory);
+}
+function getStory(id) {
+  const r = getDb().prepare("SELECT * FROM user_stories WHERE id = ?").get(id);
+  return r ? toStory(r) : null;
+}
+var isBlankStory = (s2) => !s2.asA.trim() && !s2.iWant.trim() && !s2.soThat.trim();
+var text = (v) => typeof v === "string" ? v.trim().slice(0, MAX_TEXT) : "";
+function criteriaOf(v) {
+  if (!Array.isArray(v)) throw new HttpError("Acceptance criteria must be a list", 400);
+  return v.map((x) => typeof x === "string" ? x.trim().slice(0, MAX_TEXT) : "").filter(Boolean).slice(0, MAX_CRITERIA);
+}
+function priorityOf(v) {
+  if (!STORY_PRIORITIES.includes(v)) throw new HttpError("Priority must be High, Medium or Low", 400);
+  return v;
+}
+function moduleOf(projectId, v) {
+  if (v === null || v === void 0 || typeof v === "string" && !v.trim()) {
+    const has3 = getDb().prepare("SELECT 1 FROM modules WHERE project_id = ? LIMIT 1").get(projectId);
+    throw new HttpError(
+      has3 ? "No module selected \u2013 every user story must belong to a module of the project" : "The project has no modules \u2013 create a module before adding user stories",
+      400
+    );
+  }
+  const id = String(v);
+  if (!getDb().prepare("SELECT 1 FROM modules WHERE id = ? AND project_id = ?").get(id, projectId)) {
+    throw new HttpError("The module does not exist or does not belong to this project", 400);
+  }
+  return id;
+}
+function memberOrNull(id) {
+  return id && getDb().prepare("SELECT 1 FROM members WHERE id = ?").get(id) ? id : null;
+}
+function markModuleDocsOutdated(moduleId, actorId) {
+  if (!moduleId) return [];
+  const d = getDb();
+  const rows = d.prepare("SELECT kind FROM module_docs WHERE module_id = ? AND status IN ('draft','done','approved')").all(moduleId);
+  const kinds = DOC_KINDS.filter((k) => rows.some((r) => r.kind === k));
+  for (const kind of kinds) {
+    d.prepare("UPDATE module_docs SET status = 'outdated' WHERE module_id = ? AND kind = ?").run(moduleId, kind);
+    emit({ type: "artifact.stale", artifact: { kind: "doc", id: moduleId, moduleId, sub: kind }, actorId: actorId ?? void 0 });
+  }
+  return kinds;
+}
+function createStory(projectId, input, actorId) {
+  const d = getDb();
+  if (!d.prepare("SELECT 1 FROM projects WHERE id = ?").get(projectId)) throw new HttpError("Project not found", 404);
+  const moduleId = moduleOf(projectId, input.moduleId);
+  if (isBlankStructured({ asA: text(input.asA), iWant: text(input.iWant), soThat: text(input.soThat) })) throw new HttpError("Fill in at least one of As a / I want / So that", 400);
+  const priority = input.priority === void 0 ? "Medium" : priorityOf(input.priority);
+  const criteria = input.acceptanceCriteria === void 0 ? [] : criteriaOf(input.acceptanceCriteria);
+  return tx(() => {
+    const id = randomUUID3();
+    const at = (/* @__PURE__ */ new Date()).toISOString();
+    const code = storyCode(nextStoryNumber(d, projectId));
+    const ord = Number(d.prepare("SELECT COALESCE(MAX(ord), 0) AS n FROM user_stories WHERE project_id = ?").get(projectId).n) + 1;
+    d.prepare(
+      `INSERT INTO user_stories (id, project_id, module_id, code, as_a, i_want, so_that, acceptance_criteria, priority, ord, rev, created_at, updated_by, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`
+    ).run(id, projectId, moduleId, code, text(input.asA), text(input.iWant), text(input.soThat), JSON.stringify(criteria), priority, ord, at, memberOrNull(actorId), at);
+    const story = getStory(id);
+    if (!isBlankStory(story)) markModuleDocsOutdated(moduleId, actorId);
+    return { story, modules: [moduleId] };
+  });
+}
+var sameList = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
+function updateStory(id, input, baseRev, actorId) {
+  return tx(() => {
+    const cur = getStory(id);
+    if (!cur) throw new HttpError("User story not found", 404);
+    assertRev(cur.rev, baseRev);
+    const next = {
+      ...cur,
+      moduleId: input.moduleId === void 0 ? cur.moduleId : moduleOf(cur.projectId, input.moduleId),
+      asA: input.asA === void 0 ? cur.asA : text(input.asA),
+      iWant: input.iWant === void 0 ? cur.iWant : text(input.iWant),
+      soThat: input.soThat === void 0 ? cur.soThat : text(input.soThat),
+      acceptanceCriteria: input.acceptanceCriteria === void 0 ? cur.acceptanceCriteria : criteriaOf(input.acceptanceCriteria),
+      priority: input.priority === void 0 ? cur.priority : priorityOf(input.priority)
+    };
+    const changed = next.moduleId !== cur.moduleId || next.asA !== cur.asA || next.iWant !== cur.iWant || next.soThat !== cur.soThat || next.priority !== cur.priority || !sameList(next.acceptanceCriteria, cur.acceptanceCriteria);
+    if (!changed) return { story: cur, modules: [] };
+    getDb().prepare(
+      `UPDATE user_stories SET module_id = ?, as_a = ?, i_want = ?, so_that = ?, acceptance_criteria = ?, priority = ?,
+           rev = rev + 1, updated_by = ?, updated_at = ? WHERE id = ?`
+    ).run(next.moduleId, next.asA, next.iWant, next.soThat, JSON.stringify(next.acceptanceCriteria), next.priority, memberOrNull(actorId), (/* @__PURE__ */ new Date()).toISOString(), id);
+    const modules = [...new Set([cur.moduleId, next.moduleId].filter((m) => !!m))];
+    for (const m of modules) markModuleDocsOutdated(m, actorId);
+    return { story: getStory(id), modules };
+  });
+}
+function deleteStory(id, baseRev, actorId) {
+  return tx(() => {
+    const cur = getStory(id);
+    if (!cur) throw new HttpError("User story not found", 404);
+    assertRev(cur.rev, baseRev);
+    getDb().prepare("DELETE FROM user_stories WHERE id = ?").run(id);
+    if (!isBlankStory(cur)) markModuleDocsOutdated(cur.moduleId, actorId);
+    return { projectId: cur.projectId, modules: cur.moduleId ? [cur.moduleId] : [] };
+  });
+}
+function reorderStories(projectId, ids) {
+  const all = listStories(projectId);
+  const known = new Set(all.map((s2) => s2.id));
+  const uniq2 = [...new Set(ids.map(String))];
+  const bad = uniq2.find((id) => !known.has(id));
+  if (bad) throw new HttpError("The ordering list contains user stories that do not belong to the project", 400);
+  const picked = new Set(uniq2);
+  const ordered = [...uniq2, ...all.filter((s2) => !picked.has(s2.id)).map((s2) => s2.id)];
+  tx(() => {
+    const upd = getDb().prepare("UPDATE user_stories SET ord = ? WHERE id = ?");
+    ordered.forEach((id, i) => upd.run(i + 1, id));
+  });
+  return listStories(projectId);
+}
+
 // server/service.ts
 var BizError = class extends Error {
   constructor(message, status2 = 400) {
@@ -22163,6 +22364,12 @@ function markStale(moduleId, actorId) {
   markOutdated(moduleId);
   if (before && live(before.docsStatus)) moduleEvent("artifact.stale", "docs", moduleId, actorId);
   if (before && live(before.testsStatus)) moduleEvent("artifact.stale", "tests", moduleId, actorId);
+  markModuleDocsOutdated(moduleId, actorId);
+  cascadeOutdated(moduleId, actorId);
+}
+function screenLeftReady(screen, from, actorId) {
+  if (from === "approved") markStale(screen.moduleId, actorId);
+  else if (from === "done") staleTests(screen.moduleId, actorId);
 }
 var STATUS_VI = { none: "Not started", draft: "Draft", done: "Done", approved: "Approved", outdated: "Outdated" };
 var clip = (t, n) => t.length > n ? t.slice(0, n) + "\n\u2026(truncated)" : t;
@@ -22278,6 +22485,7 @@ function setScreenApproval(screenId, approved, actorId) {
   const screen = mustScreen(screenId);
   return tx(() => {
     updateScreen(screenId, { status: approved ? "approved" : "draft" });
+    bumpRev({ kind: "screen", id: screenId, moduleId: screen.moduleId }, actorId);
     screenEvent(approved ? "artifact.approved" : "artifact.unapproved", screen, actorId);
     if (!approved) markStale(screen.moduleId, actorId);
     return getScreen(screenId);
@@ -22419,10 +22627,8 @@ function draftAfterChange(screen, actorId) {
   const ref2 = { kind: "screen", id: screen.id, moduleId: screen.moduleId };
   if (screen.status !== "draft") setArtifactState(ref2, { status: "draft" });
   screenEvent("artifact.drafted", screen, actorId);
-  if (screen.status === "approved") {
-    screenEvent("artifact.unapproved", screen, actorId);
-    markStale(screen.moduleId, actorId);
-  } else if (screen.status === "done") staleTests(screen.moduleId, actorId);
+  if (screen.status === "approved") screenEvent("artifact.unapproved", screen, actorId);
+  screenLeftReady(screen, screen.status, actorId);
 }
 function staleTests(moduleId, actorId) {
   const m = getModule(moduleId);
@@ -44370,7 +44576,7 @@ b.disabled=false;b.textContent='Sign in';p.select()});})();
 // server/files.ts
 import { existsSync as existsSync2, mkdirSync as mkdirSync2, readFileSync as readFileSync2, unlinkSync, writeFileSync } from "node:fs";
 import { dirname as dirname3, extname, join as join2, resolve as resolve2, sep } from "node:path";
-import { randomUUID as randomUUID3 } from "node:crypto";
+import { randomUUID as randomUUID4 } from "node:crypto";
 var MAX_FILE_BYTES = 10 * 1024 * 1024;
 var EXT_TO_MIME = {
   ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -44476,7 +44682,7 @@ function readMeta(body) {
   if (has2(body, "note")) m.note = typeof body.note === "string" ? body.note.trim().slice(0, 2e3) : "";
   return m;
 }
-function memberOrNull(id) {
+function memberOrNull2(id) {
   if (!id) return null;
   return getDb().prepare("SELECT id FROM members WHERE id = ?").get(id) ? id : null;
 }
@@ -44487,7 +44693,7 @@ function writeMeta(id, m) {
   if (m.sender !== void 0) set("sender", m.sender);
   if (m.receivedAt !== void 0) set("received_at", m.receivedAt);
   if (m.note !== void 0) set("note", m.note);
-  if (m.uploadedBy !== void 0) set("uploaded_by", memberOrNull(m.uploadedBy));
+  if (m.uploadedBy !== void 0) set("uploaded_by", memberOrNull2(m.uploadedBy));
   if (sets.length) getDb().prepare(`UPDATE files SET ${sets.join(", ")} WHERE id = ?`).run(...vals, id);
 }
 var toItem = (r) => ({
@@ -44523,7 +44729,7 @@ function saveBuffer(projectId, moduleId, name2, buf, source, meta = {}) {
   if (!buf || buf.length === 0) throw new BizError("The file is empty");
   if (buf.length > MAX_FILE_BYTES) throw new BizError("The file exceeds the 10 MB size limit", 413);
   checkSignature(ext, buf);
-  const id = randomUUID3();
+  const id = randomUUID4();
   const storedName = saveFileToDisk(id, ext, buf);
   try {
     tx(() => {
@@ -44586,7 +44792,7 @@ function saveExport(projectId, moduleId, name2, buf, _mime) {
 }
 
 // server/repo/members.ts
-import { randomUUID as randomUUID4 } from "node:crypto";
+import { randomUUID as randomUUID5 } from "node:crypto";
 var MEMBER_ROLES = ["BA", "BA_LEAD"];
 var toMember2 = (r) => ({ id: r.id, name: r.name, role: r.role, createdAt: r.created_at });
 function listMembers() {
@@ -44596,8 +44802,13 @@ function getMember(id) {
   const r = getDb().prepare("SELECT * FROM members WHERE id = ?").get(id);
   return r ? toMember2(r) : null;
 }
+function findMemberByName(name2, exceptId) {
+  const key2 = projectNameKey(name2);
+  const r = getDb().prepare("SELECT * FROM members").all().find((x) => x.id !== exceptId && projectNameKey(String(x.name ?? "")) === key2);
+  return r ? toMember2(r) : null;
+}
 function createMember(input) {
-  const m = { id: randomUUID4(), name: input.name, role: input.role, createdAt: (/* @__PURE__ */ new Date()).toISOString() };
+  const m = { id: randomUUID5(), name: input.name, role: input.role, createdAt: (/* @__PURE__ */ new Date()).toISOString() };
   getDb().prepare("INSERT INTO members (id, name, role, created_at) VALUES (?, ?, ?, ?)").run(m.id, m.name, m.role, m.createdAt);
   return m;
 }
@@ -44615,6 +44826,9 @@ function countOpenTasks(memberId) {
 }
 function hasLead() {
   return !!getDb().prepare("SELECT 1 FROM members WHERE role = 'BA_LEAD' LIMIT 1").get();
+}
+function countLeads() {
+  return Number(getDb().prepare("SELECT COUNT(*) AS n FROM members WHERE role = 'BA_LEAD'").get().n);
 }
 function deleteMember(id) {
   getDb().prepare("DELETE FROM members WHERE id = ?").run(id);
@@ -44642,28 +44856,43 @@ var mustMember = (id) => {
   if (!m) throw new BizError("Member not found", 404);
   return m;
 };
+var uniqueName = (n, exceptId) => {
+  if (findMemberByName(n, exceptId)) throw new BizError(MSG.duplicateMember(n), 409);
+  return n;
+};
 function requireAdmin(ctx) {
-  if (!hasLead()) return;
   const me = currentMember(ctx);
+  if (!hasLead()) return me;
   if (!me || me.role !== "BA_LEAD") throw new HttpError("Only a BA Lead can manage members", 403, "FORBIDDEN");
+  return me;
+}
+function assertKeepsLead(m, me, action) {
+  if (m.role !== "BA_LEAD") return;
+  if (me?.id === m.id)
+    throw new BizError(action === "demote" ? "You can't remove your own BA Lead role. Ask another BA Lead to change it." : "You can't delete yourself. Ask another BA Lead to remove you.");
+  if (countLeads() <= 1)
+    throw new BizError(`${m.name} is the only BA Lead. Make another member a BA Lead before ${action === "demote" ? "changing this role" : "deleting this member"}.`);
 }
 route("GET", "/api/members", () => listMembers());
 route("POST", "/api/members", (ctx) => {
   requireAdmin(ctx);
-  return createMember({ name: name(ctx.body.name), role: role(ctx.body.role) });
+  return createMember({ name: uniqueName(name(ctx.body.name)), role: role(ctx.body.role) });
 });
 route("PATCH", "/api/members/:id", (ctx) => {
-  requireAdmin(ctx);
+  const me = requireAdmin(ctx);
   const { params, body } = ctx;
-  mustMember(params.id);
-  return updateMember(params.id, {
-    name: body.name !== void 0 ? name(body.name) : void 0,
+  const m = mustMember(params.id);
+  const patch = {
+    name: body.name !== void 0 ? uniqueName(name(body.name), m.id) : void 0,
     role: body.role !== void 0 ? role(body.role) : void 0
-  });
+  };
+  if (patch.role === "BA") assertKeepsLead(m, me, "demote");
+  return updateMember(params.id, patch);
 });
 route("DELETE", "/api/members/:id", (ctx) => {
-  requireAdmin(ctx);
+  const me = requireAdmin(ctx);
   const m = mustMember(ctx.params.id);
+  assertKeepsLead(m, me, "delete");
   const open = countOpenTasks(m.id);
   if (open) throw new BizError(`${m.name} is assigned to ${open} unfinished task(s). Reassign those tasks before deleting.`, 409);
   deleteMember(m.id);
@@ -44825,7 +45054,7 @@ on("artifact.drafted", (e) => {
 });
 
 // server/repo/tasks.ts
-import { randomUUID as randomUUID5 } from "node:crypto";
+import { randomUUID as randomUUID6 } from "node:crypto";
 
 // shared/taskRules.ts
 var normStatus = (s2) => s2 === "redo" ? "doing" : s2;
@@ -44854,6 +45083,20 @@ function nextTaskState(cur, event) {
   if (!to && cur.status === "redo") to = { status: "doing", revisionRequested: true };
   if (!to) return null;
   return to.status === cur.status && to.revisionRequested === cur.revisionRequested ? null : to;
+}
+function initialTaskState(requested, artifact) {
+  const rr = !!artifact?.revisionRequested;
+  switch (artifact?.status) {
+    case "done":
+      return { status: "done", revisionRequested: rr };
+    case "approved":
+      return { status: "approved", revisionRequested: false };
+    case "draft":
+    case "outdated":
+      return rr ? { status: "doing", revisionRequested: true } : { status: requested, revisionRequested: false };
+    default:
+      return { status: requested, revisionRequested: false };
+  }
 }
 function taskMove(from, to) {
   const f = normStatus(from);
@@ -44975,17 +45218,17 @@ function getTaskDetail(id) {
   return t ? { ...t, events: listEvents(id) } : null;
 }
 function addEvent(taskId, from, to, by, at) {
-  getDb().prepare("INSERT INTO task_events (id, task_id, from_status, to_status, by_member_id, by_system, reason, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").run(randomUUID5(), taskId, from, to, by.byMemberId ?? null, by.bySystem ? 1 : 0, by.reason ?? "", at);
+  getDb().prepare("INSERT INTO task_events (id, task_id, from_status, to_status, by_member_id, by_system, reason, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").run(randomUUID6(), taskId, from, to, by.byMemberId ?? null, by.bySystem ? 1 : 0, by.reason ?? "", at);
 }
 var subOf = (f) => f.artifactType === "doc" || f.artifactType === "diagram" ? f.artifactSub ?? null : null;
-function createTask(projectId, f, status2 = "todo", by = {}) {
+function createTask(projectId, f, status2 = "todo", by = {}, revisionRequested = false) {
   return tx(() => {
-    const id = randomUUID5();
+    const id = randomUUID6();
     const at = now2();
     getDb().prepare(
-      `INSERT INTO tasks (id, project_id, module_id, title, description, assignee_id, due_date, priority, status, artifact_type, artifact_id, artifact_sub, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(id, projectId, f.moduleId, f.title, f.description, f.assigneeId, f.dueDate, f.priority, status2, f.artifactType, f.artifactId, subOf(f), at, at);
+      `INSERT INTO tasks (id, project_id, module_id, title, description, assignee_id, due_date, priority, status, revision_requested, artifact_type, artifact_id, artifact_sub, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(id, projectId, f.moduleId, f.title, f.description, f.assigneeId, f.dueDate, f.priority, status2, revisionRequested ? 1 : 0, f.artifactType, f.artifactId, subOf(f), at, at);
     addEvent(id, null, status2, by, at);
     return getTask(id);
   });
@@ -45099,6 +45342,7 @@ async function applyApproval(action, ref2, ctx) {
   if (action === "done") {
     tx(() => {
       setArtifactState(ref2, { status: "done" });
+      bumpRev(ref2, actor2.id);
       emit({ type: "artifact.done", artifact: ref2, actorId: actor2.id });
     });
     return result(ref2);
@@ -45106,7 +45350,9 @@ async function applyApproval(action, ref2, ctx) {
   if (action === "request-change") {
     tx(() => {
       setArtifactState(ref2, { status: "draft", revisionRequested: true });
+      bumpRev(ref2, actor2.id);
       emit({ type: "artifact.revision_requested", artifact: ref2, actorId: actor2.id });
+      if (ref2.kind === "screen") screenLeftReady(ref2, st.status, actor2.id);
       cascadeOutdated(ref2.moduleId || ref2.id, actor2.id);
     });
     return result(ref2);
@@ -45124,6 +45370,7 @@ async function applyApproval(action, ref2, ctx) {
     const reason = artifactBlockReason(ref2, "approve");
     if (reason) throw new HttpError(reason, 400);
     setArtifactState(ref2, { status: "approved", revisionRequested: false });
+    bumpRev(ref2, actor2.id);
     emit({ type: "artifact.approved", artifact: ref2, actorId: actor2.id });
   });
   return result(ref2, git);
@@ -45211,11 +45458,17 @@ route("GET", "/api/projects/:id/tasks", ({ params, query }) => {
   mustProject(params.id);
   return listTasks(params.id, { assigneeId: query.get("assigneeId") || void 0, moduleId: query.get("moduleId") || void 0 });
 });
+function linkedState(f) {
+  if (!f.artifactType || f.artifactType === "docs" || !f.artifactId) return null;
+  return getArtifactState(parseArtifactRef(f.artifactType, f.artifactId, f.artifactSub ?? void 0));
+}
 route("POST", "/api/projects/:id/tasks", ({ params, body }) => {
   mustProject(params.id);
   const st = body.status === void 0 || body.status === null ? "todo" : status(body.status);
   if (st !== "todo" && st !== "doing") throw new BizError("A new task can only be To do or In progress");
-  return createTask(params.id, fields(params.id, body), st, { byMemberId: byMember(body) });
+  const f = fields(params.id, body);
+  const init = initialTaskState(st, linkedState(f));
+  return createTask(params.id, f, init.status, { byMemberId: byMember(body) }, init.revisionRequested);
 });
 route("GET", "/api/projects/:id/artifacts", ({ params }) => {
   mustProject(params.id);
@@ -45252,7 +45505,7 @@ route("PATCH", "/api/tasks/:id/status", async (ctx) => {
       const target = mv === "done" ? "done" : mv === "approve" ? "approved" : "draft";
       const alreadyThere = st.status === target && (mv !== "request-change" || st.revisionRequested);
       if (!alreadyThere) {
-        await applyApproval(mv, ref2, { req: ctx.req, query: ctx.query, body: { actorId: body.actorId } });
+        await applyApproval(mv, ref2, { req: ctx.req, query: ctx.query, body: { actorId: body.actorId, baseRev: body.baseRev } });
         const after = getTask(t.id);
         if (after.status === to) return after;
       }
@@ -45264,158 +45517,6 @@ route("GET", "/api/artifacts/:kind/:id/tasks", ({ params, query }) => {
   if (!ARTIFACT_KINDS.includes(params.kind) && params.kind !== "docs") throw new BizError("Invalid artifact type");
   return listTasksByArtifact(params.kind, params.id, query.get("sub") || void 0);
 });
-
-// server/repo/stories.ts
-import { randomUUID as randomUUID6 } from "node:crypto";
-var STORY_PRIORITIES = ["High", "Medium", "Low"];
-var NO_MODULE = "none";
-var MAX_TEXT = 2e3;
-var MAX_CRITERIA = 50;
-function parseCriteria(raw) {
-  try {
-    const v = JSON.parse(String(raw ?? "[]"));
-    return Array.isArray(v) ? v.map(String) : [];
-  } catch {
-    return [];
-  }
-}
-var toStory = (r) => ({
-  id: r.id,
-  projectId: r.project_id,
-  moduleId: r.module_id ?? null,
-  code: r.code,
-  asA: r.as_a ?? "",
-  iWant: r.i_want ?? "",
-  soThat: r.so_that ?? "",
-  acceptanceCriteria: parseCriteria(r.acceptance_criteria),
-  priority: r.priority,
-  order: Number(r.ord),
-  rev: Number(r.rev),
-  createdAt: r.created_at,
-  updatedBy: r.updated_by ?? null,
-  updatedAt: r.updated_at ?? null
-});
-var ORDER_BY = "ORDER BY ord, created_at, code";
-function listStories(projectId, moduleId) {
-  const d = getDb();
-  const rows = !moduleId ? d.prepare(`SELECT * FROM user_stories WHERE project_id = ? ${ORDER_BY}`).all(projectId) : moduleId === NO_MODULE ? d.prepare(`SELECT * FROM user_stories WHERE project_id = ? AND module_id IS NULL ${ORDER_BY}`).all(projectId) : d.prepare(`SELECT * FROM user_stories WHERE project_id = ? AND module_id = ? ${ORDER_BY}`).all(projectId, moduleId);
-  return rows.map(toStory);
-}
-function moduleStories(moduleId) {
-  return getDb().prepare(`SELECT * FROM user_stories WHERE module_id = ? ${ORDER_BY}`).all(moduleId).map(toStory);
-}
-function getStory(id) {
-  const r = getDb().prepare("SELECT * FROM user_stories WHERE id = ?").get(id);
-  return r ? toStory(r) : null;
-}
-var isBlankStory = (s2) => !s2.asA.trim() && !s2.iWant.trim() && !s2.soThat.trim();
-var text = (v) => typeof v === "string" ? v.trim().slice(0, MAX_TEXT) : "";
-function criteriaOf(v) {
-  if (!Array.isArray(v)) throw new HttpError("Acceptance criteria must be a list", 400);
-  return v.map((x) => typeof x === "string" ? x.trim().slice(0, MAX_TEXT) : "").filter(Boolean).slice(0, MAX_CRITERIA);
-}
-function priorityOf(v) {
-  if (!STORY_PRIORITIES.includes(v)) throw new HttpError("Priority must be High, Medium or Low", 400);
-  return v;
-}
-function moduleOf(projectId, v) {
-  if (v === null || v === void 0 || typeof v === "string" && !v.trim()) {
-    const has3 = getDb().prepare("SELECT 1 FROM modules WHERE project_id = ? LIMIT 1").get(projectId);
-    throw new HttpError(
-      has3 ? "No module selected \u2013 every user story must belong to a module of the project" : "The project has no modules \u2013 create a module before adding user stories",
-      400
-    );
-  }
-  const id = String(v);
-  if (!getDb().prepare("SELECT 1 FROM modules WHERE id = ? AND project_id = ?").get(id, projectId)) {
-    throw new HttpError("The module does not exist or does not belong to this project", 400);
-  }
-  return id;
-}
-function memberOrNull2(id) {
-  return id && getDb().prepare("SELECT 1 FROM members WHERE id = ?").get(id) ? id : null;
-}
-function markModuleDocsOutdated(moduleId, actorId) {
-  if (!moduleId) return [];
-  const d = getDb();
-  const rows = d.prepare("SELECT kind FROM module_docs WHERE module_id = ? AND status IN ('draft','done','approved')").all(moduleId);
-  const kinds = DOC_KINDS.filter((k) => rows.some((r) => r.kind === k));
-  for (const kind of kinds) {
-    d.prepare("UPDATE module_docs SET status = 'outdated' WHERE module_id = ? AND kind = ?").run(moduleId, kind);
-    emit({ type: "artifact.stale", artifact: { kind: "doc", id: moduleId, moduleId, sub: kind }, actorId: actorId ?? void 0 });
-  }
-  return kinds;
-}
-function createStory(projectId, input, actorId) {
-  const d = getDb();
-  if (!d.prepare("SELECT 1 FROM projects WHERE id = ?").get(projectId)) throw new HttpError("Project not found", 404);
-  const moduleId = moduleOf(projectId, input.moduleId);
-  const priority = input.priority === void 0 ? "Medium" : priorityOf(input.priority);
-  const criteria = input.acceptanceCriteria === void 0 ? [] : criteriaOf(input.acceptanceCriteria);
-  return tx(() => {
-    const id = randomUUID6();
-    const at = (/* @__PURE__ */ new Date()).toISOString();
-    const code = storyCode(nextStoryNumber(d, projectId));
-    const ord = Number(d.prepare("SELECT COALESCE(MAX(ord), 0) AS n FROM user_stories WHERE project_id = ?").get(projectId).n) + 1;
-    d.prepare(
-      `INSERT INTO user_stories (id, project_id, module_id, code, as_a, i_want, so_that, acceptance_criteria, priority, ord, rev, created_at, updated_by, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`
-    ).run(id, projectId, moduleId, code, text(input.asA), text(input.iWant), text(input.soThat), JSON.stringify(criteria), priority, ord, at, memberOrNull2(actorId), at);
-    const story = getStory(id);
-    if (!isBlankStory(story)) markModuleDocsOutdated(moduleId, actorId);
-    return { story, modules: [moduleId] };
-  });
-}
-var sameList = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
-function updateStory(id, input, baseRev, actorId) {
-  return tx(() => {
-    const cur = getStory(id);
-    if (!cur) throw new HttpError("User story not found", 404);
-    assertRev(cur.rev, baseRev);
-    const next = {
-      ...cur,
-      moduleId: input.moduleId === void 0 ? cur.moduleId : moduleOf(cur.projectId, input.moduleId),
-      asA: input.asA === void 0 ? cur.asA : text(input.asA),
-      iWant: input.iWant === void 0 ? cur.iWant : text(input.iWant),
-      soThat: input.soThat === void 0 ? cur.soThat : text(input.soThat),
-      acceptanceCriteria: input.acceptanceCriteria === void 0 ? cur.acceptanceCriteria : criteriaOf(input.acceptanceCriteria),
-      priority: input.priority === void 0 ? cur.priority : priorityOf(input.priority)
-    };
-    const changed = next.moduleId !== cur.moduleId || next.asA !== cur.asA || next.iWant !== cur.iWant || next.soThat !== cur.soThat || next.priority !== cur.priority || !sameList(next.acceptanceCriteria, cur.acceptanceCriteria);
-    if (!changed) return { story: cur, modules: [] };
-    getDb().prepare(
-      `UPDATE user_stories SET module_id = ?, as_a = ?, i_want = ?, so_that = ?, acceptance_criteria = ?, priority = ?,
-           rev = rev + 1, updated_by = ?, updated_at = ? WHERE id = ?`
-    ).run(next.moduleId, next.asA, next.iWant, next.soThat, JSON.stringify(next.acceptanceCriteria), next.priority, memberOrNull2(actorId), (/* @__PURE__ */ new Date()).toISOString(), id);
-    const modules = [...new Set([cur.moduleId, next.moduleId].filter((m) => !!m))];
-    for (const m of modules) markModuleDocsOutdated(m, actorId);
-    return { story: getStory(id), modules };
-  });
-}
-function deleteStory(id, baseRev, actorId) {
-  return tx(() => {
-    const cur = getStory(id);
-    if (!cur) throw new HttpError("User story not found", 404);
-    assertRev(cur.rev, baseRev);
-    getDb().prepare("DELETE FROM user_stories WHERE id = ?").run(id);
-    if (!isBlankStory(cur)) markModuleDocsOutdated(cur.moduleId, actorId);
-    return { projectId: cur.projectId, modules: cur.moduleId ? [cur.moduleId] : [] };
-  });
-}
-function reorderStories(projectId, ids) {
-  const all = listStories(projectId);
-  const known = new Set(all.map((s2) => s2.id));
-  const uniq2 = [...new Set(ids.map(String))];
-  const bad = uniq2.find((id) => !known.has(id));
-  if (bad) throw new HttpError("The ordering list contains user stories that do not belong to the project", 400);
-  const picked = new Set(uniq2);
-  const ordered = [...uniq2, ...all.filter((s2) => !picked.has(s2.id)).map((s2) => s2.id)];
-  tx(() => {
-    const upd = getDb().prepare("UPDATE user_stories SET ord = ? WHERE id = ?");
-    ordered.forEach((id, i) => upd.run(i + 1, id));
-  });
-  return listStories(projectId);
-}
 
 // server/routes/qus.ts
 function othersOf(m) {
@@ -45751,8 +45852,12 @@ function slugify(s2, maxWords = 5) {
   const words2 = ascii.split(/[^a-z0-9]+/).filter(Boolean);
   return words2.slice(0, maxWords).join("-") || "resource";
 }
-var actorOf2 = (s2) => cap2(tidy(s2.asA)) || "User";
-var featureOf = (s2) => cap2(tidy(s2.iWant).slice(0, 90)) || `Feature ${s2.code}`;
+var roleOf = (s2) => tidy(s2).replace(/^as\s+(?:an?|the)\s+/i, "");
+var wantOf = (s2) => tidy(s2).replace(/^i\s+(?:want|would\s+like|need)\s+/i, "").replace(/^to\s+/i, "");
+var goalOf = (s2) => tidy(s2).replace(/^so\s+that\s+/i, "");
+var verbPhrase = (name2) => low(tidy(name2).replace(/^to\s+/i, ""));
+var actorOf2 = (s2) => cap2(roleOf(s2.asA)) || "User";
+var featureOf = (s2) => cap2(wantOf(s2.iWant).slice(0, 90)) || `Feature ${s2.code}`;
 var READ_RE = /xem|tra cứu|tìm|danh sách|liệt kê|báo cáo|thống kê|lọc|theo dõi|\b(?:view|see|search|find|look up|list|browse|report|statistic|filter|track)/i;
 var DELETE_RE = /xoá|xóa|huỷ|hủy|\b(?:delete|remove|cancel)/i;
 var UPDATE_RE = /sửa|cập nhật|chỉnh|thay đổi|đổi|\b(?:edit|update|change|modify)/i;
@@ -46084,7 +46189,7 @@ function mockBrd(input) {
   L.push("## 1. Background and Objectives", "");
   L.push(`Module **${input.moduleName}** is built to satisfy ${st.length} user ${st.length === 1 ? "story" : "stories"} from: ${actors.join(", ")}.`, "");
   L.push("Business objectives:");
-  for (const s2 of st) L.push(`- ${s2.soThat.trim() ? cap2(tidy(s2.soThat)) : `${actorOf2(s2)} can ${low(featureOf(s2))}`} (${s2.code})`);
+  for (const s2 of st) L.push(`- ${goalOf(s2.soThat) ? cap2(goalOf(s2.soThat)) : `${actorOf2(s2)} can ${verbPhrase(featureOf(s2))}`} (${s2.code})`);
   L.push("", "## 2. Scope", "", "### In Scope");
   for (const s2 of st) L.push(`- ${featureOf(s2)} (${s2.code})`);
   L.push("", "### Out of Scope", "- Features not listed in the module's user stories (any addition must be confirmed by the BA).", "- Integration with external systems that have not been described.", "");
@@ -46092,7 +46197,7 @@ function mockBrd(input) {
   for (const a of actors) L.push(`| ${cell2(a)} | Direct user of the feature | ${st.filter((s2) => actorOf2(s2) === a).map((s2) => s2.code).join(", ")} |`);
   L.push("| BA Lead / Product Owner | Approves requirements and performs acceptance | All |", "");
   L.push("## 4. Business Requirements", "", "| ID | Business requirement | Benefit | Priority | Story |", "|---|---|---|---|---|");
-  st.forEach((s2, i) => L.push(`| BR-${pad2(i + 1)} | ${cell2(`${actorOf2(s2)} can ${low(featureOf(s2))}`)} | ${cell2(s2.soThat.trim() ? cap2(tidy(s2.soThat)) : "(not stated \u2013 to be completed by the BA)")} | ${s2.priority} | ${s2.code} |`));
+  st.forEach((s2, i) => L.push(`| BR-${pad2(i + 1)} | ${cell2(`${actorOf2(s2)} can ${verbPhrase(featureOf(s2))}`)} | ${cell2(goalOf(s2.soThat) ? cap2(goalOf(s2.soThat)) : "(not stated \u2013 to be completed by the BA)")} | ${s2.priority} | ${s2.code} |`));
   L.push("", "## 5. Acceptance Criteria", "");
   for (const s2 of st) {
     L.push(`### ${s2.code} \u2013 ${featureOf(s2)}`);
@@ -46146,7 +46251,7 @@ function mockUcSpec(input) {
     const actor2 = actorOf2(s2);
     const name2 = featureOf(s2);
     const read = READ_RE.test(s2.iWant);
-    const goal = s2.soThat.trim() ? tidy(s2.soThat) : "";
+    const goal = goalOf(s2.soThat);
     const mainFlow = read ? [
       { no: 1, actor: actor2, text: `Selects the "${name2}" function` },
       { no: 2, actor: SYSTEM_ACTOR2, text: "Displays the data list and the filter fields" },
@@ -46164,7 +46269,7 @@ function mockUcSpec(input) {
       name: name2,
       actors: [actor2],
       storyCodes: [s2.code],
-      description: `${actor2} wants to ${low(name2)}${goal ? ` so that ${low(goal)}` : ""}.`,
+      description: `${actor2} wants to ${verbPhrase(name2)}${goal ? ` so that ${low(goal)}` : ""}.`,
       trigger: `${actor2} selects the "${name2}" function`,
       preconditions: [`${actor2} is signed in and has permission to use the function`],
       postconditions: [goal ? `Goal achieved: ${low(goal)}` : `The "${name2}" request is recorded by the system`],
@@ -46310,7 +46415,7 @@ function mockFrd(input) {
   let fr = 0;
   const frCode = () => `FR-${pad2(++fr)}`;
   for (const u of ucs) {
-    out.push({ code: frCode(), type: "FR", statement: `The system shall allow ${u.actors.join(", ") || "the user"} to ${low(u.name)}.`, priority: prio(u), useCaseCodes: [u.code], source: `${u.code} main flow`, isAssumption: false });
+    out.push({ code: frCode(), type: "FR", statement: `The system shall allow ${u.actors.join(", ") || "the user"} to ${verbPhrase(u.name)}.`, priority: prio(u), useCaseCodes: [u.code], source: `${u.code} main flow`, isAssumption: false });
     for (const r of u.businessRules) out.push({ code: frCode(), type: "FR", statement: `The system shall ensure that: ${tidy(r)}.`, priority: "Medium", useCaseCodes: [u.code], source: `${u.code} business rule`, isAssumption: false });
     const bad = u.exceptions.find((e) => /không hợp lệ|invalid/i.test(e.name));
     if (bad) out.push({ code: frCode(), type: "FR", statement: `The system shall validate the input data of "${u.name}" and show a clear error on each invalid field.`, priority: "Medium", useCaseCodes: [u.code], source: `${u.code} ${bad.code}`, isAssumption: false });
@@ -47447,9 +47552,10 @@ function render(n, ctx) {
       const cols = Array.isArray(p2.columns) ? p2.columns.map(String) : [];
       const rows = Array.isArray(p2.rows) ? p2.rows : [];
       const acts = Array.isArray(p2.rowActions) ? p2.rowActions.map(String) : [];
-      const head = cols.map((c) => `<th>${esc3(c)}</th>`).join("") + (acts.length ? "<th>Actions</th>" : "");
+      const shown = tableDataColumns(cols, acts);
+      const head = shown.map((i) => `<th>${esc3(cols[i])}</th>`).join("") + (acts.length ? "<th>Actions</th>" : "");
       const body = (rows.length ? rows : [cols.map(() => "\u2014")]).map((r) => {
-        const cells = cols.map((_, j) => `<td>${esc3((Array.isArray(r) ? r : [])[j] ?? "")}</td>`).join("");
+        const cells = shown.map((j) => `<td>${esc3((Array.isArray(r) ? r : [])[j] ?? "")}</td>`).join("");
         const a = acts.length ? `<td><span class="ds-row-acts">${acts.map((x) => `<span class="ds-link">${esc3(x)}</span>`).join("")}</span></td>` : "";
         return `<tr>${cells}${a}</tr>`;
       }).join("");
@@ -48164,6 +48270,7 @@ function unregisterTaskAutomation() {
 }
 
 // server/presence.ts
+var PRESENCE_BEAT_MS = 3e4;
 var PRESENCE_TTL_MS = 9e4;
 var PRESENCE_KINDS = ["screen", "doc", "diagram", "tests", "story"];
 var store = /* @__PURE__ */ new Map();
@@ -48176,7 +48283,17 @@ function prune(key2, now3) {
   if (!m.size) store.delete(key2);
   return m.size ? m : void 0;
 }
+function sweepPresence(now3 = Date.now()) {
+  for (const key2 of [...store.keys()]) prune(key2, now3);
+}
+var sweeper = null;
+function startSweeper() {
+  if (sweeper) return;
+  sweeper = setInterval(() => sweepPresence(), PRESENCE_BEAT_MS);
+  sweeper.unref?.();
+}
 function touchPresence(t, member, now3 = Date.now()) {
+  startSweeper();
   const key2 = keyOf(t);
   prune(key2, now3);
   const m = store.get(key2) ?? /* @__PURE__ */ new Map();
@@ -48224,13 +48341,18 @@ route("PUT", "/api/members/:id/password", (ctx) => {
 });
 function presenceTarget(src) {
   const kind = String(src.kind ?? "");
-  const id = str(src.id, 200);
+  const id = str(src.id, 200).trim();
   if (!PRESENCE_KINDS.includes(kind) || !id) throw new HttpError("Invalid kind/id", 400);
-  const sub = str(src.sub, 40);
+  const sub = str(src.sub, 40).trim();
   return { kind, id, ...sub ? { sub } : {} };
+}
+function assertPresenceTargetExists(t) {
+  const found = t.kind === "screen" ? getScreen(t.id) : t.kind === "story" ? getStory(t.id) : getModule(t.id);
+  if (!found) throw new HttpError("The item being edited no longer exists", 404);
 }
 route("POST", "/api/presence", (ctx) => {
   const t = presenceTarget(ctx.body);
+  assertPresenceTargetExists(t);
   const me = requireMember(ctx);
   if (me) touchPresence(t, me);
   return listPresence(t, me?.id);
@@ -48249,10 +48371,15 @@ var trimmed = (v) => typeof v === "string" ? v.trim() : "";
 var check = (err) => {
   if (err) throw new BizError(err);
 };
-function moduleName(v) {
+function moduleName(v, projectId, exceptId) {
   const name2 = trimmed(v);
   check(moduleNameError(name2));
+  if (findModuleByName(projectId, name2, exceptId)) throw new BizError(MSG.duplicateModule(name2), 409);
   return name2;
+}
+function requireLeadToDelete(ctx) {
+  const m = requireLead(ctx);
+  if (!m && hasLead()) throw new HttpError("Only a BA Lead can perform this action", 403, "FORBIDDEN");
 }
 route("GET", "/api/projects", () => listProjects());
 route("POST", "/api/projects", ({ body }) => {
@@ -48268,10 +48395,15 @@ route("GET", "/api/projects/:id", ({ params }) => {
   if (!p2) throw new BizError("Project not found", 404);
   return { ...p2, modules: listModules(p2.id) };
 });
-route("DELETE", "/api/projects/:id", ({ params }) => (deleteProject(params.id), { ok: true }));
+route("DELETE", "/api/projects/:id", (ctx) => {
+  requireLeadToDelete(ctx);
+  if (!getProject(ctx.params.id)) throw new BizError("Project not found", 404);
+  deleteProject(ctx.params.id);
+  return { ok: true };
+});
 route("POST", "/api/projects/:id/modules", ({ params, body }) => {
   if (!getProject(params.id)) throw new BizError("Project not found", 404);
-  const m = createModule(params.id, moduleName(body.name), str(body.requirementInput, 5e4));
+  const m = createModule(params.id, moduleName(body.name, params.id), str(body.requirementInput, 5e4));
   saveModuleQus(m.id);
   return getModule(m.id);
 });
@@ -48281,15 +48413,21 @@ route("GET", "/api/modules/:id", ({ params }) => {
   return m;
 });
 route("PATCH", "/api/modules/:id", ({ params, body }) => {
-  if (!getModule(params.id)) throw new BizError("Module not found", 404);
+  const cur = getModule(params.id);
+  if (!cur) throw new BizError("Module not found", 404);
   updateModule(params.id, {
-    ...typeof body.name === "string" ? { name: moduleName(body.name) } : {},
+    ...typeof body.name === "string" ? { name: moduleName(body.name, cur.projectId, cur.id) } : {},
     ...typeof body.requirementInput === "string" ? { requirementInput: str(body.requirementInput, 5e4) } : {}
   });
   if (typeof body.requirementInput === "string") saveModuleQus(params.id);
   return getModule(params.id);
 });
-route("DELETE", "/api/modules/:id", ({ params }) => (deleteModule(params.id), { ok: true }));
+route("DELETE", "/api/modules/:id", (ctx) => {
+  requireLeadToDelete(ctx);
+  if (!getModule(ctx.params.id)) throw new BizError("Module not found", 404);
+  deleteModule(ctx.params.id);
+  return { ok: true };
+});
 route("GET", "/api/modules/:id/model", ({ params }) => getDesignModel(params.id));
 route("GET", "/api/modules/:id/runs", ({ params }) => listRuns(params.id));
 route("GET", "/api/projects/:id/runs", ({ params, query }) => {
@@ -48308,7 +48446,13 @@ async function screenWrite(ctx, fn) {
   return out;
 }
 route("POST", "/api/modules/:id/screens", ({ params, body }) => createScreenFromPrompt(params.id, str(body.prompt), str(body.name, 120), actor(body)));
-route("PATCH", "/api/screens/:id", (ctx) => screenWrite(ctx, () => (updateScreen(ctx.params.id, { name: str(ctx.body.name, 120) }), getScreen(ctx.params.id))));
+route("PATCH", "/api/screens/:id", (ctx) => {
+  if (!getScreen(ctx.params.id)) throw new BizError("Screen not found", 404);
+  if (ctx.body.name === void 0) return getScreen(ctx.params.id);
+  const name2 = str(ctx.body.name, 120).trim();
+  if (!name2) throw new BizError("Screen name cannot be empty");
+  return screenWrite(ctx, () => (updateScreen(ctx.params.id, { name: name2 }), getScreen(ctx.params.id)));
+});
 route("DELETE", "/api/screens/:id", (ctx) => {
   requireMember(ctx);
   const st = getArtifactState({ kind: "screen", id: ctx.params.id, moduleId: "" });
@@ -48334,7 +48478,7 @@ route("POST", "/api/screens/:id/annotations", ({ params, body }) => {
   const bbox = b && typeof b === "object" ? { x: Number(b.x) || 0, y: Number(b.y) || 0, w: Number(b.w) || 0, h: Number(b.h) || 0 } : null;
   const id = actor(body);
   const member = id ? getMember(id) : null;
-  return createAnnotation({ screenId: s2.id, versionId: s2.currentVersionId, nodeIds: arr(body.nodeIds), bbox, comment, author: member?.name ?? (str(body.author, 60) || "BA"), authorId: member?.id ?? null });
+  return createAnnotation({ screenId: s2.id, versionId: s2.currentVersionId, nodeIds: arr(body.nodeIds), bbox, comment, author: member?.name ?? "BA", authorId: member?.id ?? null });
 });
 route("PATCH", "/api/annotations/:id", ({ params, body }) => {
   const st = body.status;
@@ -48342,7 +48486,15 @@ route("PATCH", "/api/annotations/:id", ({ params, body }) => {
   setAnnotationStatus([params.id], st);
   return getAnnotation(params.id);
 });
-route("DELETE", "/api/annotations/:id", ({ params }) => (deleteAnnotation(params.id), { ok: true }));
+route("DELETE", "/api/annotations/:id", (ctx) => {
+  const me = requireMember(ctx);
+  const a = getAnnotation(ctx.params.id);
+  if (!a) throw new BizError("Comment not found", 404);
+  const allowed = !hasLead() || me?.role === "BA_LEAD" || !!me && !!a.authorId && a.authorId === me.id;
+  if (!allowed) throw new HttpError("Only the comment's author or a BA Lead can delete this comment", 403, "FORBIDDEN");
+  deleteAnnotation(ctx.params.id);
+  return { ok: true };
+});
 route("POST", "/api/screens/:id/suggestions", ({ params, body }) => {
   const layout = body.layout && typeof body.layout === "object" ? body.layout : void 0;
   const boxes = {};

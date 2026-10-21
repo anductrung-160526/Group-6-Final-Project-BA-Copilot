@@ -265,7 +265,7 @@ Replaces WebSight and the Mock-generated synthetic data. Full specification in `
 ## 5. Testing
 
 ```bash
-npm test                          # 278 unit + integration tests (incl. a mocked Claude API and Recursive TS ↔ PyTorch parity checks)
+npm test                          # 291 unit + integration tests (incl. a mocked Claude API and Recursive TS ↔ PyTorch parity checks)
 npx playwright install chromium   # first run only
 npm run e2e                       # end-to-end browser run of the full workflow; screenshots saved to e2e/screenshots/
 ```
