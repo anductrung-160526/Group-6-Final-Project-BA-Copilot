@@ -17,7 +17,7 @@ Brinkkemper (2016), *Improving agile requirements: the Quality User Story framew
 
 ## 2. Dữ liệu, gán nhãn, chia tập
 - **207 user story thật** từ 3 bộ công khai (Dalpiaz et al., *Requirements data sets – user stories*): g02 federalspending (98), g03 loudoun (58), g04 recycling (51).
-- **Chia theo bộ gốc:** dev = g04 (51) để chỉnh luật; **test = g02 + g03 (156)**, chấm **một lần** sau khi khoá luật (commit gắn tag `qus-freeze`).
+- **Chia theo bộ gốc:** dev = g04 (51) để chỉnh luật; **test = g02 + g03 (156)**, chấm **một lần** sau khi khoá luật (commit `2932316`).
 - **Nhãn:** AI gán theo `dataset/qus-eval/GUIDELINES.md` (định nghĩa Bảng 1 và §3), mỗi lỗi kèm lý do, **commit trước khi chạy bộ chấm lên dữ liệu**. Sửa đúng 1 nhãn dev (g04-006, mâu thuẫn với quy tắc đã áp cho g02-040); không sửa nhãn test.
 - Tỷ lệ story có ≥ 1 lỗi theo nhãn: test 11,5%, dev 7,8% (bài báo: 56% theo AQUSA). Bộ dữ liệu này viết khá chuẩn nên **số lỗi thật ít (20 lỗi trên test)** → khoảng tin cậy rộng.
 - **Độ tin cậy nhãn:** `dataset/qus-eval/kappa-sample.csv` – 20 story (10 có lỗi, 10 không, seed 7) để người gán độc lập, tính Cohen's kappa bằng `scripts/qus-eval/kappa.py`. **Chưa có kết quả** tại thời điểm viết.
