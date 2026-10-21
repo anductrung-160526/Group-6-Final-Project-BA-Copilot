@@ -21,6 +21,7 @@ import {
   Modal,
   RevisionTag,
   RowActions,
+  SampleBadge,
   ScoreBadge,
   Select,
   SideNav,
@@ -213,6 +214,10 @@ export function Gallery() {
           <ScoreBadge score={78} />
           <ScoreBadge score={55} />
           <ScoreBadge score={100} showLabel={false} />
+        </div>
+        <div className="gallery-label">SampleBadge – next to every Claude feature when no Claude key is configured (Mock); hidden when Claude is connected</div>
+        <div className="gallery-row">
+          <SampleBadge provider="mock" />
         </div>
       </Section>
 

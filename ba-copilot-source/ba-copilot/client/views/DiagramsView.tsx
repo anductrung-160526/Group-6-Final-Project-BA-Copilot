@@ -19,7 +19,7 @@ import { currentMemberId, useCurrentMember, withActor } from "../currentMember.t
 import { usePresence } from "../presence.ts";
 import { workHref, type WorkStepProps } from "../projectMenu.ts";
 import { Mermaid, parseMermaid } from "../components/Mermaid.tsx";
-import { ApprovalBar, Badge, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Icon, StatusBadge, Tabs, useUI } from "../components/ui.tsx";
+import { SampleBadge, ApprovalBar, Badge, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Icon, StatusBadge, Tabs, useUI } from "../components/ui.tsx";
 import { BPMN_NOTE, checkDiagram, diagramBlockReason, diagramMarkdown, DIAGRAM_FILE, DIAGRAM_HINT, DIAGRAM_SOURCES } from "../../shared/diagrams.ts";
 import { doneBlockReason } from "../../shared/prereq.ts";
 import { DIAGRAM_KINDS, DIAGRAM_KIND_LABEL, type ApprovalResult, type ArtifactStatus, type DiagramKind, type DiagramPart, type DocKind, type ModuleDiagram } from "../../shared/types.ts";
@@ -259,6 +259,7 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
             {kind === "BPMN" && <Badge>{BPMN_NOTE}</Badge>}
             <div className="spacer" />
             {blockReason && <span className="muted small" data-testid="generate-reason">{blockReason}</span>}
+            <SampleBadge />
             <Btn kind={exists ? "secondary" : "primary"} size="sm" disabled={!!blockReason} title={blockReason ?? ""} onClick={generate} data-testid="generate-diagram">
               <Icon name={blockReason ? "lock" : exists ? "regenerate" : "ai"} size="sm" />
               {exists ? "Regenerate" : "Generate with AI"}

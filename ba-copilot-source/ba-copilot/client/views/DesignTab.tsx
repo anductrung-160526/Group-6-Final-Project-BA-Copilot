@@ -16,7 +16,7 @@ import { Renderer } from "../components/Renderer.tsx";
 import { SuggestionsPanel } from "../components/SuggestionsPanel.tsx";
 import { RelatedTasks } from "../components/RelatedTasks.tsx";
 import { currentMemberId, useCurrentMember, withActor } from "../currentMember.ts";
-import { ApprovalBar, Badge, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Field, Icon, Modal, RowActions, StatusBadge, fmtTime, useUI } from "../components/ui.tsx";
+import { SampleBadge, ApprovalBar, Badge, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Field, Icon, Modal, RowActions, StatusBadge, fmtTime, useUI } from "../components/ui.tsx";
 
 type Mode = "select" | "region" | "prototype";
 interface Rect {
@@ -1020,6 +1020,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                 <div className="muted small">
                   Sending: {selected.length ? `${selected.length} ${selected.length === 1 ? "element" : "elements"}` : "whole screen"} · {checked.size} {checked.size === 1 ? "comment" : "comments"}{prompt.trim() ? " · 1 request" : ""}
                 </div>
+                <SampleBadge />
                 <Btn kind="primary" disabled={!!previewing || (!prompt.trim() && !checked.size)} onClick={applyEdit} data-testid="apply-edit">
                   <Icon name="ai" size="sm" />
                   {selected.length ? "Edit selected region" : "Edit whole screen"}
@@ -1139,6 +1140,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
           footer={
             <>
               <Btn onClick={() => setNewScreen(null)}>Cancel</Btn>
+              <SampleBadge />
               <Btn kind="primary" disabled={!newScreen.prompt.trim() && !newScreen.name.trim()} onClick={createScreen} data-testid="generate-screen">
                 <Icon name="ai" size="sm" />
                 Generate design

@@ -140,6 +140,11 @@ CREATE TABLE IF NOT EXISTS suggestion_dismissals (
   module_id TEXT NOT NULL REFERENCES modules(id) ON DELETE CASCADE, key TEXT NOT NULL, created_at TEXT NOT NULL,
   PRIMARY KEY (module_id, key)
 );
+-- Lần chạy AI "màn còn thiếu" gần nhất của module (UC-29): chỉ gọi Claude khi BA bấm, fingerprint để báo kết quả đã cũ  -- vi-keep: chú thích SQL
+CREATE TABLE IF NOT EXISTS screen_suggestion_runs (
+  module_id TEXT PRIMARY KEY REFERENCES modules(id) ON DELETE CASCADE, items TEXT NOT NULL, fingerprint TEXT NOT NULL,
+  provider TEXT NOT NULL, created_at TEXT NOT NULL
+);
 
 -- Đợt 5 (C2) – docs/erd.md mục "Đợt 5"  -- vi-keep: chú thích SQL
 CREATE TABLE IF NOT EXISTS app_meta (

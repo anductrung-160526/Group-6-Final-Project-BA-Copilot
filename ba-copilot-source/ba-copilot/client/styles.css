@@ -2152,6 +2152,14 @@ textarea::placeholder {
   gap: var(--space-1-5);
   padding: var(--space-1-5) var(--space-2) var(--space-2-5);
 }
+/* Hàng "Find missing screens" (AI – Claude): mô tả, nhãn Outdated / Sample result, nút hỏi lại */
+.suggest-ai {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: 0 var(--space-2);
+}
 
 /* =========================================================================
    Component dùng chung bổ sung (A1) – xem ui.tsx và trang #/_gallery

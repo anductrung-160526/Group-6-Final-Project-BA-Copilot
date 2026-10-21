@@ -425,6 +425,12 @@ export interface ScreenSuggestion {
 export interface ScreenSuggestions {
   items: ScreenSuggestion[]; // đã loại các gợi ý bị bỏ qua
   dismissed: ScreenSuggestion[]; // gợi ý đang bị bỏ qua, để khôi phục (FN-61)
+  /**
+   * Lần chạy AI "màn còn thiếu" gần nhất (Claude; Mock khi chưa có khoá). Link gãy luôn tính lại, không cần AI.
+   * hasSource: module có FR hoặc user story để hỏi; checkedAt null = chưa chạy lần nào;
+   * outdated: FR / story / màn đã đổi kể từ lần chạy đó; provider "mock" = kết quả mẫu, chưa kết nối Claude.
+   */
+  ai: { hasSource: boolean; checkedAt: string | null; outdated: boolean; provider: "claude" | "mock" | null };
 }
 
 // =============================================================== Đợt 5 – hợp đồng (C2; khoá sau đợt 1, xem docs/api.md "Đợt 5", docs/erd.md)

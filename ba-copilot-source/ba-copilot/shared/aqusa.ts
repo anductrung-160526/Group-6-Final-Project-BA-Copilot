@@ -128,7 +128,7 @@ function wellFormed(c: Chunks, o: AqusaOptions): AqusaDefect[] {
   // "I want to <X>": X đứng ngay sau "to"/"can" là động từ theo ngữ pháp, kể cả khi bộ gán nhãn hiểu khác.
   const verbSlot = /(?:to|can|need)$/.test(c.meansIndicator) || /^to\s/i.test(c.means);
   // Vòng 3: TẮT phép kiểm "hành động phải có động từ" (không có trong Bảng 1 của bài báo, gây phần lớn báo nhầm trên test2).
-  if (CHECK_MEANS_VERB && !verbSlot && !hasVerb(c.means, o)) out.push({ criterion: "well-formed", code: "WF_MEANS_CONTENT", message: `The means "${c.means}" contains no verb.`, suggestion: "Describe an action, e.g. \"I want to export orders\".", excerpt: c.means, paperRef: "thiết kế của nhóm (không có trong bài báo)" });
+  if (CHECK_MEANS_VERB && !verbSlot && !hasVerb(c.means, o)) out.push({ criterion: "well-formed", code: "WF_MEANS_CONTENT", message: `The means "${c.means}" contains no verb.`, suggestion: "Describe an action, e.g. \"I want to export orders\".", excerpt: c.means, paperRef: "team design (not in the paper)" });
   return out;
 }
 
@@ -294,4 +294,4 @@ export function analyzeSet(texts: string[], o: AqusaOptions = {}): AqusaDefect[]
 }
 
 /** Nhận diện story tiếng Anh (bộ chấm AQUSA chỉ dành cho tiếng Anh). */
-export const isEnglishStory = (t: string) => !/[ăâđêôơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]/iu.test(t);
+export const isEnglishStory = (t: string) => !/[ăâđêôơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]/iu.test(t); // vi-keep: chữ cái có dấu để nhận diện story tiếng Việt

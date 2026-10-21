@@ -82,11 +82,24 @@ Quy tắc: `title` rỗng → `400`; `artifactType` và `artifactId` phải cùn
 
 | Method | Path | Body | Trả về | Client |
 |---|---|---|---|---|
-| GET | `/api/modules/:id/suggestions` | – | `ScreenSuggestions = { items: ScreenSuggestion[], dismissed: ScreenSuggestion[] }` | `getScreenSuggestions(mid)` |
+| GET | `/api/modules/:id/suggestions` | – | `ScreenSuggestions = { items, dismissed, ai: { hasSource, checkedAt, outdated, provider } }` – không gọi AI | `getScreenSuggestions(mid)` |
+| POST | `/api/modules/:id/suggestions/refresh` | – | `ScreenSuggestions` sau khi hỏi Claude màn còn thiếu (Mock khi chưa có khoá) · `400` nếu module không có FR / user story · `502` lỗi AI | `refreshScreenSuggestions(mid)` |
 | POST | `/api/modules/:id/suggestions/:key/dismiss` | – | `{ ok: true }` (lặp lại không lỗi) | `dismissSuggestion(mid, key)` |
 | DELETE | `/api/modules/:id/suggestions/:key/dismiss` | – | `{ ok: true }` (khôi phục) | `restoreSuggestion(mid, key)` |
 
-`items` xếp: link gãy trước, FR/story chưa phủ sau. `key`: `link:<screenId>:<nodeId>`, `fr:<code>`, `story:<hash>`. Không endpoint nào tạo màn (BR-06): nút **Tạo** chỉ mở hộp thoại rồi gọi `POST /api/modules/:id/screens` như cũ. Không trùng với `POST /api/screens/:id/suggestions` (gợi ý bố cục ML, giữ nguyên).
+`items` xếp: link gãy trước, FR/story chưa phủ sau. `key`: `link:<screenId>:<nodeId>`, `fr:<code>`, `story:<hash>`. Không endpoint nào tạo màn (BR-06): nút **Tạo** chỉ mở hộp thoại rồi gọi `POST /api/modules/:id/screens` như cũ. Không trùng với `POST /api/screens/:id/suggestions` (gợi ý element bằng mô hình, mục 7a).
+
+**Đổi theo quy ước tính năng AI (2026-10-21, mục 7a):** link gãy vẫn là kiểm tra dữ liệu (luật), tính lại mỗi lần `GET`. FR/story chưa có màn phủ do **Claude** xét (pipeline `suggest_missing_screens`, ghi Nhật ký AI) – chỉ chạy khi BA bấm *Find missing screens* (`POST …/refresh`), kết quả lưu ở `screen_suggestion_runs` (một dòng mỗi module). `ai.outdated = true` khi FR / story / nội dung màn đổi sau lần hỏi đó. `ai.provider = "mock"`: kết quả mẫu do so khớp từ khoá (chưa có khoá Claude) – giao diện gắn `SampleBadge`. Nguồn hỏi theo BR-07: có FR thì FR, chưa có FR thì user story (bảng `user_stories`, chưa có thì `requirementInput` cũ).
+
+## 7a. Quy ước tính năng AI (2026-10-21)
+
+| Nhóm | Chạy bằng | Tính năng |
+|---|---|---|
+| QUS | Bộ luật QUS + AQUSA (`shared/qus.ts`, `shared/aqusa.ts`, wink-nlp chạy tại chỗ) – không gọi AI ngoài | Chấm điểm user story (`GET /api/modules/:id/qus`, panel QUS) |
+| Mô hình (`model/`) | Chỉ mô hình đã huấn luyện, không luật, không Claude (`server/nextModel.ts`) | Gợi ý element – `POST /api/screens/:id/suggestions`: `items` + `mode: "complete"` từ **Recursive** (`recursive-layout.json`); `gaps` (phần tử còn thiếu giữa các phần tử đã có) từ **Transformer** (`next-transformer.websight.json`, `gapModel = null` nếu thiếu tệp). `POST /api/screens/:id/layout/accept` nhận thêm `source?: "recursive" \| "transformer"` và `items[].sub?` (loại con của Transformer: email, password, submit…). Sự kiện gợi ý: `kind: "layout"` (Recursive), `"layout:transformer"` (Transformer). |
+| Claude API | `server/ai/pipelines.ts`, `diagramPipelines.ts`, `docsPipelines.ts` qua `runAI` (Mock rule-based khi chưa có khoá, giao diện gắn `SampleBadge`) | Mọi tính năng còn lại: sinh / sửa màn, tài liệu (UC, SRS, FRD-NFR…), sơ đồ, test case, chỉnh tài liệu, màn còn thiếu |
+
+`next-component.json` (n-gram) và `next-transformer.json` chỉ là mô hình đối chứng cho script đánh giá, không dùng trong app.
 
 ## 7. Endpoint cũ
 
