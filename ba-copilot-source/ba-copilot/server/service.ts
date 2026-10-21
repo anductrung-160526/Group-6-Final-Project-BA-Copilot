@@ -11,8 +11,9 @@ import { extractModel, DesignModel } from "../shared/extract.ts";
 import { buildTrace, buildTraceMatrix } from "../shared/trace.ts";
 import { DOC_KIND_LABEL, type ArtifactEventType, type ArtifactRef, type ArtifactStatus, type DocStatus, type Requirement, type SequenceDiagram, type UseCase } from "../shared/types.ts";
 import { Box, completeLayout, nextElements, nextInContainer, RecursiveModel, toGrid } from "../shared/recursive.ts";
+import { predictSlots, propsForSubtype, SUBTYPES, type Subtype, type TransformerModel } from "../shared/transformer.ts";
 import { defaultNode } from "../shared/layoutDefaults.ts";
-import { getRecursive } from "./nextModel.ts";
+import { getRecursive, getTransformer } from "./nextModel.ts";
 import { getArtifactState, setArtifactState, bumpRev, tx } from "./db.ts";
 import { assertRev } from "./http.ts";
 import { emit } from "./events.ts";
@@ -181,8 +182,10 @@ export function setScreenApproval(screenId: string, approved: boolean, actorId?:
   });
 }
 
-// ------------------------------------------------------------- Gợi ý bố cục (Li et al. 2020: layout auto-completion)
-// Toàn bộ gợi ý lấy từ Recursive Transformer Tree Decoder (shared/recursive.ts); không có luật hay bộ lọc nào khác.
+// ------------------------------------------------------------- Gợi ý element (Li et al. 2020: layout auto-completion)
+// Toàn bộ gợi ý lấy từ mô hình trong model/ (server/nextModel.ts), chia vai – không có luật hay bộ lọc nào khác:
+//  - Recursive Transformer Tree Decoder (shared/recursive.ts): phần tử tiếp theo + hoàn thành bố cục, có khung bao.
+//  - Transformer phát hiện chỗ thiếu (shared/transformer.ts): phần tử còn thiếu GIỮA các phần tử đã có (`gaps`).
 export interface LayoutBoxes {
   pageWidth: number;
   boxes: Record<string, [number, number, number, number]>; // pixel so với góc trên trái của trang: x, y, x2, y2
@@ -213,10 +216,38 @@ function focusContainer(tree: UINode, nodeIds: string[]): string | null {
   return isContainer(n.type) ? n.id : findParent(tree, n.id)?.id ?? null;
 }
 
+/** Ngưỡng P(thiếu) của một ô để hiện gợi ý chèn giữa – cùng ngưỡng với scripts/eval-transformer.ts. */
+export const GAP_MIN_P = 0.5;
+
 /**
- * mode "next": phần tử tiếp theo (một bước giải mã) – trong container đang chọn, hoặc nếu không chọn gì thì ở các container
- *              mà mô hình không đoán EOS, xếp theo xác suất loại cao nhất (tối đa 3 vị trí).
- * mode "complete": hoàn thành bố cục (giải mã tham lam tới EOS, kể cả container mới sinh) trong vùng chọn hoặc cả màn.
+ * Phần tử còn thiếu GIỮA các con đã có (Transformer): chỉ xét ô đứng trước một con đã có (ô cuối container là vai của Recursive),
+ * P(thiếu) ≥ GAP_MIN_P, trong container đang chọn hoặc cả cây; xếp theo P(thiếu) giảm dần, tối đa 3 ô.
+ */
+function gapSuggestions(tf: TransformerModel, tree: UINode, focus: string | null) {
+  return predictSlots(tf, tree, 3)
+    .filter((s) => s.pMissing >= GAP_MIN_P && (!focus || s.parentId === focus))
+    .map((s) => ({ s, parent: findNode(tree, s.parentId)! }))
+    .filter(({ s, parent }) => s.index < (parent.children?.length ?? 0))
+    .sort((a, b) => b.s.pMissing - a.s.pMissing)
+    .slice(0, 3)
+    .map(({ s, parent }) => ({
+      source: "transformer" as const,
+      parentId: s.parentId,
+      parentLabel: nodeLabel(parent),
+      index: s.index,
+      beforeId: parent.children![s.index].id,
+      beforeLabel: nodeLabel(parent.children![s.index]),
+      afterLabel: s.index > 0 ? nodeLabel(parent.children![s.index - 1]) : null,
+      pMissing: s.pMissing,
+      candidates: s.types.slice(0, 3).map((t) => ({ type: t.type, p: t.p, sub: t.sub })),
+    }));
+}
+
+/**
+ * mode "next": phần tử tiếp theo (Recursive, một bước giải mã) – trong container đang chọn, hoặc nếu không chọn gì thì ở các
+ *              container mà mô hình không đoán EOS, xếp theo xác suất loại cao nhất (tối đa 3 vị trí);
+ *              kèm `gaps` – phần tử còn thiếu giữa các con đã có (Transformer). Thiếu file Transformer thì gaps rỗng, gapModel null.
+ * mode "complete": hoàn thành bố cục (Recursive, giải mã tham lam tới EOS, kể cả container mới sinh) trong vùng chọn hoặc cả màn.
  */
 export function layoutSuggestions(screenId: string, input: { layout?: LayoutBoxes; nodeIds: string[]; mode: "next" | "complete" }) {
   const rm = mustRecursive();
@@ -232,17 +263,26 @@ export function layoutSuggestions(screenId: string, input: { layout?: LayoutBoxe
     return { mode: "complete" as const, versionId: v.id, focusId: focus, items, model };
   }
   const found = focus ? [nextInContainer(rm, v.tree, boxes, focus)].filter((x) => x !== null) : nextElements(rm, v.tree, boxes).slice(0, 3);
-  const items = found.map((e) => ({ ...e, boxPx: toPx(rm, e.box, layout.pageWidth), parentLabel: nodeLabel(findNode(v.tree, e.parentId)!) }));
-  return { mode: "next" as const, versionId: v.id, focusId: focus, items, model };
+  const items = found.map((e) => ({ ...e, source: "recursive" as const, boxPx: toPx(rm, e.box, layout.pageWidth), parentLabel: nodeLabel(findNode(v.tree, e.parentId)!) }));
+  const tf = getTransformer();
+  const gaps = tf ? gapSuggestions(tf, v.tree, focus) : [];
+  const gapModel = tf ? { kind: "transformer", trees: Number(tf.meta.trees ?? 0) } : null;
+  return { mode: "next" as const, versionId: v.id, focusId: focus, items, model, gaps, gapModel };
 }
 
-export interface AcceptItem { ref: string; parentId: string; index: number; type: string }
+export type SuggestionSource = "recursive" | "transformer";
+/** sub: loại con mang nghĩa do Transformer dự đoán (email, password, submit…) – dùng để điền nhãn phù hợp cho phần tử mới. */
+export interface AcceptItem { ref: string; parentId: string; index: number; type: string; sub?: string }
+
+// Loại con có props riêng khi chèn; "-", "other", "icon" giữ props mặc định trung tính (UINode không có thuộc tính icon).
+const SUB_WITH_PROPS = new Set<string>(SUBTYPES.filter((s) => !["-", "other", "icon"].includes(s)));
+const SOURCE_LABEL: Record<SuggestionSource, string> = { recursive: "Recursive, Li et al. 2020", transformer: "Transformer – missing element" };
 
 /**
  * Chấp nhận gợi ý bố cục: chèn phần tử (props mặc định trung tính) vào đúng container và vị trí chèn của gợi ý → phiên bản mới.
  * items: phần tử có parentId là node đã có, hoặc là `ref` (tempId) của phần tử khác trong cùng lần chấp nhận.
  */
-export function acceptLayout(screenId: string, input: { versionId: string; items: AcceptItem[] }, actorId?: string) {
+export function acceptLayout(screenId: string, input: { versionId: string; items: AcceptItem[]; source?: SuggestionSource }, actorId?: string) {
   const { screen, v } = currentVersion(screenId);
   if (input.versionId && input.versionId !== v.id) throw new BizError("The screen has changed – the old suggestions no longer apply, reload the suggestions", 409);
   if (!input.items.length || input.items.length > 100) throw new BizError("Invalid element list");
@@ -251,6 +291,7 @@ export function acceptLayout(screenId: string, input: { versionId: string; items
   for (const it of input.items) {
     const node = defaultNode(it.type, newId(it.type.toLowerCase()));
     if (!node) throw new BizError(`Invalid element type: ${it.type}`);
+    if (it.sub && SUB_WITH_PROPS.has(it.sub)) node.props = { ...node.props, ...propsForSubtype(it.type, it.sub as Subtype) };
     refs.set(it.ref, node);
     const parentRef = refs.get(it.parentId);
     if (parentRef) {
@@ -281,7 +322,7 @@ export function acceptLayout(screenId: string, input: { versionId: string; items
   const version = tx(() => {
     const version = repo.addVersion(screenId, {
       kind: "layout",
-      prompt: `Accepted layout suggestion (Recursive, Li et al. 2020): added ${added.length} element(s) – ${desc}`,
+      prompt: `Accepted layout suggestion (${SOURCE_LABEL[input.source ?? "recursive"]}): added ${added.length} element(s) – ${desc}`,
       scope: "region",
       selectedIds: [...byParent.keys()],
       changedIds: added,

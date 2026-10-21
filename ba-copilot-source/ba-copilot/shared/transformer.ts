@@ -1,5 +1,7 @@
 // Transformer cho cây giao diện (theo Li et al. 2020, "Auto Completion of User Interface Layout Design
 // Using Transformer-Based Tree Decoders", arXiv:2001.05308), chạy suy luận thuần TypeScript – không cần thư viện ngoài.
+// Trong app: bản model/next-transformer.websight.json gợi ý phần tử còn thiếu GIỮA các phần tử đã có (service.layoutSuggestions);
+// bản next-transformer.json chỉ dùng trong script đánh giá.
 //
 // Biểu diễn (mục 4.1–4.2 của bài báo, điều chỉnh cho dữ liệu không có tọa độ):
 //  - Cây được duỗi theo thứ tự tiền tự DFS, mỗi container có thêm token đóng "</>" sau con cuối (Vanilla decoder).
