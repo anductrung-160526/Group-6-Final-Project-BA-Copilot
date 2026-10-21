@@ -49,7 +49,7 @@ test("(a) FR chưa có màn nào phủ thì được gợi ý; FR đã phủ và
   const frs = res.filter((s) => s.kind === "uncovered-fr");
   assert.deepEqual(frs.map((s) => s.source), ["FR-04"]);
   assert.equal(frs[0].key, "fr:FR-04");
-  assert.equal(frs[0].reason, "FR-04 chưa có màn nào phủ");
+  assert.equal(frs[0].reason, "FR-04 is not covered by any screen");
   assert.ok(frs[0].prompt.includes("Xem lịch sử đơn hàng"));
 });
 

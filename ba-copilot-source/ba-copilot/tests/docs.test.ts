@@ -84,7 +84,7 @@ test("Mock: sinh đủ chuỗi 5 bước, chặn khi bước trước chưa Xong
   // UC Spec bị chặn khi BRD chưa Xong
   const blocked = await gen(mid, "UC_SPEC");
   assert.equal(blocked.status, 400);
-  assert.match(blocked.data.error, /BRD.*chưa Xong/);
+  assert.match(blocked.data.error, /BRD.*not Done/);
 
   done(mid, "BRD");
   const uc = await gen(mid, "UC_SPEC", { actorId });
@@ -285,7 +285,7 @@ test("Bản Claude: gọi tool đúng tên, kết quả sai thì tự sửa 1 l�
     const run = getDb().prepare("SELECT provider, ok, error FROM prompt_runs WHERE module_id = ? AND type = 'generate_doc_uc_spec'").get(mid) as any;
     assert.equal(run.provider, "claude");
     assert.equal(run.ok, 1);
-    assert.match(run.error, /tự sửa/);
+    assert.match(run.error, /self-corrected/);
   } finally {
     process.env = env;
     fake.close();

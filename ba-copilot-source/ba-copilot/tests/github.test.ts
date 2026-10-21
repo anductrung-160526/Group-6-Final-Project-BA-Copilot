@@ -198,7 +198,7 @@ test("slugify bỏ dấu tiếng Việt, an toàn cho đường dẫn", () => {
 });
 
 test("dịch lỗi GitHub 401/403/404 sang tiếng Việt", () => {
-  assert.match(translateError(401, "Bad credentials", "a/b"), /Token GitHub không hợp lệ/);
+  assert.match(translateError(401, "Bad credentials", "a/b"), /GitHub token is invalid/);
   assert.match(translateError(403, "", "a/b"), /không có quyền ghi/);
   assert.match(translateError(403, "API rate limit exceeded", "a/b"), /gọi quá nhiều/);
   assert.match(translateError(404, "Not Found", "a/b"), /Không tìm thấy repo a\/b/);
@@ -226,7 +226,7 @@ test("gitExport: bố cục tệp đúng kế hoạch", () => {
 // ---------------------------------------------------------------- cài đặt + token
 test("chưa cấu hình → pushApproved trả pushed:false, không gọi GitHub", async () => {
   const out = await pushApproved({ kind: "doc", id: "m2", moduleId: "m2", sub: "BRD" }, "lead");
-  assert.deepEqual(out, { pushed: false, message: "Chưa cấu hình GitHub – chưa đẩy" });
+  assert.deepEqual(out, { pushed: false, message: "GitHub is not configured – nothing was pushed" });
   assert.equal(calls.length, 0);
 });
 
@@ -267,7 +267,7 @@ test("thử kết nối: có quyền ghi, báo nhánh chưa có; sai token → t
   forceStatus = 401;
   const bad = await api("POST", "/api/projects/p1/git/test", { actorId: "lead" });
   assert.equal(bad.data.ok, false);
-  assert.match(bad.data.message, /Token GitHub không hợp lệ/);
+  assert.match(bad.data.message, /GitHub token is invalid/);
   assert.ok(!bad.text.includes(FAKE_TOKEN));
   forceStatus = null;
   gh.push = false;
@@ -292,7 +292,7 @@ test("Duyệt tài liệu: commit đúng tệp lên nhánh, message đúng, ghi 
   assert.equal(out.commitUrl, `https://github.com/acme/ba-docs/commit/${head}`);
   const c = gh.commits.get(head)!;
   assert.deepEqual(c.parents, [before]);
-  assert.equal(c.message, "Duyệt: Tài liệu BRD – Đăng nhập & Bảo mật · BA Anh Nam · duyệt bởi Chị Hà");
+  assert.equal(c.message, "Approved: BRD document – Đăng nhập & Bảo mật · BA Anh Nam · approved by Chị Hà");
   const files = filesAt("main");
   assert.equal(files.get("dang-nhap-bao-mat/docs/01-BRD.md"), "# BRD\n\nNội dung BRD\n");
   assert.ok(files.has("README.md"), "giữ tệp cũ (tree dựa trên tree hiện tại)");
@@ -340,7 +340,7 @@ test("lỗi GitHub khi đã cấu hình → ném lỗi tiếng Việt (401/403/4
   const n = () => (getDb().prepare("SELECT COUNT(*) AS n FROM git_pushes").get() as { n: number }).n;
   const before = n();
   forceStatus = 401;
-  await assert.rejects(pushApproved({ kind: "doc", id: "m1", moduleId: "m1", sub: "BRD" }, "lead"), /Token GitHub không hợp lệ/);
+  await assert.rejects(pushApproved({ kind: "doc", id: "m1", moduleId: "m1", sub: "BRD" }, "lead"), /GitHub token is invalid/);
   forceStatus = null;
   gh.push = false;
   await assert.rejects(pushApproved({ kind: "doc", id: "m1", moduleId: "m1", sub: "BRD" }, "lead"), /không có quyền ghi/);

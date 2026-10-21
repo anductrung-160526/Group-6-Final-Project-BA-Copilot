@@ -480,7 +480,7 @@ test("assertRev qua HTTP: sửa màn với baseRev cũ → 409 { code: CONFLICT,
   assert.equal(state.ref.moduleId, m.id);
   const stale = await patch({ name: "Màn C", baseRev: 1 });
   assert.equal(stale.status, 409);
-  assert.deepEqual(await stale.json(), { error: "Bản đã thay đổi – tải lại", code: "CONFLICT", rev: 2 });
+  assert.deepEqual(await stale.json(), { error: "This version has changed – reload", code: "CONFLICT", rev: 2 });
   assert.equal(repo.getScreen(s.id)!.name, "Màn B", "bản bị chặn không được ghi");
   assert.equal((await patch({ name: "Màn D" })).status, 200, "client cũ không gửi baseRev vẫn ghi được");
 });
@@ -533,7 +533,7 @@ test("requireLead / requireMember: chế độ demo (chưa ai có mật khẩu)"
   assert.equal(requireLead(fakeCtx())?.id, undefined);
   assert.equal(requireLead(fakeCtx("rl-lead"))!.id, "rl-lead");
   assert.throws(() => requireLead(fakeCtx("rl-ba")), (e: unknown) => e instanceof HttpError && e.status === 403 && e.code === "FORBIDDEN");
-  assert.throws(() => setMemberPassword("rl-ba", "matkhau1"), /BA Lead trước/, "mật khẩu đầu tiên phải của BA Lead");
+  assert.throws(() => setMemberPassword("rl-ba", "matkhau1"), /BA Lead first/, "mật khẩu đầu tiên phải của BA Lead");
 });
 
 // Chạy CUỐI file: bật chế độ member cho cả server test, dọn lại ở cuối.
@@ -547,7 +547,7 @@ test("phân quyền chế độ member: đăng nhập, actor lấy từ phiên, 
     assert.throws(() => requireLead(fakeCtx("rl-lead")), (e: unknown) => e instanceof HttpError && e.status === 401);
     const anon = await fetch(`${base}/api/projects`);
     assert.equal(anon.status, 401);
-    assert.deepEqual(await anon.json(), { error: "Chưa đăng nhập", code: "UNAUTHENTICATED", mode: "member" });
+    assert.deepEqual(await anon.json(), { error: "Not signed in", code: "UNAUTHENTICATED", mode: "member" });
     assert.deepEqual(await (await fetch(`${base}/api/me`)).json(), { member: null, mode: "member", appAuth: false });
 
     const bad = await fetch(`${base}/api/login`, { method: "POST", headers: json, body: JSON.stringify({ name: "nhân viên", password: "sai-mat-khau" }) });

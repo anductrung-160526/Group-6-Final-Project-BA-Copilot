@@ -114,7 +114,7 @@ describe("buildUcMermaid", () => {
   });
 
   test("checkUcMermaid bắt lỗi thường gặp", () => {
-    assert.deepEqual(checkUcMermaid(""), ["Mã sơ đồ trống"]);
+    assert.deepEqual(checkUcMermaid(""), ["Diagram code is empty"]);
     assert.ok(checkUcMermaid("sequenceDiagram\n A->>B: x").some((e) => e.includes("Dòng đầu")));
     assert.ok(checkUcMermaid('flowchart LR\n subgraph S["x"]\n A').some((e) => e.includes('Thiếu "end"')));
     assert.ok(checkUcMermaid('flowchart LR\n A(("x))').some((e) => e.includes("ngoặc kép")));

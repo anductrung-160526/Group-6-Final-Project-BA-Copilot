@@ -42,7 +42,7 @@ const db = getDb();
 // ------------------------------------------------------------- Mã cố định
 const DEMO = {
   project: "demo-shop",
-  projectName: "Cửa hàng điện tử (mẫu)",
+  projectName: "Electronics Store (sample)",
   products: "demo-mod-products",
   orders: "demo-mod-orders",
 };
@@ -50,18 +50,20 @@ const LAN = "demo-mem-lan"; // BA Lead
 const DUC = "demo-mem-duc"; // BA
 const ANH = "demo-mem-anh"; // BA
 const MEMBERS = [
-  { id: LAN, name: "Nguyễn Thị Lan", role: "BA_LEAD" },
-  { id: DUC, name: "Trần Minh Đức", role: "BA" },
-  { id: ANH, name: "Lê Hoàng Anh", role: "BA" },
+  { id: LAN, name: "Lan Nguyen", role: "BA_LEAD" },
+  { id: DUC, name: "Duc Tran", role: "BA" },
+  { id: ANH, name: "Anh Le", role: "BA" },
 ] as const;
 const OLD_DEMO_MEMBERS = ["demo-mem-ha", "demo-mem-huy"]; // seed bản cũ (5 người)
+const OLD_PROJECT_NAME = "Cửa hàng điện tử (mẫu)"; // vi-keep: tên dự án demo bản tiếng Việt cũ, để dọn khi chạy lại
 
 const iso = (d: Date) => d.toISOString();
 const ago = (days: number) => iso(new Date(Date.now() - days * 24 * 3600_000));
 const dayOffset = (days: number) => iso(new Date(Date.now() + days * 24 * 3600_000)).slice(0, 10);
 
 // ------------------------------------------------------------- 1. Dọn dữ liệu demo cũ
-const old = db.prepare("SELECT id FROM projects WHERE id = ? OR name = ?").all(DEMO.project, DEMO.projectName) as { id: string }[];
+// Tên cũ (bản seed tiếng Việt) cũng được dọn khi chạy lại
+const old = db.prepare("SELECT id FROM projects WHERE id = ? OR name IN (?, ?)").all(DEMO.project, DEMO.projectName, OLD_PROJECT_NAME) as { id: string }[];
 for (const { id } of old) {
   for (const f of db.prepare("SELECT stored_name FROM files WHERE project_id = ?").all(id) as { stored_name: string }[]) removeFileFromDisk(f.stored_name);
   tx(() => {
@@ -71,7 +73,7 @@ for (const { id } of old) {
     repo.deleteProject(id); // CASCADE: module, story, tài liệu, sơ đồ, màn, test, task, lịch sử task, git_pushes…
   });
 }
-if (old.length) console.log(`Đã xoá ${old.length} dự án demo cũ.`);
+if (old.length) console.log(`Deleted ${old.length} old demo ${old.length === 1 ? "project" : "projects"}.`);
 
 // ------------------------------------------------------------- 2. Thành viên, dự án, module (ghi thẳng để giữ mã cố định)
 tx(() => {
@@ -88,14 +90,14 @@ tx(() => {
   db.prepare("INSERT INTO projects (id, name, description, created_at) VALUES (?, ?, ?, ?)").run(
     DEMO.project,
     DEMO.projectName,
-    "Dự án mẫu cho buổi demo: website bán hàng điện tử – quản lý sản phẩm và đơn hàng.",
+    "Sample project for demos: an electronics e-commerce website – product and order management.",
     ago(14),
   );
   const mod = db.prepare("INSERT INTO modules (id, project_id, name, created_at) VALUES (?, ?, ?, ?)");
-  mod.run(DEMO.products, DEMO.project, "Quản lý sản phẩm", ago(14));
-  mod.run(DEMO.orders, DEMO.project, "Quản lý đơn hàng", ago(13));
+  mod.run(DEMO.products, DEMO.project, "Product Management", ago(14));
+  mod.run(DEMO.orders, DEMO.project, "Order Management", ago(13));
 });
-console.log(`Thành viên: ${MEMBERS.map((m) => `${m.name}${m.role === "BA_LEAD" ? " (BA Lead)" : " (BA)"}`).join(", ")}`);
+console.log(`Members: ${MEMBERS.map((m) => `${m.name}${m.role === "BA_LEAD" ? " (BA Lead)" : " (BA)"}`).join(", ")}`);
 
 // ------------------------------------------------------------- 3. Bật app trong tiến trình, gọi API như giao diện
 const server = createApp({ publicDir: join(root, "public") });
@@ -105,7 +107,7 @@ const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 async function api<T = any>(method: string, path: string, body?: object): Promise<T> {
   const res = await fetch(base + path, { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
   const data = (await res.json().catch(() => ({}))) as any;
-  if (!res.ok) throw new Error(`${method} ${path} → ${res.status}: ${data?.error ?? "lỗi"}`);
+  if (!res.ok) throw new Error(`${method} ${path} → ${res.status}: ${data?.error ?? "error"}`);
   return data as T;
 }
 const done = (kind: string, id: string, sub?: string, by = DUC) => api("POST", `/api/artifacts/${kind}/${id}/done`, { sub, actorId: by });
@@ -118,68 +120,68 @@ try {
   const STORIES: Record<string, S[]> = {
     [DEMO.products]: [
       {
-        asA: "quản trị viên",
-        iWant: "tìm kiếm sản phẩm theo tên hoặc mã SKU",
-        soThat: "kiểm tra tồn kho trước khi nhập hàng",
-        ac: ["Tìm theo một phần tên, không phân biệt hoa thường", "Không có kết quả thì hiện thông báo 'Không tìm thấy sản phẩm'", "Kết quả phân trang 20 dòng/trang"],
+        asA: "administrator",
+        iWant: "search products by name or SKU",
+        soThat: "I can check stock before restocking",
+        ac: ["Search matches part of the name, case-insensitive", "When there are no results, show the message 'No products found'", "Results are paginated at 20 rows per page"],
         priority: "High",
       },
       {
-        asA: "quản trị viên",
-        iWant: "thêm sản phẩm mới với tên, mã SKU, danh mục, giá bán và tồn kho",
-        soThat: "mở bán sản phẩm trên website",
-        ac: ["Tên sản phẩm bắt buộc, tối đa 100 ký tự", "Mã SKU không được trùng", "Giá bán phải lớn hơn 0"],
+        asA: "administrator",
+        iWant: "add a new product with name, SKU, category, price and stock",
+        soThat: "the product can go on sale on the website",
+        ac: ["Product name is required, up to 100 characters", "SKU must be unique", "Price must be greater than 0"],
         priority: "High",
       },
       {
-        asA: "quản trị viên",
-        iWant: "sửa giá bán và tồn kho của sản phẩm",
-        soThat: "thông tin trên website luôn đúng",
-        ac: ["Lưu thành công thì hiện thông báo và cập nhật danh sách", "Tồn kho không được âm"],
+        asA: "administrator",
+        iWant: "edit the price and stock of a product",
+        soThat: "the information on the website is always correct",
+        ac: ["On successful save, show a confirmation and refresh the list", "Stock cannot be negative"],
         priority: "Medium",
       },
       {
-        asA: "quản trị viên",
-        iWant: "lọc sản phẩm theo danh mục và trạng thái",
-        soThat: "rà soát giá bán của từng nhóm hàng",
-        ac: ["Lọc kết hợp được với ô tìm kiếm", "Có lựa chọn 'Tất cả danh mục'"],
+        asA: "administrator",
+        iWant: "filter products by category and status",
+        soThat: "I can review prices for each product group",
+        ac: ["Filters can be combined with the search box", "There is an 'All categories' option"],
         priority: "Medium",
       },
       {
-        asA: "quản trị viên",
-        iWant: "ngừng bán một sản phẩm",
-        soThat: "khách không đặt được hàng đã hết mẫu",
-        ac: ["Hỏi xác nhận trước khi ngừng bán", "Sản phẩm ngừng bán không hiện trên website"],
+        asA: "administrator",
+        iWant: "discontinue a product",
+        soThat: "customers cannot order discontinued items",
+        ac: ["Ask for confirmation before discontinuing", "Discontinued products are not shown on the website"],
         priority: "Low",
       },
     ],
     [DEMO.orders]: [
       {
-        asA: "nhân viên bán hàng",
-        iWant: "xem danh sách đơn hàng theo trạng thái",
-        soThat: "xử lý đơn mới trong ngày",
-        ac: ["Mặc định lọc đơn 'Mới'", "Hiện mã đơn, khách hàng, tổng tiền, ngày đặt"],
+        asA: "sales clerk",
+        iWant: "view the list of orders by status",
+        soThat: "I can process new orders the same day",
+        ac: ["Filter defaults to 'New' orders", "Show order number, customer, total amount and order date"],
         priority: "High",
       },
       {
-        asA: "nhân viên bán hàng",
-        iWant: "tạo đơn hàng tại quầy và in hoá đơn",
-        soThat: "khách nhận hoá đơn ngay khi thanh toán",
-        ac: ["Chọn sản phẩm còn tồn kho", "Tổng tiền tự tính theo số lượng"],
+        asA: "sales clerk",
+        iWant: "create an in-store order and print the invoice",
+        soThat: "the customer receives the invoice at checkout",
+        ac: ["Only products in stock can be selected", "The total is calculated automatically from the quantity"],
         priority: "High",
       },
       {
-        asA: "nhân viên bán hàng",
-        iWant: "huỷ đơn hàng chưa giao",
-        soThat: "trả lại tồn kho khi khách đổi ý",
-        ac: ["Bắt buộc nhập lý do huỷ", "Đơn đã giao thì không huỷ được"],
+        asA: "sales clerk",
+        iWant: "cancel an order that has not been delivered",
+        soThat: "stock is returned when the customer changes their mind",
+        ac: ["A cancellation reason is required", "Delivered orders cannot be cancelled"],
         priority: "Medium",
       },
       {
-        asA: "kế toán",
-        iWant: "xuất danh sách đơn hàng ra Excel theo tháng",
-        soThat: "đối soát doanh thu cuối tháng",
-        ac: ["Tệp có cột mã đơn, ngày, kênh bán, tổng tiền"],
+        asA: "accountant",
+        iWant: "export the monthly order list to Excel",
+        soThat: "I can reconcile revenue at month end",
+        ac: ["The file has order number, date, sales channel and total amount columns"],
         priority: "Low",
       },
     ],
@@ -195,7 +197,7 @@ try {
         priority: s.priority,
         actorId: ANH,
       });
-  console.log(`User story: ${STORIES[DEMO.products].length} (Sản phẩm) + ${STORIES[DEMO.orders].length} (Đơn hàng)`);
+  console.log(`User story: ${STORIES[DEMO.products].length} (Products) + ${STORIES[DEMO.orders].length} (Orders)`);
 
   // ----------------------------------------------------------- 5. Task gắn sản phẩm (tạo trước để tự đi theo vòng đời sản phẩm)
   type TaskSpec = {
@@ -230,7 +232,7 @@ try {
   const docTask = (kind: DocKind, title: string, who: string, due: number): TaskSpec => ({
     key: `doc-${kind}`,
     title,
-    description: `Sinh và rà soát ${title.replace(/^Viết /, "")} của module Quản lý sản phẩm, bấm Xong để BA Lead duyệt.`,
+    description: `Generate and review the ${title.replace(/^Write (the )?/, "")} of the Product Management module, then mark it as done for BA Lead approval.`,
     moduleId: P,
     assigneeId: who,
     due,
@@ -242,7 +244,7 @@ try {
   const diagramTask = (kind: DiagramKind, title: string, who: string, due: number): TaskSpec => ({
     key: `diagram-${kind}`,
     title,
-    description: "Sinh bằng AI từ tài liệu đã Xong, chỉnh mã Mermaid nếu cần.",
+    description: "Generate with AI from the Done documents, adjust the Mermaid code if needed.",
     moduleId: P,
     assigneeId: who,
     due,
@@ -252,14 +254,14 @@ try {
     artifactSub: kind,
   });
   for (const t of [
-    docTask("BRD", "Viết BRD", DUC, -4),
-    docTask("UC_SPEC", "Viết UC Specification", DUC, -2),
-    docTask("SRS", "Viết SRS", ANH, 1),
-    docTask("FRD_NFR", "Viết FRD-NFR", ANH, 2),
-    docTask("API_SPEC", "Viết API Spec", DUC, 4),
-    diagramTask("CONTEXT", "Vẽ sơ đồ Context", ANH, -1),
-    diagramTask("BPMN", "Vẽ sơ đồ BPMN quy trình nhập hàng", ANH, 3),
-    diagramTask("ERD", "Vẽ ERD", DUC, 5),
+    docTask("BRD", "Write the BRD", DUC, -4),
+    docTask("UC_SPEC", "Write the UC Specification", DUC, -2),
+    docTask("SRS", "Write the SRS", ANH, 1),
+    docTask("FRD_NFR", "Write the FRD-NFR", ANH, 2),
+    docTask("API_SPEC", "Write the API Spec", DUC, 4),
+    diagramTask("CONTEXT", "Draw the Context diagram", ANH, -1),
+    diagramTask("BPMN", "Draw the BPMN diagram for the restocking process", ANH, 3),
+    diagramTask("ERD", "Draw the ERD", DUC, 5),
   ])
     await createTask(t);
 
@@ -283,22 +285,22 @@ try {
     return r.screen.id as string;
   }
   const scrList = await screen(
-    "Danh sách sản phẩm",
-    "Quản lý sản phẩm: tìm kiếm theo tên hoặc SKU, lọc theo danh mục, trạng thái, bảng danh sách có cột Mã, Tên sản phẩm, Giá bán, Tồn kho, Trạng thái, thao tác xem/sửa/xoá, nút Thêm mới, phân trang.",
+    "Product List",
+    "Product management: search by name or SKU, filter by category and status, a list table with columns Code, Product name, Price, Stock, Status, view/edit/delete actions, an Add new button and pagination.",
     DUC,
   );
   const scrAdd = await screen(
-    "Thêm sản phẩm",
-    "Form thêm sản phẩm: tên sản phẩm (bắt buộc, tối đa 100 ký tự), mã SKU, danh mục, giá bán, tồn kho, mô tả; nút Lưu và Huỷ.",
+    "Add Product",
+    "Add product form: product name (required, up to 100 characters), SKU, category, price, stock, description; Save and Cancel buttons.",
     DUC,
   );
-  await screen("Quản lý danh mục", "Quản lý danh mục: tìm kiếm theo tên, bảng danh sách có cột Mã, Tên danh mục, Số sản phẩm, thao tác sửa/xoá, nút Thêm mới.", ANH);
-  await api("POST", `/api/screens/${scrAdd}/annotations`, { comment: "Thêm ô chọn ảnh sản phẩm và gợi ý định dạng giá (VNĐ).", nodeIds: [], actorId: LAN });
+  await screen("Category Management", "Category management: search by name, a list table with columns Code, Category name, Number of products, edit/delete actions and an Add new button.", ANH);
+  await api("POST", `/api/screens/${scrAdd}/annotations`, { comment: "Add a product image picker and a price format hint (USD).", nodeIds: [], actorId: LAN });
   for (const t of [
-    { key: "screen-list", title: "Thiết kế màn Danh sách sản phẩm", id: scrList, who: DUC, due: -3 },
-    { key: "screen-add", title: "Thiết kế màn Thêm sản phẩm", id: scrAdd, who: DUC, due: 2 },
+    { key: "screen-list", title: "Design the Product List screen", id: scrList, who: DUC, due: -3 },
+    { key: "screen-add", title: "Design the Add Product screen", id: scrAdd, who: DUC, due: 2 },
   ])
-    await createTask({ key: t.key, title: t.title, description: "Prototype sinh từ SRS, FRD-NFR và user story.", moduleId: P, assigneeId: t.who, due: t.due, priority: "High", artifactType: "screen", artifactId: t.id });
+    await createTask({ key: t.key, title: t.title, description: "Prototype generated from the SRS, FRD-NFR and user stories.", moduleId: P, assigneeId: t.who, due: t.due, priority: "High", artifactType: "screen", artifactId: t.id });
   for (const k of ["screen-list", "screen-add"]) await api("PATCH", `/api/tasks/${taskIds[k]}/status`, { status: "doing", actorId: DUC });
   await done("screen", scrList, undefined, DUC);
   await approve("screen", scrList);
@@ -306,7 +308,7 @@ try {
   // Quản lý danh mục: để Đang làm (chưa có task)
 
   // ----------------------------------------------------------- 9. Test case module 1 (cần FRD-NFR Xong)
-  await createTask({ key: "tests", title: "Viết test case module Sản phẩm", description: "Sinh test case từ UC Specification + FRD-NFR.", moduleId: P, assigneeId: ANH, due: 3, priority: "Medium", artifactType: "tests", artifactId: P });
+  await createTask({ key: "tests", title: "Write test cases for the Products module", description: "Generate test cases from the UC Specification + FRD-NFR.", moduleId: P, assigneeId: ANH, due: 3, priority: "Medium", artifactType: "tests", artifactId: P });
   await api("POST", `/api/modules/${P}/tests/generate`, { actorId: ANH });
   await done("tests", P, undefined, ANH);
 
@@ -319,9 +321,9 @@ try {
   await requestChange("doc", P, "API_SPEC"); // API Spec về Đang làm + tag "Yêu cầu sửa"; task "Viết API Spec" lùi về Đang làm
 
   // ----------------------------------------------------------- 11. Module 2: task Cần làm / Đang làm
-  await createTask({ key: "orders-brd", title: "Viết BRD module Đơn hàng", description: "Sinh BRD từ 4 user story của module Đơn hàng.", moduleId: DEMO.orders, assigneeId: ANH, due: 6, priority: "High", artifactType: "doc", artifactId: DEMO.orders, artifactSub: "BRD" });
-  await createTask({ key: "orders-review", title: "Rà soát story Đơn hàng với phòng kinh doanh", description: "Đối chiếu tiêu chí chấp nhận với quy trình thực tế tại quầy.", moduleId: DEMO.orders, assigneeId: DUC, due: 2, priority: "Medium" });
-  await createTask({ key: "orders-nfr", title: "Bổ sung yêu cầu phi chức năng cho đơn hàng", description: "Thời gian phản hồi danh sách đơn, giới hạn số đơn mỗi trang.", moduleId: DEMO.orders, assigneeId: DUC, due: 4, priority: "Low" });
+  await createTask({ key: "orders-brd", title: "Write the BRD for the Orders module", description: "Generate the BRD from the 4 user stories of the Orders module.", moduleId: DEMO.orders, assigneeId: ANH, due: 6, priority: "High", artifactType: "doc", artifactId: DEMO.orders, artifactSub: "BRD" });
+  await createTask({ key: "orders-review", title: "Review the Orders stories with the sales team", description: "Check the acceptance criteria against the actual in-store process.", moduleId: DEMO.orders, assigneeId: DUC, due: 2, priority: "Medium" });
+  await createTask({ key: "orders-nfr", title: "Add non-functional requirements for orders", description: "Order list response time, maximum number of orders per page.", moduleId: DEMO.orders, assigneeId: DUC, due: 4, priority: "Low" });
   await api("PATCH", `/api/tasks/${taskIds["orders-review"]}/status`, { status: "doing", actorId: DUC });
 
   // ----------------------------------------------------------- 12. Tổng kết
@@ -329,22 +331,22 @@ try {
   const diagrams = await api<any[]>("GET", `/api/modules/${P}/diagrams`);
   const screens = (await api<any>("GET", `/api/modules/${P}`)).screens as any[];
   const tasks = await api<any[]>("GET", `/api/projects/${DEMO.project}/tasks`);
-  const ST: Record<string, string> = { none: "Chưa có", draft: "Đang làm", done: "Xong", approved: "Đã duyệt", outdated: "Bản cũ", todo: "Cần làm", doing: "Đang làm" };
-  const flag = (x: { revisionRequested?: boolean }) => (x.revisionRequested ? " + Yêu cầu sửa" : "");
-  console.log(`Tài liệu: ${docs.map((d) => `${d.kind} ${ST[d.status]}${flag(d)}`).join(" · ")}`);
-  console.log(`Sơ đồ: ${diagrams.map((d) => `${d.kind} ${ST[d.status]}`).join(" · ")}`);
+  const ST: Record<string, string> = { none: "Not started", draft: "Draft", done: "Done", approved: "Approved", outdated: "Outdated", todo: "To do", doing: "In progress" };
+  const flag = (x: { revisionRequested?: boolean }) => (x.revisionRequested ? " + Changes requested" : "");
+  console.log(`Documents: ${docs.map((d) => `${d.kind} ${ST[d.status]}${flag(d)}`).join(" · ")}`);
+  console.log(`Diagrams: ${diagrams.map((d) => `${d.kind} ${ST[d.status]}`).join(" · ")}`);
   console.log(`Prototype: ${screens.map((s) => `${s.name} ${ST[s.status]}`).join(" · ")}`);
   const count: Record<string, number> = { todo: 0, doing: 0, done: 0, approved: 0 };
   for (const t of tasks) count[t.status]++;
   console.log(
-    `Công việc: ${tasks.length} task – Cần làm ${count.todo}, Đang làm ${count.doing}, Xong ${count.done}, Đã duyệt ${count.approved}; Yêu cầu sửa: ${tasks.filter((t) => t.revisionRequested).map((t) => t.title).join(", ") || "không có"}`,
+    `Tasks: ${tasks.length} – To do ${count.todo}, In progress ${count.doing}, Done ${count.done}, Approved ${count.approved}; Changes requested: ${tasks.filter((t) => t.revisionRequested).map((t) => t.title).join(", ") || "none"}`,
   );
   const missing = (["todo", "doing", "done", "approved"] as const).filter((s) => !count[s]);
-  if (missing.length || !tasks.some((t) => t.revisionRequested)) throw new Error(`Dữ liệu demo thiếu: cột ${missing.join(", ") || "–"} / task Yêu cầu sửa`);
+  if (missing.length || !tasks.some((t) => t.revisionRequested)) throw new Error(`Demo data is missing: column ${missing.join(", ") || "–"} / a task with Changes requested`);
 
   const port = process.env.PORT ?? 3000;
-  console.log(`\nXong. Mở http://localhost:${port}/#/p/${DEMO.project}/tasks`);
-  console.log(`  Tài liệu: http://localhost:${port}/#/p/${DEMO.project}/work/${P}/docs`);
+  console.log(`\nDone. Open http://localhost:${port}/#/p/${DEMO.project}/tasks`);
+  console.log(`  Documents: http://localhost:${port}/#/p/${DEMO.project}/work/${P}/docs`);
 } finally {
   server.close();
 }

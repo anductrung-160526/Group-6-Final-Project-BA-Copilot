@@ -155,7 +155,7 @@ test("GET: đủ 5 loại theo thứ tự, chưa sinh = none / rev 0; loại sai
 test("sinh: chặn khi tài liệu nguồn chưa Xong, báo rõ tài liệu nào", async () => {
   let r = await gen("CONTEXT");
   assert.equal(r.status, 400);
-  assert.match(r.body.error, /BRD \(hiện: chưa có\)/);
+  assert.match(r.body.error, /BRD \(current: Not started\)/);
   setDoc("BRD", "draft", BRD);
   setDoc("UC_SPEC", "done", "", { useCases: UCS });
   r = await gen("BPMN");
@@ -222,7 +222,7 @@ test("lưu: mã sai bị từ chối (400 + chi tiết theo dòng), mã đúng �
   const cur = (await call("GET", `/api/modules/${moduleId}/diagrams/CONTEXT`)).body as ModuleDiagram;
   let r = await save("CONTEXT", { code: 'flowchart LR\n  A(("Khách hàng") --> B', baseRev: cur.rev });
   assert.equal(r.status, 400);
-  assert.match(r.body.error, /Mã Mermaid chưa hợp lệ/);
+  assert.match(r.body.error, /Invalid Mermaid code/);
   assert.match(r.body.details[0], /^Dòng 2:/);
   r = await save("CONTEXT", { code: "sequenceDiagram\n  A->>B: x", baseRev: cur.rev });
   assert.equal(r.status, 400, "sai loại cú pháp");
@@ -284,7 +284,7 @@ test("tài liệu nguồn có bản mới → sơ đồ phụ thuộc thành B�
 
 // ------------------------------------------------------------------ hàm thuần
 test("checkMermaid: báo đúng dòng và đúng loại lỗi", () => {
-  assert.deepEqual(checkMermaid("", "flowchart"), [{ line: 0, message: "Mã sơ đồ trống" }]);
+  assert.deepEqual(checkMermaid("", "flowchart"), [{ line: 0, message: "Diagram code is empty" }]);
   assert.equal(checkMermaid("%% chú thích\nflowchart LR\n  A --> B", "flowchart").length, 0);
   assert.equal(checkMermaid("graph TD\n  A --> B", "flowchart").length, 0);
   assert.match(checkMermaid("pie\n  \"a\": 1", "flowchart")[0].message, /flowchart LR/);
@@ -319,7 +319,7 @@ test("đọc BRD / tìm thực thể (Mock)", () => {
 
 test("diagramMarkdown: khối mermaid, Sequence theo từng phần, BPMN có chú thích", () => {
   const md = diagramMarkdown({ kind: "SEQUENCE", code: "", parts: [{ key: "UC-01", title: "UC-01 – Đăng nhập", code: "sequenceDiagram\n  A->>B: x" }] }, "Đặt hàng");
-  assert.match(md, /^# Sơ đồ Sequence – Đặt hàng/);
+  assert.match(md, /^# Sequence Diagram – Đặt hàng/);
   assert.match(md, /## UC-01 – Đăng nhập\n\n```mermaid\nsequenceDiagram/);
   assert.match(diagramMarkdown({ kind: "BPMN", code: "flowchart LR\n  A --> B" }), /BPMN mô phỏng bằng Mermaid/);
   assert.match(diagramMarkdown({ kind: "ERD", code: "" }), /Chưa có sơ đồ/);

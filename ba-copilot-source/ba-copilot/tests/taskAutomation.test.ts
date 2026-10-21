@@ -78,8 +78,8 @@ test("tài liệu theo sub: drafted → done → revision_requested → done →
     sysEvents(tBrd).map((e) => `${e.fromStatus}→${e.toStatus}`),
     ["todo→doing", "doing→done", "done→doing", "doing→done", "done→approved"],
   );
-  assert.equal(sysEvents(tBrd)[2].reason, "BA Lead yêu cầu sửa Tài liệu BRD – Xác thực");
-  assert.equal(sysEvents(tBrd)[4].reason, "BA Lead duyệt Tài liệu BRD – Xác thực");
+  assert.equal(sysEvents(tBrd)[2].reason, "BA Lead requested changes to BRD document – Xác thực");
+  assert.equal(sysEvents(tBrd)[4].reason, "BA Lead approved BRD document – Xác thực");
 
   for (const t of [tSrs, tFree]) {
     assert.equal(state(t), "todo");
@@ -89,7 +89,7 @@ test("tài liệu theo sub: drafted → done → revision_requested → done →
   // Sửa sản phẩm đã duyệt → Đang làm (phải bấm Xong lại)
   fire("artifact.drafted", brd);
   assert.equal(state(tBrd), "doing");
-  assert.equal(sysEvents(tBrd).at(-1)!.reason, "Tài liệu BRD – Xác thực có bản nháp mới");
+  assert.equal(sysEvents(tBrd).at(-1)!.reason, "BRD document – Xác thực has a new draft");
 
   // doc thiếu sub (sai hợp đồng) → không đoán
   fire("artifact.done", { kind: "doc", id: mid, moduleId: mid });
@@ -108,7 +108,7 @@ test("stale: Xong / Đã duyệt → Đang làm, đang làm thì giữ", () => {
   fire("artifact.stale", ref("SRS"));
   assert.equal(state(tUc), "doing");
   assert.equal(state(tSrs), "doing");
-  assert.match(sysEvents(tUc).at(-1)!.reason, /UC Specification – Giỏ hàng thành Bản cũ/);
+  assert.match(sysEvents(tUc).at(-1)!.reason, /UC Specification document – Giỏ hàng became Outdated/);
 });
 
 test("sơ đồ: task cũ không có sub = Use Case; sơ đồ khác không bị động", () => {
@@ -122,7 +122,7 @@ test("sơ đồ: task cũ không có sub = Use Case; sơ đồ khác không bị
   assert.equal(state(tErd), "todo");
   fire("artifact.done", { kind: "diagram", id: mid, moduleId: mid, sub: "ERD" });
   assert.equal(state(tErd), "done");
-  assert.equal(sysEvents(tErd)[0].reason, "BA bấm Xong Sơ đồ ERD – Thanh toán");
+  assert.equal(sysEvents(tErd)[0].reason, "BA marked ERD diagram – Thanh toán as done");
 });
 
 test("mã v2: duyệt màn bằng route cũ → task Đã duyệt; bỏ duyệt → Đang làm; actorId lạ không làm hỏng thao tác", async () => {
@@ -136,7 +136,7 @@ test("mã v2: duyệt màn bằng route cũ → task Đã duyệt; bỏ duyệt 
   assert.equal((await post(`/api/screens/${sid}/approve`, { actorId: lan })).status, 200);
   assert.equal(state(tScreen), "approved");
   assert.equal(sysEvents(tScreen)[0].byMemberId, lan);
-  assert.equal(sysEvents(tScreen)[0].reason, "BA Lead duyệt Màn hình “Đăng nhập”");
+  assert.equal(sysEvents(tScreen)[0].reason, "BA Lead approved Screen “Đăng nhập”");
 
   assert.equal((await post(`/api/screens/${sid}/approve`, { approved: false, actorId: "khong-ton-tai" })).status, 200);
   assert.equal(state(tScreen), "doing");

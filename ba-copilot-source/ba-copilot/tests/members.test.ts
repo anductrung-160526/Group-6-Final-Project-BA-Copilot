@@ -48,7 +48,7 @@ test("Quản trị: chưa có BA Lead thì ai cũng thêm được; có rồi th
     const r = await api("POST", "/api/members", { name: "Lạ", role: "BA", actorId });
     assert.equal(r.status, 403, `POST với actorId=${actorId}`);
     assert.equal(r.data.code, "FORBIDDEN");
-    assert.match(r.data.error, /Chỉ BA Lead/);
+    assert.match(r.data.error, /Only a BA Lead/);
     assert.equal((await api("PATCH", `/api/members/${ba.data.id}`, { role: "BA_LEAD", actorId })).status, 403, `PATCH với actorId=${actorId}`);
     const q = actorId ? `?actorId=${actorId}` : "";
     assert.equal((await api("DELETE", `/api/members/${ba.data.id}${q}`)).status, 403, `DELETE với actorId=${actorId}`);
@@ -118,7 +118,7 @@ test("FN-01 + R-032: không xoá người còn task Cần làm / Đang làm (409
 
   const blocked = await api("DELETE", `/api/members/${m.data.id}?actorId=${leadId}`);
   assert.equal(blocked.status, 409);
-  assert.match(blocked.data.error, /Chi đang phụ trách 2 công việc chưa xong/);
+  assert.match(blocked.data.error, /Chi is assigned to 2 unfinished task/);
   assert.ok((await api("GET", "/api/members")).data.some((x: any) => x.id === m.data.id), "vẫn còn trong danh sách");
 
   getDb().prepare("UPDATE tasks SET status = 'approved' WHERE assignee_id = ? AND status IN ('todo', 'doing')").run(m.data.id);

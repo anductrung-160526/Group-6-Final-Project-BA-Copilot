@@ -24,7 +24,7 @@ test("APP_PASSWORD: chặn truy cập khi chưa đăng nhập, mở khi có cook
   assert.equal((await fetch(`${base}/health`)).status, 200);
   assert.equal((await fetch(`${base}/api/projects`)).status, 401);
   const page = await fetch(`${base}/`);
-  assert.match(await page.text(), /Nhập mật khẩu truy cập/);
+  assert.match(await page.text(), /Enter the access password/);
 
   const bad = await fetch(`${base}/api/login`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ password: "sai" }) });
   assert.equal(bad.status, 401);

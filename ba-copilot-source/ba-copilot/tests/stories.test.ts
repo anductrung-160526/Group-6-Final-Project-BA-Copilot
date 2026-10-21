@@ -84,7 +84,7 @@ test("Module bắt buộc: dự án chưa có module / thiếu module → 400 k�
   const empty = (await api("POST", "/api/projects", { name: "Trống" })).data;
   const none = await api("POST", `/api/projects/${empty.id}/stories`, GOOD);
   assert.equal(none.status, 400);
-  assert.match(none.data.error, /tạo module trước/);
+  assert.match(none.data.error, /create a module before/);
 
   const { p, m1, m2 } = await setup("Bắt buộc");
   for (const moduleId of [undefined, null, "", "  "]) {

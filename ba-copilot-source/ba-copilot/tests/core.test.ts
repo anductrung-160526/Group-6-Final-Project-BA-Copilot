@@ -56,7 +56,7 @@ test("applyPatch: sửa trong vùng được chấp nhận, ngoài vùng bị t�
   assert.equal(findNode(r.tree, "email")!.props.label, "Địa chỉ email");
   assert.equal(findNode(r.tree, "footer")!.props.text, "© 2026");
   assert.equal(r.rejected.length, 1);
-  assert.match(r.rejected[0].reason, /ngoài vùng/);
+  assert.match(r.rejected[0].reason, /outside the selected region/);
   assert.equal(findNode(r.tree, "form")!.children!.length, 4, "được chèn anh em vào cha trực tiếp của vùng");
   assert.equal(findNode(tree, "email")!.props.label, "Email", "cây gốc không bị đổi");
 });

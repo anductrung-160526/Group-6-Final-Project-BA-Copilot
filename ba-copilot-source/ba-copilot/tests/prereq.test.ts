@@ -18,11 +18,11 @@ const facts = (docs: Partial<Record<DocKind, ArtifactStatus>>, extra: Partial<Pr
 
 test("doneBlockReason: tài liệu theo chuỗi BRD → UC Spec → SRS → FRD-NFR → API Spec", () => {
   assert.equal(doneBlockReason({ kind: "doc", sub: "BRD" }, facts({}, { storyCount: 2 })), null);
-  assert.match(doneBlockReason({ kind: "doc", sub: "BRD" }, facts({}, { storyCount: 0 }))!, /chưa có user story.*trước khi bấm Xong cho BRD/);
+  assert.match(doneBlockReason({ kind: "doc", sub: "BRD" }, facts({}, { storyCount: 0 }))!, /no user stories yet.*before marking BRD as done/);
   assert.equal(doneBlockReason({ kind: "doc", sub: "BRD" }, facts({})), null, "chưa biết số story (client) → không chặn, server chặn");
   assert.equal(
     doneBlockReason({ kind: "doc", sub: "UC_SPEC" }, facts({ BRD: "draft" })),
-    "Bước trước (BRD) chưa Xong (hiện: Đang làm). Hãy hoàn thành và bấm Xong cho BRD trước khi bấm Xong cho UC Specification.",
+    "The previous step (BRD) is not Done (current: Draft). Complete BRD and mark it as done before marking UC Specification as done.",
   );
   assert.match(doneBlockReason({ kind: "doc", sub: "SRS" }, facts({ UC_SPEC: "outdated" }))!, /UC Specification\) chưa Xong \(hiện: Bản cũ\)/);
   assert.match(doneBlockReason({ kind: "doc", sub: "API_SPEC" }, facts({}))!, /FRD-NFR\) chưa Xong \(hiện: Chưa có\)/);
@@ -33,13 +33,13 @@ test("doneBlockReason: sơ đồ cần mọi tài liệu nguồn; bộ test cầ
   assert.deepEqual(prereqDocs({ kind: "diagram", sub: "BPMN" }), ["BRD", "UC_SPEC"]);
   assert.equal(
     doneBlockReason({ kind: "diagram", sub: "BPMN" }, facts({ BRD: "done", UC_SPEC: "draft" })),
-    "Cần tài liệu UC Specification (hiện: Đang làm) ở trạng thái Xong trước khi bấm Xong cho sơ đồ BPMN.",
+    "Source document UC Specification (current: Draft) must be Done before marking the BPMN diagram as done.",
   );
   assert.equal(doneBlockReason({ kind: "diagram", sub: "BPMN" }, facts({ BRD: "approved", UC_SPEC: "done" })), null);
   assert.match(doneBlockReason({ kind: "diagram", sub: "ERD" }, facts({ SRS: "done" }))!, /FRD-NFR \(hiện: Chưa có\)/);
   assert.match(doneBlockReason({ kind: "diagram" }, facts({}))!, /UC Specification.*sơ đồ Use Case/, "thiếu sub = sơ đồ UC");
 
-  assert.match(doneBlockReason({ kind: "tests" }, facts({ FRD_NFR: "draft" }))!, /Cần FRD-NFR ở trạng thái Xong trước khi bấm Xong cho bộ test case \(hiện: Đang làm\)/);
+  assert.match(doneBlockReason({ kind: "tests" }, facts({ FRD_NFR: "draft" }))!, /FRD-NFR must be Done before marking the test suite as done \(current: Draft\)/);
   assert.equal(doneBlockReason({ kind: "tests" }, facts({ FRD_NFR: "done" })), null);
   assert.equal(doneBlockReason({ kind: "tests" }, facts({}, { legacyDocsApproved: true })), null, "luồng cũ: chưa có FRD-NFR, bộ tài liệu cũ Đã duyệt");
   assert.notEqual(doneBlockReason({ kind: "tests" }, facts({ FRD_NFR: "draft" }, { legacyDocsApproved: true })), null, "đã có FRD-NFR thì theo FRD-NFR");
@@ -50,7 +50,7 @@ test("doneBlockReason: sơ đồ cần mọi tài liệu nguồn; bộ test cầ
 test("prereqBlockReason 'generate' giữ đúng câu cũ của nút Sinh bằng AI", () => {
   assert.equal(
     prereqBlockReason({ kind: "doc", sub: "SRS" }, facts({ UC_SPEC: "draft" }), "generate"),
-    "Bước trước (UC Specification) chưa Xong. Hãy hoàn thành và bấm Xong cho UC Specification trước khi sinh SRS.",
+    "The previous step (UC Specification) is not Done. Complete UC Specification and mark it as done before generating SRS.",
   );
   assert.equal(
     prereqBlockReason({ kind: "doc", sub: "BRD" }, facts({}, { storyCount: 0 }), "generate"),
@@ -116,7 +116,7 @@ test("API Xong tài liệu: bước trước chưa Xong → 400 kèm lý do, tr�
   setDoc(m, "UC_SPEC", "draft");
   const r = await done(`doc/${m}`, { sub: "UC_SPEC", actorId: ba });
   assert.equal(r.status, 400);
-  assert.equal(r.data.error, "Bước trước (BRD) chưa Xong (hiện: Đang làm). Hãy hoàn thành và bấm Xong cho BRD trước khi bấm Xong cho UC Specification.");
+  assert.equal(r.data.error, "The previous step (BRD) is not Done (current: Draft). Complete BRD and mark it as done before marking UC Specification as done.");
   assert.equal(docSt(m, "UC_SPEC"), "draft");
 
   assert.equal((await done(`doc/${m}`, { sub: "BRD", actorId: ba })).status, 200);
@@ -146,7 +146,7 @@ test("API Duyệt: kiểm cả bước tiên quyết (dữ liệu lệch: bản 
   setDoc(m, "UC_SPEC", "done");
   const r = await approve(`doc/${m}`, { sub: "UC_SPEC", actorId: lead });
   assert.equal(r.status, 400);
-  assert.match(r.data.error, /Bước trước \(BRD\) chưa Xong.*trước khi duyệt UC Specification/);
+  assert.match(r.data.error, /The previous step \(BRD\) is not Done.*before approving UC Specification/);
   assert.equal(docSt(m, "UC_SPEC"), "done");
   // Quyền vẫn xét trước: BA → 403
   assert.equal((await approve(`doc/${m}`, { sub: "UC_SPEC", actorId: ba })).status, 403);
@@ -160,7 +160,7 @@ test("API Xong sơ đồ: mọi tài liệu nguồn phải Xong / Đã duyệt",
   setDiagram(m, "CONTEXT", "draft");
   const r = await done(`diagram/${m}`, { sub: "BPMN", actorId: ba });
   assert.equal(r.status, 400);
-  assert.equal(r.data.error, "Cần tài liệu UC Specification (hiện: Đang làm) ở trạng thái Xong trước khi bấm Xong cho sơ đồ BPMN.");
+  assert.equal(r.data.error, "Source document UC Specification (current: Draft) must be Done before marking the BPMN diagram as done.");
   assert.equal(diaSt(m, "BPMN"), "draft");
   assert.equal((await done(`diagram/${m}`, { sub: "CONTEXT", actorId: ba })).status, 200, "Context chỉ cần BRD");
   setDoc(m, "UC_SPEC", "done");
@@ -173,7 +173,7 @@ test("API Xong bộ test: cần FRD-NFR Xong; nhánh legacy (bộ tài liệu c�
   setDoc(m, "FRD_NFR", "draft");
   const r = await done(`tests/${m}`, { actorId: ba });
   assert.equal(r.status, 400);
-  assert.match(r.data.error, /Cần FRD-NFR ở trạng thái Xong trước khi bấm Xong cho bộ test case \(hiện: Đang làm\)/);
+  assert.match(r.data.error, /FRD-NFR must be Done before marking the test suite as done \(current: Draft\)/);
   assert.equal(testsSt(m), "draft");
   setDoc(m, "FRD_NFR", "done");
   assert.equal((await done(`tests/${m}`, { actorId: ba })).status, 200);
@@ -197,7 +197,7 @@ test("Kéo task gắn sản phẩm sang Xong: bị chặn đúng lý do, task v�
   assert.equal((await api("PATCH", `/api/tasks/${t.id}/status`, { status: "doing", actorId: ba })).status, 200);
   const r = await api("PATCH", `/api/tasks/${t.id}/status`, { status: "done", actorId: ba });
   assert.equal(r.status, 400);
-  assert.match(r.data.error, /Bước trước \(BRD\) chưa Xong/);
+  assert.match(r.data.error, /The previous step \(BRD\) is not Done/);
   assert.equal((await api("GET", `/api/tasks/${t.id}`)).data.status, "doing");
   assert.equal(docSt(m, "UC_SPEC"), "draft");
 });

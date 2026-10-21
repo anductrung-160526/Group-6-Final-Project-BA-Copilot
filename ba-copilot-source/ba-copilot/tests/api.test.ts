@@ -160,7 +160,7 @@ test("luồng end-to-end đợt 5 (mock): story → tài liệu → màn (bối 
   // Test case: chặn khi FRD-NFR chưa Xong, kèm lý do
   const blocked = await api("POST", `/api/modules/${mid}/tests/generate`, { baseRev: 0 });
   assert.equal(blocked.status, 400);
-  assert.match(blocked.data.error, /FRD-NFR.*Xong/);
+  assert.match(blocked.data.error, /FRD-NFR.*Done/);
   assert.equal((await api("GET", `/api/modules/${mid}/tests/readiness`)).data.ready, false);
   putDoc(mid, "FRD_NFR", "done", "# FRD-NFR\n", { requirements: REQS });
   assert.equal((await api("GET", `/api/modules/${mid}/tests/readiness`)).data.source, "v5");
@@ -291,7 +291,7 @@ test("đường gọi Claude thật: tool use, tự sửa khi kết quả sai sc
     const runs = await api("GET", `/api/modules/${m.data.id}/runs`);
     assert.equal(runs.data[0].provider, "claude");
     assert.equal(runs.data[0].inputTokens, 200);
-    assert.match(runs.data[0].error, /tự sửa/);
+    assert.match(runs.data[0].error, /self-corrected/);
   } finally {
     delete process.env.ANTHROPIC_API_KEY;
     delete process.env.ANTHROPIC_BASE_URL;
