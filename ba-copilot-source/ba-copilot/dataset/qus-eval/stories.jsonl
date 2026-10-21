@@ -1,0 +1,207 @@
+{"id": "g02-001", "set": "g02", "split": "test", "text": "As a Data user, I want to have the 12-19-2017 deletions processed."}
+{"id": "g02-002", "set": "g02", "split": "test", "text": "As a UI designer, I want to redesign the Resources page, so that it matches the new Broker design styles."}
+{"id": "g02-003", "set": "g02", "split": "test", "text": "As a UI designer, I want to report to the Agencies about user testing, so that they are aware of their contributions to making Broker a better UX."}
+{"id": "g02-004", "set": "g02", "split": "test", "text": "As a UI designer, I want to move on to round 2 of DABS or FABS landing page edits, so that I can get approvals from leadership."}
+{"id": "g02-005", "set": "g02", "split": "test", "text": "As a UI designer, I want to move on to round 2 of Homepage edits, so that I can get approvals from leadership."}
+{"id": "g02-006", "set": "g02", "split": "test", "text": "As a UI designer, I want to move on to round 3 of the Help page edits, so that I can get approvals from leadership."}
+{"id": "g02-007", "set": "g02", "split": "test", "text": "As a Developer , I want to be able to log better, so that I can troubleshoot issues with particular submissions and functions."}
+{"id": "g02-008", "set": "g02", "split": "test", "text": "As a Developer, I want to add the updates on a FABS submission to be modified when the publishStatus changes, so that I know when the status of the submission has changed."}
+{"id": "g02-009", "set": "g02", "split": "test", "text": "As a DevOps engineer, I want New Relic to provide useful data across all applications."}
+{"id": "g02-010", "set": "g02", "split": "test", "text": "As a UI designer,  I want to move on to round 2 of the Help page edits, so that I can get approvals from leadership."}
+{"id": "g02-011", "set": "g02", "split": "test", "text": "As a UI designer, I want to move on to round 2 of Homepage edits, so that I can get approvals from leadership."}
+{"id": "g02-012", "set": "g02", "split": "test", "text": "As a Broker user, I want to Upload and Validate the error message to have accurate text."}
+{"id": "g02-013", "set": "g02", "split": "test", "text": "As a Broker user, I want the D1 file generation to be synced with the FPDS data load, so that I don't have to regenerate a file if no data has been updated."}
+{"id": "g02-014", "set": "g02", "split": "test", "text": "As a Website user, I want to access published FABS files, so that I can see the new files as they come in."}
+{"id": "g02-015", "set": "g02", "split": "test", "text": "As an owner, I want to be sure that USAspending only send grant records to my system."}
+{"id": "g02-016", "set": "g02", "split": "test", "text": "As a Developer, I want to update the Broker validation rule table to account for the rule updates in DB-2213."}
+{"id": "g02-017", "set": "g02", "split": "test", "text": "As a Developer, I want to add the GTAS window data to the database, so that I can ensure the site is locked down during the GTAS submission period."}
+{"id": "g02-018", "set": "g02", "split": "test", "text": "As a Developer, I want D Files generation requests to be managed and cached, so that duplicate requests do not cause performance issues."}
+{"id": "g02-019", "set": "g02", "split": "test", "text": "As a user, I want to access the raw agency published files from FABS via USAspending."}
+{"id": "g02-020", "set": "g02", "split": "test", "text": "As an Agency user, I want to be able to include a large number of flexfields without performance impact."}
+{"id": "g02-021", "set": "g02", "split": "test", "text": "As a Broker user, I want  to help create content mockups, so that I can submit my data efficiently."}
+{"id": "g02-022", "set": "g02", "split": "test", "text": "As a UI designer, I want to track the issues that come up in Tech Thursday, so that I know what to test and what want s to be fixed."}
+{"id": "g02-023", "set": "g02", "split": "test", "text": "As an Owner, I want to create a user testing summary from the UI SME, so that I can know what UI improvements we will follow through on."}
+{"id": "g02-024", "set": "g02", "split": "test", "text": "As a UI designer, I want to begin user testing, so that I can validate stakeholder UI improvement requests."}
+{"id": "g02-025", "set": "g02", "split": "test", "text": "As a UI designer, I want to schedule user testing, so that I can give the testers advanced notice to ensure buy-in."}
+{"id": "g02-026", "set": "g02", "split": "test", "text": "As an Owner, I want to design a schedule from the UI SME, so that I know the potential timeline of the UI improvements wanted."}
+{"id": "g02-027", "set": "g02", "split": "test", "text": "As an Owner, I want to design an audit from the UI SME, so that I know the potential scope of the UI improvements want ed."}
+{"id": "g02-028", "set": "g02", "split": "test", "text": "As a Developer, I want to prevent users from double publishing FABS submissions after refreshing, so that there are no duplicates."}
+{"id": "g02-029", "set": "g02", "split": "test", "text": "As an data user, I want to receive updates to FABS records."}
+{"id": "g02-030", "set": "g02", "split": "test", "text": "As an Agency user, I want to be able to include a large number of flexfields without performance impact."}
+{"id": "g02-031", "set": "g02", "split": "test", "text": "As a Developer , I want to update the FABS sample file to remove FundingAgencyCode after FABS is updated to no longer require the header."}
+{"id": "g02-032", "set": "g02", "split": "test", "text": "As an agency user, I want to ensure that deleted FSRS records are not included in submissions."}
+{"id": "g02-033", "set": "g02", "split": "test", "text": "As a website user, I want to see updated financial assistance data daily."}
+{"id": "g02-034", "set": "g02", "split": "test", "text": "As a user, I want the publish button in FABS to deactivate after I click it while the derivations are happening, so that I cannot click it multiple times for the same submission."}
+{"id": "g02-035", "set": "g02", "split": "test", "text": "As a Developer , I want to ensure that attempts to correct or delete non-existent records don't create new published data."}
+{"id": "g02-036", "set": "g02", "split": "test", "text": "As an Owner, I want to reset the environment to only take Staging MAX permissions, so that I can ensure that the FABS testers no longer have access."}
+{"id": "g02-037", "set": "g02", "split": "test", "text": "As a user, I want the flexfields in my submission file to appear in the warning and error files when the only error is a missing required element."}
+{"id": "g02-038", "set": "g02", "split": "test", "text": "As a user, I want to have accurate and complete data related to PPoPCode and PPoPCongressionalDistrict."}
+{"id": "g02-039", "set": "g02", "split": "test", "text": "As an agency user, I want the FABS validation rules to accept zero and blank for loan records."}
+{"id": "g02-040", "set": "g02", "split": "test", "text": "As an Agency user, I want FABS deployed into production, so I can submit my Financial Assistance data."}
+{"id": "g02-041", "set": "g02", "split": "test", "text": "As a Developer , I want to clarify to users what exactly is triggering the CFDA error code in each case."}
+{"id": "g02-042", "set": "g02", "split": "test", "text": "As an agency user, I want to be confident that the data coming from SAM is complete."}
+{"id": "g02-043", "set": "g02", "split": "test", "text": "As a Developer , I want my domain models to be indexed properly, so that I can get validation results back in a reasonable amount of time."}
+{"id": "g02-044", "set": "g02", "split": "test", "text": "As an agency user, I want the FABS validation rules to accept zero and blank for non-loan records."}
+{"id": "g02-045", "set": "g02", "split": "test", "text": "As a broker team member, I want to make some updates to the SQL codes for clarity."}
+{"id": "g02-046", "set": "g02", "split": "test", "text": "As an agency user, I want to have all derived data elements derived properly."}
+{"id": "g02-047", "set": "g02", "split": "test", "text": "As a broker team member, I want to add the 00***** and 00FORGN PPoPCode cases to the derivation logic."}
+{"id": "g02-048", "set": "g02", "split": "test", "text": "As a data user, I want to see the office names derived from office codes, so that I can have appropriate context for understanding them."}
+{"id": "g02-049", "set": "g02", "split": "test", "text": "As a broker user, I want the historical FABS loader to derive fields, so that my agency codes are correct in the PublishedAwardFinancialAssistance table."}
+{"id": "g02-050", "set": "g02", "split": "test", "text": "As a broker team member, I want to ensure the Broker resources, validations, and P&P pages are updated appropriately for the launch of FABS and DAIMS v1.1."}
+{"id": "g02-051", "set": "g02", "split": "test", "text": "As a Developer, I want the data loaded from historical FABS to include the FREC derivations, so that I can have consistent FREC data for USASpending.gov."}
+{"id": "g02-052", "set": "g02", "split": "test", "text": "As a user, I don't want to see NASA grants displayed as contracts."}
+{"id": "g02-053", "set": "g02", "split": "test", "text": "As a user, I want the DUNS validations to accept records whose ActionTypes are B, C, or D and the DUNS is registered in SAM, even though it may have expired."}
+{"id": "g02-054", "set": "g02", "split": "test", "text": "As a user, I want the DUNS validations to accept records whose ActionDates are before the current registration date in SAM, but after the initial registration date."}
+{"id": "g02-055", "set": "g02", "split": "test", "text": "As a broker team member, I want to derive FundingAgencyCode, so that the data quality and completeness improves."}
+{"id": "g02-056", "set": "g02", "split": "test", "text": "As an agency user, I want the maximum length allowed for LegalEntityAddressLine3 to match Schema v1.1."}
+{"id": "g02-057", "set": "g02", "split": "test", "text": "As an agency user, I want to use the schema v1.1 headers in my FABS file."}
+{"id": "g02-058", "set": "g02", "split": "test", "text": "As a agency user, I want to map the FederalActionObligation properly to the Atom Feed."}
+{"id": "g02-059", "set": "g02", "split": "test", "text": "As a Broker user, I want to have PPoPZIP+4 work the same as the Legal Entity ZIP validations."}
+{"id": "g02-060", "set": "g02", "split": "test", "text": "As a FABS user, I want to link the SAMPLE FILE on the \"What you want  to submit\" dialog to point to the correct file, so that I have an accurate reference for my agency submissions."}
+{"id": "g02-061", "set": "g02", "split": "test", "text": "As an Agency user, I want FPDS data to be up-to-date daily."}
+{"id": "g02-062", "set": "g02", "split": "test", "text": "As a user, I want to access the raw agency published files from FABS via USAspending."}
+{"id": "g02-063", "set": "g02", "split": "test", "text": "As a Developer , I want to determine how agencies will generate and validate D Files from FABS and FPDS data."}
+{"id": "g02-064", "set": "g02", "split": "test", "text": "As a user, I want to generate and validate D Files from FABS and FPDS data."}
+{"id": "g02-065", "set": "g02", "split": "test", "text": "As an Agency user, I want the header information box to show updated date AND time, so that I know when it was updated."}
+{"id": "g02-066", "set": "g02", "split": "test", "text": "As an Agency user, I want to receive a more helpful file-level error when I upload a file with the wrong extension."}
+{"id": "g02-067", "set": "g02", "split": "test", "text": "As a tester, I want to have access to test features in environments other than Staging, so that I can test any nonProd feature in any environment."}
+{"id": "g02-068", "set": "g02", "split": "test", "text": "As a FABS user, I want to submission errors to accurately represent FABS errors, so that I know why my submission didn't work."}
+{"id": "g02-069", "set": "g02", "split": "test", "text": "As a FABS user, I want the frontend URLs to more accurately reflect the page I'm accessing, so that I'm not confused."}
+{"id": "g02-070", "set": "g02", "split": "test", "text": "As an Agency user, I want all historical Financial Assistance data loaded for FABS go-live."}
+{"id": "g02-071", "set": "g02", "split": "test", "text": "As a Developer , I want the historical FPDS data loader to include both extracted historical data and FPDS feed data."}
+{"id": "g02-072", "set": "g02", "split": "test", "text": "As an Agency user, I want historical FPDS data loaded."}
+{"id": "g02-073", "set": "g02", "split": "test", "text": "As an Agency user, I want to accurately see who created a submission, so that I'm not confused about who last updated a submission."}
+{"id": "g02-074", "set": "g02", "split": "test", "text": "As an agency user, I want to get File F in the correct format."}
+{"id": "g02-075", "set": "g02", "split": "test", "text": "As an Agency user, I want to better understand my file-level errors."}
+{"id": "g02-076", "set": "g02", "split": "test", "text": "As a Developer , I want to provide FABS groups that function under the FREC paradigm."}
+{"id": "g02-077", "set": "g02", "split": "test", "text": "As a tester, I want to ensure that FABS is deriving fields properly through a robust test file plus a follow up check."}
+{"id": "g02-078", "set": "g02", "split": "test", "text": "As an owner, I only want zero-padded fields, so that I can justify padding."}
+{"id": "g02-079", "set": "g02", "split": "test", "text": "As a Broker user, I want to submit records for individual recipients without receiving a DUNS error."}
+{"id": "g02-080", "set": "g02", "split": "test", "text": "As a user, I want more information about how many rows will be published prior to deciding whether to publish."}
+{"id": "g02-081", "set": "g02", "split": "test", "text": "As a Developer, I want to prevent duplicate transactions from being published and deal with the time gap between validation and the publishing decision."}
+{"id": "g02-082", "set": "g02", "split": "test", "text": "As a FABS user, I want to submit a citywide as a PPoPZIP and pass validations."}
+{"id": "g02-083", "set": "g02", "split": "test", "text": "As a Broker user, I want to have updated error codes that accurately reflect the logic and provide enough information, so that I can fix my submission."}
+{"id": "g02-084", "set": "g02", "split": "test", "text": "As an agency user, I want to leave off the last 4 digits of the ZIP without an error, so that I can complete my submissions."}
+{"id": "g02-085", "set": "g02", "split": "test", "text": "As a FABS user, I want to make sure the historical data includes all necessary columns, so that the information in the database is correct."}
+{"id": "g02-086", "set": "g02", "split": "test", "text": "As a data user, I want to access two additional fields from the FPDS data pull."}
+{"id": "g02-087", "set": "g02", "split": "test", "text": "As a FABS user, I want additional helpful info in the submission dashboard, so that I can better manage submissions and IG requests."}
+{"id": "g02-088", "set": "g02", "split": "test", "text": "As a FABS user, I want to download the uploaded FABS file, so that I can get the uploaded file."}
+{"id": "g02-089", "set": "g02", "split": "test", "text": "As a Developer I want to quickly access Broker application data, so that I can investigate issues."}
+{"id": "g02-090", "set": "g02", "split": "test", "text": "As a Developer , I want to determine the best way to load historical FPDS data, so that I can load all FPDS data since 2007."}
+{"id": "g02-091", "set": "g02", "split": "test", "text": "As a FABS user, I want the language on FABS pages to be appropriate for me, so that I am not confused."}
+{"id": "g02-092", "set": "g02", "split": "test", "text": "As a FABS user, I do not want  DABS banner messages and vice versa, so that I have the appropriate information for my application."}
+{"id": "g02-093", "set": "g02", "split": "test", "text": "As a FABS user, I want to have read-only access to DABS, so that I can view DABS pages without wanting two sets of permissions."}
+{"id": "g02-094", "set": "g02", "split": "test", "text": "As a FABS user, I want to have my validations run in a reasonable amount of time."}
+{"id": "g02-095", "set": "g02", "split": "test", "text": "As a FABS user, I want to see correct status labels on the Submission Dashboard, so that I can quickly see my submission history."}
+{"id": "g02-096", "set": "g02", "split": "test", "text": "As an agency user, I want to know when the submission periods start and end, so that I know when the submission starts and ends."}
+{"id": "g02-097", "set": "g02", "split": "test", "text": "As an agency user, I want a landing page to navigate to either FABS or DABS pages, so that I can access both sides of the site."}
+{"id": "g02-098", "set": "g02", "split": "test", "text": "As an agency user, I want to submit my data elements surrounded by quotation marks, so that Excel won't strip off leading and trailing zeroes."}
+{"id": "g03-001", "set": "g03", "split": "test", "text": "As a Public User, I want to Search for Information, so that I can obtain publicly available information concerning properties, County services, processes and other general information."}
+{"id": "g03-002", "set": "g03", "split": "test", "text": "As a ProspectiveApplicant, I want to research requirements and to select a service, so that I can find the relevant service and/or application type to initiate via the online portal."}
+{"id": "g03-003", "set": "g03", "split": "test", "text": "As an Applicant, I want to Request PreApplication Assistance, so that I can receive a response to a request for a meeting or information that is a result of the preapplication assistance."}
+{"id": "g03-004", "set": "g03", "split": "test", "text": "As a Customer, I want to Create a Customer Portal User Account, so that I can log on to the Customer Portal and perform transactions that first require user authentication."}
+{"id": "g03-005", "set": "g03", "split": "test", "text": "As an Applicant, I want to Submit Application, so that I can provide my information, plans and/or documents to initiate a transaction with the County."}
+{"id": "g03-006", "set": "g03", "split": "test", "text": "As an Applicant, I want to Submit Supporting Documentation, so that I can satisfy documentation requirements for my application."}
+{"id": "g03-007", "set": "g03", "split": "test", "text": "As an Applicant, I want to Pay Fee, so that I can satisfy outstanding charge associated with the service requested or received from the County."}
+{"id": "g03-008", "set": "g03", "split": "test", "text": "As an Applicant, I want to Check the Status of a transaction, so that I can understand where the provisioning of my service is in the process, such as information related to service levels, fees, plan review, permit, or inspection results."}
+{"id": "g03-009", "set": "g03", "split": "test", "text": "As an Applicant, I want to Modify my Application, so that I can successfully change information on an application."}
+{"id": "g03-010", "set": "g03", "split": "test", "text": "As a Staff member, I want to Perform a Completeness Review, so that I can validate when an application is complete and eligible for further technical review."}
+{"id": "g03-011", "set": "g03", "split": "test", "text": "As a Staff member, I want to Record an Internal Note, so that I can share information with other Staff collaborating on the record."}
+{"id": "g03-012", "set": "g03", "split": "test", "text": "As a Staff member, I want to Assign an Application for Detailed Review, so that I can review the for compliance and subsequently approved or denied."}
+{"id": "g03-013", "set": "g03", "split": "test", "text": "As a Staff member, I want to Apply a Hold, so that I can prevent progression through the workflow or other actions in the system until the issue is resolved."}
+{"id": "g03-014", "set": "g03", "split": "test", "text": "As a Staff member, I want to Remove a Hold, so that I can allow progression through the workflow or other actions in the system now that the issue has been resolved."}
+{"id": "g03-015", "set": "g03", "split": "test", "text": "As a Staff member, I want to Send a Formal Response to Applicant, so that I can satisfy communication and records responsibilities."}
+{"id": "g03-016", "set": "g03", "split": "test", "text": "As a Staff member, I want to Track  the Draft Proffers, so that I can preserve the history of draft proffer statements submitted by the Applicant."}
+{"id": "g03-017", "set": "g03", "split": "test", "text": "As a Staff member, I want to Manage Approved Proffers, so that I can ensure compliance with and satisfaction of the proffer in the future."}
+{"id": "g03-018", "set": "g03", "split": "test", "text": "As a Staff member, I want to Manage Ordinances, so that I can maintain accurate ordinance information in the System."}
+{"id": "g03-019", "set": "g03", "split": "test", "text": "As a Staff member, I want to Schedule a Meeting, so that I can bring the required parties together at a specific date/time to address an issue."}
+{"id": "g03-020", "set": "g03", "split": "test", "text": "As a staff member, I want to denote an application with a Final Action status. So that I can finish it."}
+{"id": "g03-021", "set": "g03", "split": "test", "text": "As a Planning Staff member, I want to Conduct and Track Plan Amendments and Planning Studies, so that I can record work in process, outcome, and location-based information related to the Plan(s)."}
+{"id": "g03-022", "set": "g03", "split": "test", "text": "As a Planning Staff member, I want to Generate Planning-related Reports, so that I can access, analyze and/or export the needed information in the format I requested."}
+{"id": "g03-023", "set": "g03", "split": "test", "text": "As a Planning Staff member, I want to Evaluate Consistency with the Comprehensive Plan, so that I can complete my required review of a plan set and/or application."}
+{"id": "g03-024", "set": "g03", "split": "test", "text": "As a Staff member, I want to Perform a Staff Review, so that I can validate compliance of an application with the Zoning Ordinance and impact approval/denial of the application accordingly."}
+{"id": "g03-025", "set": "g03", "split": "test", "text": "As a Zoning Staff member, I want to Process the Requests for Zoning Information, so that I can capture my response to the request in the system and also send a communication from the system to the Applicant."}
+{"id": "g03-026", "set": "g03", "split": "test", "text": "As a Zoning Staff member, I want to Issue the Zoning-Related Permits, so that I can satisfy an Applicant's request for service that has proven to be eligible and in compliance with the Zoning Ordinance."}
+{"id": "g03-027", "set": "g03", "split": "test", "text": "As a Staff member, I want to Develop a Staff Report, so that I can publish and distribute the report according to business rules."}
+{"id": "g03-028", "set": "g03", "split": "test", "text": "As a Staff member, I want to Manage Hearing Calendars, so that I can track hearing-related activities and due dates."}
+{"id": "g03-029", "set": "g03", "split": "test", "text": "As a Staff member, I want to Assign a Hearing Date, so that I can present the application to the appropriate governing body within the timelines dictated by the relevant County rules and procedures."}
+{"id": "g03-030", "set": "g03", "split": "test", "text": "As a Staff member, I want to Manage Affidavits, so that I can ensure compliance with the requirements prior to the hearing."}
+{"id": "g03-031", "set": "g03", "split": "test", "text": "As an Applicant, I want to Satisfy Hearing Requirements, so that I can ensure all pre-hearing requirements are satisfied in time for the hearing."}
+{"id": "g03-032", "set": "g03", "split": "test", "text": "As a Staff member, I want to Prepare for and Support Hearing Execution, so that I can ensure all pre-hearing requirements are satisfied and staff and Applicant are ready for the hearing."}
+{"id": "g03-033", "set": "g03", "split": "test", "text": "As a Staff member, I want to Capture a Hearing Decision, so that I can enforce the system."}
+{"id": "g03-034", "set": "g03", "split": "test", "text": "As a Staff member, I want to Process the Appeals, so that I can track the outcome and record the impact on the relevant records."}
+{"id": "g03-035", "set": "g03", "split": "test", "text": "As a Plan Review Staff member, I want to Assign Plans for Review, so that I can ensure plans have been assigned to the appropriate Plan Reviewer."}
+{"id": "g03-036", "set": "g03", "split": "test", "text": "As a Plan Review Staff Supervisor, I want to Manage Plan Reviewer Workload, so that I can monitor and effectively adjust workload as necessary and ensure service levels are met"}
+{"id": "g03-037", "set": "g03", "split": "test", "text": "As an Applicant, I want to Request a Plan Review Meeting, so that I can meet with the Plan Review Staff regarding the plan review."}
+{"id": "g03-038", "set": "g03", "split": "test", "text": "As a Plan Review Staff member, I want to successfully Conduct a Plan Review Meeting with the Applicant and record the outcome, so that I can listen to it again."}
+{"id": "g03-039", "set": "g03", "split": "test", "text": "As a Plan Review Staff member, I want to Review Plans, so that I can review them for compliance and either approve, or fail or deny the plans and record any conditions, clearances, or corrections needed from the Applicant."}
+{"id": "g03-040", "set": "g03", "split": "test", "text": "As an Applicant, I want to Resubmit Plans, so that I can review revised plans."}
+{"id": "g03-041", "set": "g03", "split": "test", "text": "As a Plan Review Staff Member, I want to Review the Code Modifications submitted by the Applicant, so that I can review the request and if approved, associate it with the appropriate project."}
+{"id": "g03-042", "set": "g03", "split": "test", "text": "As a Plan Review Staff member, I want to Track the Completion of Required Plan Reviews, so that I can ensure all plan review tasks are completed, results have been sent to the Applicant and any downstream steps are initiated such has a final review or payment for permit issuance."}
+{"id": "g03-043", "set": "g03", "split": "test", "text": "As a Development Staff member, I want to Issue a Development-related Permit, so that I can grant the request to the Applicant to begin work"}
+{"id": "g03-044", "set": "g03", "split": "test", "text": "As a Staff member, I want to Manage Bonds, so that I can track and manage bonds throughout the lifecycle of the project until release."}
+{"id": "g03-045", "set": "g03", "split": "test", "text": "As an Applicant, I want to Complete Building Development Project, so that I can receive any posted bond and/or obtain occupancy."}
+{"id": "g03-046", "set": "g03", "split": "test", "text": "As an Applicant, I want to Complete Building Development Project, so that I can receive any posted bond and/or obtain occupancy."}
+{"id": "g03-047", "set": "g03", "split": "test", "text": "As a Customer, I want to Request Inspection, so that a County inspector is assigned to perform an inspection of my project."}
+{"id": "g03-048", "set": "g03", "split": "test", "text": "As an Inspection Staff member, I want to Create an Inspection, so that I can schedule and assign the inspection."}
+{"id": "g03-049", "set": "g03", "split": "test", "text": "As an Inspection Staff Supervisor, I want to Assign Inspections, so that I can make sure the appropriate Inspector receives the work."}
+{"id": "g03-050", "set": "g03", "split": "test", "text": "As an Inspection Supervisor, I want to Manage Inspector Workload, so that I can meet service level and quality requirements."}
+{"id": "g03-051", "set": "g03", "split": "test", "text": "As an Inspector, I want to Conduct Inspections, so that I can validate Customer compliance with code and regulations and provide results of the inspection to the Customer."}
+{"id": "g03-052", "set": "g03", "split": "test", "text": "As an Enforcement Staff member, I want to Issue a Notice of Violation, so that I can provide formal communication to the responsible party."}
+{"id": "g03-053", "set": "g03", "split": "test", "text": "As a l Staff member, I want to search for Property information, so that I can obtain all associated current and historic owners, permits, and applications."}
+{"id": "g03-054", "set": "g03", "split": "test", "text": "As a Staff member, I need to be notified when Geospatial attributes change, so that I can ensure that I am reviewing the permit/application to the most current data and appropriate standards."}
+{"id": "g03-055", "set": "g03", "split": "test", "text": "As a County Staff Member, I want to create a custom query/report outside of the common querying/reporting functionality, so that I can fulfill a request."}
+{"id": "g03-056", "set": "g03", "split": "test", "text": "As a Staff member, I want to create each condo unit, so that I can associate it to the child parcel and address after the condominiums are recorded in the system."}
+{"id": "g03-057", "set": "g03", "split": "test", "text": "As a Technical Staff member, I want to update the GIS Property Management, so that I can successfully update the transactional Parcel Pin to reference the GIS layer where the Split or Merged Parcel Pin exists."}
+{"id": "g03-058", "set": "g03", "split": "test", "text": "As a Staff member, I want to Send or Post Citations and Fines, so that I can successfully send the Notice Of Violation document to the property owner and log information about the action."}
+{"id": "g04-001", "set": "g04", "split": "dev", "text": "As a user, I want to click on the address, so that it takes me to a new tab with Google Maps."}
+{"id": "g04-002", "set": "g04", "split": "dev", "text": "As a user, I want to be able to anonymously view public information, so that I know about recycling centers near me before creating an account."}
+{"id": "g04-003", "set": "g04", "split": "dev", "text": "As a user, I want to be able to enter my zip code and get a list of nearby recycling facilities, so that I can determine which ones I should consider."}
+{"id": "g04-004", "set": "g04", "split": "dev", "text": "As a user, I want to be able to get the hours of each recycling facility, so that I can arrange drop-offs on my off days or during after-work hours."}
+{"id": "g04-005", "set": "g04", "split": "dev", "text": "As a user, I want to have a flexible pick up time, so that I can more conveniently use the website."}
+{"id": "g04-006", "set": "g04", "split": "dev", "text": "As a user, I want to be able to select different types of recyclable waste, so I have and get a list of facilities that accept each type and their opening hours, so that I can find an optimal route and schedule."}
+{"id": "g04-007", "set": "g04", "split": "dev", "text": "As a user, I want to add donation centers as favorites on my profile, so that I can view them later."}
+{"id": "g04-008", "set": "g04", "split": "dev", "text": "As a user, I want to be able to give my email ID, so that I can receive notifications for new events as they are posted."}
+{"id": "g04-009", "set": "g04", "split": "dev", "text": "As a user, I want to be able to view a map display of the public recycling bins around my area."}
+{"id": "g04-010", "set": "g04", "split": "dev", "text": "As a user, I want to be able to view a map display of the special waste drop off sites around my area."}
+{"id": "g04-011", "set": "g04", "split": "dev", "text": "As a user, I want to be able to view the safe disposal events currently being organised around my area."}
+{"id": "g04-012", "set": "g04", "split": "dev", "text": "As a user, I want to choose a flexible pick up time, so that I can more conveniently use the website."}
+{"id": "g04-013", "set": "g04", "split": "dev", "text": "As a user, I want to view user documentation for the website, so that I know how to use the web app."}
+{"id": "g04-014", "set": "g04", "split": "dev", "text": "As a user, I want to get feedback when I enter an invalid zip code."}
+{"id": "g04-015", "set": "g04", "split": "dev", "text": "As a user, I want to be able to create an acocunt, so that I can create my own profile."}
+{"id": "g04-016", "set": "g04", "split": "dev", "text": "As an admin, I want to be able to add or remove recycling facilities' information, so that users get the most recent information."}
+{"id": "g04-017", "set": "g04", "split": "dev", "text": "As an admin, I want to be able to read users' feedback and complaints, so that we can add more features and keep improving the service we provide to them."}
+{"id": "g04-018", "set": "g04", "split": "dev", "text": "As a user, I want to be able to check transaction history and keep a record of it, so that I can go back when needed."}
+{"id": "g04-019", "set": "g04", "split": "dev", "text": "As a user, I want to have a great UI and UX from the sites, so that I have a pleasant experience when navigating through them."}
+{"id": "g04-020", "set": "g04", "split": "dev", "text": "As a user, I want to be able to access the site and do all the other stuffs on all of my electronic devices."}
+{"id": "g04-021", "set": "g04", "split": "dev", "text": "As an admin, I want to be able to block specific users based on IP address, so that I can prevent spamming on the websites."}
+{"id": "g04-022", "set": "g04", "split": "dev", "text": "As an admin, I want to view a dashboard that monitors all the sites' statuses, so that I can have a sense of what people are doing on our sites and know the service status."}
+{"id": "g04-023", "set": "g04", "split": "dev", "text": "As an admin, I want to have all data encrypted, so that important information will not be stolen during a server breach or an attack."}
+{"id": "g04-024", "set": "g04", "split": "dev", "text": "As an executive, I want to have full access to data related to my company, so that I can have a sense of my company's performance."}
+{"id": "g04-025", "set": "g04", "split": "dev", "text": "As an employee, I want to access the route planning system during work, so that I can be guided through the neighbourhood."}
+{"id": "g04-026", "set": "g04", "split": "dev", "text": "As an employee from the HR department, I want to have access to the full information of all employees working for this business."}
+{"id": "g04-027", "set": "g04", "split": "dev", "text": "As a developer, I want to access an API from the website, so that I can integrate it and implement certain features in my own iOS application."}
+{"id": "g04-028", "set": "g04", "split": "dev", "text": "As a user, I want to be able to receive tempting rewards, so that I have a reason to use the website."}
+{"id": "g04-029", "set": "g04", "split": "dev", "text": "As a user, I want to have my personal information kept securely in the database of the website, so that I will not suffer from identity theft or telephone harassment."}
+{"id": "g04-030", "set": "g04", "split": "dev", "text": "As an admin, I want to handle all users' activities, so that I can manage more efficiently."}
+{"id": "g04-031", "set": "g04", "split": "dev", "text": "As a company, I want to have a website that is easy to use, so that I can upload or delete stuff step by step."}
+{"id": "g04-032", "set": "g04", "split": "dev", "text": "As an employee, I want to get quick notifications, so that I can process cases the first time."}
+{"id": "g04-033", "set": "g04", "split": "dev", "text": "As a company accountant, I want to view all available activity fees online, so that I can easily create a bill statement."}
+{"id": "g04-034", "set": "g04", "split": "dev", "text": "As a developer, I want to use bootstrap in the process of developing, so that I can easily design my website."}
+{"id": "g04-035", "set": "g04", "split": "dev", "text": "As a developer, I want to attend some UI/UX lessons, so that I can develop an awesome and beautiful features website."}
+{"id": "g04-036", "set": "g04", "split": "dev", "text": "As a user, I want to view all locations of recycling centers on a map, so that I can check which routes to take to drop off waste."}
+{"id": "g04-037", "set": "g04", "split": "dev", "text": "As a user, I want to upload my week's schedule, so that I can get recommendations for recycling centers that best fit my availability."}
+{"id": "g04-038", "set": "g04", "split": "dev", "text": "As a user, I want to link my email account to my profile, so that I can get a temporary password in case I forget my own one."}
+{"id": "g04-039", "set": "g04", "split": "dev", "text": "As a user, I want to contact the administrators, so that I can give feedback or ask for help."}
+{"id": "g04-040", "set": "g04", "split": "dev", "text": "As an admin, I want to add recycling center information, so that I can keep the database up-to-date over time."}
+{"id": "g04-041", "set": "g04", "split": "dev", "text": "As an admin, I want to view user error logs, so that I can fix or review any issues that are being faced by users of the system."}
+{"id": "g04-042", "set": "g04", "split": "dev", "text": "As an admin, I want to onboard recycling centers on the platform, so that I can increase information accuracy."}
+{"id": "g04-043", "set": "g04", "split": "dev", "text": "As a superuser, I want to update the recycling center information, so that I can provide the latest information about the recycling center."}
+{"id": "g04-044", "set": "g04", "split": "dev", "text": "As a superuser, I want to view users' stats, so that I can view in real-time how many users have visited my recycling center information and their recyclable waste."}
+{"id": "g04-045", "set": "g04", "split": "dev", "text": "As a superuser, I want to reply to user questions, so that I can answer any questions about my recycling center."}
+{"id": "g04-046", "set": "g04", "split": "dev", "text": "As an admin, I want to be able to have a dashboard that shows usage stats and locations, so that I can identify the neighbourhoods with the largest number of drop-offs and to try getting more facilities involved."}
+{"id": "g04-047", "set": "g04", "split": "dev", "text": "As an admin, I want to be able to communicate directly with facilities, so that I can keep them updated about features we have on our website."}
+{"id": "g04-048", "set": "g04", "split": "dev", "text": "As a user, I want to be able to browse through the list of facolities and see which ones are environment-friendly, so that I can know for sure my waste is not going to leave a negative ecological footprint."}
+{"id": "g04-049", "set": "g04", "split": "dev", "text": "As a recyclingfacility representative, I want to be able to update my information and the type of material I accept, so that I can avoid any miscommunication with users."}
+{"id": "g04-050", "set": "g04", "split": "dev", "text": "As a recyclingfacility representative, I want to have access to user stats and schedules, so that I can adjust my hours and/or upgrade equipment and capacity in order to be able to accomodate larger amounts of recyclable materials."}
+{"id": "g04-051", "set": "g04", "split": "dev", "text": "As a recyclingfacility, I want to be able to communicate directly with the site admin and convey any issues or concerns I have, so that they fix them."}

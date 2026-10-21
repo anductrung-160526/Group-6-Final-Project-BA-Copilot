@@ -16,3 +16,9 @@ Ca biên đã chốt:
 - Một story có thể vi phạm nhiều tiêu chí.
 - "I want to be able to X and Y": atomic khi X, Y là hai hành động.
 - "As a user I want to search, filter and sort products": atomic (ba hành động).
+
+## Dữ liệu và chia tập
+- 206 user story thật từ 3 bộ công khai (Dalpiaz et al., "Requirements data sets (user stories)"): g02 federalspending (98), g03 loudoun (58), g04 recycling (50). Người dùng tải lên ngày 21/10/2026.
+- Chia theo bộ gốc: **dev = g04** (dùng để chỉnh luật), **test = g02 + g03** (chấm một lần sau khi khoá luật).
+- Nhãn (`labels.jsonl`) do AI gán theo hướng dẫn này, mỗi lỗi kèm lý do, **commit trước khi chạy bộ chấm mới lên dữ liệu**.
+- Ca biên đã quyết khi gán: "Upload and Validate" (g02-012) là tên trang, không tính atomic; "enter my zip code and get a list" (g04-003), "browse … and see …" (g04-048) là một luồng tìm kiếm, không tính atomic; "I want to" và "I want to be able to" cùng mẫu "I want"; câu tách đôi ". So that" (g03-020) không tính lỗi; lỗi chính tả không tính lỗi.
