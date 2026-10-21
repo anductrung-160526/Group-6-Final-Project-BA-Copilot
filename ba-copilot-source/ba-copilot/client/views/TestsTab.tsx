@@ -139,7 +139,7 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
           </Btn>
         )}
         <Btn kind={tests.length ? "secondary" : "primary"} size="sm" disabled={!canGenerate} onClick={generate} title={canGenerate ? "" : blockReason} data-testid="generate-tests">
-          <Icon name="ai" size="sm" />
+          <Icon name={tests.length ? "regenerate" : "ai"} size="sm" />
           {tests.length ? "Sinh lại" : "Sinh test case"}
         </Btn>
       </div>

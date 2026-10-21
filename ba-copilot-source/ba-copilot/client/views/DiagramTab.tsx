@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { approveDiagram, generateDiagram, getDiagram, saveDiagram } from "../api.ts";
 import { currentMemberId } from "../currentMember.ts";
 import type { UcDiagram } from "../../shared/types.ts";
-import { Btn, Empty, StatusBadge, useUI } from "../components/ui.tsx";
+import { Btn, Empty, Icon, StatusBadge, useUI } from "../components/ui.tsx";
 import { Mermaid } from "../components/Mermaid.tsx";
 import type { ModuleTabProps } from "./moduleTabs.ts";
 
@@ -80,7 +80,8 @@ export function DiagramTab({ m }: ModuleTabProps) {
         {loaded && (
           <>
             <Btn kind={diagram ? "secondary" : "primary"} size="sm" disabled={!hasUc} onClick={generate} data-testid="generate-diagram" title={hasUc ? "" : "Cần sinh tài liệu (Use Case) trước"}>
-              ✦ {diagram ? "Sinh lại" : "Sinh sơ đồ"}
+              <Icon name={diagram ? "regenerate" : "ai"} size="sm" />
+              {diagram ? "Sinh lại" : "Sinh sơ đồ"}
             </Btn>
             {diagram && (
               <>

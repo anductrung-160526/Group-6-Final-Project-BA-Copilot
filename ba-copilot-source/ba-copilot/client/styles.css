@@ -95,6 +95,7 @@
   --shadow-sm: 0 1px 2px rgba(11, 43, 57, 0.06), 0 1px 3px rgba(11, 43, 57, 0.08);
   --shadow-md: 0 10px 30px rgba(11, 43, 57, 0.12);
   --shadow-lg: 0 20px 50px rgba(11, 43, 57, 0.2);
+  --z-sticky: 10; /* hàng tab dính dưới thanh trên */
   --z-menu: 15;
   --z-topbar: 20;
   --z-drawer: 45;
@@ -102,9 +103,17 @@
   --z-busy: 60;
   --z-toast: 70;
   --topbar-h: 52px;
+  --topbar-h-compact: 40px; /* thanh trên khi đã cuộn trang */
+  --topbar-live-h: var(--topbar-h); /* chiều cao thật lúc chạy – TopBar ghi đè (màn hẹp, đang thu gọn) */
+  --logo-size: 30px;
+  --logo-size-compact: 24px;
+  --motion-fast: 180ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --drawer-w: 40vw; /* ngăn phải rộng 40% màn hình (quyết định đợt 5) */
   --drawer-min-w: 360px;
   --side-nav-indent: var(--space-5); /* thụt lề mỗi cấp của SideNav */
+  --side-nav-w: 260px;
+  --side-nav-rail-w: calc(var(--space-10) + var(--space-3)); /* menu trái thu gọn còn dải icon */
 
   /* ---- Tên cũ (giữ để mã của agent khác không vỡ) – không dùng cho mã mới ---- */
   --bg: var(--color-bg);
@@ -138,6 +147,10 @@
 body {
   margin: 0;
   background: var(--color-bg);
+}
+/* Cuộn tới neo (#…) không bị thanh trên dính đỉnh che mất */
+html {
+  scroll-padding-top: var(--topbar-live-h);
 }
 a {
   color: var(--color-accent-strong);
@@ -232,6 +245,20 @@ select:focus {
   position: sticky;
   top: 0;
   z-index: var(--z-topbar);
+  margin-bottom: 0;
+  transition:
+    height var(--motion-fast) var(--ease-standard),
+    padding var(--motion-fast) var(--ease-standard),
+    row-gap var(--motion-fast) var(--ease-standard),
+    margin-bottom var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard);
+}
+/* Đã cuộn trang: thanh thấp hơn, logo + tên nhỏ lại, ẩn phụ đề. margin-bottom bù đúng phần chiều cao giảm
+   → tổng chỗ chiếm trong trang không đổi, nội dung không nhảy (phần bù nằm sau thanh, đã cuộn khuất). */
+.topbar.is-compact {
+  height: var(--topbar-h-compact);
+  margin-bottom: calc(var(--topbar-h) - var(--topbar-h-compact));
+  box-shadow: var(--shadow-sm);
 }
 .brand {
   display: flex;
@@ -241,6 +268,11 @@ select:focus {
   font-family: var(--font-heading);
   font-weight: var(--font-weight-bold);
   line-height: 1.2;
+  font-size: var(--font-size-body);
+  transition: font-size var(--motion-fast) var(--ease-standard);
+}
+.topbar.is-compact .brand {
+  font-size: var(--font-size-sm);
 }
 .brand-sub {
   display: block;
@@ -248,10 +280,23 @@ select:focus {
   font-weight: var(--font-weight-regular);
   font-size: var(--font-size-xs);
   color: var(--color-muted);
+  max-height: calc(var(--font-size-xs) * 2);
+  overflow: hidden;
+  transition:
+    opacity var(--motion-fast) var(--ease-standard),
+    max-height var(--motion-fast) var(--ease-standard);
+}
+.topbar.is-compact .brand-sub {
+  opacity: 0;
+  max-height: 0;
 }
 .logo {
-  width: 30px;
-  height: 30px;
+  width: var(--logo-size);
+  height: var(--logo-size);
+  flex: none;
+  transition:
+    width var(--motion-fast) var(--ease-standard),
+    height var(--motion-fast) var(--ease-standard);
   border-radius: var(--radius-md);
   background: var(--color-mint-grad);
   color: var(--color-surface);
@@ -1865,6 +1910,18 @@ select:focus {
     order: 1;
     flex-basis: 100%;
   }
+  /* Thu gọn ở màn hẹp: chỉ bớt lề trên/dưới và khoảng giữa 2 hàng (logo giữ nguyên để chiều cao hàng không đổi);
+     margin bù = 2 lề + 1 khoảng hàng đã bớt. */
+  .topbar.is-compact {
+    height: auto;
+    padding: var(--space-1) var(--space-4);
+    row-gap: var(--space-1);
+    margin-bottom: calc((var(--space-2) - var(--space-1)) * 3);
+  }
+  .topbar.is-compact .logo {
+    width: var(--logo-size);
+    height: var(--logo-size);
+  }
   .page {
     padding: var(--space-5) var(--space-4);
   }
@@ -2454,6 +2511,21 @@ select:focus {
   border-color: var(--color-accent);
   color: var(--color-accent-strong);
 }
+/* SideNav collapsed – dải icon, tên mục ở tooltip / aria-label */
+.side-nav.side-nav-collapsed .side-nav-item {
+  justify-content: center;
+  padding: var(--space-2-5) 0;
+}
+.side-nav-rail-kids {
+  border-bottom: 1px solid var(--color-border);
+}
+.side-nav-rail-kids .side-nav-item {
+  padding: var(--space-1-5) 0;
+}
+.side-nav-item:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
 
 /* Khung dự án (ProjectShell, R-040): menu trái dính dưới thanh trên, cuộn riêng; nội dung bên phải.
    Màn ≤ 860px: bỏ menu trái (ProjectShell mở menu trong Drawer), nội dung một cột. */
@@ -2462,15 +2534,35 @@ select:focus {
 }
 .project-body {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: var(--side-nav-w) minmax(0, 1fr);
   align-items: start;
   gap: var(--space-4);
   padding: var(--space-4) var(--space-4) 0;
 }
+/* Menu trái thu gọn (nút project-nav-toggle): còn dải icon; không có icon thì chỉ còn nút mở lại */
+.project-body.nav-collapsed {
+  grid-template-columns: var(--side-nav-rail-w) minmax(0, 1fr);
+}
+.project-body.nav-hidden {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+.project-nav-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+}
+.nav-collapsed .project-nav-bar,
+.nav-hidden .project-nav-bar {
+  justify-content: center;
+}
+.nav-hidden .project-nav-bar {
+  border-bottom: 0;
+}
 .project-nav {
   position: sticky;
-  top: calc(var(--topbar-h) + var(--space-4));
-  max-height: calc(100vh - var(--topbar-h) - var(--space-8));
+  top: calc(var(--topbar-live-h) + var(--space-4));
+  max-height: calc(100vh - var(--topbar-live-h) - var(--space-8));
   overflow-y: auto;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -2481,6 +2573,14 @@ select:focus {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+}
+
+/* Hàng tab trong màn (vd bước Tài liệu, Sơ đồ) dính ngay dưới thanh trên khi cuộn; nền đặc để không lộ nội dung */
+.project-main .tabs:not(.tabs-pill) {
+  position: sticky;
+  top: var(--topbar-live-h);
+  z-index: var(--z-sticky);
+  background: var(--color-bg);
 }
 
 /* ApprovalBar – trạng thái + Xong / Duyệt / Yêu cầu sửa */
@@ -2601,9 +2701,22 @@ select:focus {
   border-radius: var(--radius-md);
   overflow: hidden;
 }
+.gallery-panel-rail {
+  width: var(--side-nav-rail-w);
+}
 @media (max-width: 640px) {
   .type-row {
     grid-template-columns: 1fr;
     gap: var(--space-1);
+  }
+}
+
+/* Người dùng tắt hiệu ứng chuyển động (hệ điều hành) → thanh trên đổi dạng tức thì */
+@media (prefers-reduced-motion: reduce) {
+  .topbar,
+  .topbar .brand,
+  .topbar .brand-sub,
+  .topbar .logo {
+    transition: none;
   }
 }

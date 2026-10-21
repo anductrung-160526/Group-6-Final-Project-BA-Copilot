@@ -115,6 +115,7 @@ export function Gallery() {
   const [drawer, setDrawer] = useState(false);
   const [nav, setNav] = useState("modules");
   const [nav2, setNav2] = useState("diagrams");
+  const [navCollapsed, setNavCollapsed] = useState(false);
   const [mod, setMod] = useState<"" | "auth" | "order">("auth");
   const [appr, setAppr] = useState<ApprovalStatus>("draft");
   const [revision, setRevision] = useState(false);
@@ -225,6 +226,10 @@ export function Gallery() {
             <Icon name="ai" />
             Sinh bằng AI
           </Btn>
+          <Btn>
+            <Icon name="regenerate" />
+            Sinh lại
+          </Btn>
           <Btn kind="ghost">
             <Icon name="external" />
             Mở GitHub
@@ -272,12 +277,22 @@ export function Gallery() {
       </Section>
 
       <div className="gallery-cols">
-        <Section title="SideNav (menu trái nhiều cấp)">
-          <div className="gallery-panel">
+        <Section title="SideNav (menu trái nhiều cấp, thu gọn còn dải icon)">
+          <div className={`gallery-panel ${navCollapsed ? "gallery-panel-rail" : ""}`}>
+            <div className="project-nav-bar">
+              <IconBtn
+                icon={navCollapsed ? "navExpand" : "navCollapse"}
+                label={navCollapsed ? "Mở rộng menu" : "Thu gọn menu"}
+                aria-expanded={!navCollapsed}
+                onClick={() => setNavCollapsed((v) => !v)}
+                data-testid="gallery-sidenav-toggle"
+              />
+            </div>
             <SideNav
               items={NAV}
               active={nav2}
               onSelect={setNav2}
+              collapsed={navCollapsed}
               testId="gallery-sidenav"
               header={
                 <Select

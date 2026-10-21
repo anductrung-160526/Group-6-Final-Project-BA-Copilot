@@ -28,6 +28,8 @@ import {
   LogOut,
   Menu,
   Network,
+  PanelLeftClose,
+  PanelLeftOpen,
   Pencil,
   Play,
   Plus,
@@ -60,6 +62,7 @@ const ICONS = {
   revision: RotateCcw,
   done: CircleCheck,
   reload: RefreshCw,
+  regenerate: RefreshCw, // Sinh lại bằng AI (tạo lần đầu vẫn dùng `ai`)
   arrowRight: ArrowRight,
   chevronDown: ChevronDown,
   chevronRight: ChevronRight,
@@ -82,6 +85,8 @@ const ICONS = {
   lock: Lock,
   download: Download,
   menu: Menu,
+  navCollapse: PanelLeftClose, // thu gọn menu trái
+  navExpand: PanelLeftOpen, // mở rộng menu trái
   calendar: Calendar,
   // Loại sản phẩm BA (R-080) – dùng chung cho task, thẻ liên quan
   screen: LayoutTemplate,
@@ -641,10 +646,18 @@ export interface SideNavItem {
   testId?: string;
 }
 const hasKey = (it: SideNavItem, key: string): boolean => it.key === key || !!it.children?.some((c) => hasKey(c, key));
+/** Tên chữ của mục (dùng cho tooltip / aria-label khi menu thu gọn chỉ còn icon). */
+const navText = (it: SideNavItem) => (typeof it.label === "string" ? it.label : it.key);
+/** Mục bấm được khi thu gọn: có href, có `onSelect`, hoặc không có mục con (mục cha chỉ để mở/thu thì bỏ). */
+const railable = (it: SideNavItem, selectable: boolean) => !!(it.href || selectable || !it.children?.length);
+/** Có mục cấp 1 có icon (và bấm được) → khi thu gọn còn dải icon; không có thì menu thu gọn ẩn hẳn. */
+export const sideNavHasRail = (items: SideNavItem[], selectable = false) => items.some((it) => !!it.icon && railable(it, selectable));
 
 /**
  * Menu trái nhiều cấp. Mục đang chọn: nền mint-50, vạch trái mint-500, chữ đậm, `aria-current="page"`.
  * Mục cha mở/thu bằng nút mũi tên (tự mở khi có mục con đang chọn). `header` là chỗ chèn bộ chọn module.
+ * `collapsed`: dải icon – chỉ còn mục cấp 1 có icon (kèm các mục con cấp 2 có số bước / icon), tên mục thành tooltip +
+ * `aria-label`; ẩn `header`, nhãn, badge. Không có mục nào có icon (`sideNavHasRail` = false) thì không hiện gì.
  */
 export function SideNav({
   items,
@@ -654,6 +667,7 @@ export function SideNav({
   ariaLabel = "Menu",
   className = "",
   testId,
+  collapsed = false,
 }: {
   items: SideNavItem[];
   active: string;
@@ -662,6 +676,7 @@ export function SideNav({
   ariaLabel?: string;
   className?: string;
   testId?: string;
+  collapsed?: boolean;
 }) {
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const baseId = useId();
@@ -733,6 +748,49 @@ export function SideNav({
         </li>
       );
     });
+
+  if (collapsed) {
+    const railItem = (it: SideNavItem, isActive: boolean, hasActive: boolean) => {
+      const cls = `side-nav-item side-nav-rail-item ${isActive ? "active" : ""} ${hasActive ? "has-active" : ""}`;
+      const text = navText(it);
+      const body = it.icon ? <Icon name={it.icon} /> : <span className="side-nav-step">{it.step}</span>;
+      return it.href ? (
+        <a href={it.href} className={cls} title={text} aria-label={text} aria-current={isActive ? "page" : undefined} data-testid={it.testId} onClick={() => onSelect?.(it.key)}>
+          {body}
+        </a>
+      ) : (
+        <button type="button" className={cls} title={text} aria-label={text} aria-current={isActive ? "page" : undefined} data-testid={it.testId} onClick={() => onSelect?.(it.key)}>
+          {body}
+        </button>
+      );
+    };
+    const rail = items.filter((it) => it.icon && railable(it, !!onSelect));
+    if (!rail.length) return null;
+    return (
+      <nav className={`side-nav side-nav-collapsed ${className}`} aria-label={ariaLabel} data-testid={testId}>
+        <ul className="side-nav-list">
+          {rail.map((it) => {
+            const kids = (it.children ?? []).filter((c) => (c.icon || c.step !== undefined) && railable(c, !!onSelect));
+            const kidActive = kids.some((c) => hasKey(c, active));
+            return (
+              <li key={it.key} className="side-nav-node">
+                {railItem(it, kidActive ? false : hasKey(it, active), kidActive)}
+                {kids.length > 0 && (
+                  <ul className="side-nav-list side-nav-rail-kids">
+                    {kids.map((c) => (
+                      <li key={c.key} className="side-nav-node">
+                        {railItem(c, hasKey(c, active), false)}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    );
+  }
 
   return (
     <nav className={`side-nav ${className}`} aria-label={ariaLabel} data-testid={testId}>

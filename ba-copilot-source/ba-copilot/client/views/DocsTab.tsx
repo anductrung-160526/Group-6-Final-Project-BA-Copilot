@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { post, download } from "../api.ts";
 import type { ModuleDetail, UseCase } from "../../shared/types.ts";
-import { Badge, Btn, Empty, StatusBadge, useUI } from "../components/ui.tsx";
+import { Badge, Btn, Empty, Icon, StatusBadge, useUI } from "../components/ui.tsx";
 import { Markdown } from "../components/Markdown.tsx";
 import { Mermaid } from "../components/Mermaid.tsx";
 import { RelatedTasks } from "../components/RelatedTasks.tsx";
@@ -55,7 +55,8 @@ export function DocsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise<
         <span className="muted small">Nguồn: {approvedScreens.length} màn hình đã duyệt</span>
         <div className="spacer" />
         <Btn kind={m.docsStatus === "none" ? "primary" : "secondary"} size="sm" disabled={!approvedScreens.length} onClick={generate} data-testid="generate-docs" title={!approvedScreens.length ? "BR-01: cần duyệt ít nhất 1 màn hình" : ""}>
-          ✦ {m.docsStatus === "none" ? "Sinh tài liệu" : "Sinh lại"}
+          <Icon name={m.docsStatus === "none" ? "ai" : "regenerate"} size="sm" />
+          {m.docsStatus === "none" ? "Sinh tài liệu" : "Sinh lại"}
         </Btn>
         {m.docsStatus !== "none" && (
           <>
