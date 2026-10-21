@@ -24,7 +24,13 @@ Kiểu dữ liệu (`Member`, `Task`, …) khai báo trong `shared/types.ts`. H�
 | PATCH | `/api/members/:id` | `{ name?, role? }` | `Member` | `updateMember(id, b)` |
 | DELETE | `/api/members/:id` | – | `{ ok: true }` · `409` nếu đang là người làm của task chưa Xong | `deleteMember(id)` |
 
-Lỗi: `name` rỗng → `400`; `role` ngoài 2 giá trị → `400`.
+Lỗi: `name` rỗng → `400`; `role` ngoài 2 giá trị → `400`; trùng tên thành viên khác (trim, gộp khoảng trắng, không phân biệt hoa/thường – `projectNameKey`) khi thêm / đổi tên → `409`.
+
+**Quyền (đợt 6):** thêm / sửa / xoá chỉ BA Lead (`403 FORBIDDEN`; hệ thống chưa có BA Lead thì ai cũng làm được để tạo người đầu tiên). Nhóm luôn còn ít nhất một BA Lead: BA Lead tự hạ vai xuống BA hoặc tự xoá mình → `400`; hạ vai / xoá BA Lead cuối cùng → `400`.
+
+**Dự án / module (`server/app.ts`):** `DELETE /api/projects/:id`, `DELETE /api/modules/:id` (actorId ở query hoặc body) chỉ BA Lead → `403 FORBIDDEN` cho BA, và cả khi thiếu / sai `actorId` nếu nhóm đã có BA Lead (nhóm chưa có BA Lead thì cho qua); id không tồn tại → `404`. `POST /api/projects/:id/modules`, `PATCH /api/modules/:id`: trùng tên module khác **trong cùng dự án** (cùng khoá với tên dự án) → `409`.
+
+**Màn / góp ý (`server/app.ts`):** `PATCH /api/screens/:id` – `name` được trim, rỗng / chỉ khoảng trắng → `400`, không gửi `name` thì không đổi gì; màn không tồn tại → `404`. `DELETE /api/screens/:id` xoá góp ý của màn và gỡ liên kết sản phẩm của task đang gắn màn (`artifactType/artifactId/artifactSub = null`, thêm một `TaskEvent` hệ thống "Linked screen “…” was deleted"). `POST /api/screens/:id/annotations`: `author` / `authorId` chỉ lấy từ thành viên của `actorId` (bỏ qua `body.author`; không có người thao tác → `"BA"`). `DELETE /api/annotations/:id` (actorId ở query hoặc body): chỉ tác giả hoặc BA Lead → `403 FORBIDDEN` (nhóm chưa có BA Lead thì cho qua; góp ý không rõ tác giả chỉ BA Lead xoá được); không tồn tại → `404`. `PATCH /api/annotations/:id` (đổi trạng thái) vẫn mở cho cả nhóm.
 
 **Bổ sung vào endpoint cũ (FN-03, không đổi hành vi cũ):** `POST /api/screens/:id/annotations`, `POST /api/modules/:id/screens`, `POST /api/screens/:id/edit`, `/revert`, `/layout/accept`, `/manual` nhận thêm `actorId?`. A3 lưu `author_id` và tên (`author`) vào `annotations`/`screen_versions`; `Annotation.authorId`, `ScreenVersion.author`, `ScreenVersion.authorId` trả về trong các API đọc màn và phiên bản.
 
@@ -162,9 +168,9 @@ Người viết: **C2**. Kế hoạch: `docs/Ke_hoach_Agent_BA_Copilot_v2_dot5.m
 | POST | `/api/logout` | – | `{ ok: true }`, xoá cả 2 cookie | công khai | `logout()` | C2 |
 | GET | `/api/me` | – | `MeInfo = { member: Member \| null, mode: "demo" \| "member", appAuth: boolean }` | công khai | `getMe()` | C2 |
 | PUT | `/api/members/:id/password` | `{ password }` (rỗng = xoá; ≥ 6 ký tự) | `Member` (`hasPassword`) · `400` nếu mật khẩu đầu tiên không phải của BA Lead, hoặc xoá mật khẩu BA Lead cuối cùng khi người khác còn mật khẩu | chính mình hoặc `requireLead` | `setMemberPassword(id, pw)` | C2 (màn Quản trị: C3) |
-| POST | `/api/presence` | `{ kind: PresenceKind, id, sub? }` – gửi mỗi 30 giây | `PresenceEntry[]` người khác đang mở (trừ mình) | `requireMember` | `touchPresence(t)` / hook `usePresence` | C2 |
+| POST | `/api/presence` | `{ kind: PresenceKind, id, sub? }` – gửi mỗi 30 giây | `PresenceEntry[]` người khác đang mở (trừ mình) · `400` id rỗng · `404` màn / story / module (doc, diagram, tests) không tồn tại | `requireMember` | `touchPresence(t)` / hook `usePresence` | C2 |
 | GET | `/api/presence` | query `kind`, `id`, `sub?` | `PresenceEntry[]` (trừ mình) | `requireMember` | `listPresence(t)` | C2 |
-| DELETE | `/api/presence` | `{ kind, id, sub? }` | `{ ok: true }` (rời màn) | `requireMember` | `leavePresence(t)` | C2 |
+| DELETE | `/api/presence` | `{ kind, id, sub? }` | `{ ok: true }` (rời màn – chỉ gỡ nhịp của chính người gọi; mục hết hạn được dọn định kỳ ở mọi khoá) | `requireMember` | `leavePresence(t)` | C2 |
 | GET | `/api/projects/:id/runs` | query `moduleId?` | `PromptRun[]` mới nhất trước | `requireMember` | `listProjectRuns(pid, q)` | C2 (màn: C3) |
 | GET | `/api/settings` | – | thêm trường `memberAuth: boolean` | công khai | – | C2 |
 
@@ -175,7 +181,7 @@ Người viết: **C2**. Kế hoạch: `docs/Ke_hoach_Agent_BA_Copilot_v2_dot5.m
 | Method | Path | Body / query | Trả về | Quyền | Client |
 |---|---|---|---|---|---|
 | GET | `/api/projects/:id/stories` | query `moduleId?` | `UserStory[]` theo `order` | `requireMember` | `listStories(pid, q)` |
-| POST | `/api/projects/:id/stories` | `UserStoryInput` | `UserStory` (mã `US-xx` tự đánh: `storyCode(nextStoryNumber(db, pid))`, `rev 1`) | `requireMember` | `createStory(pid, b)` |
+| POST | `/api/projects/:id/stories` | `UserStoryInput` | `UserStory` (mã `US-xx` tự đánh: `storyCode(nextStoryNumber(db, pid))`, `rev 1`) · `400` khi trống cả `asA` / `iWant` / `soThat` | `requireMember` | `createStory(pid, b)` |
 | POST | `/api/projects/:id/stories/reorder` | `{ ids: string[] }` | `UserStory[]` | `requireMember` | `reorderStories(pid, ids)` |
 | GET | `/api/stories/:id` | – | `UserStory` | `requireMember` | `getStory(id)` |
 | PATCH | `/api/stories/:id` | `UserStoryInput & { baseRev? }` | `UserStory` · `409 CONFLICT` | `requireMember` | `updateStory(id, b)` |

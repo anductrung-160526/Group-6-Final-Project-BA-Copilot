@@ -2,6 +2,7 @@
 
 import { randomUUID } from "node:crypto";
 import { getDb } from "../db.ts";
+import { projectNameKey } from "../../shared/projectName.ts";
 import type { Member, MemberRole } from "../../shared/types.ts";
 
 type Row = Record<string, any>;
@@ -16,6 +17,13 @@ export function listMembers(): Member[] {
 
 export function getMember(id: string): Member | null {
   const r = getDb().prepare("SELECT * FROM members WHERE id = ?").get(id) as Row | undefined;
+  return r ? toMember(r) : null;
+}
+
+/** Thành viên khác (bỏ qua `exceptId`) trùng tên theo `projectNameKey` (trim, gộp khoảng trắng, không phân biệt hoa/thường). */
+export function findMemberByName(name: string, exceptId?: string): Member | null {
+  const key = projectNameKey(name);
+  const r = (getDb().prepare("SELECT * FROM members").all() as Row[]).find((x) => x.id !== exceptId && projectNameKey(String(x.name ?? "")) === key);
   return r ? toMember(r) : null;
 }
 
@@ -46,6 +54,11 @@ export function countOpenTasks(memberId: string): number {
 /** true khi hệ thống đã có ít nhất một BA Lead (khi chưa có thì ai cũng quản trị được để tạo người đầu tiên). */
 export function hasLead(): boolean {
   return !!getDb().prepare("SELECT 1 FROM members WHERE role = 'BA_LEAD' LIMIT 1").get();
+}
+
+/** Số BA Lead hiện có – nhóm luôn phải còn ít nhất một (chặn hạ vai / xoá BA Lead cuối). */
+export function countLeads(): number {
+  return Number((getDb().prepare("SELECT COUNT(*) AS n FROM members WHERE role = 'BA_LEAD'").get() as Row).n);
 }
 
 export function deleteMember(id: string): void {

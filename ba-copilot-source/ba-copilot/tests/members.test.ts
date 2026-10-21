@@ -64,14 +64,57 @@ test("Quản trị: chưa có BA Lead thì ai cũng thêm được; có rồi th
   assert.equal((await api("GET", "/api/members")).status, 200);
 });
 
-test("Quản trị: hết BA Lead (đổi vai người cuối) thì mở lại cho mọi người", async () => {
+test("Quản trị: nhóm luôn còn BA Lead – không tự hạ vai / tự xoá, không hạ vai / xoá BA Lead cuối (400)", async () => {
   const tmp = await api("POST", "/api/members", asLead({ name: "Tạm", role: "BA" }));
   assert.equal(tmp.status, 200);
-  // Lead tự bỏ vai → hệ thống không còn BA Lead → ai cũng sửa được để đặt lại.
-  assert.equal((await api("PATCH", `/api/members/${leadId}`, asLead({ role: "BA" }))).status, 200);
-  assert.equal((await api("PATCH", `/api/members/${leadId}`, { role: "BA_LEAD", actorId: tmp.data.id })).status, 200);
+  // BA Lead tự hạ mình xuống BA hoặc tự xoá → 400, vai không đổi
+  const self = await api("PATCH", `/api/members/${leadId}`, asLead({ role: "BA" }));
+  assert.equal(self.status, 400);
+  assert.match(self.data.error, /can't remove your own BA Lead role/);
+  const selfDel = await api("DELETE", `/api/members/${leadId}?actorId=${leadId}`);
+  assert.equal(selfDel.status, 400);
+  assert.match(selfDel.data.error, /can't delete yourself/);
+  assert.equal((await api("GET", "/api/members")).data.find((m: any) => m.id === leadId).role, "BA_LEAD");
+  // Tự sửa tên mình / giữ nguyên vai BA Lead vẫn được
+  assert.equal((await api("PATCH", `/api/members/${leadId}`, asLead({ name: "Lead Một", role: "BA_LEAD" }))).status, 200);
+
+  // Có BA Lead thứ hai → Lead Một hạ vai / xoá được người đó; người đó hết là BA Lead cuối
+  const lead2 = await api("POST", "/api/members", asLead({ name: "Lead Hai", role: "BA_LEAD" }));
+  assert.equal((await api("PATCH", `/api/members/${lead2.data.id}`, asLead({ role: "BA" }))).status, 200);
+  assert.equal((await api("PATCH", `/api/members/${lead2.data.id}`, asLead({ role: "BA_LEAD" }))).status, 200);
+  assert.equal((await api("DELETE", `/api/members/${lead2.data.id}?actorId=${leadId}`)).status, 200);
+
+  // DB cũ không còn BA Lead nào: ai cũng sửa được để đặt lại (ngoại lệ khởi tạo), rồi khoá lại như cũ.
+  getDb().prepare("UPDATE members SET role = 'BA' WHERE id = ?").run(leadId);
+  assert.equal((await api("PATCH", `/api/members/${leadId}`, { role: "BA_LEAD", actorId: tmp.data.id })).status, 200, "không còn BA Lead → ai cũng đặt lại được");
   assert.equal((await api("PATCH", `/api/members/${leadId}`, { name: "Lead Một", actorId: tmp.data.id })).status, 403, "đã có BA Lead lại → chặn");
   assert.equal((await api("DELETE", `/api/members/${tmp.data.id}?actorId=${leadId}`)).status, 200);
+});
+
+test("Quản trị: BA Lead vừa bị hạ vai không đổi vai được nữa; BA Lead cuối vẫn còn", async () => {
+  // Hai BA Lead: Lead Một hạ Lead Ba → còn một BA Lead (Lead Một); không ai hạ / xoá được Lead Một nữa.
+  const lead3 = await api("POST", "/api/members", asLead({ name: "Lead Ba", role: "BA_LEAD" }));
+  assert.equal((await api("PATCH", `/api/members/${lead3.data.id}`, asLead({ role: "BA" }))).status, 200);
+  for (const actorId of [lead3.data.id, undefined]) {
+    assert.equal((await api("PATCH", `/api/members/${leadId}`, { role: "BA", actorId })).status, 403, "BA không đổi vai được");
+  }
+  const last = await api("PATCH", `/api/members/${leadId}`, asLead({ role: "BA" }));
+  assert.equal(last.status, 400);
+  assert.equal((await api("GET", "/api/members")).data.filter((m: any) => m.role === "BA_LEAD").length, 1, "vẫn còn đúng một BA Lead");
+  assert.equal((await api("DELETE", `/api/members/${lead3.data.id}?actorId=${leadId}`)).status, 200);
+});
+
+test("Quản trị: tên thành viên không trùng (trim, không phân biệt hoa/thường) khi thêm và đổi tên → 409", async () => {
+  const a = await api("POST", "/api/members", asLead({ name: "Hoa Mai", role: "BA" }));
+  assert.equal(a.status, 200);
+  const dup = await api("POST", "/api/members", asLead({ name: "  hoa   MAI ", role: "BA_LEAD" }));
+  assert.equal(dup.status, 409);
+  assert.equal(dup.data.error, "A member named “hoa   MAI” already exists. Please choose another name.");
+  const b = await api("POST", "/api/members", asLead({ name: "Hoa Đào", role: "BA" }));
+  assert.equal((await api("PATCH", `/api/members/${b.data.id}`, asLead({ name: "HOA MAI" }))).status, 409, "đổi tên trùng người khác");
+  assert.equal((await api("PATCH", `/api/members/${a.data.id}`, asLead({ name: "hoa mai" }))).status, 200, "đổi hoa/thường tên của chính mình vẫn được");
+  assert.equal((await api("GET", "/api/members")).data.find((m: any) => m.id === b.data.id).name, "Hoa Đào", "bản bị chặn không ghi");
+  for (const m of [a, b]) assert.equal((await api("DELETE", `/api/members/${m.data.id}?actorId=${leadId}`)).status, 200);
 });
 
 test("FN-01: thêm, liệt kê theo tên, sửa thành viên", async () => {
@@ -160,4 +203,69 @@ test("FN-03: tạo và khôi phục phiên bản màn ghi tên + mã người th
   const rev2 = await api("POST", `/api/screens/${sid}/revert`, { versionId: s.data.version.id, actorId: "khong-co" });
   assert.equal(rev2.status, 200);
   assert.deepEqual({ ...author(rev2.data.id) }, { author: "", authorId: null });
+});
+
+test("FN-03 + quyền góp ý: tác giả chỉ lấy từ hồ sơ thành viên; xoá góp ý chỉ tác giả hoặc BA Lead; đổi trạng thái cả nhóm", async () => {
+  const ba1 = await api("POST", "/api/members", asLead({ name: "Góp ý Một", role: "BA" }));
+  const ba2 = await api("POST", "/api/members", asLead({ name: "Góp ý Hai", role: "BA" }));
+  const p = await api("POST", "/api/projects", { name: "Dự án góp ý" });
+  const mod = await api("POST", `/api/projects/${p.data.id}/modules`, { name: "Đăng nhập" });
+  const s = await api("POST", `/api/modules/${mod.data.id}/screens`, { prompt: "Màn hình đăng nhập bằng email và mật khẩu", name: "Đăng nhập", actorId: ba1.data.id });
+  const sid = s.data.screen.id;
+  const comment = (body: Record<string, unknown>) => api("POST", `/api/screens/${sid}/annotations`, { comment: "Đổi nhãn nút", nodeIds: [], ...body });
+
+  // body.author bị bỏ qua: có người thao tác → tên + mã của họ; không có → "BA", không mã
+  const mine = await comment({ author: "Giả mạo", actorId: ba1.data.id });
+  assert.equal(mine.status, 200);
+  assert.deepEqual([mine.data.author, mine.data.authorId], ["Góp ý Một", ba1.data.id]);
+  const anon = await comment({ author: "Giả mạo" });
+  assert.deepEqual([anon.data.author, anon.data.authorId], ["BA", null]);
+
+  // Đổi trạng thái: ai trong nhóm cũng được
+  const res = await api("PATCH", `/api/annotations/${mine.data.id}`, { status: "resolved", actorId: ba2.data.id });
+  assert.equal(res.status, 200);
+  assert.equal(res.data.status, "resolved");
+
+  // Xoá: người khác (BA) / không rõ người → 403; tác giả → được; góp ý không rõ tác giả chỉ BA Lead xoá được
+  for (const q of [`?actorId=${ba2.data.id}`, ""]) {
+    const r = await api("DELETE", `/api/annotations/${mine.data.id}${q}`);
+    assert.equal(r.status, 403, q);
+    assert.equal(r.data.code, "FORBIDDEN");
+  }
+  assert.equal((await api("DELETE", `/api/annotations/${mine.data.id}?actorId=${ba1.data.id}`)).status, 200);
+  assert.equal((await api("DELETE", `/api/annotations/${anon.data.id}?actorId=${ba1.data.id}`)).status, 403);
+  assert.equal((await api("DELETE", `/api/annotations/${anon.data.id}`, { actorId: leadId })).status, 200, "BA Lead xoá được góp ý của người khác");
+  assert.equal((await api("DELETE", `/api/annotations/${anon.data.id}?actorId=${leadId}`)).status, 404);
+});
+
+test("đổi tên màn: trim, rỗng → 400, không gửi name thì không đổi; xoá màn gỡ liên kết task và xoá góp ý", async () => {
+  const p = await api("POST", "/api/projects", { name: "Dự án màn" });
+  const mod = await api("POST", `/api/projects/${p.data.id}/modules`, { name: "Sản phẩm" });
+  const s = await api("POST", `/api/modules/${mod.data.id}/screens`, { prompt: "Danh sách sản phẩm", name: "Danh sách", actorId: leadId });
+  const sid = s.data.screen.id;
+  const rev = () => (getDb().prepare("SELECT rev FROM screens WHERE id = ?").get(sid) as any).rev;
+  const r0 = rev();
+
+  for (const name of ["", "   "]) {
+    const r = await api("PATCH", `/api/screens/${sid}`, { name, actorId: leadId });
+    assert.equal(r.status, 400, JSON.stringify(name));
+    assert.equal(r.data.error, "Screen name cannot be empty");
+  }
+  const keep = await api("PATCH", `/api/screens/${sid}`, { actorId: leadId });
+  assert.equal(keep.status, 200);
+  assert.equal(keep.data.name, "Danh sách", "không gửi name → giữ tên");
+  assert.equal(rev(), r0, "không đổi gì → không tăng rev");
+  const ok = await api("PATCH", `/api/screens/${sid}`, { name: "  Danh sách sản phẩm ", actorId: leadId });
+  assert.equal(ok.data.name, "Danh sách sản phẩm");
+  assert.equal((await api("PATCH", "/api/screens/khong-co", { name: "X" })).status, 404);
+
+  // Xoá màn có task + góp ý: task còn, bỏ liên kết; góp ý của màn bị xoá
+  const t = await api("POST", `/api/projects/${p.data.id}/tasks`, { title: "Thiết kế danh sách", artifactType: "screen", artifactId: sid, actorId: leadId });
+  assert.equal(t.status, 200);
+  await api("POST", `/api/screens/${sid}/annotations`, { comment: "Thêm bộ lọc", actorId: leadId });
+  assert.equal((await api("DELETE", `/api/screens/${sid}?actorId=${leadId}`)).status, 200);
+  const task = await api("GET", `/api/tasks/${t.data.id}`);
+  assert.deepEqual([task.data.artifactType, task.data.artifactId, task.data.artifactSub], [null, null, null]);
+  assert.match(task.data.events.at(-1).reason, /Linked screen “Danh sách sản phẩm” was deleted/);
+  assert.equal(Number((getDb().prepare("SELECT COUNT(*) AS n FROM annotations WHERE screen_id = ?").get(sid) as any).n), 0);
 });

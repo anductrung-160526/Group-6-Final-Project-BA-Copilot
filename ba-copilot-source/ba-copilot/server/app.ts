@@ -38,7 +38,8 @@ import {
 import "./routes/index.ts"; // route theo phân hệ (v2 + khung đợt 5)
 import { registerTaskAutomation } from "./taskAutomation.ts";
 import { saveModuleQus } from "./routes/qus.ts";
-import { getMember } from "./repo/members.ts";
+import { getMember, hasLead } from "./repo/members.ts";
+import { getStory } from "./repo/stories.ts";
 import { bumpRev, getArtifactState } from "./db.ts";
 import { leavePresence, listPresence, PRESENCE_KINDS, touchPresence } from "./presence.ts";
 import type { MeInfo, PresenceKind, PresenceTarget, PromptRun } from "../shared/types.ts";
@@ -76,13 +77,19 @@ route("PUT", "/api/members/:id/password", (ctx) => {
 // Hiện diện "Đang được sửa bởi …" (server/presence.ts). Chế độ demo: người gửi lấy từ actorId.
 function presenceTarget(src: { kind?: unknown; id?: unknown; sub?: unknown }): PresenceTarget {
   const kind = String(src.kind ?? "") as PresenceKind;
-  const id = str(src.id, 200);
+  const id = str(src.id, 200).trim();
   if (!PRESENCE_KINDS.includes(kind) || !id) throw new HttpError("Invalid kind/id", 400);
-  const sub = str(src.sub, 40);
+  const sub = str(src.sub, 40).trim();
   return { kind, id, ...(sub ? { sub } : {}) };
+}
+/** Nhịp chỉ ghi cho thứ có thật: màn (screen), story, còn doc / diagram / tests thì id là module. */
+function assertPresenceTargetExists(t: PresenceTarget): void {
+  const found = t.kind === "screen" ? repo.getScreen(t.id) : t.kind === "story" ? getStory(t.id) : repo.getModule(t.id);
+  if (!found) throw new HttpError("The item being edited no longer exists", 404);
 }
 route("POST", "/api/presence", (ctx) => {
   const t = presenceTarget(ctx.body);
+  assertPresenceTargetExists(t);
   const me = requireMember(ctx);
   if (me) touchPresence(t, me);
   return listPresence(t, me?.id);
@@ -91,6 +98,7 @@ route("GET", "/api/presence", (ctx) => {
   const t = presenceTarget({ kind: ctx.query.get("kind"), id: ctx.query.get("id"), sub: ctx.query.get("sub") });
   return listPresence(t, requireMember(ctx)?.id);
 });
+// Chỉ gỡ nhịp của chính người gọi (phiên / actorId), không nhận mã người khác.
 route("DELETE", "/api/presence", (ctx) => {
   const t = presenceTarget(ctx.body);
   const me = requireMember(ctx);
@@ -103,11 +111,24 @@ const trimmed = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 const check = (err: string | null) => {
   if (err) throw new BizError(err);
 };
-/** Tên module hợp lệ (tạo + sửa): trim, không rỗng, tối đa MODULE_NAME_MAX ký tự. */
-function moduleName(v: unknown): string {
+/**
+ * Tên module hợp lệ (tạo + sửa): trim, không rỗng, tối đa MODULE_NAME_MAX ký tự, không trùng module KHÁC của dự án
+ * (cùng khoá so sánh với tên dự án – projectNameKey) → 409. Đổi về chính tên mình (kể cả hoa/thường) vẫn được.
+ */
+function moduleName(v: unknown, projectId: string, exceptId?: string): string {
   const name = trimmed(v);
   check(moduleNameError(name));
+  if (repo.findModuleByName(projectId, name, exceptId)) throw new BizError(MSG.duplicateModule(name), 409);
   return name;
+}
+
+/**
+ * Xoá dự án / module: chỉ BA Lead (403 FORBIDDEN). Chặt hơn requireLead ở chế độ demo: thiếu hoặc sai actorId cũng
+ * bị chặn khi nhóm đã có BA Lead (client luôn gửi actorId); nhóm chưa có BA Lead nào thì cho qua như màn Quản trị.
+ */
+function requireLeadToDelete(ctx: HandlerCtx): void {
+  const m = requireLead(ctx);
+  if (!m && hasLead()) throw new HttpError("Only a BA Lead can perform this action", 403, "FORBIDDEN");
 }
 
 route("GET", "/api/projects", () => repo.listProjects());
@@ -124,11 +145,16 @@ route("GET", "/api/projects/:id", ({ params }) => {
   if (!p) throw new BizError("Project not found", 404);
   return { ...p, modules: repo.listModules(p.id) };
 });
-route("DELETE", "/api/projects/:id", ({ params }) => (repo.deleteProject(params.id), { ok: true }));
+route("DELETE", "/api/projects/:id", (ctx) => {
+  requireLeadToDelete(ctx);
+  if (!repo.getProject(ctx.params.id)) throw new BizError("Project not found", 404);
+  repo.deleteProject(ctx.params.id);
+  return { ok: true };
+});
 
 route("POST", "/api/projects/:id/modules", ({ params, body }) => {
   if (!repo.getProject(params.id)) throw new BizError("Project not found", 404);
-  const m = repo.createModule(params.id, moduleName(body.name), str(body.requirementInput, 50000));
+  const m = repo.createModule(params.id, moduleName(body.name, params.id), str(body.requirementInput, 50000));
   saveModuleQus(m.id); // FN-56 (R-020)
   return repo.getModule(m.id);
 });
@@ -138,15 +164,21 @@ route("GET", "/api/modules/:id", ({ params }) => {
   return m;
 });
 route("PATCH", "/api/modules/:id", ({ params, body }) => {
-  if (!repo.getModule(params.id)) throw new BizError("Module not found", 404);
+  const cur = repo.getModule(params.id);
+  if (!cur) throw new BizError("Module not found", 404);
   repo.updateModule(params.id, {
-    ...(typeof body.name === "string" ? { name: moduleName(body.name) } : {}),
+    ...(typeof body.name === "string" ? { name: moduleName(body.name, cur.projectId, cur.id) } : {}),
     ...(typeof body.requirementInput === "string" ? { requirementInput: str(body.requirementInput, 50000) } : {}),
   });
   if (typeof body.requirementInput === "string") saveModuleQus(params.id); // FN-56 (R-020)
   return repo.getModule(params.id);
 });
-route("DELETE", "/api/modules/:id", ({ params }) => (repo.deleteModule(params.id), { ok: true }));
+route("DELETE", "/api/modules/:id", (ctx) => {
+  requireLeadToDelete(ctx);
+  if (!repo.getModule(ctx.params.id)) throw new BizError("Module not found", 404);
+  repo.deleteModule(ctx.params.id);
+  return { ok: true };
+});
 route("GET", "/api/modules/:id/model", ({ params }) => svc.getDesignModel(params.id));
 route("GET", "/api/modules/:id/runs", ({ params }) => repo.listRuns(params.id));
 // Đợt 5: nhật ký AI cấp dự án (màn #/p/:pid/logs của C3), lọc ?moduleId=. Mới nhất trước.
@@ -172,7 +204,14 @@ async function screenWrite<T>(ctx: HandlerCtx, fn: () => T | Promise<T>): Promis
 
 // Design Studio
 route("POST", "/api/modules/:id/screens", ({ params, body }) => svc.createScreenFromPrompt(params.id, str(body.prompt), str(body.name, 120), actor(body)));
-route("PATCH", "/api/screens/:id", (ctx) => screenWrite(ctx, () => (repo.updateScreen(ctx.params.id, { name: str(ctx.body.name, 120) }), repo.getScreen(ctx.params.id))));
+// Đổi tên màn: trim, rỗng / chỉ khoảng trắng → 400; không gửi `name` thì không đổi gì (không tăng rev).
+route("PATCH", "/api/screens/:id", (ctx) => {
+  if (!repo.getScreen(ctx.params.id)) throw new BizError("Screen not found", 404);
+  if (ctx.body.name === undefined) return repo.getScreen(ctx.params.id);
+  const name = str(ctx.body.name, 120).trim();
+  if (!name) throw new BizError("Screen name cannot be empty");
+  return screenWrite(ctx, () => (repo.updateScreen(ctx.params.id, { name }), repo.getScreen(ctx.params.id)));
+});
 route("DELETE", "/api/screens/:id", (ctx) => {
   requireMember(ctx);
   const st = getArtifactState({ kind: "screen", id: ctx.params.id, moduleId: "" });
@@ -196,8 +235,9 @@ route("POST", "/api/screens/:id/annotations", ({ params, body }) => {
   const b = body.bbox;
   const bbox = b && typeof b === "object" ? { x: Number(b.x) || 0, y: Number(b.y) || 0, w: Number(b.w) || 0, h: Number(b.h) || 0 } : null;
   const id = actor(body);
-  const member = id ? getMember(id) : null; // FN-03 (R-007): người thao tác có thật thì lấy tên + mã của họ
-  return repo.createAnnotation({ screenId: s.id, versionId: s.currentVersionId, nodeIds: arr(body.nodeIds), bbox, comment, author: member?.name ?? (str(body.author, 60) || "BA"), authorId: member?.id ?? null });
+  // FN-03 (R-007): tác giả chỉ lấy từ hồ sơ thành viên của người thao tác, không tin `body.author` client gửi.
+  const member = id ? getMember(id) : null;
+  return repo.createAnnotation({ screenId: s.id, versionId: s.currentVersionId, nodeIds: arr(body.nodeIds), bbox, comment, author: member?.name ?? "BA", authorId: member?.id ?? null });
 });
 route("PATCH", "/api/annotations/:id", ({ params, body }) => {
   const st = body.status;
@@ -205,7 +245,17 @@ route("PATCH", "/api/annotations/:id", ({ params, body }) => {
   repo.setAnnotationStatus([params.id], st);
   return repo.getAnnotation(params.id);
 });
-route("DELETE", "/api/annotations/:id", ({ params }) => (repo.deleteAnnotation(params.id), { ok: true }));
+// Đổi trạng thái góp ý (gửi AI / đã xử lý / mở lại): cả nhóm. Xoá: chỉ tác giả hoặc BA Lead (403); nhóm chưa có BA Lead
+// thì cho qua. Góp ý cũ không rõ tác giả chỉ BA Lead xoá được.
+route("DELETE", "/api/annotations/:id", (ctx) => {
+  const me = requireMember(ctx);
+  const a = repo.getAnnotation(ctx.params.id);
+  if (!a) throw new BizError("Comment not found", 404);
+  const allowed = !hasLead() || me?.role === "BA_LEAD" || (!!me && !!a.authorId && a.authorId === me.id);
+  if (!allowed) throw new HttpError("Only the comment's author or a BA Lead can delete this comment", 403, "FORBIDDEN");
+  repo.deleteAnnotation(ctx.params.id);
+  return { ok: true };
+});
 
 // Gợi ý element (mô hình trong model/: Recursive + Transformer, xem service.layoutSuggestions): client gửi khung bao đo trên canvas
 route("POST", "/api/screens/:id/suggestions", ({ params, body }) => {

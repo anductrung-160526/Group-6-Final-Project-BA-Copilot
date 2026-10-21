@@ -126,6 +126,14 @@ export function updateModule(id: string, patch: Partial<Pick<Module, "name" | "r
   getDb().prepare(`UPDATE modules SET ${cols.join(", ")} WHERE id = ?`).run(...vals, id);
 }
 
+/** Module khác (bỏ qua `exceptId`) cùng dự án, trùng tên theo `projectNameKey` (cùng quy tắc với tên dự án). */
+export function findModuleByName(projectId: string, name: string, exceptId?: string): Module | null {
+  const key = projectNameKey(name);
+  const rows = getDb().prepare("SELECT * FROM modules WHERE project_id = ?").all(projectId) as Row[];
+  const r = rows.find((x) => x.id !== exceptId && projectNameKey(String(x.name ?? "")) === key);
+  return r ? toModule(r) : null;
+}
+
 export function deleteModule(id: string): void {
   getDb().prepare("DELETE FROM modules WHERE id = ?").run(id);
 }
@@ -206,8 +214,23 @@ export function updateScreen(id: string, patch: Partial<Pick<Screen, "name" | "s
   getDb().prepare(`UPDATE screens SET ${cols.join(", ")} WHERE id = ?`).run(...vals, id);
 }
 
+/**
+ * Xoá màn. Task đang gắn màn này được gỡ liên kết sản phẩm (thành task không gắn sản phẩm – không trỏ vào màn đã xoá)
+ * và ghi một dòng lịch sử hệ thống "Kept <trạng thái> (Linked screen “…” was deleted)" để còn biết task từng gắn màn nào.
+ * Góp ý của màn xoá luôn (CASCADE đã lo, xoá thẳng cho chắc với DB cũ chưa bật khoá ngoại).
+ */
 export function deleteScreen(id: string): void {
-  getDb().prepare("DELETE FROM screens WHERE id = ?").run(id);
+  tx(() => {
+    const d = getDb();
+    const at = now();
+    const name = (d.prepare("SELECT name FROM screens WHERE id = ?").get(id) as Row | undefined)?.name ?? "";
+    const linked = d.prepare("SELECT id, status FROM tasks WHERE artifact_type = 'screen' AND artifact_id = ?").all(id) as Row[];
+    const ev = d.prepare("INSERT INTO task_events (id, task_id, from_status, to_status, by_member_id, by_system, reason, created_at) VALUES (?, ?, ?, ?, NULL, 1, ?, ?)");
+    for (const t of linked) ev.run(uid(), t.id, t.status, t.status, `Linked screen “${name}” was deleted`, at);
+    d.prepare("UPDATE tasks SET artifact_type = NULL, artifact_id = NULL, artifact_sub = NULL, updated_at = ? WHERE artifact_type = 'screen' AND artifact_id = ?").run(at, id);
+    d.prepare("DELETE FROM annotations WHERE screen_id = ?").run(id);
+    d.prepare("DELETE FROM screens WHERE id = ?").run(id);
+  });
 }
 
 export function addVersion(

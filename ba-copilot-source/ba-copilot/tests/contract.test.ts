@@ -8,7 +8,7 @@ import { openDb, getDb, migrate, migrateData, initSchema, tx, COLUMNS, getArtifa
 import { createApp } from "../server/app.ts";
 import { matchRoute, routes, route, FileResponse, assertRev, HttpError, requireLead, requireMember, setMemberPassword, hashPassword, verifyPassword } from "../server/http.ts";
 import { on, emit, clearHandlers, EVENT_TYPES, EVENT_TYPES_V5 } from "../server/events.ts";
-import { touchPresence, listPresence, clearPresence, PRESENCE_TTL_MS } from "../server/presence.ts";
+import { touchPresence, listPresence, clearPresence, sweepPresence, presenceKeyCount, PRESENCE_TTL_MS } from "../server/presence.ts";
 import * as repo from "../server/repo.ts";
 import * as svc from "../server/service.ts";
 import type { ArtifactEvent } from "../shared/types.ts";
@@ -503,17 +503,47 @@ test("presence: còn trong 90 giây, hết hạn sau 90 giây, không trả chí
   assert.deepEqual(listPresence(t, null, t0 + 60_000 + PRESENCE_TTL_MS + 1), []);
 });
 
+test("presence: bộ dọn định kỳ xoá mục hết hạn ở mọi khoá, không chỉ khoá đang đọc", () => {
+  clearPresence();
+  const t0 = 2_000_000;
+  touchPresence({ kind: "screen", id: "x1" }, { id: "a", name: "An" }, t0);
+  touchPresence({ kind: "doc", id: "m9", sub: "BRD" }, { id: "b", name: "Bình" }, t0);
+  touchPresence({ kind: "story", id: "st9" }, { id: "c", name: "Chi" }, t0 + 60_000);
+  sweepPresence(t0 + PRESENCE_TTL_MS + 1);
+  assert.equal(presenceKeyCount(), 1, "hai khoá hết hạn bị dọn dù không ai đọc");
+  assert.deepEqual(listPresence({ kind: "story", id: "st9" }, null, t0 + PRESENCE_TTL_MS + 1).map((e) => e.name), ["Chi"]);
+  sweepPresence(t0 + 60_000 + PRESENCE_TTL_MS + 1);
+  assert.equal(presenceKeyCount(), 0);
+});
+
+/** Màn có thật cho test presence qua HTTP (nhịp chỉ ghi cho thứ còn tồn tại). */
+let presenceScreen = "";
+
 test("presence qua HTTP (chế độ demo, người gửi = actorId)", async () => {
   clearPresence();
   const mk = (id: string, name: string) => getDb().prepare("INSERT INTO members (id, name, role, created_at) VALUES (?, ?, 'BA', ?)").run(id, name, new Date().toISOString());
   mk("pr-ha", "Hà");
   mk("pr-tu", "Tú");
-  const post = (actorId: string) => fetch(`${base}/api/presence`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind: "screen", id: "s9", actorId }) }).then((r) => r.json());
+  presenceScreen = repo.createScreen(repo.createModule(repo.createProject("Presence").id, "M").id, "S9").id;
+  const json = { "content-type": "application/json" };
+  const send = (method: string, body: Record<string, unknown>) => fetch(`${base}/api/presence`, { method, headers: json, body: JSON.stringify(body) });
+  const post = (actorId: string) => send("POST", { kind: "screen", id: presenceScreen, actorId }).then((r) => r.json());
   assert.deepEqual(await post("pr-ha"), []);
   assert.deepEqual((await post("pr-tu")).map((e: any) => e.name), ["Hà"]);
-  const list = await (await fetch(`${base}/api/presence?kind=screen&id=s9&actorId=pr-ha`)).json();
+  const list = await (await fetch(`${base}/api/presence?kind=screen&id=${presenceScreen}&actorId=pr-ha`)).json();
   assert.deepEqual(list.map((e: any) => e.name), ["Tú"]);
   assert.equal((await fetch(`${base}/api/presence?kind=video&id=1`)).status, 400);
+
+  // Đích sai: id rỗng / chỉ khoảng trắng → 400; màn / module / story không tồn tại → 404, không ghi nhịp
+  assert.equal((await send("POST", { kind: "screen", id: "   ", actorId: "pr-ha" })).status, 400);
+  for (const kind of ["screen", "doc", "story"]) assert.equal((await send("POST", { kind, id: "khong-co", actorId: "pr-ha" })).status, 404, kind);
+  assert.deepEqual(listPresence({ kind: "screen", id: "khong-co" }), []);
+
+  // DELETE chỉ gỡ nhịp của chính người gọi
+  assert.equal((await send("DELETE", { kind: "screen", id: presenceScreen, actorId: "pr-tu" })).status, 200);
+  assert.deepEqual(listPresence({ kind: "screen", id: presenceScreen }).map((e) => e.name), ["Hà"], "Tú rời, Hà còn");
+  assert.equal((await send("DELETE", { kind: "screen", id: presenceScreen })).status, 200, "không rõ người gọi → không gỡ ai");
+  assert.deepEqual(listPresence({ kind: "screen", id: presenceScreen }).map((e) => e.name), ["Hà"]);
 });
 
 // ------------------------------------------------------------------ phân quyền
@@ -579,9 +609,13 @@ test("phân quyền chế độ member: đăng nhập, actor lấy từ phiên, 
     assert.equal((await fetch(`${base}/api/me`, { headers: { cookie: baCookie } }).then((r) => r.json())).member, null, "đổi mật khẩu → phiên cũ hết hiệu lực");
 
     // Presence trong chế độ member: người gửi lấy từ phiên
+    const baCookieNew = await login("nhân viên", "ba-pass-2");
     clearPresence();
-    await fetch(`${base}/api/presence`, { method: "POST", headers: { ...json, cookie: leadCookie }, body: JSON.stringify({ kind: "story", id: "st1", actorId: "rl-ba" }) });
-    assert.deepEqual(listPresence({ kind: "story", id: "st1" }).map((e) => e.memberId), ["rl-lead"]);
+    await fetch(`${base}/api/presence`, { method: "POST", headers: { ...json, cookie: leadCookie }, body: JSON.stringify({ kind: "screen", id: presenceScreen, actorId: "rl-ba" }) });
+    assert.deepEqual(listPresence({ kind: "screen", id: presenceScreen }).map((e) => e.memberId), ["rl-lead"]);
+    // Gửi actorId người khác khi rời cũng chỉ gỡ nhịp của chính mình (theo phiên)
+    await fetch(`${base}/api/presence`, { method: "DELETE", headers: { ...json, cookie: baCookieNew }, body: JSON.stringify({ kind: "screen", id: presenceScreen, actorId: "rl-lead" }) });
+    assert.deepEqual(listPresence({ kind: "screen", id: presenceScreen }).map((e) => e.memberId), ["rl-lead"]);
 
     const out = await fetch(`${base}/api/logout`, { method: "POST", headers: { ...json, cookie: leadCookie } });
     assert.match(out.headers.get("set-cookie") ?? "", /bac_member=;/);

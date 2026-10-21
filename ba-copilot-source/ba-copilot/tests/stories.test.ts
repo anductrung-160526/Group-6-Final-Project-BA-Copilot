@@ -48,8 +48,14 @@ test("CRUD user story: thêm, xem, lọc theo module, sửa, xoá", async () => 
   assert.equal(s.priority, "High");
   assert.deepEqual(s.acceptanceCriteria, ["Hiện 20 đơn", "Có ô tìm"], "bỏ dòng trống, cắt khoảng trắng");
 
-  // Dòng mới trống (chỉ có module) vẫn tạo được, mặc định Medium
-  const blank = (await api("POST", `/api/projects/${p.id}/stories`, { moduleId: m2.id })).data;
+  // Trống cả As a / I want / So that (chỉ có module, hoặc chỉ khoảng trắng) → 400 như màn Yêu cầu nghiệp vụ
+  for (const b of [{}, { asA: "  ", iWant: "", soThat: " " }]) {
+    const r = await api("POST", `/api/projects/${p.id}/stories`, { ...b, moduleId: m2.id });
+    assert.equal(r.status, 400, JSON.stringify(b));
+    assert.equal(r.data.error, "Fill in at least one of As a / I want / So that");
+  }
+  // Có một phần là đủ, mặc định Medium
+  const blank = (await api("POST", `/api/projects/${p.id}/stories`, { moduleId: m2.id, iWant: "xuất hoá đơn" })).data;
   assert.equal(blank.priority, "Medium");
   assert.equal(blank.moduleId, m2.id);
 
