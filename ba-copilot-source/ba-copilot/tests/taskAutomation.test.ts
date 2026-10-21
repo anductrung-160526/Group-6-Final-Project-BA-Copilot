@@ -108,7 +108,7 @@ test("stale: Xong / Đã duyệt → Đang làm, đang làm thì giữ", () => {
   fire("artifact.stale", ref("SRS"));
   assert.equal(state(tUc), "doing");
   assert.equal(state(tSrs), "doing");
-  assert.match(sysEvents(tUc).at(-1)!.reason, /UC Specification – Giỏ hàng thành Lỗi thời/);
+  assert.match(sysEvents(tUc).at(-1)!.reason, /UC Specification – Giỏ hàng thành Bản cũ/);
 });
 
 test("sơ đồ: task cũ không có sub = Use Case; sơ đồ khác không bị động", () => {

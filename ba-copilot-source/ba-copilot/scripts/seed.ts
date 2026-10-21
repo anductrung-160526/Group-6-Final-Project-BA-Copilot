@@ -264,9 +264,10 @@ try {
     await createTask(t);
 
   // ----------------------------------------------------------- 6. Tài liệu module 1: sinh lần lượt 5 bước (Mock), bấm Xong từng bước
+  // (bước N chỉ sinh / Xong được khi bước N−1 đã Xong – shared/prereq.ts; tests/seedRules.test.ts kiểm lại dữ liệu)
   for (const kind of DOC_KINDS) {
     await api("POST", `/api/modules/${P}/docs/${kind}/generate`, { actorId: kind === "SRS" || kind === "FRD_NFR" ? ANH : DUC });
-    if (kind !== "API_SPEC") await done("doc", P, kind, kind === "SRS" || kind === "FRD_NFR" ? ANH : DUC);
+    await done("doc", P, kind, kind === "SRS" || kind === "FRD_NFR" ? ANH : DUC);
   }
 
   // ----------------------------------------------------------- 7. Sơ đồ module 1: đủ 5 loại (Mermaid do pipeline Mock + shared/diagrams.ts dựng)
@@ -313,7 +314,9 @@ try {
   // Duyệt khi dự án chưa cấu hình GitHub: vẫn duyệt, kết quả "Chưa cấu hình GitHub – chưa đẩy".
   await approve("doc", P, "BRD");
   await approve("doc", P, "UC_SPEC");
-  await requestChange("doc", P, "SRS"); // SRS về Đang làm + tag "Yêu cầu sửa"; task "Viết SRS" lùi về Đang làm
+  // Yêu cầu sửa bước cuối (API Spec) – không bước nào dựa trên nó, nên chuỗi BRD → FRD-NFR, sơ đồ, test case vẫn Xong.
+  // (Yêu cầu sửa bước giữa sẽ làm các bước sau đang Xong thành Bản cũ – server/prereq.ts cascadeOutdated.)
+  await requestChange("doc", P, "API_SPEC"); // API Spec về Đang làm + tag "Yêu cầu sửa"; task "Viết API Spec" lùi về Đang làm
 
   // ----------------------------------------------------------- 11. Module 2: task Cần làm / Đang làm
   await createTask({ key: "orders-brd", title: "Viết BRD module Đơn hàng", description: "Sinh BRD từ 4 user story của module Đơn hàng.", moduleId: DEMO.orders, assigneeId: ANH, due: 6, priority: "High", artifactType: "doc", artifactId: DEMO.orders, artifactSub: "BRD" });
@@ -326,7 +329,7 @@ try {
   const diagrams = await api<any[]>("GET", `/api/modules/${P}/diagrams`);
   const screens = (await api<any>("GET", `/api/modules/${P}`)).screens as any[];
   const tasks = await api<any[]>("GET", `/api/projects/${DEMO.project}/tasks`);
-  const ST: Record<string, string> = { none: "Chưa có", draft: "Đang làm", done: "Xong", approved: "Đã duyệt", outdated: "Lỗi thời", todo: "Cần làm", doing: "Đang làm" };
+  const ST: Record<string, string> = { none: "Chưa có", draft: "Đang làm", done: "Xong", approved: "Đã duyệt", outdated: "Bản cũ", todo: "Cần làm", doing: "Đang làm" };
   const flag = (x: { revisionRequested?: boolean }) => (x.revisionRequested ? " + Yêu cầu sửa" : "");
   console.log(`Tài liệu: ${docs.map((d) => `${d.kind} ${ST[d.status]}${flag(d)}`).join(" · ")}`);
   console.log(`Sơ đồ: ${diagrams.map((d) => `${d.kind} ${ST[d.status]}`).join(" · ")}`);

@@ -20,6 +20,7 @@ import {
 import { ApprovalBar, Badge, Btn, Drawer, Field, Icon, MemberPicker, RevisionTag, RowActions, Select, StatusBadge, fmtTime, useUI, type BadgeTone, type IconName } from "../components/ui.tsx";
 import { ROLE_LABEL, useCurrentMember } from "../currentMember.ts";
 import { workHref } from "../projectMenu.ts";
+import { loadDoneBlockReason } from "../prereq.ts";
 
 // ---------------------------------------------------------------- Nhãn dùng chung cho Kanban, ngăn chi tiết, RelatedTasks
 /** 4 cột / trạng thái task đợt 5 (kế hoạch đợt 5, mục 1). */
@@ -177,6 +178,8 @@ export function TaskDialog({
   );
   const [detail, setDetail] = useState<TaskDetail | null>(null);
   const [art, setArt] = useState<ArtifactState | null>(null);
+  /** Lý do khoá nút Xong: bước tiên quyết của sản phẩm gắn kèm chưa Xong (shared/prereq.ts). */
+  const [doneLock, setDoneLock] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((x) => ({ ...x, [k]: v }));
@@ -187,9 +190,12 @@ export function TaskDialog({
     const d = await getTask(task.id).catch(() => null);
     setDetail(d);
     const kind = d ? linkedKind(d) : null;
-    setArt(kind && d ? await getArtifactState(kind, d.artifactId!, (d.artifactSub ?? undefined) as DocKind | DiagramKind | undefined).catch(() => null) : null);
+    const sub = (d?.artifactSub ?? undefined) as DocKind | DiagramKind | undefined;
+    const [st, lock] = kind && d ? await Promise.all([getArtifactState(kind, d.artifactId!, sub).catch(() => null), loadDoneBlockReason(projectId, kind, d.artifactId!, sub)]) : [null, null];
+    setArt(st);
+    setDoneLock(lock);
     return d;
-  }, [task?.id]);
+  }, [task?.id, projectId]);
   useEffect(() => {
     reload();
   }, [reload]);
@@ -353,6 +359,7 @@ export function TaskDialog({
           revisionRequested={art!.revisionRequested}
           isLead={isLead}
           busy={busy}
+          disabledReason={art!.status === "draft" || art!.status === "outdated" ? (doneLock ?? undefined) : undefined}
           onDone={() => move("done", "Đã bấm Xong")}
           onApprove={() => move("approved", "Đã duyệt")}
           onRequestChange={() => move("doing", "Đã yêu cầu sửa")}

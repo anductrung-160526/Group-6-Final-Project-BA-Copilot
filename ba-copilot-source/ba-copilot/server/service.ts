@@ -16,6 +16,7 @@ import { getRecursive } from "./nextModel.ts";
 import { getArtifactState, setArtifactState, bumpRev, tx } from "./db.ts";
 import { assertRev } from "./http.ts";
 import { emit } from "./events.ts";
+import { cascadeOutdated } from "./prereq.ts";
 
 export class BizError extends Error {
   constructor(message: string, public status = 400) {
@@ -45,7 +46,7 @@ function moduleEvent(type: ArtifactEventType, kind: "docs" | "tests", moduleId: 
 }
 const live = (s: DocStatus) => s !== "none" && s !== "outdated";
 
-/** BR-02: tài liệu và test của module thành Lỗi thời; phát artifact.stale cho phần vừa chuyển sang Lỗi thời. */
+/** BR-02: tài liệu và test của module thành Bản cũ; phát artifact.stale cho phần vừa chuyển sang Bản cũ. */
 function markStale(moduleId: string, actorId?: string) {
   const before = repo.getModule(moduleId);
   repo.markOutdated(moduleId);
@@ -55,7 +56,7 @@ function markStale(moduleId: string, actorId?: string) {
 
 // ------------------------------------------------------------- Design Studio
 // ------------------------------------------------------------- Bối cảnh tài liệu cho AI (đợt 5)
-const STATUS_VI: Record<ArtifactStatus, string> = { none: "Chưa có", draft: "Bản nháp", done: "Xong", approved: "Đã duyệt", outdated: "Lỗi thời" };
+const STATUS_VI: Record<ArtifactStatus, string> = { none: "Chưa có", draft: "Bản nháp", done: "Xong", approved: "Đã duyệt", outdated: "Bản cũ" };
 const clip = (t: string, n: number) => (t.length > n ? t.slice(0, n) + "\n…(lược bớt)" : t);
 
 function storyLines(moduleId: string): string[] {
@@ -322,8 +323,8 @@ export function manualEdit(screenId: string, input: { op: "remove" | "up" | "dow
 }
 
 /**
- * Màn vừa có phiên bản mới (gọi trong tx()). Đợt 5: màn đang Xong / Đã duyệt / Lỗi thời → về Bản nháp (giữ cờ
- * "Yêu cầu sửa"), phát artifact.drafted; màn đang Xong mà bị sửa thì bộ test của module (bước sau) → Lỗi thời.
+ * Màn vừa có phiên bản mới (gọi trong tx()). Đợt 5: màn đang Xong / Đã duyệt / Bản cũ → về Bản nháp (giữ cờ
+ * "Yêu cầu sửa"), phát artifact.drafted; màn đang Xong mà bị sửa thì bộ test của module (bước sau) → Bản cũ.
  * Tài liệu mới (`module_docs`) đi trước prototype nên không bị ảnh hưởng.
  * Tương thích v2 tới khi C7 gộp (R-030, R-100): màn đang Đã duyệt vẫn phát thêm "artifact.unapproved" và áp BR-02 cho
  * bộ tài liệu cũ (`modules.docs_status`) + test như trước.
@@ -338,7 +339,7 @@ function draftAfterChange(screen: { id: string; status: string; moduleId: string
   } else if (screen.status === "done") staleTests(screen.moduleId, actorId);
 }
 
-/** Bộ test đang có (Bản nháp / Xong / Đã duyệt) → Lỗi thời, phát artifact.stale. */
+/** Bộ test đang có (Bản nháp / Xong / Đã duyệt) → Bản cũ, phát artifact.stale. */
 function staleTests(moduleId: string, actorId?: string) {
   const m = repo.getModule(moduleId);
   if (!m || !live(m.testsStatus)) return;
@@ -421,6 +422,8 @@ export function approveDocs(moduleId: string, approved: boolean, actorId?: strin
   return tx(() => {
     repo.updateModule(moduleId, { docsStatus: approved ? "approved" : "draft" });
     moduleEvent(approved ? "artifact.approved" : "artifact.unapproved", "docs", moduleId, actorId);
+    // Bỏ duyệt bộ tài liệu cũ: bộ test Xong theo nhánh legacy không còn bước tiên quyết → Bản cũ (D2 đợt 6).
+    if (!approved) cascadeOutdated(moduleId, actorId);
     return repo.getModule(moduleId);
   });
 }

@@ -178,7 +178,7 @@ test("events: service phát đúng sự kiện ở luồng màn → tài liệu 
   svc.setScreenApproval(sid, true, "lead");
   await svc.generateDocs(m.id);
   svc.approveDocs(m.id, true, "lead");
-  // Sửa tay màn đã duyệt → màn về nháp, tài liệu thành Lỗi thời
+  // Sửa tay màn đã duyệt → màn về nháp, tài liệu thành Bản cũ
   const tree = repo.getVersion(repo.getScreen(sid)!.currentVersionId!)!.tree;
   svc.manualEdit(sid, { op: "remove", id: tree.children![0].id }, "u2");
   const brief = log.map((e) => `${e.type}:${e.artifact.kind}${e.actorId ? "@" + e.actorId : ""}`);
@@ -387,9 +387,10 @@ test("migration: DB v2 cũ → đợt 5 (tasks, tài liệu, sơ đồ, user sto
     "project_id:projects:CASCADE",
   ]);
 
-  // Tài liệu cũ → module_docs, giữ trạng thái (approved)
+  // Tài liệu cũ → module_docs. Bộ cũ Đã duyệt nhưng không có BRD → "d6.prereq" đưa về Bản cũ (outdated): không còn
+  // UC Spec Đã duyệt khi BRD chưa Xong (D2 đợt 6). Nội dung, rev giữ nguyên.
   const docs = all("SELECT kind, status, rev, content, data FROM module_docs WHERE module_id = 'm1' ORDER BY kind");
-  assert.deepEqual(docs.map((r: any) => `${r.kind}:${r.status}:${r.rev}`), ["FRD_NFR:approved:1", "SRS:approved:1", "UC_SPEC:approved:1"]);
+  assert.deepEqual(docs.map((r: any) => `${r.kind}:${r.status}:${r.rev}`), ["FRD_NFR:outdated:1", "SRS:outdated:1", "UC_SPEC:outdated:1"]);
   const uc = docs.find((r: any) => r.kind === "UC_SPEC") as any;
   assert.match(uc.content, /## UC-01 – Đăng nhập/);
   assert.equal(JSON.parse(uc.data).useCases[0].code, "UC-01");
@@ -398,7 +399,7 @@ test("migration: DB v2 cũ → đợt 5 (tasks, tài liệu, sơ đồ, user sto
 
   // Sơ đồ: sequences → SEQUENCE (parts), uc_diagrams → UC (stale → outdated)
   const seq = one("SELECT code, parts, status FROM module_diagrams WHERE module_id = 'm1' AND kind = 'SEQUENCE'");
-  assert.equal(seq.status, "approved");
+  assert.equal(seq.status, "outdated", "nguồn UC Spec không còn Xong → Sequence Bản cũ (d6.prereq)");
   assert.deepEqual(JSON.parse(seq.parts).map((p: any) => p.key), ["UC-01"]);
   assert.deepEqual(one("SELECT code, status FROM module_diagrams WHERE module_id = 'm1' AND kind = 'UC'"), { code: "flowchart LR\n a-->b", status: "outdated" });
 

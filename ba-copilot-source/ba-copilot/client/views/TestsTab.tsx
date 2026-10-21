@@ -5,6 +5,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { approveArtifact, download, get, isConflict, markArtifactDone, post, requestArtifactChange } from "../api.ts";
 import type { ArtifactStatus, ModuleDetail, TestCase } from "../../shared/types.ts";
+import { doneBlockReason } from "../../shared/prereq.ts";
 import type { WorkStepProps } from "../projectMenu.ts";
 import { usePresence } from "../presence.ts";
 import { currentMemberId, useCurrentMember } from "../currentMember.ts";
@@ -113,6 +114,11 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
 
   const canGenerate = !!ready?.ready;
   const blockReason = ready ? ready.reason : "Đang kiểm tra điều kiện";
+  // Nút Xong khoá khi FRD-NFR chưa Xong (cùng luật với nút Sinh – shared/prereq.ts, giữ nhánh legacy); server cũng chặn.
+  const doneLock =
+    ready && (m.testsStatus === "draft" || m.testsStatus === "outdated")
+      ? (doneBlockReason({ kind: "tests" }, { docStatus: (k) => (k === "FRD_NFR" ? ready.frdStatus : undefined), legacyDocsApproved: m.docsStatus === "approved" }) ?? undefined)
+      : undefined;
   const count = (t: string) => tests.filter((x) => x.type === t).length;
 
   return (
@@ -142,6 +148,7 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
           status={m.testsStatus}
           revisionRequested={m.testsRevisionRequested}
           isLead={isLead}
+          disabledReason={doneLock}
           onDone={() => approval("done")}
           onApprove={() => approval("approve")}
           onRequestChange={() => approval("request-change")}
@@ -158,7 +165,7 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
       )}
       {m.testsStatus === "outdated" && (
         <div className="warn-banner" data-testid="tests-outdated">
-          <strong>Lỗi thời:</strong> tài liệu hoặc prototype đã thay đổi sau lần sinh test case gần nhất. Kiểm tra lại rồi bấm "Sinh lại" (hoặc bấm Xong nếu bộ test vẫn đúng).
+          <strong>Bản cũ:</strong> tài liệu hoặc prototype đã thay đổi sau lần sinh test case gần nhất. Kiểm tra lại rồi bấm "Sinh lại" (hoặc bấm Xong nếu bộ test vẫn đúng).
         </div>
       )}
       {!canGenerate && ready && tests.length > 0 && (

@@ -2,10 +2,12 @@
 // Hợp đồng: docs/api.md "Đợt 5" mục 5.5. Khung (parseArtifactRef, GET .../state) do C2 tạo.
 //
 // - done: mọi thành viên, cần biết người bấm (actorId / phiên). Chỉ từ draft/outdated; giữ cờ revisionRequested.
-// - approve: CHỈ BA Lead (thiếu actorId hoặc là BA → 403, chặt hơn requireLead chế độ demo). Chỉ từ done.
-//   Gọi pushApproved() (C8 đăng ký trong server/events.ts) TRƯỚC khi đổi trạng thái: lỗi → trạng thái giữ nguyên.
-//   Thành công → approved, xoá cờ.
-// - request-change: CHỈ BA Lead, không cần lý do. Chỉ từ done/approved → draft + cờ revisionRequested.
+//   Bước tiên quyết chưa Xong / Đã duyệt → 400 kèm lý do (shared/prereq.ts – cùng luật với khi sinh; D2 đợt 6).
+// - approve: CHỈ BA Lead (thiếu actorId hoặc là BA → 403, chặt hơn requireLead chế độ demo). Chỉ từ done; cũng kiểm
+//   bước tiên quyết. Gọi pushApproved() (C8 đăng ký trong server/events.ts) TRƯỚC khi đổi trạng thái: lỗi → trạng thái
+//   giữ nguyên. Thành công → approved, xoá cờ.
+// - request-change: CHỈ BA Lead, không cần lý do. Chỉ từ done/approved → draft + cờ revisionRequested. Sản phẩm đang
+//   Xong / Đã duyệt dựa trên nó → Bản cũ (server/prereq.ts cascadeOutdated) để không còn bước sau Xong khi bước trước chưa.
 // Đổi trạng thái bằng setArtifactState() (không tăng rev), phát artifact.done | approved | revision_requested trong
 // cùng giao dịch → taskAutomation.ts kéo task gắn kèm theo và ghi task_events.
 
@@ -13,6 +15,7 @@ import { getArtifactState, getDb, setArtifactState, tx } from "../db.ts";
 import { emit, pushApproved } from "../events.ts";
 import { HttpError, assertRev, baseRevOf, currentMember, requireMember, route, type HandlerCtx } from "../http.ts";
 import { listTasksByArtifact } from "../repo/tasks.ts";
+import { artifactBlockReason, cascadeOutdated } from "../prereq.ts";
 import {
   ARTIFACT_KINDS_V5,
   DIAGRAM_KINDS,
@@ -51,14 +54,14 @@ route("GET", "/api/artifacts/:kind/:id/state", (ctx) => {
 
 export type ApprovalAction = "done" | "approve" | "request-change";
 
-const STATUS_LABEL: Record<ArtifactStatus, string> = { none: "Chưa có", draft: "Bản nháp", done: "Xong", approved: "Đã duyệt", outdated: "Lỗi thời" };
+const STATUS_LABEL: Record<ArtifactStatus, string> = { none: "Chưa có", draft: "Bản nháp", done: "Xong", approved: "Đã duyệt", outdated: "Bản cũ" };
 const FROM: Record<ApprovalAction, ArtifactStatus[]> = {
   done: ["draft", "outdated"],
   approve: ["done"],
   "request-change": ["done", "approved"],
 };
 const WRONG_STATE: Record<ApprovalAction, string> = {
-  done: "Chỉ bấm Xong khi sản phẩm đang Bản nháp hoặc Lỗi thời",
+  done: "Chỉ bấm Xong khi sản phẩm đang Bản nháp hoặc Bản cũ",
   approve: "Chỉ duyệt được sản phẩm đang Xong",
   "request-change": "Chỉ yêu cầu sửa được sản phẩm đang Xong hoặc Đã duyệt",
 };
@@ -82,6 +85,10 @@ function stateFor(action: ApprovalAction, ref: ArtifactRef): ArtifactState {
   if (!st) throw new HttpError("Không tìm thấy sản phẩm", 404);
   if (st.status === "none") throw new HttpError("Sản phẩm chưa có nội dung – hãy sinh hoặc soạn trước", 400);
   if (!FROM[action].includes(st.status)) throw new HttpError(`${WRONG_STATE[action]} (hiện: ${STATUS_LABEL[st.status]})`, 400);
+  if (action !== "request-change") {
+    const reason = artifactBlockReason(ref, action);
+    if (reason) throw new HttpError(reason, 400);
+  }
   return st;
 }
 
@@ -113,6 +120,7 @@ export async function applyApproval(action: ApprovalAction, ref: ArtifactRef, ct
     tx(() => {
       setArtifactState(ref, { status: "draft", revisionRequested: true });
       emit({ type: "artifact.revision_requested", artifact: ref, actorId: actor.id });
+      cascadeOutdated(ref.moduleId || ref.id, actor.id);
     });
     return result(ref);
   }
@@ -129,6 +137,8 @@ export async function applyApproval(action: ApprovalAction, ref: ArtifactRef, ct
     // Trong lúc đẩy có người sửa / thao tác khác → không duyệt bản đã đổi.
     const now = getArtifactState(ref);
     if (!now || now.status !== "done" || now.rev !== st.rev) throw new HttpError("Bản đã thay đổi – tải lại", 409, "CONFLICT", { rev: now?.rev ?? 0 });
+    const reason = artifactBlockReason(ref, "approve"); // bước trước vừa đổi trong lúc đẩy GitHub
+    if (reason) throw new HttpError(reason, 400);
     setArtifactState(ref, { status: "approved", revisionRequested: false });
     emit({ type: "artifact.approved", artifact: ref, actorId: actor.id });
   });

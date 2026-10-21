@@ -17,7 +17,7 @@ export const DIAGRAM_SOURCES: Record<DiagramKind, DocKind[]> = {
   ERD: ["SRS", "FRD_NFR"],
 };
 
-const STATUS_VI: Record<ArtifactStatus, string> = { none: "chưa có", draft: "Đang làm", done: "Xong", approved: "Đã duyệt", outdated: "Lỗi thời" };
+const STATUS_VI: Record<ArtifactStatus, string> = { none: "chưa có", draft: "Đang làm", done: "Xong", approved: "Đã duyệt", outdated: "Bản cũ" };
 
 /**
  * Lý do chưa sinh được loại sơ đồ: tài liệu nguồn chưa Xong / Đã duyệt (quyết định 8). null = sinh được.

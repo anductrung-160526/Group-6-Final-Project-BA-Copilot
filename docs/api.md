@@ -112,7 +112,7 @@ interface ArtifactEvent {
 | Tạo màn từ prompt | `drafted` screen |
 | Sửa màn bằng prompt, khôi phục phiên bản, chấp nhận gợi ý bố cục, sửa tay | `drafted` screen; nếu màn đang Đã duyệt thêm `unapproved` screen và BR-02 |
 | Duyệt / bỏ duyệt màn | `approved` / `unapproved` screen; bỏ duyệt thêm BR-02 |
-| BR-02 (tài liệu, test thành Lỗi thời) | `stale` docs và/hoặc `stale` tests, chỉ phần đang ở Nháp hoặc Đã duyệt |
+| BR-02 (tài liệu, test thành Bản cũ) | `stale` docs và/hoặc `stale` tests, chỉ phần đang ở Nháp hoặc Đã duyệt |
 | Sinh tài liệu, chỉnh tài liệu bằng prompt | `drafted` docs (+ `unapproved` docs nếu đang Đã duyệt, + `stale` tests nếu test đang Nháp/Đã duyệt) |
 | Duyệt / bỏ duyệt tài liệu | `approved` / `unapproved` docs |
 | Sinh test case | `drafted` tests |
@@ -138,7 +138,7 @@ Người viết: **C2**. Kế hoạch: `docs/Ke_hoach_Agent_BA_Copilot_v2_dot5.m
 | `ArtifactRef` | `{ kind: "screen" \| "doc" \| "diagram" \| "tests", id, moduleId, sub? }`. screen: id = screenId. doc: id = moduleId, `sub` = `DocKind` (bắt buộc). diagram: id = moduleId, `sub` = `DiagramKind` (thiếu = `UC`). tests: id = moduleId. Trong URL `/api/artifacts/:kind/:id/...` thì `sub` đi ở query (GET) hoặc body (POST). `"docs"` (bộ tài liệu cũ) chỉ còn cho mã v2. |
 | `DocKind` | `BRD`, `UC_SPEC`, `SRS`, `FRD_NFR`, `API_SPEC` (đúng thứ tự bước; nhãn `DOC_KIND_LABEL`). Viết nguyên chữ hoa trong URL. |
 | `DiagramKind` | `CONTEXT`, `UC`, `SEQUENCE`, `BPMN`, `ERD` (nhãn `DIAGRAM_KIND_LABEL`). |
-| `ArtifactStatus` | `none` (chưa có) · `draft` (Đang làm) · `done` (Xong) · `approved` (Đã duyệt) · `outdated` (Lỗi thời) + cờ riêng `revisionRequested` (tag "Yêu cầu sửa"). Màn hình dùng chung (không có `none`). |
+| `ArtifactStatus` | `none` (chưa có) · `draft` (Đang làm) · `done` (Xong) · `approved` (Đã duyệt) · `outdated` (Bản cũ) + cờ riêng `revisionRequested` (tag "Yêu cầu sửa"). Màn hình dùng chung (không có `none`). |
 | `TaskStatus` | `todo` · `doing` · `done` · `approved` + `Task.revisionRequested`. `redo` cũ được migration đổi thành `doing` + cờ **mỗi lần khởi động**; mã mới không ghi `redo`. |
 
 ## 5.1 Đăng nhập, phiên, hiện diện, nhật ký – C2 (**đã chạy**)
@@ -203,6 +203,8 @@ SEQUENCE: `code` rỗng, mỗi UC một phần trong `parts: DiagramPart[] = { k
 | POST | `/api/artifacts/:kind/:id/request-change` | `{ sub? }` | `ApprovalResult` | `requireLead` | `requestArtifactChange(kind, id, b)` | **501** |
 
 `:kind` ∈ `screen | doc | diagram | tests` (sai → `400`; doc thiếu `sub` → `400`, dùng `parseArtifactRef()` trong `approval.ts`). `ApprovalResult = { state, tasks: Task[], git? }`. Luồng (kế hoạch mục 1): `done` chỉ từ `draft`/`outdated`, giữ `revisionRequested`; `approve` chỉ từ `done`, xoá cờ, gọi `pushApproved()` (C8) – chưa cấu hình repo vẫn duyệt, `git.pushed = false`; lỗi GitHub khi đã cấu hình → lỗi API, trạng thái không đổi; `request-change` chỉ từ `done`/`approved` → `draft` + cờ. Đọc/ghi trạng thái qua `getArtifactState` / `setArtifactState` (`server/db.ts`). Sự kiện: `artifact.done`, `artifact.approved`, `artifact.revision_requested`. Route cũ `POST /api/screens/:id/approve`, `/api/modules/:id/docs/approve`, `/api/modules/:id/diagram/approve` giữ tới khi C7/C9 bỏ nút cũ.
+
+**Đợt 6 (D2) – bước tiên quyết:** `done` và `approve` cần bước tiên quyết ở `done`/`approved` (luật chung `shared/prereq.ts`, giống khi sinh): tài liệu → bước trước theo `DOC_KINDS` (BRD: module có ≥ 1 user story); sơ đồ → mọi tài liệu trong `DIAGRAM_SOURCES`; `tests` → `FRD_NFR` (hoặc nhánh legacy: chưa có FRD-NFR và `modules.docs_status = approved`); `screen` → không có. Thiếu → `400 { error: "<lý do tiếng Việt>" }` (không có `code`), trạng thái không đổi; áp cả cho `PATCH /api/tasks/:id/status` khi task gắn sản phẩm. `request-change` → sản phẩm đang `done`/`approved` dựa trên sản phẩm vừa trả về (chuỗi tiên quyết) thành `outdated` (Bản cũ) + `artifact.stale` (`server/prereq.ts` `cascadeOutdated`). Migration `d6.prereq` (một lần mỗi DB) đưa dữ liệu cũ vi phạm luật về `outdated`.
 
 ## 5.6 GitHub – `server/routes/git.ts` (C8, **501**)
 

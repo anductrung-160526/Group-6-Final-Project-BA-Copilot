@@ -231,7 +231,7 @@ describe("API sơ đồ UC (Mock)", () => {
     assert.equal((await api("PUT", `/api/modules/${mid}/diagram`, { code: 123 })).status, 400);
   });
 
-  test("FN-14: UC đổi khi sinh lại / chỉnh tài liệu → sơ đồ Lỗi thời, phát artifact.stale; chỉ chỉnh SRS thì giữ nguyên", async () => {
+  test("FN-14: UC đổi khi sinh lại / chỉnh tài liệu → sơ đồ Bản cũ, phát artifact.stale; chỉ chỉnh SRS thì giữ nguyên", async () => {
     const mid = await moduleWithDocs();
     await api("POST", `/api/modules/${mid}/diagram/generate`, {});
     await api("POST", `/api/modules/${mid}/diagram/approve`, { approved: true });
@@ -243,7 +243,7 @@ describe("API sơ đồ UC (Mock)", () => {
     assert.equal((await api("GET", `/api/modules/${mid}/diagram`)).data.status, "approved");
     assert.deepEqual(diagramEvents(), []);
 
-    // UC đổi tên (giả lập AI chỉnh UC) rồi chỉnh tài liệu → Lỗi thời
+    // UC đổi tên (giả lập AI chỉnh UC) rồi chỉnh tài liệu → Bản cũ
     const [first, ...rest] = repo.getDocs(mid).useCases;
     repo.saveUseCase(mid, { ...first, name: first.name + " (đã đổi)" });
     assert.equal((await api("POST", `/api/modules/${mid}/docs/refine`, { target: first.code, instruction: "Đổi tên", actorId: "mem-2" })).status, 200);
@@ -253,7 +253,7 @@ describe("API sơ đồ UC (Mock)", () => {
     assert.equal(events.find((e) => e.type === "artifact.stale" && e.artifact.kind === "diagram")!.actorId, "mem-2");
     void rest;
 
-    // Đã Lỗi thời: không phát lại
+    // Đã là Bản cũ: không phát lại
     await api("POST", `/api/modules/${mid}/docs/refine`, { target: first.code, instruction: "Lần nữa" });
     assert.deepEqual(diagramEvents(), ["stale"]);
 

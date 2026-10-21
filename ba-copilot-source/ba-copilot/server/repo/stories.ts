@@ -3,8 +3,8 @@
 // - Mã US-xx đánh tiếp theo dự án: storyCode(nextStoryNumber(db, projectId)) – không dùng lại mã của story đã xoá
 //   trừ khi đó là mã lớn nhất.
 // - Chặn đè theo từng story: `rev` bắt đầu 1, +1 mỗi lần sửa; sửa/xoá kiểm `assertRev(rev, baseRev)`.
-// - Story đổi (thêm / sửa / xoá) → tài liệu đang có của module đó chuyển "Lỗi thời" + phát `artifact.stale`
-//   (xem `markModuleDocsOutdated`). Đổi thứ tự không làm tài liệu lỗi thời.
+// - Story đổi (thêm / sửa / xoá) → tài liệu đang có của module đó chuyển "Bản cũ" + phát `artifact.stale`
+//   (xem `markModuleDocsOutdated`). Đổi thứ tự không làm tài liệu thành Bản cũ.
 // - `storiesText(moduleId)`: văn bản story của module, đầu vào thống nhất cho AI (tài liệu C5, prototype C9).
 
 import { randomUUID } from "node:crypto";
@@ -126,13 +126,13 @@ function memberOrNull(id: string | null | undefined): string | null {
   return id && getDb().prepare("SELECT 1 FROM members WHERE id = ?").get(id) ? id : null;
 }
 
-// ---------------------------------------------------------------- tài liệu lỗi thời
+// ---------------------------------------------------------------- tài liệu thành Bản cũ
 
 /**
  * Story của module đổi → mọi tài liệu đang có của module (dòng `module_docs` ở Bản nháp / Xong / Đã duyệt) chuyển
- * "Lỗi thời" (giữ cờ Yêu cầu sửa, không tăng rev) và phát `artifact.stale { kind: "doc", id: moduleId, sub }`.
- * BRD sinh trực tiếp từ story; các bước sau (UC Spec, SRS, FRD-NFR, API Spec) dẫn xuất từ BRD/story nên cũng lỗi thời.
- * Tài liệu chưa sinh (không có dòng) hoặc đã lỗi thời thì bỏ qua. Trả về các loại tài liệu vừa chuyển.
+ * "Bản cũ" (giữ cờ Yêu cầu sửa, không tăng rev) và phát `artifact.stale { kind: "doc", id: moduleId, sub }`.
+ * BRD sinh trực tiếp từ story; các bước sau (UC Spec, SRS, FRD-NFR, API Spec) dẫn xuất từ BRD/story nên cũng thành Bản cũ.
+ * Tài liệu chưa sinh (không có dòng) hoặc đã là Bản cũ thì bỏ qua. Trả về các loại tài liệu vừa chuyển.
  */
 export function markModuleDocsOutdated(moduleId: string | null, actorId?: string | null): DocKind[] {
   if (!moduleId) return [];
@@ -228,7 +228,7 @@ export function deleteStory(id: string, baseRev?: number, actorId?: string | nul
 
 /**
  * Đặt lại thứ tự: `ids` theo thứ tự mới. Story của dự án không có trong `ids` giữ thứ tự tương đối và xếp sau
- * (cho phép gửi danh sách đang lọc theo module). Id lạ / của dự án khác → 400. Không tăng rev, không làm tài liệu lỗi thời.
+ * (cho phép gửi danh sách đang lọc theo module). Id lạ / của dự án khác → 400. Không tăng rev, không làm tài liệu thành Bản cũ.
  */
 export function reorderStories(projectId: string, ids: string[]): UserStory[] {
   const all = listStories(projectId);

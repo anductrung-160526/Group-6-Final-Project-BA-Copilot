@@ -149,5 +149,5 @@ export async function buildDocx(project: Project, module: Module, docs: DocBundl
 }
 
 export function statusVi(s: string): string {
-  return ({ none: "Chưa có", draft: "Bản nháp", approved: "Đã duyệt", outdated: "Lỗi thời" } as Record<string, string>)[s] ?? s;
+  return ({ none: "Chưa có", draft: "Bản nháp", approved: "Đã duyệt", outdated: "Bản cũ" } as Record<string, string>)[s] ?? s;
 }

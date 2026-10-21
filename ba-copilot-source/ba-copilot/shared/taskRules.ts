@@ -134,7 +134,7 @@ export function statusReason(event: ArtifactEventType, kind: ArtifactKind, name 
     case "artifact.revision_requested":
       return `BA Lead yêu cầu sửa ${what}`;
     case "artifact.stale":
-      return `${what} thành Lỗi thời do bước trước thay đổi`;
+      return `${what} thành Bản cũ do bước trước thay đổi`;
     case "artifact.unapproved":
       return `${what} bị bỏ duyệt`;
   }

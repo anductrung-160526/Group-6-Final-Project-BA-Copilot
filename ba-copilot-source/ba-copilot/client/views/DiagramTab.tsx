@@ -10,7 +10,7 @@ import { Mermaid } from "../components/Mermaid.tsx";
 import type { ModuleTabProps } from "./moduleTabs.ts";
 
 const PREVIEW_DELAY_MS = 400;
-// UcDiagramStatus → nhãn có sẵn của StatusBadge ("stale" hiện là Lỗi thời).
+// UcDiagramStatus → nhãn có sẵn của StatusBadge ("stale" hiện là Bản cũ).
 const badgeStatus = (d: UcDiagram | null) => (!d ? "none" : d.status === "stale" ? "outdated" : d.status);
 
 export function DiagramTab({ m }: ModuleTabProps) {

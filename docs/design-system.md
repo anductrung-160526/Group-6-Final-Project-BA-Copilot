@@ -79,7 +79,7 @@ Xem trực quan: mở app tại `#/_gallery`.
 |---|---|---|
 | `--color-info` | `#2563EB` | Bản nháp, mở, gợi ý (info) |
 | `--color-success` / `-strong` | `#127A4A` / `#22A06B` | Đã duyệt, đã xử lý, toast thành công |
-| `--color-warning` / `-strong` | `#8A5A00` / `#F59E0B` | Lỗi thời, cảnh báo, ghim bình luận |
+| `--color-warning` / `-strong` | `#8A5A00` / `#F59E0B` | Bản cũ, cảnh báo, ghim bình luận |
 | `--color-orange` | `#C2410C` | Chờ người duyệt |
 | `--color-danger` | `#B42318` | Lỗi, xoá, toast lỗi |
 | `--color-violet` | `#6B3FD6` | Đã gửi AI, xem trước phiên bản |
@@ -130,7 +130,7 @@ App chưa có chế độ tối nên chưa có bộ token tối.
 |---|---|---|
 | `Btn` | `kind`: `primary` \| `secondary` \| `ghost` \| `danger`; `size`: `sm` \| `md` | `primary` (gradient mint) chỉ cho hành động chính / **Thêm mới**. `secondary` trắng viền xám. `ghost` cho Bỏ qua, Huỷ phụ. `danger` viền đỏ cho xoá. |
 | `Badge` | `tone`: `gray` `blue` `mint` `green` `amber` `orange` `red` `violet` `flag` | Nhãn tuỳ ý. Viền + nền nhạt, bo 4px, ôm sát chữ. `flag` = viền đứt (cảnh báo rủi ro). |
-| `StatusBadge` | `status`, `testId?` | Nhãn tiếng Việt có sẵn. Sản phẩm BA: `none` Chưa có · `draft` Bản nháp · `done` Xong (cam = chờ duyệt) · `approved` Đã duyệt · `outdated` Lỗi thời. Công việc: `todo` Cần làm · `doing` Đang làm · `done` Xong · `approved` Đã duyệt. Bình luận: `open` `sent` `resolved`. |
+| `StatusBadge` | `status`, `testId?` | Nhãn tiếng Việt có sẵn. Sản phẩm BA: `none` Chưa có · `draft` Bản nháp · `done` Xong (cam = chờ duyệt) · `approved` Đã duyệt · `outdated` Bản cũ. Công việc: `todo` Cần làm · `doing` Đang làm · `done` Xong · `approved` Đã duyệt. Bình luận: `open` `sent` `resolved`. |
 | `RevisionTag` | `testId?` | Tag đỏ "Yêu cầu sửa" khi task/sản phẩm có cờ `revisionRequested`; giữ tới khi Duyệt. |
 | `EditingBadge` | `names: string[]`, `max?` (2) | "Đang được sửa bởi A, B và N người khác" (badge tím). Danh sách rỗng thì không hiện. Đặt cạnh tiêu đề màn / tài liệu. |
 | `ConflictNotice` | `onReload`, `message?`, `busy?` | Khung vàng khi lưu bị 409. Mặc định: "Bản đã thay đổi – có người vừa sửa. Tải lại để xem bản mới." + nút **Tải lại**. Đặt ngay trên vùng đang sửa. |

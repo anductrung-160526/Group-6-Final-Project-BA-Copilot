@@ -2,7 +2,7 @@
 // Hợp đồng: docs/api.md "Đợt 5" mục 5.4. Bảng `module_diagrams` (server/db.ts). `:kind` ∈ DIAGRAM_KINDS.
 // - Sinh loại X cần mọi tài liệu nguồn (DIAGRAM_SOURCES) ở trạng thái Xong / Đã duyệt (quyết định 8).
 // - Ghi: assertRev → ghi → về Đang làm (giữ cờ Yêu cầu sửa) → bumpRev → phát "artifact.drafted" { kind: "diagram", sub }.
-// - Tài liệu nguồn có bản mới ("artifact.drafted" của doc) → sơ đồ phụ thuộc thành Lỗi thời + "artifact.stale".
+// - Tài liệu nguồn có bản mới ("artifact.drafted" của doc) → sơ đồ phụ thuộc thành Bản cũ + "artifact.stale".
 // Tài liệu, story, màn đọc thẳng bảng (không import tệp của C4/C5/C9). Route cũ /api/modules/:id/diagram (số ít,
 // bảng uc_diagrams) ở server/routes/diagram.ts giữ nguyên để màn cũ còn chạy.
 
@@ -145,12 +145,20 @@ export function loadSources(moduleId: string): DiagramSources {
  * Ghi nội dung sơ đồ (luật chung đợt 5): kiểm rev → ghi → về Đang làm (giữ cờ Yêu cầu sửa) → tăng rev → "artifact.drafted".
  * `baseRev` thiếu thì cho qua (client cũ).
  */
-export function writeDiagram(moduleId: string, kind: DiagramKind, content: { code: string; parts: DiagramPart[] }, baseRev: number | undefined, actorId: string | undefined): ModuleDiagram {
+export function writeDiagram(
+  moduleId: string,
+  kind: DiagramKind,
+  content: { code: string; parts: DiagramPart[] },
+  baseRev: number | undefined,
+  actorId: string | undefined,
+  check?: () => void,
+): ModuleDiagram {
   return tx(() => {
     const r = ref(moduleId, kind);
     const cur = getArtifactState(r);
     if (!cur) throw new HttpError("Không tìm thấy module", 404);
     assertRev(cur.rev, baseRev);
+    check?.();
     const d = getDb();
     const exists = !!d.prepare("SELECT 1 FROM module_diagrams WHERE module_id = ? AND kind = ?").get(moduleId, kind);
     if (!exists) {
@@ -171,7 +179,7 @@ export function writeDiagram(moduleId: string, kind: DiagramKind, content: { cod
   });
 }
 
-/** Tài liệu nguồn có bản mới → các sơ đồ dựa trên nó (đã có) thành Lỗi thời. Trả các loại vừa đổi. */
+/** Tài liệu nguồn có bản mới → các sơ đồ dựa trên nó (đã có) thành Bản cũ. Trả các loại vừa đổi. */
 export function markDiagramsOutdated(moduleId: string, doc: DocKind, actorId?: string): DiagramKind[] {
   const changed: DiagramKind[] = [];
   for (const kind of DIAGRAM_KINDS) {
@@ -241,5 +249,9 @@ route("POST", "/api/modules/:id/diagrams/:kind/generate", async (ctx) => {
   const result = await generateDiagram(kind, src);
   const errors = checkDiagram(kind, result);
   if (errors.length) throw new HttpError(`AI trả sơ đồ chưa hợp lệ – ${errors[0]}`, 502, undefined, { details: errors });
-  return writeDiagram(moduleId, kind, result, baseRev, actorId);
+  // AI chạy lâu: tài liệu nguồn có thể vừa rời Xong (Yêu cầu sửa, sinh lại) → kiểm lại trong giao dịch ghi (D2 đợt 6).
+  return writeDiagram(moduleId, kind, result, baseRev, actorId, () => {
+    const r = generateBlockReason(moduleId, kind);
+    if (r) throw new HttpError(r, 400);
+  });
 });
