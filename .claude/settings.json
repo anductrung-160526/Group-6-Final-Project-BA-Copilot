@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "ClaudeInChromeDomain(localhost:3130)",
+      "mcp__claude-in-chrome__tabs_create_mcp",
+      "ClaudeInChromeDomain(localhost:3180)",
+      "ClaudeInChromeDomain(localhost:3140)",
+      "ClaudeInChromeDomain(localhost:3150)",
+      "ClaudeInChromeDomain(localhost:3170)",
+      "ClaudeInChromeDomain(localhost:3190)",
+      "ClaudeInChromeDomain(localhost:3160)",
+      "ClaudeInChromeDomain(localhost:31100)",
+      "ClaudeInChromeDomain(localhost:3100)",
+      "ClaudeInChromeDomain(localhost:3201)",
+      "ClaudeInChromeDomain(localhost:3200)",
+      "ClaudeInChromeDomain(localhost:3211)",
+      "ClaudeInChromeDomain(localhost:3210)",
+      "ClaudeInChromeDomain(localhost:3999)"
+    ]
+  }
+}
