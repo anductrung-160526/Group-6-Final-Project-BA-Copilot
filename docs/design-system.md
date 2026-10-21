@@ -122,6 +122,7 @@ Quy ước: trong thẻ/hộp thoại dùng 12–16 · giữa các khu vực tro
 | `--logo-size` / `--logo-size-compact` | 30px / 24px | Logo thanh trên |
 | `--motion-fast`, `--ease-standard` | 180ms, `cubic-bezier(0.2, 0, 0, 1)` | Chuyển động ngắn (thanh trên thu gọn). Mọi chuyển động phải tắt trong `@media (prefers-reduced-motion: reduce)` |
 | `--side-nav-w` / `--side-nav-rail-w` | 260px / 52px | Menu trái dự án lúc mở / lúc thu gọn còn dải icon |
+| `--kanban-col-min` | 200px | Bề rộng tối thiểu mỗi cột `.kanban`: 4 cột vừa vùng nội dung ở 1280px khi menu trái mở; hẹp hơn thì cuộn ngang trong bảng |
 | `--drawer-w` / `--drawer-min-w` | 40vw / 360px | Độ rộng ngăn phải |
 | `--side-nav-indent` | `--space-5` | Thụt lề mỗi cấp của `SideNav` |
 
