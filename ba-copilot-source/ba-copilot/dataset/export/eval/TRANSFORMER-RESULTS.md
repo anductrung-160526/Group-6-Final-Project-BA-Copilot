@@ -25,44 +25,56 @@ Chạy lại ngày 21/10/2026 bằng `scripts/paper/eval_app_model.py`; kết qu
 
 ## Kết quả
 
+Mô hình tham chiếu **Vanilla** và **Pointer** (Li et al. 2020, §4.2–4.3) được huấn luyện lại trên **cùng dữ liệu** với mô hình trong app
+(785 màn gốc + tăng cường, lưới 32 × 40, hidden 256 × 4 lớp, không embedding vị trí; Pointer dropout 0,2), bằng
+`scripts/paper/strict_next_experiment.py --kind pointer|vanilla`, chấm bằng `eval_app_model.py --kind …` (kết quả `transformer/pointer.json`,
+`transformer/vanilla.json`). **Khác biệt:** Recursive trong app có thêm bước tiền huấn luyện WebSight; Pointer và Vanilla huấn luyện trực
+tiếp, không tiền huấn luyện. Vanilla chỉ có luồng DFS (như bài báo). Giá trị tốt nhất mỗi cột in đậm.
+
 **Table 1:** The prediction accuracy for the breadth-first layout design flow.
 
 | Models | BFS 10% F1 | Next | Edit | BFS 50% F1 | Next | Edit | BFS 80% F1 | Next | Edit |
 |---|---|---|---|---|---|---|---|---|---|
-| **Recursive (app)** | 13.42 | 18.42 | 83.11 | 54.66 | 13.16 | 44.25 | 81.85 | 18.42 | 17.39 |
-| *Recursive (Li et al. 2020)* | *15.23* | *18.4* | *71.26* | *64.07* | *26.84* | *46.47* | *86.41* | *36.58* | *27.22* |
-| No suggestion | 14.69 | – | 101.40 | 65.56 | – | 56.21 | 87.57 | – | 23.92 |
+| Pointer | 11.77 | 15.79 | 85.79 | 50.83 | 2.63 | 48.76 | 79.47 | 15.79 | 20.61 |
+| Recursive (app) | **13.42** | **18.42** | **83.11** | **54.66** | **13.16** | **44.25** | **81.85** | **18.42** | **17.39** |
 
 **Table 2:** The prediction accuracy for the depth-first layout design flow.
 
 | Models | DFS 10% F1 | Next | Edit | DFS 50% F1 | Next | Edit | DFS 80% F1 | Next | Edit |
 |---|---|---|---|---|---|---|---|---|---|
-| **Recursive (app)** | 12.46 | 28.95 | 82.73 | 52.43 | 23.68 | 45.63 | 79.31 | 15.79 | 18.98 |
-| *Recursive (Li et al. 2020)* | *15.05* | *29.02* | *62.49* | *60.79* | *22.93* | *52.26* | *84.65* | *33.16* | *34.24* |
-| No suggestion | 14.69 | – | 101.40 | 65.56 | – | 56.21 | 87.57 | – | 23.92 |
+| Vanilla | **13.12** | 26.32 | 86.62 | **54.41** | 2.63 | 50.77 | 81.23 | **15.79** | 20.13 |
+| Pointer | 11.76 | 23.68 | 85.01 | 50.69 | 7.89 | 48.04 | **81.35** | 13.16 | 19.95 |
+| Recursive (app) | 12.46 | **28.95** | **82.73** | 52.43 | **23.68** | **45.63** | 79.31 | **15.79** | **18.98** |
 
 **Table 3:** The prediction accuracy for the breadth-first layout design flow with a random spatial ordering.
 
 | Models | BFS 10% F1 | Next | Edit | BFS 50% F1 | Next | Edit | BFS 80% F1 | Next | Edit |
 |---|---|---|---|---|---|---|---|---|---|
-| **Recursive (app)** | 11.55 | 7.89 | 87.63 | 47.84 | 2.63 | 45.18 | 66.87 | 0.00 | 19.80 |
-| *Recursive (Li et al. 2020)* | *15.23* | *18.4* | *71.26* | *70.0* | *17.0* | *22.46* | *91.8* | *30.47* | *11.79* |
-| No suggestion | 14.69 | – | 101.40 | 65.56 | – | 56.21 | 87.57 | – | 23.92 |
+| Pointer | 9.38 | 5.26 | 88.65 | **50.54** | 0.00 | 49.74 | **77.72** | **0.00** | 21.84 |
+| Recursive (app) | **11.55** | **7.89** | **87.63** | 47.84 | **2.63** | **45.18** | 66.87 | **0.00** | **19.80** |
 
-Trung bình 6 thiết lập (Table 1–2): F1 49.0 (bài báo 54,4) · Next 19.7 (bài báo 27,8) ·
-Edit 48.7 s (bài báo 49,0; không gợi ý 60.5 s).
-Thang nới lỏng (chỉ xét loại): Next 44.3%, loại đúng trong top-3 65.8%, Edit 37.0 s
-(không gợi ý 60.5 s).
+Trung bình (thang chặt) – Recursive: F1 49.0, Next 19.7, Edit 48.7 s ·
+Pointer: F1 47.6, Next 13.2, Edit 51.4 s ·
+Vanilla (chỉ DFS): F1 49.6, Next 14.9, Edit 52.5 s
+(Recursive chỉ DFS: F1 48.1, Next 22.8, Edit 49.1 s).
+Số của bài báo (dữ liệu Rico): Recursive trung bình F1 54,4, Next 27,8, Edit 49,0 s.
 
 ## Nhận xét
-- **Next:** ngang bài báo ở BFS 10%, DFS 10%, DFS 50%; khoảng một nửa ở BFS 50%, BFS 80%, DFS 80%.
-- **F1:** thấp hơn bài báo 2–10 điểm và thấp hơn mốc "không gợi ý" (mô hình đôi khi đề xuất thừa).
-- **Edit:** kém bài báo ở mức 10%, tốt hơn bài báo ở 50% và 80%; luôn tốt hơn "không gợi ý" (BA sửa ít hơn).
-- **Table 3:** khi thứ tự anh em bị xáo, Next giảm mạnh (mô hình học theo thứ tự trên–dưới, trái–phải của dữ liệu), F1 và Edit giảm ít hơn.
-  Bài báo thì gần như không giảm – khác biệt này đến từ dữ liệu và cách sắp thứ tự của nhóm.
+- **Next:** Recursive (app) cao nhất hoặc bằng cao nhất ở mọi ô của cả 3 bảng (bằng Vanilla ở DFS 80%; cả hai bằng 0 ở Table 3 BFS 80%) –
+  giống kết luận của bài báo ("Recursive consistently outperforms Pointer on Next Item prediction").
+- **Edit:** Recursive thấp nhất (tốt nhất) ở mọi ô của cả 3 bảng.
+- **F1:** ở BFS (Table 1) Recursive cao nhất mọi mức; ở DFS (Table 2) Vanilla cao nhất ở 10% và 50%, Pointer ở 80%; ở Table 3 Pointer cao hơn
+  ở 50% và 80%. Bài báo cũng thấy lợi thế của Recursive kém rõ ở DFS và Pointer mạnh về F1.
+- **Vanilla** có Next rất thấp ở DFS 50% (2,63) – cùng xu hướng bài báo, dù không thua xa như trong bài báo.
+- **Table 3:** khi xáo thứ tự anh em, Next của cả hai mô hình giảm gần về 0 ở 50–80%; F1 và Edit giảm ít hơn.
+- **So sánh chưa hoàn toàn công bằng:** Recursive có tiền huấn luyện WebSight, hai mô hình tham chiếu thì không.
 - **Giới hạn:** tập test nhỏ (38 cây); dữ liệu do nhóm soạn, khác bài báo; chưa có ablation tách đóng góp của WebSight và tăng cường.
 
 ## Chạy lại
 ```bash
 python3 scripts/paper/eval_app_model.py --data data/sn80-G2-w7-r800-aug2   # cần trọng số data/.../models/final.pt (data/ bị gitignore)
+python3 scripts/paper/strict_next_experiment.py --data data/sn80-G2-w7-r800-aug2 --kind pointer --no-pos --grid 256:4 --dropout 0.2 --threads 3 --out /tmp/pointer.json
+python3 scripts/paper/strict_next_experiment.py --data data/sn80-G2-w7-r800-aug2 --kind vanilla --grid 256:4 --threads 3 --out /tmp/vanilla.json
+python3 scripts/paper/eval_app_model.py --data data/sn80-G2-w7-r800-aug2 --kind pointer --weights data/sn80-G2-w7-r800-aug2/models/pointer.pt --out dataset/export/eval/transformer/pointer.json
+python3 scripts/paper/eval_app_model.py --data data/sn80-G2-w7-r800-aug2 --kind vanilla --weights data/sn80-G2-w7-r800-aug2/models/vanilla.pt --out dataset/export/eval/transformer/vanilla.json
 ```

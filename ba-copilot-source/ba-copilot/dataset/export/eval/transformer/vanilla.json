@@ -1,0 +1,69 @@
+{
+ "data": "/home/user/db_ba_final/ba-copilot-source/ba-copilot/data/sn80-G2-w7-r800-aug2",
+ "kind": "vanilla",
+ "model": {
+  "d": 256,
+  "layers": 4,
+  "grid": {
+   "gx": 32,
+   "gy": 128,
+   "cell_y": 40
+  }
+ },
+ "n_test_trees": 38,
+ "n_test_roots": 38,
+ "table1_2": {
+  "DFS 10%": {
+   "n": 38,
+   "next_strict": 26.32,
+   "next_relaxed": 55.26,
+   "next_top3": 71.05,
+   "f1_strict": 13.12,
+   "f1_relaxed": 29.02,
+   "edit_strict": 86.62,
+   "edit_relaxed": 71.26,
+   "none_f1_strict": 14.69,
+   "none_f1_relaxed": 14.69,
+   "none_edit_strict": 101.4,
+   "none_edit_relaxed": 101.4,
+   "seconds": 0.16,
+   "next_pm1": 28.95,
+   "next_iou50": 34.21
+  },
+  "DFS 50%": {
+   "n": 38,
+   "next_strict": 2.63,
+   "next_relaxed": 34.21,
+   "next_top3": 63.16,
+   "f1_strict": 54.41,
+   "f1_relaxed": 66.45,
+   "edit_strict": 50.77,
+   "edit_relaxed": 41.37,
+   "none_f1_strict": 65.56,
+   "none_f1_relaxed": 65.56,
+   "none_edit_strict": 56.21,
+   "none_edit_relaxed": 56.21,
+   "seconds": 0.109,
+   "next_pm1": 26.32,
+   "next_iou50": 23.68
+  },
+  "DFS 80%": {
+   "n": 38,
+   "next_strict": 15.79,
+   "next_relaxed": 42.11,
+   "next_top3": 57.89,
+   "f1_strict": 81.23,
+   "f1_relaxed": 86.32,
+   "edit_strict": 20.13,
+   "edit_relaxed": 15.9,
+   "none_f1_strict": 87.57,
+   "none_f1_relaxed": 87.57,
+   "none_edit_strict": 23.92,
+   "none_edit_relaxed": 23.92,
+   "seconds": 0.06,
+   "next_pm1": 28.95,
+   "next_iou50": 26.32
+  }
+ },
+ "seconds": 13.4
+}
