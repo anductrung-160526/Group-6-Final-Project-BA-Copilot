@@ -1,10 +1,10 @@
 {
  "split": "all",
- "tagger": "wink",
+ "tagger": "corenlp",
  "nStories": 671,
  "nSets": 10,
- "goldStoriesWithDefectPct": 8.9,
- "msPerStory": 0.3,
+ "goldStoriesWithDefectPct": 9.4,
+ "msPerStory": 0.1,
  "results": [
   {
    "name": "legacy (main)",
@@ -22,19 +22,19 @@
      "def": 7,
      "tp": 6,
      "fp": 1,
-     "fn": 25,
-     "recall": 19.4,
+     "fn": 26,
+     "recall": 18.8,
      "precision": 85.7,
-     "f1": 31.6
+     "f1": 30.8
     },
     "minimal": {
      "def": 1,
      "tp": 1,
      "fp": 0,
-     "fn": 8,
-     "recall": 11.1,
+     "fn": 9,
+     "recall": 10,
      "precision": 100,
-     "f1": 20
+     "f1": 18.2
     },
     "uniform": {
      "def": 17,
@@ -59,19 +59,19 @@
     "def": 75,
     "tp": 31,
     "fp": 44,
-    "fn": 38,
-    "recall": 44.9,
+    "fn": 40,
+    "recall": 43.7,
     "precision": 41.3,
-    "f1": 43.1
+    "f1": 42.5
    },
    "macro": {
-    "recall": 29.7,
+    "recall": 28.7,
     "precision": 37.2
    },
    "storiesWithDefectPct": 8.6,
    "recall95": [
     31.9,
-    56.3
+    55.4
    ],
    "precision95": [
     32.9,
@@ -91,22 +91,22 @@
      "f1": 52.6
     },
     "atomic": {
-     "def": 39,
-     "tp": 19,
-     "fp": 20,
-     "fn": 12,
-     "recall": 61.3,
-     "precision": 48.7,
-     "f1": 54.3
+     "def": 38,
+     "tp": 21,
+     "fp": 17,
+     "fn": 11,
+     "recall": 65.6,
+     "precision": 55.3,
+     "f1": 60
     },
     "minimal": {
      "def": 9,
-     "tp": 5,
-     "fp": 4,
+     "tp": 6,
+     "fp": 3,
      "fn": 4,
-     "recall": 55.6,
-     "precision": 55.6,
-     "f1": 55.6
+     "recall": 60,
+     "precision": 66.7,
+     "f1": 63.2
     },
     "uniform": {
      "def": 17,
@@ -128,26 +128,26 @@
     }
    },
    "micro": {
-    "def": 84,
-    "tp": 48,
-    "fp": 36,
-    "fn": 21,
-    "recall": 69.6,
-    "precision": 57.1,
-    "f1": 62.7
+    "def": 83,
+    "tp": 51,
+    "fp": 32,
+    "fn": 20,
+    "recall": 71.8,
+    "precision": 61.4,
+    "f1": 66.2
    },
    "macro": {
-    "recall": 62.2,
-    "precision": 53.3
+    "recall": 63.6,
+    "precision": 61.2
    },
-   "storiesWithDefectPct": 10,
+   "storiesWithDefectPct": 9.8,
    "recall95": [
-    59.5,
-    76.1
+    60.7,
+    80
    ],
    "precision95": [
-    50.8,
-    65.2
+    54.4,
+    67.1
    ]
   },
   {
@@ -163,22 +163,22 @@
      "f1": 88.9
     },
     "atomic": {
-     "def": 55,
-     "tp": 22,
-     "fp": 33,
-     "fn": 9,
-     "recall": 71,
-     "precision": 40,
-     "f1": 51.2
+     "def": 53,
+     "tp": 24,
+     "fp": 29,
+     "fn": 8,
+     "recall": 75,
+     "precision": 45.3,
+     "f1": 56.5
     },
     "minimal": {
      "def": 14,
-     "tp": 8,
-     "fp": 6,
+     "tp": 9,
+     "fp": 5,
      "fn": 1,
-     "recall": 88.9,
-     "precision": 57.1,
-     "f1": 69.6
+     "recall": 90,
+     "precision": 64.3,
+     "f1": 75
     },
     "uniform": {
      "def": 23,
@@ -200,99 +200,171 @@
     }
    },
    "micro": {
-    "def": 101,
-    "tp": 57,
-    "fp": 44,
-    "fn": 12,
-    "recall": 82.6,
-    "precision": 56.4,
-    "f1": 67.1
+    "def": 99,
+    "tp": 60,
+    "fp": 39,
+    "fn": 11,
+    "recall": 84.5,
+    "precision": 60.6,
+    "f1": 70.6
    },
    "macro": {
-    "recall": 76.9,
-    "precision": 56
+    "recall": 78.2,
+    "precision": 58.9
    },
-   "storiesWithDefectPct": 13.7,
+   "storiesWithDefectPct": 13.4,
    "recall95": [
-    73.1,
-    87
+    76.3,
+    91.9
    ],
    "precision95": [
-    47.4,
-    62.2
+    51.6,
+    67.3
+   ]
+  },
+  {
+   "name": "AQUSA v1 (paper)",
+   "perCriterion": {
+    "well-formed": {
+     "def": 14,
+     "tp": 5,
+     "fp": 9,
+     "fn": 0,
+     "recall": 100,
+     "precision": 35.7,
+     "f1": 52.6
+    },
+    "atomic": {
+     "def": 71,
+     "tp": 23,
+     "fp": 48,
+     "fn": 9,
+     "recall": 71.9,
+     "precision": 32.4,
+     "f1": 44.7
+    },
+    "minimal": {
+     "def": 8,
+     "tp": 3,
+     "fp": 5,
+     "fn": 7,
+     "recall": 30,
+     "precision": 37.5,
+     "f1": 33.3
+    },
+    "uniform": {
+     "def": 17,
+     "tp": 14,
+     "fp": 3,
+     "fn": 5,
+     "recall": 73.7,
+     "precision": 82.4,
+     "f1": 77.8
+    },
+    "unique": {
+     "def": 5,
+     "tp": 5,
+     "fp": 0,
+     "fn": 0,
+     "recall": 100,
+     "precision": 100,
+     "f1": 100
+    }
+   },
+   "micro": {
+    "def": 115,
+    "tp": 50,
+    "fp": 65,
+    "fn": 21,
+    "recall": 70.4,
+    "precision": 43.5,
+    "f1": 53.8
+   },
+   "macro": {
+    "recall": 59,
+    "precision": 39.4
+   },
+   "storiesWithDefectPct": 14.6,
+   "recall95": [
+    58.6,
+    78.7
+   ],
+   "precision95": [
+    37.1,
+    48.8
    ]
   }
  ],
  "ablation": [
   {
    "without": "ends-indicators",
-   "def": 105,
-   "tp": 52,
-   "fp": 53,
+   "def": 103,
+   "tp": 54,
+   "fp": 49,
    "fn": 17,
-   "recall": 75.4,
-   "precision": 49.5,
-   "f1": 59.8
+   "recall": 76.1,
+   "precision": 52.4,
+   "f1": 62.1
   },
   {
    "without": "chunk-repetition",
-   "def": 81,
-   "tp": 54,
-   "fp": 27,
-   "fn": 15,
-   "recall": 78.3,
-   "precision": 66.7,
-   "f1": 72
+   "def": 79,
+   "tp": 57,
+   "fp": 22,
+   "fn": 14,
+   "recall": 80.3,
+   "precision": 72.2,
+   "f1": 76
   },
   {
    "without": "slash-gt",
-   "def": 101,
-   "tp": 57,
-   "fp": 44,
-   "fn": 12,
-   "recall": 82.6,
-   "precision": 56.4,
-   "f1": 67.1
+   "def": 99,
+   "tp": 60,
+   "fp": 39,
+   "fn": 11,
+   "recall": 84.5,
+   "precision": 60.6,
+   "f1": 70.6
   },
   {
    "without": "verb-exceptions",
-   "def": 96,
-   "tp": 53,
-   "fp": 43,
-   "fn": 16,
-   "recall": 76.8,
-   "precision": 55.2,
-   "f1": 64.2
+   "def": 95,
+   "tp": 57,
+   "fp": 38,
+   "fn": 14,
+   "recall": 80.3,
+   "precision": 60,
+   "f1": 68.7
   },
   {
    "without": "symbol-role",
-   "def": 101,
-   "tp": 57,
-   "fp": 44,
-   "fn": 12,
-   "recall": 82.6,
-   "precision": 56.4,
-   "f1": 67.1
+   "def": 99,
+   "tp": 60,
+   "fp": 39,
+   "fn": 11,
+   "recall": 84.5,
+   "precision": 60.6,
+   "f1": 70.6
   },
   {
    "without": "starting-text",
-   "def": 101,
-   "tp": 57,
-   "fp": 44,
-   "fn": 12,
-   "recall": 82.6,
-   "precision": 56.4,
-   "f1": 67.1
+   "def": 99,
+   "tp": 60,
+   "fp": 39,
+   "fn": 11,
+   "recall": 84.5,
+   "precision": 60.6,
+   "f1": 70.6
   },
   {
    "without": "abbreviation",
-   "def": 101,
-   "tp": 57,
-   "fp": 44,
-   "fn": 12,
-   "recall": 82.6,
-   "precision": 56.4,
-   "f1": 67.1
+   "def": 99,
+   "tp": 60,
+   "fp": 39,
+   "fn": 11,
+   "recall": 84.5,
+   "precision": 60.6,
+   "f1": 70.6
   }
  ],
  "errors": [
@@ -304,32 +376,11 @@
    "text": "As a Broker user, I want to Upload and Validate the error message to have accurate text."
   },
   {
-   "id": "g02-018",
-   "set": "g02",
-   "criterion": "atomic",
-   "type": "FP",
-   "text": "As a Developer, I want D Files generation requests to be managed and cached, so that duplicate requests do not cause performance issues."
-  },
-  {
-   "id": "g02-081",
-   "set": "g02",
-   "criterion": "atomic",
-   "type": "FN",
-   "text": "As a Developer, I want to prevent duplicate transactions from being published and deal with the time gap between validation and the publishing decision."
-  },
-  {
    "id": "g02-082",
    "set": "g02",
    "criterion": "atomic",
    "type": "FP",
    "text": "As a FABS user, I want to submit a citywide as a PPoPZIP and pass validations."
-  },
-  {
-   "id": "g02-097",
-   "set": "g02",
-   "criterion": "atomic",
-   "type": "FP",
-   "text": "As an agency user, I want a landing page to navigate to either FABS or DABS pages, so that I can access both sides of the site."
   },
   {
    "id": "g04-003",
@@ -339,25 +390,11 @@
    "text": "As a user, I want to be able to enter my zip code and get a list of nearby recycling facilities, so that I can determine which ones I should consider."
   },
   {
-   "id": "g04-006",
-   "set": "g04",
-   "criterion": "atomic",
-   "type": "FN",
-   "text": "As a user, I want to be able to select different types of recyclable waste, so I have and get a list of facilities that accept each type and their opening hours, so that I can find an optimal route and schedule."
-  },
-  {
    "id": "g04-048",
    "set": "g04",
    "criterion": "atomic",
    "type": "FP",
    "text": "As a user, I want to be able to browse through the list of facolities and see which ones are environment-friendly, so that I can know for sure my waste is not going to leave a negative ecological footprint."
-  },
-  {
-   "id": "g04-051",
-   "set": "g04",
-   "criterion": "atomic",
-   "type": "FP",
-   "text": "As a recyclingfacility, I want to be able to communicate directly with the site admin and convey any issues or concerns I have, so that they fix them."
   },
   {
    "id": "g05-019",
@@ -388,27 +425,6 @@
    "text": "As a Data Consuming User, I want to be able to share a view state as a URL to social networks, So that I can share data that I have found with others."
   },
   {
-   "id": "g05-073",
-   "set": "g05",
-   "criterion": "atomic",
-   "type": "FP",
-   "text": "As an API User, I want to be able to normalise measures by GINI and related socioeconomic indexes, So that I work with datasets in reference to their contextual constraints."
-  },
-  {
-   "id": "g05-099",
-   "set": "g05",
-   "criterion": "atomic",
-   "type": "FP",
-   "text": "As a Data Consuming User, I want to visualize by default in treemap, bubble tree, map and pivot table the most recent year when my dataset contain multiple years, So that I'm not confused with the amounts."
-  },
-  {
-   "id": "g08-017",
-   "set": "g08",
-   "criterion": "atomic",
-   "type": "FN",
-   "text": "As a Developer, I want to do exploratory data analysis in R and operationalize that analysis in Python, so that I can use the best tool for the job."
-  },
-  {
    "id": "g08-039",
    "set": "g08",
    "criterion": "well-formed",
@@ -421,6 +437,13 @@
    "criterion": "atomic",
    "type": "FN",
    "text": "As a ResearcherDeveloper, would like the ability import/export from MS-SQL, so that I can use Data Packages in workflows that involve MS-SQL."
+  },
+  {
+   "id": "g08-057",
+   "set": "g08",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a DeveloperDataWrangler, I want to store my Data Package in GitHub and have it automatically stored into CKAN, so that I get a data API and my dataset is listed in a relevant catalog."
   },
   {
    "id": "g08-062",
@@ -442,6 +465,20 @@
    "criterion": "atomic",
    "type": "FP",
    "text": "As a site editor, I want to assign priority numbers to news items, so that I can indicate which articles I want featured most prominently on the site."
+  },
+  {
+   "id": "g10-021",
+   "set": "g10",
+   "criterion": "atomic",
+   "type": "FN",
+   "text": "As a site visitor, I want to see a list of all upcoming Certification Courses and can page through them if there are a lot, so that I can choose the best course for me."
+  },
+  {
+   "id": "g10-022",
+   "set": "g10",
+   "criterion": "atomic",
+   "type": "FN",
+   "text": "As a site visitor, I want to see a list of all upcoming Other Courses and can page through them if necessary, so that I can choose the best course for me."
   },
   {
    "id": "g10-023",
@@ -498,13 +535,6 @@
    "criterion": "uniform",
    "type": "FP",
    "text": "As the site editor, I want to have pretty good control over how the article, so that articles are visually appealing."
-  },
-  {
-   "id": "g10-058",
-   "set": "g10",
-   "criterion": "minimal",
-   "type": "FP",
-   "text": "As a site visitor, I want to click the link from the article teaser to take me directly to the body of the article. not to another teaser setup, so that I can easily finish the article."
   },
   {
    "id": "g10-062",

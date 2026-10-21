@@ -37,6 +37,8 @@ export interface AqusaDefect {
 export interface AqusaOptions {
   /** Cải tiến v2 được bật (mặc định: tất cả). [] = AQUSA v1. */
   v2?: V2Feature[];
+  /** Tinh chỉnh của nhóm (mặc định bật). false = chỉ những gì bài báo mô tả – dùng với v2: [] để tái lập AQUSA v1. */
+  team?: boolean;
 }
 
 export interface Chunks {
@@ -62,6 +64,7 @@ const longestFirst = (a: string[]) => [...a].sort((x, y) => y.length - x.length)
 const indicatorRe = (inds: string[]) => new RegExp(`(?<![\\p{L}\\p{N}])(${longestFirst(inds).map(esc).join("|").replace(/ /g, "\\s+")})(?![\\p{L}\\p{N}])`, "iu");
 
 const on = (o: AqusaOptions, f: V2Feature) => (o.v2 ?? ALL_V2).includes(f);
+const tm = (o: AqusaOptions) => o.team !== false;
 
 /** Tách story thành vai trò / hành động / lý do theo cụm chỉ dấu (StoryChunker, §4.2). */
 export function chunk(text: string, o: AqusaOptions = {}): Chunks {
@@ -96,11 +99,12 @@ export function chunk(text: string, o: AqusaOptions = {}): Chunks {
 const VERB_EXCEPTIONS = new Set(["select", "support", "import", "export", "filter", "search", "view", "update", "upload", "download", "edit", "print", "sort", "share", "log", "sign", "access", "manage", "review", "track", "tag", "comment", "rate", "book", "order", "schedule", "post", "list", "copy", "move", "archive", "save", "add", "delete", "remove", "create", "change", "do", "get", "keep", "check", "enter", "browse", "give", "receive", "send", "post"]);
 
 function hasVerb(s: string, o: AqusaOptions): boolean {
+  const team = tm(o);
   const doc = nlp.readDoc(s);
   const words = doc.tokens().out(its.normal) as string[];
   const pos = doc.tokens().out(its.pos) as string[];
   // "to be up-to-date", "to be appropriate": "be" + tính từ là vị ngữ hợp lệ (vòng 2, thiết kế của nhóm).
-  return pos.some((p, i) => p === "VERB" || (words[i] === "be" && i + 1 < pos.length) || (on(o, "verb-exceptions") && VERB_EXCEPTIONS.has(words[i])));
+  return pos.some((p, i) => p === "VERB" || (team && words[i] === "be" && i + 1 < pos.length) || (on(o, "verb-exceptions") && VERB_EXCEPTIONS.has(words[i])));
 }
 
 function hasNoun(s: string): boolean {
@@ -120,7 +124,7 @@ function wellFormed(c: Chunks, o: AqusaOptions): AqusaDefect[] {
   const out: AqusaDefect[] = [];
   // Nội dung chunk: vai trò phải có danh từ, hành động phải có động từ – THIẾT KẾ CỦA NHÓM, không có trong định nghĩa của bài
   // báo (Bảng 1 chỉ yêu cầu có role và means). Vòng 2: phép kiểm động từ gây phần lớn báo nhầm trên test2 (xem QUS-AQUSA.md).
-  if (!hasNoun(c.role)) out.push({ criterion: "well-formed", code: "WF_ROLE_CONTENT", message: `The role "${c.role}" contains no noun.`, suggestion: "Name a user type, e.g. \"As a store manager\".", excerpt: c.role, paperRef: "§4.3" });
+  if (tm(o) && !hasNoun(c.role)) out.push({ criterion: "well-formed", code: "WF_ROLE_CONTENT", message: `The role "${c.role}" contains no noun.`, suggestion: "Name a user type, e.g. \"As a store manager\".", excerpt: c.role, paperRef: "§4.3" });
   // "I want to <X>": X đứng ngay sau "to"/"can" là động từ theo ngữ pháp, kể cả khi bộ gán nhãn hiểu khác.
   const verbSlot = /(?:to|can|need)$/.test(c.meansIndicator) || /^to\s/i.test(c.means);
   // Vòng 3: TẮT phép kiểm "hành động phải có động từ" (không có trong Bảng 1 của bài báo, gây phần lớn báo nhầm trên test2).
@@ -143,18 +147,22 @@ function atomic(c: Chunks, raw: string, o: AqusaOptions): AqusaDefect[] {
     const isV = (i: number) => p[i] === "VERB" || (on(o, "verb-exceptions") && VERB_EXCEPTIONS.has(w[i]));
     const conj = new Set(["and", "or", ...(on(o, "slash-gt") ? ["/", "\\", ">"] : [])]);
     const skip = new Set(["to", "also", "then", "can", "be", "able", "directly"]);
+    const team = tm(o);
     // Liên từ nằm trong mệnh đề phụ ("codes that reflect … and provide", "determine how agencies will generate and validate")
     // nối hai vị ngữ của mệnh đề phụ, không phải hai tính năng (vòng 2, thiết kế của nhóm).
     const SUB = new Set(["that", "which", "who", "how", "what", "when", "where", "whether", "if", "while"]);
-    const subAt = w.findIndex((x, k) => k > 0 && SUB.has(x));
+    const subAt = team ? w.findIndex((x, k) => k > 0 && SUB.has(x)) : -1;
     for (let i = 1; i < w.length - 1; i++) {
       if (!conj.has(w[i])) continue;
       if (subAt > 0 && i > subAt) break;
-      if (w[i] === "/" && ["DET", "ADJ", "NUM"].includes(p[i - 2] ?? "")) continue; // "a custom query/report": danh từ ghép
+      if (team && w[i] === "/" && ["DET", "ADJ", "NUM"].includes(p[i - 2] ?? "")) continue; // "a custom query/report": danh từ ghép
       let j = i + 1;
       while (j < w.length && skip.has(w[j])) j++;
       const leftVerb = w.slice(0, i).some((_, k) => isV(k));
-      const rightVerb = j < w.length && isV(j);
+      // Bài báo (§4.3): chỉ cần vế sau có động từ; tinh chỉnh của nhóm: vế sau phải mở đầu bằng động từ.
+      let end = i + 1;
+      while (end < w.length && p[end] !== "PUNCT") end++;
+      const rightVerb = team ? j < w.length && isV(j) : w.slice(i + 1, end).some((_, k) => isV(i + 1 + k));
       // "/" chỉ nối khi hai từ kề nhau đều là động từ ("create/edit"), không tính "UI/UX", "query/report".
       const ok = w[i] === "and" || w[i] === "or" ? leftVerb && rightVerb : isV(i - 1) && isV(i + 1);
       if (ok) {
@@ -163,7 +171,7 @@ function atomic(c: Chunks, raw: string, o: AqusaOptions): AqusaDefect[] {
       }
     }
     if (!out.length) {
-      const m = means.match(/;|\s[&+]\s/); // "ZIP+4", "C++" không phải liên từ
+      const m = means.match(team ? /;|\s[&+]\s/ : /[;&+]/); // nhóm: "ZIP+4", "C++" không phải liên từ
       if (m) out.push({ criterion: "atomic", code: "AT_SYMBOL", message: `The means contains "${m[0].trim()}", which usually joins two requirements.`, suggestion: "Split it into one story per action.", excerpt: m[0].trim(), paperRef: "§4.3" });
     }
   }
@@ -219,7 +227,7 @@ function minimal(c: Chunks, raw: string, o: AqusaOptions): AqusaDefect[] {
   // Ngoặc (§3.1 minimal, §4.3); v2 §6.6 bỏ qua viết tắt.
   for (const m of raw.matchAll(/[([{]([^)\]}]*)[)\]}]/g)) {
     if (on(o, "abbreviation") && isAbbreviation(raw.slice(0, m.index), m[1])) continue;
-    if (/^(s|es)$/i.test(m[1])) continue; // "Plan(s)": dấu số nhiều, không phải chú thích (vòng 2)
+    if (tm(o) && /^(s|es)$/i.test(m[1])) continue; // "Plan(s)": dấu số nhiều, không phải chú thích (vòng 2)
     out.push({ criterion: "minimal", code: "MN_BRACKET", message: `Extra detail in brackets: "${m[0]}".`, suggestion: "Move notes and examples to the acceptance criteria or the description.", excerpt: m[0], paperRef: on(o, "abbreviation") ? "§3.1, §6.6" : "§3.1" });
     break;
   }
@@ -227,7 +235,8 @@ function minimal(c: Chunks, raw: string, o: AqusaOptions): AqusaDefect[] {
   const body = raw.trim().replace(/[.!]+$/u, "");
   // Câu thứ hai bắt đầu bằng "So that" chính là phần ends (vòng 2); "such as" là dấu hiệu ví dụ (vòng 2).
   const second = body.match(/[.!?;:]\s+(\S.*)$/u);
-  const extra = (second && !/^so\s+that\b/i.test(second[1]) ? second : null) ?? body.match(/(?<![\p{L}])(e\.g\.|i\.e\.|for example|for instance|such as|note:|etc\.?|like:)/iu);
+  const markers = tm(o) ? /(?<![\p{L}])(e\.g\.|i\.e\.|for example|for instance|such as|note:|etc\.?|like:)/iu : /(?<![\p{L}])(e\.g\.|i\.e\.|for example|for instance|note:|etc\.?|like:)/iu;
+  const extra = (second && !(tm(o) && /^so\s+that\b/i.test(second[1])) ? second : null) ?? body.match(markers);
   if (extra && !out.some((d) => d.code === "MN_BRACKET"))
     out.push({ criterion: "minimal", code: "MN_EXTRA", message: `The story contains more than role, means and ends: "${extra[0].trim().slice(0, 60)}".`, suggestion: "Keep only role, means and ends; move the rest to the acceptance criteria.", excerpt: extra[0].trim().slice(0, 60), paperRef: "§3.1" });
   return out;
@@ -248,7 +257,19 @@ export function analyzeSet(texts: string[], o: AqusaOptions = {}): AqusaDefect[]
   const res = texts.map((t, i) => [...wellFormed(chunks[i], o), ...atomic(chunks[i], t, o), ...minimal(chunks[i], t, o), ...endsRepeat(chunks[i], o)]);
   // Uniform: lệch mẫu chiếm đa số trong bộ (cần ít nhất 2 story). Đa số xác định riêng cho từng phần (vai trò, hành động,
   // lý do); phần lý do chỉ xét các story có lý do – vì ends là tuỳ chọn (§3.1), story thiếu ends không tính là lệch (vòng 2).
-  if (texts.length > 1) {
+  if (texts.length > 1 && !tm(o)) {
+    // Bài báo: so cả mẫu với mẫu chiếm đa số (thiếu ends không tính là lệch – ends là tuỳ chọn, §3.1).
+    const tpl = chunks.map(templateOf);
+    const count = new Map<string, number>();
+    for (const t of tpl) count.set(t, (count.get(t) ?? 0) + 1);
+    const [major, n] = [...count.entries()].sort((a, b) => b[1] - a[1])[0];
+    const [mr, mm, me] = major.split("|");
+    if (n > 1)
+      tpl.forEach((t, i) => {
+        const [r, m, e] = t.split("|");
+        if (r !== mr || m !== mm || (e !== "-" && me !== "-" && e !== me)) res[i].push({ criterion: "uniform", code: "UN_TEMPLATE", message: `The story uses the template "${t.replace(/\|/g, " … ")}", unlike most stories ("${major.replace(/\|/g, " … ")}").`, suggestion: "Use the same template as the rest of the set.", paperRef: "§3.3 uniform, §4.3" });
+      });
+  } else if (texts.length > 1) {
     const slots = chunks.map((c) => templateOf(c).split("|"));
     const major = [0, 1, 2].map((k) => {
       const count = new Map<string, number>();

@@ -26,9 +26,9 @@ for (const s of stories) if (labels.has(s.id)) bySet.set(s.set, [...(bySet.get(s
 const evalStories = [...bySet.values()].flat();
 
 // Tiêu chí uniform/unique xét trong từng bộ gốc (như bài báo chấm từng bộ của từng công ty).
-function predictAqusa(v2: V2Feature[]): Pred {
+function predictAqusa(v2: V2Feature[], team = true): Pred {
   const p: Pred = {};
-  for (const list of bySet.values()) analyzeSet(list.map((s) => s.text), { v2 }).forEach((d, i) => (p[list[i].id] = new Set(d.map((x) => x.criterion))));
+  for (const list of bySet.values()) analyzeSet(list.map((s) => s.text), { v2, team }).forEach((d, i) => (p[list[i].id] = new Set(d.map((x) => x.criterion))));
   return p;
 }
 const LEGACY_MAP: Record<string, QusCriterion> = { WELL_FORMED: "well-formed", ATOMIC: "atomic", MINIMAL: "minimal", NOT_UNIFORM: "uniform", DUPLICATE: "unique" };
@@ -89,13 +89,13 @@ function report(name: string, pred: Pred) {
 const tagger = arg("tagger", "wink");
 if (tagger === "corenlp") {
   const { useCoreNLP } = await import("./corenlp-tagger.ts");
-  const info = useCoreNLP(arg("jars", ""), () => { predictAqusa(ALL_V2); predictAqusa([]); for (const f of ALL_V2) predictAqusa(ALL_V2.filter((x) => x !== f)); });
+  const info = useCoreNLP(arg("jars", ""), () => { predictAqusa(ALL_V2); predictAqusa([]); predictAqusa([], false); for (const f of ALL_V2) predictAqusa(ALL_V2.filter((x) => x !== f)); });
   console.log(`CoreNLP: ${info.strings} chuỗi, ${info.passes} lượt`);
 }
 const t0 = performance.now();
 const full = predictAqusa(ALL_V2);
 const msPerStory = Math.round(((performance.now() - t0) / Math.max(evalStories.length, 1)) * 10) / 10;
-const results = [report("legacy (main)", predictLegacy()), report("AQUSA v1", predictAqusa([])), report("AQUSA v1+v2", full)];
+const results = [report("legacy (main)", predictLegacy()), report("AQUSA v1", predictAqusa([])), report("AQUSA v1+v2", full), report("AQUSA v1 (paper)", predictAqusa([], false))];
 const ablation = ALL_V2.map((f) => ({ without: f, ...report(`v1+v2 − ${f}`, predictAqusa(ALL_V2.filter((x) => x !== f))).micro }));
 const goldAny = pct(evalStories.filter((s) => CRIT.some((c) => labels.get(s.id)![c])).length, evalStories.length);
 // Danh sách lỗi của bản đầy đủ để phân tích lỗi (§5.1).
