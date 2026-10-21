@@ -1,10 +1,10 @@
-// Bộ chấm AQUSA (shared/aqusa.ts): ví dụ lấy từ bài báo (Bảng 2, §5.1, §6) và ví dụ tự viết – không lấy từ tập test.
+// Bộ chấm AQUSA (shared/aqusa.ts): ví dụ lấy từ bài báo (Bảng 2, §5.1, §6) và ví dụ tự viết – không lấy từ dữ liệu đánh giá.
 import "../shared/nlp-node.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { analyzeSet, chunk, ALL_V2 } from "../shared/aqusa.ts";
+import { analyzeSet, chunk } from "../shared/aqusa.ts";
 
-const crit = (texts: string[], i = 0, v2 = ALL_V2) => new Set(analyzeSet(texts, { v2 })[i].map((d) => d.criterion));
+const crit = (texts: string[], i = 0) => new Set(analyzeSet(texts)[i].map((d) => d.criterion));
 
 test("chunk tách role / means / ends", () => {
   const c = chunk("As a manager, I want to export orders so that I can report.");
@@ -40,7 +40,6 @@ test("minimal: chữ thừa ở đầu, ngoặc; v2 §6.6 bỏ qua viết tắt"
   assert.ok(crit(["[Analytics] As a marketing analyst, I want to see a dashboard."]).has("minimal"));
   assert.ok(crit(["As a user, I want to filter orders (by date, status and customer)."]).has("minimal"));
   assert.ok(!crit(["As a user, I want to use the Content Management System (CMS) so that I can edit pages."]).has("minimal"));
-  assert.ok(crit(["As a user, I want to use the Content Management System (CMS) so that I can edit pages."], 0, []).has("minimal"));
 });
 
 test("uniform: lệch mẫu đa số; 'I want to be able to' cùng họ 'I want'", () => {
@@ -55,7 +54,7 @@ test("unique: trùng chính xác (bỏ qua hoa thường, dấu câu)", () => {
   assert.ok(!crit(set, 0).has("unique"));
 });
 
-test("vòng 2: liên từ trong mệnh đề phụ, '+' dính chữ, '/' sau tính từ không tính atomic", () => {
+test("liên từ trong mệnh đề phụ, '+' dính chữ, '/' sau tính từ không tính atomic", () => {
   assert.ok(!crit(["As a clerk, I want reports that summarise sales and highlight trends."]).has("atomic"));
   assert.ok(!crit(["As a dev, I want to learn how teams build and deploy apps."]).has("atomic"));
   assert.ok(!crit(["As a dev, I want to write C++ bindings."]).has("atomic"));
@@ -63,14 +62,14 @@ test("vòng 2: liên từ trong mệnh đề phụ, '+' dính chữ, '/' sau tí
   assert.ok(crit(["As an analyst, I want to import a file and share it."]).has("atomic"));
 });
 
-test("vòng 2: 'be + tính từ' là hành động; 'I don't want' là cụm chỉ dấu, lệch mẫu uniform", () => {
+test("'be + tính từ' là hành động; 'I don't want' là cụm chỉ dấu, lệch mẫu uniform", () => {
   assert.ok(!crit(["As a viewer, I want prices to be accurate."]).has("well-formed"));
   const set = ["As a user, I want to log in.", "As a user, I want to log out.", "As a user, I don't want to see ads."];
   assert.ok(!crit(set, 2).has("well-formed"));
   assert.ok(crit(set, 2).has("uniform"));
 });
 
-test("vòng 2: uniform xét phần ends trong các story có ends; '(s)' và '. So that' không tính minimal", () => {
+test("uniform xét phần ends trong các story có ends; '(s)' và '. So that' không tính minimal", () => {
   const set = ["As a user, I want to log in.", "As a user, I want to log out.", "As a user, I want to pay so that I get goods.", "As a user, I want to rate so that others know.", "As a user, I want to chat, so I can ask."];
   assert.ok(crit(set, 4).has("uniform"));
   assert.ok(!crit(set, 0).has("uniform"));

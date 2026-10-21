@@ -1,7 +1,7 @@
 """In kết quả một cấu hình theo đúng dạng Bảng 4 và Bảng 5 của Lucassen et al. 2016.
-Dùng: python3 scripts/qus-eval/tables.py <kết-quả.json> "<tên cấu hình trong results>" """
+Dùng: python3 scripts/qus-eval/tables.py dataset/export/eval/qus/all.json"""
 import json, sys
-d = json.load(open(sys.argv[1])); r = next(x for x in d["results"] if x["name"] == sys.argv[2])
+d = json.load(open(sys.argv[1])); r = d["result"]
 f = lambda x: "–" if x is None else f"{x:.1f}"
 print(f"Table 4  Overall recall and precision of {r['name']}, computed using both the micro- and the macro-average of the data sets\n")
 print("| | Recall (%) | Precision (%) |\n|---|---|---|")

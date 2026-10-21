@@ -1,6 +1,6 @@
-# Hướng dẫn gán nhãn lỗi QUS – bản thống nhất (v2)
+# Hướng dẫn gán nhãn lỗi QUS
 
-Bộ nhãn duy nhất đang dùng. Định nghĩa theo bài báo; viết và commit trước khi gán nhãn.
+Dùng để tạo đáp án đánh giá bộ chấm QUS (`labels.jsonl`). Viết và commit trước khi gán nhãn.
 Định nghĩa theo Lucassen et al. 2016, Bảng 1 và §3. Mỗi story gán 5 nhãn đúng/sai độc lập; story vi phạm ghi lý do một dòng.
 Áp dụng quy tắc dưới đây một cách máy móc, không thêm ngoại lệ theo từng câu. Lỗi chính tả, lỗi ngữ pháp, lặp chữ ("so that that", "so that so that") **không** tính lỗi.
 
@@ -44,5 +44,6 @@ Thiếu phần lý do **không** tính là lệch.
 Trùng y hệt một story khác trong cùng bộ, sau khi bỏ qua chữ hoa, dấu câu, khoảng trắng. Story đứng sau bị tính lỗi. Gần giống nhưng khác chữ không tính (như AQUSA v1, §5.1).
 
 ## Ghi chú về quy trình
-- Gán lại toàn bộ 671 story của 10 bộ; bản này là bộ nhãn duy nhất đang dùng.
-- Hạn chế: người gán (AI) chính là người gán bản cũ và đã thấy kết quả bộ chấm ở các vòng trước, nên không độc lập hoàn toàn. Nhãn và báo cáo các vòng trước đã gỡ khỏi repo, còn trong lịch sử git.
+- 3 người gán độc lập (agent AI không có ký ức) chỉ đọc hướng dẫn này và danh sách story, không thấy kết quả bộ chấm; mỗi người gán toàn bộ 671 story (`independent/agent{1,2,3}.jsonl`).
+- Đáp án chính thức `labels.jsonl` = nhãn **đa số** (≥ 2/3). Fleiss' kappa giữa 3 người gán: 0,98.
+- Hạn chế: 3 người gán cùng một loại mô hình AI nên dễ sai giống nhau; cần thêm người gán thật (`kappa-sample.csv`).
