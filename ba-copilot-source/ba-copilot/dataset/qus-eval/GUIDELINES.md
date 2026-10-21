@@ -23,3 +23,11 @@ Ca biên đã chốt:
 - Nhãn (`labels.jsonl`) do AI gán theo hướng dẫn này, mỗi lỗi kèm lý do, **commit trước khi chạy bộ chấm mới lên dữ liệu**.
 - Ca biên đã quyết khi gán: "Upload and Validate" (g02-012) là tên trang, không tính atomic; "enter my zip code and get a list" (g04-003), "browse … and see …" (g04-048) là một luồng tìm kiếm, không tính atomic; "I want to" và "I want to be able to" cùng mẫu "I want"; câu tách đôi ". So that" (g03-020) không tính lỗi; lỗi chính tả không tính lỗi.
 - **Sửa nhãn trên tập dev (sau lần chạy dev đầu tiên):** g04-006 uniform đổi sai → đúng, vì nhãn ban đầu mâu thuẫn với quy tắc đã áp cho g02-040 ("so I can" lệch mẫu). Không sửa nhãn nào của tập test.
+
+## Vòng 2 (thêm dữ liệu)
+- Thêm 2 bộ: g05 openspending (53), g08 frictionless (66) → **test2** (chưa từng chạy bộ chấm). Dev vòng 2 = g02 + g03 + g04 (207; tập test vòng 1 đã dùng hết nên chuyển sang dev).
+- Nhãn test2 gán và commit trước khi chạy bộ chấm. Ca biên chốt thêm khi gán:
+  - vai trò ghép dính ("ResearcherPublisher", "DeveloperDataWrangler", "ResearcherGovernment Publisher") là **một** persona kiêm nhiều vai, không tính atomic (tiêu chí atomic xét số tính năng);
+  - cụm bổ nghĩa cho vai trò ("As a Researcher, working with data in NetCDF, …") là một phần của vai trò, không tính minimal;
+  - "/" hoặc "|" giữa hai danh từ ("LibreOffice/OpenOffice", "region|city", "file/files") không tính atomic; giữa hai động từ ("import/export") thì tính;
+  - "I would like" khác họ "I want" → uniform khi đa số bộ dùng "I want"; "So that" viết hoa vẫn cùng mẫu "so that".

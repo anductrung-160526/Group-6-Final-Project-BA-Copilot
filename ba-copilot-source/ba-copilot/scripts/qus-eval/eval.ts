@@ -19,7 +19,7 @@ interface Story { id: string; set: string; text: string; split?: string }
 type Pred = Record<string, Set<QusCriterion>>; // id -> tiêu chí bị báo lỗi
 
 const split = arg("split", "all");
-const stories: Story[] = jsonl(arg("stories", "dataset/qus-eval/stories.jsonl")).filter((s: Story) => split === "all" || s.split === split);
+const stories: Story[] = jsonl(arg("stories", "dataset/qus-eval/stories.jsonl")).filter((s: Story) => split === "all" || split.split(",").includes(s.split ?? ""));
 const labels = new Map<string, Record<QusCriterion, boolean>>(jsonl(arg("labels", "dataset/qus-eval/labels.jsonl")).map((l: any) => [l.id, l.defects]));
 const bySet = new Map<string, Story[]>();
 for (const s of stories) if (labels.has(s.id)) bySet.set(s.set, [...(bySet.get(s.set) ?? []), s]);

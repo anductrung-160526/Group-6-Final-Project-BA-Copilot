@@ -205,3 +205,122 @@
 {"id": "g04-049", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g04-050", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g04-051", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-001", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-003", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-005", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-007", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-009", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-011", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-013", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-015", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-017", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-019", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-021", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-023", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-025", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-027", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-029", "defects": {"well-formed": false, "atomic": true, "minimal": false, "uniform": false, "unique": false}, "reasons": {"atomic": "ba hành động: filter, sort and aggregate"}}
+{"id": "g05-031", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-033", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-035", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-037", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-039", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-041", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-043", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-045", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-047", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-049", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-051", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-053", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-055", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-057", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-059", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-061", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-063", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-065", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-067", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-069", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-071", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": true, "unique": false}, "reasons": {"uniform": "ends dùng \"so I work\" thay \"So that\" như đa số"}}
+{"id": "g05-073", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-075", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-077", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-079", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-081", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-083", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-085", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-087", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-089", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-091", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-093", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-095", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-097", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-099", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-101", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-103", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g05-105", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-001", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-002", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-003", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-004", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-005", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-006", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-007", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-008", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-009", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-010", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-011", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-012", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-013", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-014", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-015", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-016", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-017", "defects": {"well-formed": false, "atomic": true, "minimal": false, "uniform": false, "unique": false}, "reasons": {"atomic": "hai hành động: do exploratory analysis in R and operationalize it in Python"}}
+{"id": "g08-018", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-019", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-020", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-021", "defects": {"well-formed": false, "atomic": false, "minimal": true, "uniform": true, "unique": false}, "reasons": {"uniform": "cụm chỉ dấu \"I would like\" khác mẫu đa số \"I want\"", "minimal": "hai phần lý do nối tiếp (\"so that …, so that …\")"}}
+{"id": "g08-022", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-023", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-024", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-025", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-026", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-027", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-028", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-029", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-030", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-031", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-032", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-033", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-034", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-035", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-036", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-037", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": true, "unique": false}, "reasons": {"uniform": "cụm chỉ dấu \"I would like\" khác mẫu đa số"}}
+{"id": "g08-038", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-039", "defects": {"well-formed": true, "atomic": true, "minimal": false, "uniform": true, "unique": false}, "reasons": {"well-formed": "thiếu chủ ngữ và cụm chỉ dấu hành động (\"would like the ability import/export\")", "uniform": "không theo mẫu \"I want\"", "atomic": "hai hành động: import/export"}}
+{"id": "g08-040", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-041", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-042", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": true, "unique": false}, "reasons": {"uniform": "cụm chỉ dấu \"I would like\" khác mẫu đa số"}}
+{"id": "g08-043", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-044", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-045", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-046", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-047", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-048", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-049", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-050", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-051", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-052", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-053", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-054", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-055", "defects": {"well-formed": false, "atomic": true, "minimal": false, "uniform": false, "unique": false}, "reasons": {"atomic": "hai hành động: add useful metadata or add in new data columns"}}
+{"id": "g08-056", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": true, "unique": false}, "reasons": {"uniform": "ends dùng \"so my methodology\" thay \"so that\""}}
+{"id": "g08-057", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-058", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-059", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-060", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-061", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-062", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-063", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": true, "unique": false}, "reasons": {"uniform": "cụm chỉ dấu \"I would like\" khác mẫu đa số"}}
+{"id": "g08-064", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": true, "unique": false}, "reasons": {"uniform": "cụm chỉ dấu \"I would like\" khác mẫu đa số"}}
+{"id": "g08-065", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
+{"id": "g08-066", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
