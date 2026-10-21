@@ -324,3 +324,348 @@
 {"id": "g08-064", "set": "g08", "split": "test2", "text": "As a Publisher, I would like a tool to check data availability persistence after publication."}
 {"id": "g08-065", "set": "g08", "split": "test2", "text": "As a ResearcherPublisher, I want to specify the funding that contributed to the creation of a given dataset, so that funding agencies can identify the funding, source for a given dataset."}
 {"id": "g08-066", "set": "g08", "split": "test2", "text": "As a ResearcherPublisher, I want to add a DOI to a dataset, so that I can cite it in papers stored  with the data."}
+{"id": "g10-001", "set": "g10", "split": "test3", "text": "As a site member, I want to describe myself on my own page in a semi-structured way, so that others can learn about me."}
+{"id": "g10-002", "set": "g10", "split": "test3", "text": "As a site member, I want to fill out an application to become a Certified Scrum Practitioner, so that I can earn that designation."}
+{"id": "g10-003", "set": "g10", "split": "test3", "text": "As a Practitioner, I want to include additional details about me in my profile page, so that I can showcase my experience."}
+{"id": "g10-004", "set": "g10", "split": "test3", "text": "As a site member, I want to fill out an application to become a Certified Scrum Trainer, so that I can teach CSM and CSPO courses and certify others."}
+{"id": "g10-005", "set": "g10", "split": "test3", "text": "As a Trainer, I want to include additional details in my profile page about me, so that others can learn about me and decide if I am the right trainer for them."}
+{"id": "g10-006", "set": "g10", "split": "test3", "text": "As a Practitioner, I want to write an article for the site with a small graphic shown with the article showing my CSP or CST status, so that others know my certifications when reading."}
+{"id": "g10-007", "set": "g10", "split": "test3", "text": "As a trainer, I want to list my upcoming classes in my profile and include a link to a detailed page about each, so that prospective attendees can find my courses."}
+{"id": "g10-008", "set": "g10", "split": "test3", "text": "As a site member, I want to view the profiles of other members, so that I can find others I might want to connect with."}
+{"id": "g10-009", "set": "g10", "split": "test3", "text": "As a site member, I want to search for profiles based on a few fields, so that I can find others I might want to connect with."}
+{"id": "g10-010", "set": "g10", "split": "test3", "text": "As a site member, I want to mark my profile as private in which case only my name will appear, so that no one can learn things about me I don't want shared."}
+{"id": "g10-011", "set": "g10", "split": "test3", "text": "As a site member, I want to mark my email address as private even if the rest of my profile is not, so that no one can contact me."}
+{"id": "g10-012", "set": "g10", "split": "test3", "text": "As a site member, I want to send an email to any member via a form, so that we can connect."}
+{"id": "g10-013", "set": "g10", "split": "test3", "text": "As a site administrator, I want to read practicing and training applications and approve or reject them, so that only applicants who qualify can become CSPs or CSTs."}
+{"id": "g10-014", "set": "g10", "split": "test3", "text": "As a site administrator, I want to edit any site member profile, so that I can correct problems for members."}
+{"id": "g10-015", "set": "g10", "split": "test3", "text": "As a site visitor, I want to read current news on the home page, so that I stay current on agile news."}
+{"id": "g10-016", "set": "g10", "split": "test3", "text": "As a site visitor, I want to access old news that is no longer on the home page, so that I can access things I remember from the past or that others mention to me."}
+{"id": "g10-017", "set": "g10", "split": "test3", "text": "As a site visitor, I want to email news items to the editor, so that they can be considered for publication."}
+{"id": "g10-018", "set": "g10", "split": "test3", "text": "As a site editor, I want to set the following dates on a news item: Start Publishing Date, Old News Date, Stop Publishing Date, so that articles are published on and through appropriate dates."}
+{"id": "g10-019", "set": "g10", "split": "test3", "text": "As a site member, I want to subscribe to an RSS feed of news, so that I remain sufficiently and easily informed."}
+{"id": "g10-020", "set": "g10", "split": "test3", "text": "As a site editor, I want to assign priority numbers to news items, so that I can indicate which articles I want featured most prominently on the site."}
+{"id": "g10-021", "set": "g10", "split": "test3", "text": "As a site visitor, I want to see a list of all upcoming Certification Courses and can page through them if there are a lot, so that I can choose the best course for me."}
+{"id": "g10-022", "set": "g10", "split": "test3", "text": "As a site visitor, I want to see a list of all upcoming Other Courses and can page through them if necessary, so that I can choose the best course for me."}
+{"id": "g10-023", "set": "g10", "split": "test3", "text": "As a site visitor, I want to see a list of all upcoming Events, so that I can decide if I want to attend any."}
+{"id": "g10-024", "set": "g10", "split": "test3", "text": "As a trainer, I want to create a new course or event, so that site visitors can see it."}
+{"id": "g10-025", "set": "g10", "split": "test3", "text": "As a trainer, I want to create an Other Course or Event I am charged a listing fee for that activity, so that I don't list events I don't really intend to hold."}
+{"id": "g10-026", "set": "g10", "split": "test3", "text": "As a site administrator, I want to create an Other Course or Event that is not charged a listing fee, so that the Scrum Alliance doesn't charge itself for Scrum Gatherings that it puts on."}
+{"id": "g10-027", "set": "g10", "split": "test3", "text": "As a site administrator, I want to set the listing fee per Other Course or Event, so that we have flexibility on what to charge in the future."}
+{"id": "g10-028", "set": "g10", "split": "test3", "text": "As a trainer, I want to update one of my existing courses or events, so that it reflects accurate information."}
+{"id": "g10-029", "set": "g10", "split": "test3", "text": "As a trainer, I want to delete one of my courses or events, so that it's no longer listed if I cancel for some reason."}
+{"id": "g10-030", "set": "g10", "split": "test3", "text": "As a trainer, I want to copy one of my courses or events, so that I can create a new one."}
+{"id": "g10-031", "set": "g10", "split": "test3", "text": "As a site admin, I want to delete any course or event, so that I can remove things that will no longer occur."}
+{"id": "g10-032", "set": "g10", "split": "test3", "text": "As a site editor, I want to update any course or event, so that I can fix things the original author hasn't."}
+{"id": "g10-033", "set": "g10", "split": "test3", "text": "As a trainer, I want to turn a course into an event or an event into a course, so that I can correctly classify anything that was entered incorrectly."}
+{"id": "g10-034", "set": "g10", "split": "test3", "text": "As a site visitor, I want to have an advanced search option that lets me fill in a form of search criteria, so that I can quickly find what I am looking for."}
+{"id": "g10-035", "set": "g10", "split": "test3", "text": "As a site visitor, I want to view a course I can click on the trainer's name and be taken to the trainer's profile, so that I can read more about a trainer before registering for a course."}
+{"id": "g10-036", "set": "g10", "split": "test3", "text": "As a site visitor, I want to subscribe to an RSS feed of upcoming courses and events, so that I am up to day without having to visit the site."}
+{"id": "g10-037", "set": "g10", "split": "test3", "text": "As a site visitor, I want to read FAQs, so that I can get quick answers."}
+{"id": "g10-038", "set": "g10", "split": "test3", "text": "As a site editor, I want to maintain a FAQ section, so that support gets fewer easily answered questions."}
+{"id": "g10-039", "set": "g10", "split": "test3", "text": "As a site visitor, I want to do a full-text search of the FAQs, so that I can find an answer quickly."}
+{"id": "g10-040", "set": "g10", "split": "test3", "text": "As a site member, I want to download the latest training material and methodology PDFs, so that I have them."}
+{"id": "g10-041", "set": "g10", "split": "test3", "text": "As a visitor, I want to download presentations, PDFs, etc. on Scrum, so that I can learn from them or use them."}
+{"id": "g10-042", "set": "g10", "split": "test3", "text": "As a site member, I want to scroll through a listing of jobs, so that I can see if there any I am interested in."}
+{"id": "g10-043", "set": "g10", "split": "test3", "text": "As a recruiter, I want to post a help wanted ad, so that I can attract candidates."}
+{"id": "g10-044", "set": "g10", "split": "test3", "text": "As a site admin, I want to approve each help wanted ad before it gets to the site, so that we're sure of the quality of jobs being listed."}
+{"id": "g10-045", "set": "g10", "split": "test3", "text": "As a site admin, I want to be emailed whenever a job is submitted, so that I am aware of it and can decide if I want to post it."}
+{"id": "g10-046", "set": "g10", "split": "test3", "text": "As a site member, I want to subscribe to an RSS feed of jobs available, so that I can read them without visiting the site."}
+{"id": "g10-047", "set": "g10", "split": "test3", "text": "As a site admin, I want to edit and delete help wanted ads, so that I can correct small problems or make sure each ad complies with site guidelines."}
+{"id": "g10-048", "set": "g10", "split": "test3", "text": "As a site admin, I want to stop publishing jobs on the site 30 days after being posted, so that jobs that may have been filled aren't still listed when the hiring party forgets to come back and delete the ad."}
+{"id": "g10-049", "set": "g10", "split": "test3", "text": "As a recruiter, I want to be able to extend an ad for another 30 days by visiting the site and updating the posting, so that my ad remains active."}
+{"id": "g10-050", "set": "g10", "split": "test3", "text": "As an advertiser, I want to be emailed a reminder seven day before an ad is about to expire, so that I can go extend the ad."}
+{"id": "g10-051", "set": "g10", "split": "test3", "text": "As a site visitor, I want to read a new article on the front page about once a week, so that I am up on all the latest happenings."}
+{"id": "g10-052", "set": "g10", "split": "test3", "text": "As the site editor, I want to include a teaser with each article, so that site visitors can decide if they want to read the rest."}
+{"id": "g10-053", "set": "g10", "split": "test3", "text": "As a site member who has read a teaser on the front page, I want to read the entire article so that I can finish articles that appeal to me."}
+{"id": "g10-054", "set": "g10", "split": "test3", "text": "As the site editor, I want to add an article to the site, so that the site has plenty of content."}
+{"id": "g10-055", "set": "g10", "split": "test3", "text": "As a site editor, I want to set start publishing dates, old article date, and stop publishing dates for articles, so that articles appear only during appropriate periods."}
+{"id": "g10-056", "set": "g10", "split": "test3", "text": "As a site editor, I want to be able to designate whether or not an ever makes the home page, so that the best content is featured most prominently."}
+{"id": "g10-057", "set": "g10", "split": "test3", "text": "As the site editor, I want to have pretty good control over how the article, so that articles are visually appealing."}
+{"id": "g10-058", "set": "g10", "split": "test3", "text": "As a site visitor, I want to click the link from the article teaser to take me directly to the body of the article. not to another teaser setup, so that I can easily finish the article."}
+{"id": "g10-059", "set": "g10", "split": "test3", "text": "As a site editor, I want to be able to indicate whether an article is publicly available or for members only, so that visitors are incentivized to become members."}
+{"id": "g10-060", "set": "g10", "split": "test3", "text": "As a site visitor, I want to be able to read some of your articles, so that I can learn without first joining the site."}
+{"id": "g10-061", "set": "g10", "split": "test3", "text": "As a site member, I want to have full access to all articles, so that there is a benefit to being a member."}
+{"id": "g10-062", "set": "g10", "split": "test3", "text": "As a site visitor, I want to do a full-text search of article body, title, and author name, so that I can find what I want."}
+{"id": "g10-063", "set": "g10", "split": "test3", "text": "As a site visitor, I want to subscribe to an RSS feed of articles, so that I can read them without visiting the site."}
+{"id": "g10-064", "set": "g10", "split": "test3", "text": "As a site visitor, I want to post comments about articles, so that others can read them."}
+{"id": "g10-065", "set": "g10", "split": "test3", "text": "As a site editor, I want to have a prominent area on the home page where I can put special announcements not necessarily news or articles, so that I can give them additional exposure."}
+{"id": "g10-066", "set": "g10", "split": "test3", "text": "As a site editor, I want to have some flexibility as to where things appear, so that I can accommodate different types of content."}
+{"id": "g10-067", "set": "g10", "split": "test3", "text": "As a trainer, I want to see the upcoming courses are what I want visitors to notice, so that they register and there's a benefit to my membership."}
+{"id": "g10-068", "set": "g10", "split": "test3", "text": "As a site visitor, I want to see new content when I come to the site, so that I come back more often."}
+{"id": "g10-069", "set": "g10", "split": "test3", "text": "As a site visitor, I want to have articles that interest me and are easy to get to, so that I come to the site for my agile news and learning."}
+{"id": "g10-070", "set": "g10", "split": "test3", "text": "As a site visitor, I want to know as soon as I visit what on earth Scrum is and why it needs an alliance, so that I don't bounce immediately oﬀ the page."}
+{"id": "g10-071", "set": "g10", "split": "test3", "text": "As a site visitor, I want to know as I glance around the home page what on earth a CSM is and why I'd want to be one, so that I read more."}
+{"id": "g10-072", "set": "g10", "split": "test3", "text": "As a site visitor, I want to be able to get back to the home page quickly and easily, so that I don't get lost navigating."}
+{"id": "g10-073", "set": "g10", "split": "test3", "text": "As a site visitor, I want to see a list of the most popular items on the site, so that I am most likely to read the most important or best content."}
+{"id": "g10-074", "set": "g10", "split": "test3", "text": "As a trainer, I want to be assured that no one can submit the same answers multiple time and skew my results, so that my ratings are accurate."}
+{"id": "g10-075", "set": "g10", "split": "test3", "text": "As a trainer, I want to be notified about the results of surveys about my classes, so that I can read them."}
+{"id": "g10-076", "set": "g10", "split": "test3", "text": "As a site admin, I want to see the results for each trainer and averages for the class, so that I can identify any outliers or possible problems."}
+{"id": "g10-077", "set": "g10", "split": "test3", "text": "As a site visitor, I want to see a trainer's rating, so that I choose a course from an appropriate trainer."}
+{"id": "g10-078", "set": "g10", "split": "test3", "text": "As a trainer, I want to show my rating up on my profile page, so that site visitors can choose wisely."}
+{"id": "g10-079", "set": "g10", "split": "test3", "text": "As a site visitor, I want to view a section of the website that teaches me the basics of what Scrum is, so that I can learn that quickly."}
+{"id": "g10-080", "set": "g10", "split": "test3", "text": "As a site editor, I want to create the content of the What Is Scrum section, so that it's there for visitors."}
+{"id": "g10-081", "set": "g10", "split": "test3", "text": "As a site visitor, I want to view lists on the site of all Certified Scrum Masters, Practitioners, Trainers, and Certified Scrum Product Owners."}
+{"id": "g10-082", "set": "g10", "split": "test3", "text": "As a CSM, I want to have my name listed in the registry without becoming a member of the site, so that employers or others can verify my certification."}
+{"id": "g10-083", "set": "g10", "split": "test3", "text": "As a trainer, I want to load an Excel file into the site, so that the course participants are added to the Scrum Alliance records."}
+{"id": "g10-084", "set": "g10", "split": "test3", "text": "As a site admin, I want to view all classes in a pending state, so that I can approve any that need to be approved."}
+{"id": "g10-085", "set": "g10", "split": "test3", "text": "As a site admin, I want to move people in a trainer's class from a pending state to the registry once I have received proof of payment from the trainer."}
+{"id": "g10-086", "set": "g10", "split": "test3", "text": "As a CSM, I want to be sent an email welcoming me to the Scrum Alliance and with instructions to register or activate my membership once my name has been loaded to the registry."}
+{"id": "g10-087", "set": "g10", "split": "test3", "text": "As a site editor, I want to edit the content of the email automatically sent to new Certified Scrum Masters and Product Owners, so that I don't need to involve a programmer on simple email edits."}
+{"id": "g10-088", "set": "g10", "split": "test3", "text": "As a company, I want to join the Scrum Alliance by paying a corporate membership fee, so that I can show the company's support of Scrum."}
+{"id": "g10-089", "set": "g10", "split": "test3", "text": "As a corporatesponsor, I want to display my logo on a corporate sponsors page, so that others see the company's support of Scrum."}
+{"id": "g10-090", "set": "g10", "split": "test3", "text": "As a corporatesponsor, I want to make my logo randomly appear on the home page, so that others see the company's support of Scrum."}
+{"id": "g10-091", "set": "g10", "split": "test3", "text": "As a CSM, I want to be charged a fee once I am approved for Practitioner status, so that my certification status can be activated."}
+{"id": "g10-092", "set": "g10", "split": "test3", "text": "As a CST, I want to pay an annual fee, so that my CST status is active."}
+{"id": "g10-093", "set": "g10", "split": "test3", "text": "As a site administrator, I want to set the annual fees for members, Practitioners and Trainers, so that fees can be set without involving a programmer."}
+{"id": "g10-094", "set": "g10", "split": "test3", "text": "As a member, I want to receive a reminder and a link, so that I can renew my membership."}
+{"id": "g10-095", "set": "g10", "split": "test3", "text": "As a member, I want to have the system email me a new password or a password reminder since i have short-term memory problems."}
+{"id": "g10-096", "set": "g10", "split": "test3", "text": "As a trainer, I want to read information of relevance only to trainers, so that the Scrum Alliance can share information with me easily."}
+{"id": "g10-097", "set": "g10", "split": "test3", "text": "As a site editor, I want to post information in a trainers-only section, so that only trainers see it."}
+{"id": "g11-001", "set": "g11", "split": "test3", "text": "As a team member, I want to see the first iteration of beta up on cloud.gov."}
+{"id": "g11-002", "set": "g11", "split": "test3", "text": "As a developer, I want to have the subdomain beta.nsf.gov be set up, so that I can deploy a beta site to it."}
+{"id": "g11-003", "set": "g11", "split": "test3", "text": "As a stakeholder, I want to have a decision on whether or not the blog aggregator may work for beta, and if not what will."}
+{"id": "g11-004", "set": "g11", "split": "test3", "text": "As an NSF employee, I want to understand the process of switching the cloud.gov hosting plan over from prototype to FISMA low."}
+{"id": "g11-005", "set": "g11", "split": "test3", "text": "As a stakeholder, I want to see the results of user research, so that I can determine if the CMS is right for me."}
+{"id": "g11-006", "set": "g11", "split": "test3", "text": "As a designer, I want to have a new social media wireframe, so that I can begin implementing design."}
+{"id": "g11-007", "set": "g11", "split": "test3", "text": "As a team member, I want to have a prioritized list of features and elements of a future social element page, so that I can work with the engineers to determine feasibility."}
+{"id": "g11-008", "set": "g11", "split": "test3", "text": "As a team member, I want to determine a design direction for the beta social page, so that we can implement a beta site quickly without established brand guidelines."}
+{"id": "g11-009", "set": "g11", "split": "test3", "text": "As a user researcher, I want to test the user research plan, so that I make sure the in-person interviews are effective and capturing the right information."}
+{"id": "g11-010", "set": "g11", "split": "test3", "text": "As a user researcher, I want to have the finalized OLPA task script, so that I can begin testing with internal users."}
+{"id": "g11-011", "set": "g11", "split": "test3", "text": "As a content editor, I want to be able to easily find content, so that I can edit it."}
+{"id": "g11-012", "set": "g11", "split": "test3", "text": "As a research participant, I want to make sure that the appearance of the prototype does not distract from the workflow, so that I can complete the user interview."}
+{"id": "g11-013", "set": "g11", "split": "test3", "text": "As a user researcher, I want to have the WIG prototype, so that I can finalize the second task script."}
+{"id": "g11-014", "set": "g11", "split": "test3", "text": "As a user, I want to add a video to my article."}
+{"id": "g11-015", "set": "g11", "split": "test3", "text": "As a team member, I want to meet with DIS / cloud.gov, so that I can determine the requirements for the beta.nsf.gov ATO."}
+{"id": "g11-016", "set": "g11", "split": "test3", "text": "As a user researcher, I want to have a list of priority workflow candidates that we might test, so that I can make sure we're capturing the priority areas."}
+{"id": "g11-017", "set": "g11", "split": "test3", "text": "As a team member, I want to understand what the MVP should look like, so that I can begin understanding workflow needs as they pertain to any CMS decision."}
+{"id": "g11-018", "set": "g11", "split": "test3", "text": "As an NSF administrator, I want to shadow the CMS implementation, so that I can learn as the prototype is developed further."}
+{"id": "g11-019", "set": "g11", "split": "test3", "text": "As a team member, I want to have an updated acquisitions roadmap, so that I can plan accordingly."}
+{"id": "g11-020", "set": "g11", "split": "test3", "text": "As an NSF employee, I want to have an updated roadmap document, so that I can see prioritized areas to focus on for the next few months and beyond."}
+{"id": "g11-021", "set": "g11", "split": "test3", "text": "As a team member, I want to understand how time off overlaps with plans around the user research."}
+{"id": "g11-022", "set": "g11", "split": "test3", "text": "As a researcher, I want to develop the user research protocol for internal workflows, so that we can begin testing against a CMS prototype."}
+{"id": "g11-023", "set": "g11", "split": "test3", "text": "As a CMS administrator, I want to have roles, so that I can assign them to my users."}
+{"id": "g11-024", "set": "g11", "split": "test3", "text": "As an NSF employee, I want to narrow down the universe of CMS options and identify/prioritize key considerations for getting to the next step."}
+{"id": "g11-025", "set": "g11", "split": "test3", "text": "As an NSF employee, I want to have a final workshop to identify key lessons and features for the content management system decision."}
+{"id": "g11-026", "set": "g11", "split": "test3", "text": "As a CMS SME, I want to see the webmaster workflow report, so that I can understand how this might impact current direction."}
+{"id": "g11-027", "set": "g11", "split": "test3", "text": "As an NSF employee, I want to understand work performed, so that I can understand when and what I can use later."}
+{"id": "g11-028", "set": "g11", "split": "test3", "text": "As a researcher, I want to recruit for the last round of user research, so that we can summarize our findings and synthesize results."}
+{"id": "g11-029", "set": "g11", "split": "test3", "text": "As a user researcher, I want to continue scheduling interviews for hypothesis #1, so that I can be prepared to test our first prototype."}
+{"id": "g11-030", "set": "g11", "split": "test3", "text": "As an NSF employee, I want to have high-level strategy recommendations to implement in conjunction with the new CMS."}
+{"id": "g11-031", "set": "g11", "split": "test3", "text": "As an NSF employee, I want to have editorial-planning recommendations, so that I can understand how they might impact an eventual CMS / future web presence."}
+{"id": "g11-032", "set": "g11", "split": "test3", "text": "As an NSF employee, I want to know how brand guidelines are developed and maintained, so that I can incorporate them throughout the project."}
+{"id": "g11-033", "set": "g11", "split": "test3", "text": "As a web recruiter manager, I want to confirm the recruiter is set up and working properly on Science360.gov."}
+{"id": "g11-034", "set": "g11", "split": "test3", "text": "As an NSF employee, I want to know how visual design directions were developed, so that I can make better design decisions in the future."}
+{"id": "g11-035", "set": "g11", "split": "test3", "text": "As a team member, I want to know what the first hypothesis is, so that I can start developing a prototype to test."}
+{"id": "g11-036", "set": "g11", "split": "test3", "text": "As a content designer, I want to develop a better understanding of NSF's content types and editorial plan, so that I can make more informed recommendations going forward."}
+{"id": "g11-037", "set": "g11", "split": "test3", "text": "As a team member, I want to have a prototype strategy, so that I understand how we will gain understandings from tests that will drive recommendations."}
+{"id": "g11-038", "set": "g11", "split": "test3", "text": "As a content designer, I want to demonstrate the value of user-centered content design to ensure it's an integral part of our recommendations."}
+{"id": "g11-039", "set": "g11", "split": "test3", "text": "As a user researcher, I want to know when outreach to lists is successful, so that I can plan on a new release to the next listserv on the priority list."}
+{"id": "g11-040", "set": "g11", "split": "test3", "text": "As an NSF employee, I want to schedule regular in-person check-ins, so that we can continue to communicate the goals of the project with our stakeholders."}
+{"id": "g11-041", "set": "g11", "split": "test3", "text": "As a developer, I want to know what the three initial hypotheses are, so that I can plan work around development of prototypes."}
+{"id": "g11-042", "set": "g11", "split": "test3", "text": "As a workshop attendee, I want to have a summary of what we learned, so that I can understand our next steps and how they apply to me."}
+{"id": "g11-043", "set": "g11", "split": "test3", "text": "As a designer, I want to know what early indications of hypotheses might be, so that I can start planning for the first prototype."}
+{"id": "g11-044", "set": "g11", "split": "test3", "text": "As a team member, I want to have a schedule of more coworking slots, so that I can work in tandem with the rest of the team on a more regular basis."}
+{"id": "g11-045", "set": "g11", "split": "test3", "text": "As an NSF person interested in attending user interviews, I want to know when they are scheduled and the type of user that will be interviewed."}
+{"id": "g11-046", "set": "g11", "split": "test3", "text": "As an NSF member of the team, I want to have a place where I can access all the related reports and documentation, so that I can refer to it easily now and in the future."}
+{"id": "g11-047", "set": "g11", "split": "test3", "text": "As a team member, I want to know when the mid-point checkin is and what will be covered, so that I can plan accordingly."}
+{"id": "g11-048", "set": "g11", "split": "test3", "text": "As an NSF employee, I want to join Github, so that I can participate in the issues as assigned."}
+{"id": "g11-049", "set": "g11", "split": "test3", "text": "As an NSF employee, I want to learn about how Github is used, so that I can participate in the issues as assigned."}
+{"id": "g11-050", "set": "g11", "split": "test3", "text": "As a user researcher, I want to begin identifying interview participants, so that I can understand what educators and science influencers need from a future nsf.gov website."}
+{"id": "g11-051", "set": "g11", "split": "test3", "text": "As a VisualDesigner, I want to concept different styles for the nsf.gov website, so that we can discuss different design concepts with stakeholders."}
+{"id": "g11-052", "set": "g11", "split": "test3", "text": "As a user researcher, I want to set up a website recruitment test, so that I can see if we can recruit users in real time from the website."}
+{"id": "g11-053", "set": "g11", "split": "test3", "text": "As a web recruiter manager, I want to confirm the recruiter is set up and working properly, so that I can deploy it on more pages."}
+{"id": "g11-054", "set": "g11", "split": "test3", "text": "As a VisualDesigner, I want to create a moodboard to aid with visual design concepts for the nsf.gov website, so that we can discuss different design concepts with stakeholders."}
+{"id": "g11-055", "set": "g11", "split": "test3", "text": "As a workshop attendee, I want to see a summary on major findings from the event."}
+{"id": "g11-056", "set": "g11", "split": "test3", "text": "As a user researcher, I want to make sure the correct NSF people are invited to user interviews, so that they can observe the interviews and make recommendations accordingly."}
+{"id": "g11-057", "set": "g11", "split": "test3", "text": "As a user researcher, I want to begin drafting a research plan, so that I can begin recruiting participants."}
+{"id": "g11-058", "set": "g11", "split": "test3", "text": "As a content editor, I want to be able to add videos from Brightcove."}
+{"id": "g11-059", "set": "g11", "split": "test3", "text": "As an author, I want to be able to indent / outdent content."}
+{"id": "g11-060", "set": "g11", "split": "test3", "text": "As a VisualDesigner, I want to demonstrate the value of visual design to the NSF project team, so that visual design is an integral part of a redesign."}
+{"id": "g11-061", "set": "g11", "split": "test3", "text": "As a team member, I want to know what visual design related tasks we might need to plan for this sprint, so that I can assign tasks as necessary."}
+{"id": "g11-062", "set": "g11", "split": "test3", "text": "As a team member, I want to have recruiting-email templates ready to go, so that I can start recruiting interviewees ASAP!."}
+{"id": "g11-063", "set": "g11", "split": "test3", "text": "As an NSF employee, I want to see how the user recruitment form looks and behaves on a sample page, so that I can understand the impact the recruitment will have on the NSF page."}
+{"id": "g11-064", "set": "g11", "split": "test3", "text": "As a potential research participant, I want to learn about the research and leave my contact information."}
+{"id": "g11-065", "set": "g11", "split": "test3", "text": "As a team member, I want to have a high-level sense of the project timeline, so that I can plan my work."}
+{"id": "g11-066", "set": "g11", "split": "test3", "text": "As a site administrator, I want to understand how other similar organizations are handling visual design, so that I can make informed decisions about what appears to work well and what doesn't."}
+{"id": "g11-067", "set": "g11", "split": "test3", "text": "As a team member, I want to have a platform that allows me to rapidly prototype HTML ideas."}
+{"id": "g11-068", "set": "g11", "split": "test3", "text": "As a site administrator, I want to understand how other similar organizations are handling content, so that I can make informed decisions about what appears to work well and what doesn't."}
+{"id": "g11-069", "set": "g11", "split": "test3", "text": "As a user researcher, I want to conduct a user definition workshop with NSF, so that I can better prepare them and the team for future research work."}
+{"id": "g11-070", "set": "g11", "split": "test3", "text": "As an NSF employee, I want to know where the initial in-person meeting will be, so that I can plan on attending."}
+{"id": "g11-071", "set": "g11", "split": "test3", "text": "As a designer, I want to have a style guide / design guide / content guide, so that we have a uniform way of delivering product."}
+{"id": "g11-072", "set": "g11", "split": "test3", "text": "As a team member, I want to know when meetings are, so that I can plan accordingly."}
+{"id": "g11-073", "set": "g11", "split": "test3", "text": "As a team member, I want to understand how work moves between UX/content > visual design > front end dev for a sprint cycle."}
+{"id": "g12-001", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to add campers, so that I can keep track of each individual camper."}
+{"id": "g12-002", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to remove campers if they don't attend the camp anymore, so that I can keep the records organized."}
+{"id": "g12-003", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to keep camper records from previous years, so that the amount of work I need to do is lowered."}
+{"id": "g12-004", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to upload consent forms, so that campers or their parents can easily access the forms."}
+{"id": "g12-005", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to keep track of which camper submitted which forms, so that legal issues are avoided."}
+{"id": "g12-006", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to schedule activities for campers, so that camp workers can easily keep track of who is where at all times."}
+{"id": "g12-007", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to automatically create nametags for campers, so that I can lower the amount of work I need to do."}
+{"id": "g12-008", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to suspend a camper who had behavioral problems."}
+{"id": "g12-009", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to set a reminders related to specific tasks that has to be done."}
+{"id": "g12-010", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to assign different positions to the staff members, so that it is possible to organize activities in terms of responsibilities."}
+{"id": "g12-011", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to warn a camp worker who I think did his/her job inappropriate."}
+{"id": "g12-012", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to create, modify rules that campers and camp workers has to follow."}
+{"id": "g12-013", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to keep track of the usage of internal camp facilities, so that I don't create conflicting schedules for the different camp groups."}
+{"id": "g12-014", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to create an avenue so parents can submit feedback and general concerns, so that I can keep improving the services I provide."}
+{"id": "g12-015", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to store campers' emergency information in a database, so that I can easily notify the necessary parties in case of an emergency."}
+{"id": "g12-016", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to store camper's immediate parent/guardian's information, so that I can easily call to notify them in case a grossly unacceptable behavior."}
+{"id": "g12-017", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to provide bi-weekly feedback to camper's parents, so that they can be aware of their child's behavior and performance at camp."}
+{"id": "g12-018", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to make nametags faster, so that I don't have to spend two hours making 200+ nametags"}
+{"id": "g12-019", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to create a registration form for both staff and kids, so that I can keep organized."}
+{"id": "g12-020", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to keep my information in one place, so that the admins next year can improve on the previous years."}
+{"id": "g12-021", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to see medical forms, so that we can be prepared for an allergy attack"}
+{"id": "g12-022", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to notify parents all at once, so that they can be notified of any upcoming events."}
+{"id": "g12-023", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be quickly log attendance everyday, so that I can track which kids are coming in."}
+{"id": "g12-024", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to add parents, so that they can enroll their kids at camp."}
+{"id": "g12-025", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to create groups and add campers to the groups, so that I can easily organize the campers."}
+{"id": "g12-026", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to see all my camp groups and the events scheduled for each camp group, so that I can notify counselor of what their group will be doing for the day."}
+{"id": "g12-027", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to schedule tasks/activities for a specific camp group, so that I can track each groups daily/weekly and monthly activities."}
+{"id": "g12-028", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to delete tasks/activities I scheduled, so that I can keep the schedule clean of unneeded activities."}
+{"id": "g12-029", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to modify tasks/events I scheduled in case there is a change, so that I can always keep the schedule up to date."}
+{"id": "g12-030", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to modify the information of enrolled campers, so that I can keep the campers information up to date."}
+{"id": "g12-031", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to delete campers from the database, so that I can keep my pages free of clutter."}
+{"id": "g12-032", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to modify the information of added parents, so that I can keep parent's information up to date."}
+{"id": "g12-033", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to delete parents from the database, so that I can keep my pages free of unneeded clutter."}
+{"id": "g12-034", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to modify a group's information, so that I can keep the groups up to date."}
+{"id": "g12-035", "set": "g12", "split": "test3", "text": "As a camp administrator, I want to be able to see only events for a specific group/groups on the event calendar, so that I can easily read the data on the calendar without too much clutter."}
+{"id": "g12-036", "set": "g12", "split": "test3", "text": "As a parent, I want to be able to see which consent forms I have submitted, so that I can know what I still need to do."}
+{"id": "g12-037", "set": "g12", "split": "test3", "text": "As a parent, I want to be able to track my child's activity and schedule at camp, so that I can have peace of mind."}
+{"id": "g12-038", "set": "g12", "split": "test3", "text": "As a parent, I want to be able to submit various type of forms to the camp management."}
+{"id": "g12-039", "set": "g12", "split": "test3", "text": "As a parent, I want to be able to create an account, so that I can sign up my kids for camp online."}
+{"id": "g12-040", "set": "g12", "split": "test3", "text": "As a parent, I want to see which counselors are assigned to my kids, so that I can have peace of mind."}
+{"id": "g12-041", "set": "g12", "split": "test3", "text": "As a parent, I want to be able to message my child's counselors, so that I can voice my concerns or check on my child's progress."}
+{"id": "g12-042", "set": "g12", "split": "test3", "text": "As a parent, I want to be able to sign and submit consent forms online, so that I don't have to deal with my child losing a consent form."}
+{"id": "g12-043", "set": "g12", "split": "test3", "text": "As a parent, I want to be able to see if I made all the necessary payments."}
+{"id": "g12-044", "set": "g12", "split": "test3", "text": "As a parent, I want to be able to share any photos the camp has taken of my child."}
+{"id": "g12-045", "set": "g12", "split": "test3", "text": "As a parent, I want to be able to connect with the staff in case of an emergency."}
+{"id": "g12-046", "set": "g12", "split": "test3", "text": "As a parent, I want to be able to enroll my children, so that they can be admitted to camp."}
+{"id": "g12-047", "set": "g12", "split": "test3", "text": "As a parent, I want to be able to see and edit my enrolled children to the camp year, so that I can know who I already enrolled to camp, who is still pending admission etc."}
+{"id": "g12-048", "set": "g12", "split": "test3", "text": "As a parent, I want to be able to see a schedule of the activities my children are involved in at camp, so that I can be more informed as to what they are doing at camp."}
+{"id": "g12-049", "set": "g12", "split": "test3", "text": "As a camp worker, I want to be able to see which campers I am in charge of and where, so that I can make sure I am doing my job properly."}
+{"id": "g12-050", "set": "g12", "split": "test3", "text": "As a camp worker, I would be able to submit a completion report for the tasks which was assigned to me."}
+{"id": "g12-051", "set": "g12", "split": "test3", "text": "As a camp worker, I'm able to report a camper to the manager with an inappropriate behavior."}
+{"id": "g12-052", "set": "g12", "split": "test3", "text": "As a camp worker, I'm able to report a list of supplies to the manager that the camp is short of."}
+{"id": "g12-053", "set": "g12", "split": "test3", "text": "As a camp worker, I'm able to report necessary repairs to the manager that the camp is needed of."}
+{"id": "g12-054", "set": "g12", "split": "test3", "text": "As a camp worker, I want to be able to see which campers I am in charge of and where, so that I can make sure I am doing my job properly."}
+{"id": "g12-055", "set": "g12", "split": "test3", "text": "As a camp counselor, I want to be able to take attendance of my assigned kids, so that I can make ensure everybody is accounted for."}
+{"id": "g13-001", "set": "g13", "split": "test3", "text": "As a moderator, I want to create a new game by entering a name and an optional description, so that I can start inviting estimators."}
+{"id": "g13-002", "set": "g13", "split": "test3", "text": "As a moderator, I want to invite estimators by giving them a URL where they can access the game, so that we can start the game."}
+{"id": "g13-003", "set": "g13", "split": "test3", "text": "As a moderator, I want to start a round by entering an item in a single multi-line text field, so that we can estimate it."}
+{"id": "g13-004", "set": "g13", "split": "test3", "text": "As a moderator, I want to see all items we try to estimate this session, so that I can answer questions about the current story such as \"does this include ___\"."}
+{"id": "g13-005", "set": "g13", "split": "test3", "text": "As a moderator, I want to select an item to be estimated or re-estimated, so that the team sees that item and can estimate it."}
+{"id": "g13-006", "set": "g13", "split": "test3", "text": "As a moderator, I want to add an item to the list of items to be estimated, so that so that we can be flexible and accommodate situations where we think of a new story while playing."}
+{"id": "g13-007", "set": "g13", "split": "test3", "text": "As a moderator, I want to edit an item in the list of items to be estimated, so that I can make it better reflect the team's understanding of the item."}
+{"id": "g13-008", "set": "g13", "split": "test3", "text": "As a moderator, I want to delete an item from the list of items to be estimated, so that we can remove it and not estimate it."}
+{"id": "g13-009", "set": "g13", "split": "test3", "text": "As a moderator, I want to show all estimates immediately, so that I can decide to show the estimates that have been given even though not all estimators have given their estimate."}
+{"id": "g13-010", "set": "g13", "split": "test3", "text": "As a moderator, I want to accept the average of all estimates, so that we can move on to the next item when we agree."}
+{"id": "g13-011", "set": "g13", "split": "test3", "text": "As a moderator, I want to have the \"estimate\" field filled in automatically if all estimators show the same card, so that I can accept it more quickly."}
+{"id": "g13-012", "set": "g13", "split": "test3", "text": "As a moderator, I want to enter the agreed-upon estimate, so that we can move on to the next item when we agree."}
+{"id": "g13-013", "set": "g13", "split": "test3", "text": "As a moderator, I want to estimate a story we estimated earlier in the session again, so that we can give a new estimate if we feel different about the story after estimating other related stories."}
+{"id": "g13-014", "set": "g13", "split": "test3", "text": "As a moderator, I want to import stories from a spreadsheet, so that I don't have to copy and paste each individual story."}
+{"id": "g13-015", "set": "g13", "split": "test3", "text": "As a moderator, I want to copy/paste stories from a spreadsheet, so that I can get started more quickly."}
+{"id": "g13-016", "set": "g13", "split": "test3", "text": "As a moderator, I want to browse through previous games, so that I can find the previous game I’m looking for."}
+{"id": "g13-017", "set": "g13", "split": "test3", "text": "As a moderator, I want to view a transcript of a game, so that I can see the stories and estimates."}
+{"id": "g13-018", "set": "g13", "split": "test3", "text": "As a moderator, I want to export a transcript of a game as a HTML file, so that I can save the stories and estimates locally."}
+{"id": "g13-019", "set": "g13", "split": "test3", "text": "As a moderator, I want to export a transcript of a game as a CSV file, so that I can further process the stories and estimates."}
+{"id": "g13-020", "set": "g13", "split": "test3", "text": "As a moderator, I want to delete a game, so that stories and estimates for this game are no longer stored."}
+{"id": "g13-021", "set": "g13", "split": "test3", "text": "As a moderator, I want to create an account for the application by entering my name, email address, a password and a username, so that I can start using the application."}
+{"id": "g13-022", "set": "g13", "split": "test3", "text": "As a moderator, I want to log in using my account name and password, so that I can start using the application."}
+{"id": "g13-023", "set": "g13", "split": "test3", "text": "As a moderator, I want to change my account details, so that I can keep my account details up-to-date."}
+{"id": "g13-024", "set": "g13", "split": "test3", "text": "As a moderator, I want to delete my account, so that account information and games are no longer stored."}
+{"id": "g13-025", "set": "g13", "split": "test3", "text": "As a moderator, I want to see dates and times in my local timezone, so that I don't have to do timezone conversion myself."}
+{"id": "g13-026", "set": "g13", "split": "test3", "text": "As a moderator, I want to get a password reminder by email, so that I can get back to using the application when I've forgotten my password."}
+{"id": "g13-027", "set": "g13", "split": "test3", "text": "As a moderator, I want to select whether to have the team estimate with {0, 1/2, 1, 2, 3, 5, 8, etc.} or {0, 1, 2, 4, 8, 16, 32, etc.}, so that the team can use either the modified Fibonacci sequence or powers of 2."}
+{"id": "g13-028", "set": "g13", "split": "test3", "text": "As a moderator, I want to invite up to 15 estimators, so that we can play with large but not immense teams."}
+{"id": "g13-029", "set": "g13", "split": "test3", "text": "As an estimator, I want to join a game by entering my name on the page I received the URL for, so that I can participate."}
+{"id": "g13-030", "set": "g13", "split": "test3", "text": "As an estimator, I want to see the item we’re estimating, so that I know what I’m giving an estimate for."}
+{"id": "g13-031", "set": "g13", "split": "test3", "text": "As an estimator, I want to see all items we will try to estimate this session, so that I have a feel for the sizes of the various items."}
+{"id": "g13-032", "set": "g13", "split": "test3", "text": "As a participant, I want to immediately see that an estimate has been given by a specific estimator, so that I know who has already given an estimate and who we’re still waiting for."}
+{"id": "g13-033", "set": "g13", "split": "test3", "text": "As a participant, I want to be shown all estimates at the same time after all estimators have given their estimate, so that I can be sure estimates are independent and not influenced by other estimates given in the same draw."}
+{"id": "g13-034", "set": "g13", "split": "test3", "text": "As a participant, I want to be able to change my estimate up until the last person selects a card and all are shown, so that I can change my mind based on information I hear."}
+{"id": "g13-035", "set": "g13", "split": "test3", "text": "As a participant, I want to be able to see each estimator's prior estimates for the story being estimated, so that I can see how his or her opinion has changed so I can ask questions."}
+{"id": "g13-036", "set": "g13", "split": "test3", "text": "As a participant, I want to see who gave what estimates during the current round, so that I know this when we’re discussing the estimates."}
+{"id": "g13-037", "set": "g13", "split": "test3", "text": "As a participant, I want to be able start a two-minute countdown timer that all participants can see, so that I can limit the time spent discussing the estimates when I think we’ve talked long enough."}
+{"id": "g13-038", "set": "g13", "split": "test3", "text": "As a participant, I want to have the two-minute timer reset itself as soon as we all play an estimate, so that it's ready for use on the next round."}
+{"id": "g13-039", "set": "g13", "split": "test3", "text": "As a participant, I want to scroll back through the stories and estimates from prior rounds, so that I can use this information when I estimate the item of the current round."}
+{"id": "g13-040", "set": "g13", "split": "test3", "text": "As a participant, I want to always have the cards in the same order across multiple draws, so that it's easy to compare estimates."}
+{"id": "g13-041", "set": "g13", "split": "test3", "text": "As a participant, I want to change my estimate as long as the draw has not been completed, so that I can change my mind."}
+{"id": "g13-042", "set": "g13", "split": "test3", "text": "As a participant, I want to have a small thumbnail photo displayed near where my cards are played, so that the game is more personal because I see who I'm estimating with."}
+{"id": "g13-043", "set": "g13", "split": "test3", "text": "As a developer, I want to have written a site which is compliant with XHTML and CSS standards, so that as many people as possible can access the site and view it as intended."}
+{"id": "g13-044", "set": "g13", "split": "test3", "text": "As a developer, I want to have a list of definitions for commonly used terms, so that everyone working on the project can understand each other more easily."}
+{"id": "g13-045", "set": "g13", "split": "test3", "text": "As a developer, I want to have created database indexes, so that the queries run as fast as possible."}
+{"id": "g13-046", "set": "g13", "split": "test3", "text": "As a developer, I want to have the application function correctly in Internet Explorer 6 and 7, Firefox 1.5 and 2, and Safari 2, so that as many people as possible can fully use the application."}
+{"id": "g13-047", "set": "g13", "split": "test3", "text": "As a developer, I want to have the site comply with the W3C accessibility guidelines where possible, so that people with accessibility issues can use the application."}
+{"id": "g13-048", "set": "g13", "split": "test3", "text": "As a user, I want to have the application respond quickly to my actions, so that I don't get bored."}
+{"id": "g13-049", "set": "g13", "split": "test3", "text": "As a user, I want to be able to use Unicode, so that I can use any language I like."}
+{"id": "g13-050", "set": "g13", "split": "test3", "text": "As a user, I want to see sensible and predictable URLs, so that the application feels logical and transparent."}
+{"id": "g13-051", "set": "g13", "split": "test3", "text": "As a user, I want to have nice error pages when something goes wrong, so that I can trust the system and its developers."}
+{"id": "g13-052", "set": "g13", "split": "test3", "text": "As a Researcher, I want results to be stored in a non-identifiable way, so that I can study the data to see things like whether estimates converged around the first opinion given by \"estimator A\" for example."}
+{"id": "g13-053", "set": "g13", "split": "test3", "text": "As a Mike, I want to be able to see some metrics on use of the game, so that I can see how much it is being used."}
+{"id": "g14-001", "set": "g14", "split": "test3", "text": "As a Publisher, I want to publish a dataset, so that I can view just the dataset with a few people."}
+{"id": "g14-002", "set": "g14", "split": "test3", "text": "As a Publisher, I want to publish a dataset, so that I can share the dataset publicly with everyone."}
+{"id": "g14-003", "set": "g14", "split": "test3", "text": "As a Publisher, I want to sign up for an account, so that that I can publish my data package to the registry and to have a publisher account to publish my data package under."}
+{"id": "g14-004", "set": "g14", "split": "test3", "text": "As a Visitor, I want to sign up via github or google, so that that I don't have to enter lots of information and remember my password for yet another website."}
+{"id": "g14-005", "set": "g14", "split": "test3", "text": "As a Publisher, I want to know what do next after signing up, so that that I can get going quickly."}
+{"id": "g14-006", "set": "g14", "split": "test3", "text": "As an Admin, I want to invite someone to join the platform, so that that they can start contributing or using data."}
+{"id": "g14-007", "set": "g14", "split": "test3", "text": "As a Publisher, I want to import my data package into the registry, so that my data has a permanent online home to access."}
+{"id": "g14-008", "set": "g14", "split": "test3", "text": "As a Publisher, I want to configure my client, so that I can start publishing data packages."}
+{"id": "g14-009", "set": "g14", "split": "test3", "text": "As a Publisher, I want to use a publish command to update a data package that is already in the registry, so that it appears there."}
+{"id": "g14-010", "set": "g14", "split": "test3", "text": "As a Publisher, I want to unpublish a data package, so that it is no longer visible to anyone."}
+{"id": "g14-011", "set": "g14", "split": "test3", "text": "As a Publisher, I want to permanently delete a data package, so that that it no longer takes up storage space."}
+{"id": "g14-012", "set": "g14", "split": "test3", "text": "As a Publisher, I want to validate the data I am about to publish to the registry, so that that I publish good data and know that I am doing."}
+{"id": "g14-013", "set": "g14", "split": "test3", "text": "As a Publisher, I want to data to be validated when I publish it, so that that I know immediately if I have accidentally broken my data or have bugs and can take action to correct."}
+{"id": "g14-014", "set": "g14", "split": "test3", "text": "As a Consumer, I want to know that the data I am downloading is good and can be relied on, so that that I don't have to check it myself or run into annoying bugs later on."}
+{"id": "g14-015", "set": "g14", "split": "test3", "text": "As a Publisher, I want to publish a data package where its resource data is stored on my servers but the registry caches a copy of that data, so that that if my data is lost or gets broken I still have a copy people can use."}
+{"id": "g14-016", "set": "g14", "split": "test3", "text": "As a Consumer, I want to be able to get the data for a data package even if the original data has been moved or removed, so that that I can still use is and my app or analysis keeps working."}
+{"id": "g14-017", "set": "g14", "split": "test3", "text": "As a Publisher, I want to publish a data package in the UI, so that that it is available and published."}
+{"id": "g14-018", "set": "g14", "split": "test3", "text": "As a Publisher, I want to create a data package in the UI so that it is available and published."}
+{"id": "g14-019", "set": "g14", "split": "test3", "text": "As a Publisher, I want to be able to restore the deleted data package via cli, so that that it is back visible and available to view, download."}
+{"id": "g14-020", "set": "g14", "split": "test3", "text": "As a Publisher, I want to undelete the deleted data packages, so that that the deleted data packages is now visible again."}
+{"id": "g14-021", "set": "g14", "split": "test3", "text": "As a Publisher, I want to be able to preview the views of the current data package using cli prior to publishing, so that that I can refine the json declarations of datapackage view section to achieve a great looking result."}
+{"id": "g14-022", "set": "g14", "split": "test3", "text": "As a Consumer, I want to view a data package online, so that I can get a sense of whether this is the dataset I want."}
+{"id": "g14-023", "set": "g14", "split": "test3", "text": "As a publisher, I want to show the world how my published data is, so that that it immediately catches consumer's attention."}
+{"id": "g14-024", "set": "g14", "split": "test3", "text": "As a consumer, I want to view the data package, so that that I can get a sense of whether I want this dataset or not."}
+{"id": "g14-025", "set": "g14", "split": "test3", "text": "As a Publisher, I want to preview a datapackage I have prepared, so that that I can check it works and share the results."}
+{"id": "g14-026", "set": "g14", "split": "test3", "text": "As a Consumer, I want to see how much the data has been downloaded, so that that I can choose most popular in the case when there are several alternatives for my use case."}
+{"id": "g14-027", "set": "g14", "split": "test3", "text": "As a Publisher, I want to see real examples of published packages so that I can understand how useful and simple the datapackage format and the registry is."}
+{"id": "g14-028", "set": "g14", "split": "test3", "text": "As a Consumer, I want to see some example data packages quickly, so that I get a sense of what is on this site and if it is useful to look further."}
+{"id": "g14-029", "set": "g14", "split": "test3", "text": "As a Consumer, I want to search data packages, so that that I can find the ones I want."}
+{"id": "g14-030", "set": "g14", "split": "test3", "text": "As a Consumer, I want to search based on description of data package, so that that I can find package which related to some key words."}
+{"id": "g14-031", "set": "g14", "split": "test3", "text": "As a Consumer, I want to download the data package in one file, so that that I don't have to download descriptor and each resource by hand."}
+{"id": "g14-032", "set": "g14", "split": "test3", "text": "As a Developer, I want to use data package as a node lib in my project, so that that I can depend on it using my normal dependency framework."}
+{"id": "g14-033", "set": "g14", "split": "test3", "text": "As a Consumer, I want to load a Data Package from R, so that that I can immediately start playing with it."}
+{"id": "g14-034", "set": "g14", "split": "test3", "text": "As a Data Analyst I want to download a data package, so that that I can study it and wrangle with it to infer new data or generate new insights."}
+{"id": "g14-035", "set": "g14", "split": "test3", "text": "As a Data Analyst, I want to update previously downloaded data package, so that that I can work with the most recent data."}
+{"id": "g14-036", "set": "g14", "split": "test3", "text": "As a Consumer, I want to download a DataPackage's data one coherent SQLite database, so that that I can get it easily in one form."}
+{"id": "g14-037", "set": "g14", "split": "test3", "text": "As a Data Analyst, I want to compare different versions of some datapackage locally, so that that I can see schema changes clearly and adjust my analytics code to the desired schema version."}
+{"id": "g14-038", "set": "g14", "split": "test3", "text": "As a Web Developer, I want to be able to install multiple versions of the same datapackage separately, so that that all my projects could be developed independently and deployed locally."}
+{"id": "g14-039", "set": "g14", "split": "test3", "text": "As a Developer, I want to list all DataPackages requirements for my project in the file and pin the exact versions of any DataPackage that my project depends on, so that that the project can be deterministically deployed locally and won't break because of the DataPackage schema changes."}
+{"id": "g14-040", "set": "g14", "split": "test3", "text": "As a Publisher, I want to tag datapackage to create a snapshot of data on the registry server, so that that consumers can refer to it."}
+{"id": "g14-041", "set": "g14", "split": "test3", "text": "As a Publisher, I want to be warned that a tag exists when I try to overwrite it, so that that I don't accidentally overwrite stable tagged data which is relied on by consumers."}
+{"id": "g14-042", "set": "g14", "split": "test3", "text": "As a Publisher, I want to be able to overwrite the previously tagged datapackage, so that that I can fix it if I mess up."}
+{"id": "g14-043", "set": "g14", "split": "test3", "text": "As a Publisher, I want to version my Data Package and keep multiple versions around including older versions, so that that I do not break consumer systems when I change my datapackage."}
+{"id": "g14-044", "set": "g14", "split": "test3", "text": "As a Publisher, I want to be able to get access to a previous version I tagged, so that that I can return to it and review it."}
+{"id": "g14-045", "set": "g14", "split": "test3", "text": "As a Consumer, I want to know full details of how the data package schema has changed, so that that I can adjust my scripts to handle it."}
+{"id": "g14-046", "set": "g14", "split": "test3", "text": "As a Consumer, I want to get a sense of the age of the datapackage that I have downloaded before, so that that I can decide if I should update or not."}
+{"id": "g14-047", "set": "g14", "split": "test3", "text": "As a Consumer, I want to view a Datapackage at a particular version online, so that that I can present/discuss the particular data timeslice of interest with other people."}
+{"id": "g14-048", "set": "g14", "split": "test3", "text": "As a Consumer, I want to download a Data package at a particular version, so that that I know it is compatible with my scripts and system."}
+{"id": "g14-049", "set": "g14", "split": "test3", "text": "As a Consumer, I want to be notified of changes to a package I care about, so that that I can check out what has changed and take action."}
+{"id": "g14-050", "set": "g14", "split": "test3", "text": "As a Consumer, I want to see how active the site is, so that I can decide if I should get involved."}
+{"id": "g14-051", "set": "g14", "split": "test3", "text": "As a Consumer, I want to browse and find publishers, so that that I can find interesting publishers and their packages."}
+{"id": "g14-052", "set": "g14", "split": "test3", "text": "As a Consumer, I want to see a publisher's profile, so that that I can discover their packages and get a sense of how active and good they are."}
+{"id": "g14-053", "set": "g14", "split": "test3", "text": "As a Consumer, I want to view a publisher's profile, so that that I can see who is behind a particular package or to see what other packages they produce."}
+{"id": "g14-054", "set": "g14", "split": "test3", "text": "As a Consumer, I want to search among all data packages owned by a publisher, so that that I can easily find one data package amongst all the data packages by this publisher."}
+{"id": "g14-055", "set": "g14", "split": "test3", "text": "As an Owner, I want to edit my profile, so that that it is updated with new information."}
+{"id": "g14-056", "set": "g14", "split": "test3", "text": "As an Owner, I want to invite an existing user, so that the user can become a member of my publisher."}
+{"id": "g14-057", "set": "g14", "split": "test3", "text": "As an owner, I want to invite someone using their email to sign up and become a member of my Publisher, so that that they are authorized to publish data packages under my Publisher."}
+{"id": "g14-058", "set": "g14", "split": "test3", "text": "As an owner, I want to remove someone from membership in my publisher, so that they no longer have ability to publish or modify my data packages."}
+{"id": "g14-059", "set": "g14", "split": "test3", "text": "As an owner, I want to view all the people in my organization and what roles they have, so that that I can change these if I want."}
+{"id": "g14-060", "set": "g14", "split": "test3", "text": "As an owner, I want to make a user an owner, so that they have full control."}
+{"id": "g14-061", "set": "g14", "split": "test3", "text": "As an owner, I want to remove a user as an owner, so that they are just a member and no longer have full control."}
+{"id": "g14-062", "set": "g14", "split": "test3", "text": "As an Admin, I want to set key configuration parameters for my site deployment, so that that I can change key information like the site title."}
+{"id": "g14-063", "set": "g14", "split": "test3", "text": "As an Admin, I want to see key metrics about usage such as users, API usage, downloads, so that that I know how things are going."}
+{"id": "g14-064", "set": "g14", "split": "test3", "text": "As an Admin, I want to have a pricing plan and billing system, so that that I can charge users and make my platform sustainable."}
+{"id": "g14-065", "set": "g14", "split": "test3", "text": "As a Publisher, I want to know if this site has a pricing plan and what the prices are, so that that I can work out what this will cost me in the future and have a sense that these guys are sustainable."}
+{"id": "g14-066", "set": "g14", "split": "test3", "text": "As a Publisher, I want to sign up for a given pricing plan, so that that I am entitled to what it allows."}
+{"id": "g14-067", "set": "g14", "split": "test3", "text": "As a Publisher, I want to have private data packages, so that I can share just with my team."}

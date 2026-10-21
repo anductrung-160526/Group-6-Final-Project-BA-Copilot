@@ -31,3 +31,8 @@ Ca biên đã chốt:
   - cụm bổ nghĩa cho vai trò ("As a Researcher, working with data in NetCDF, …") là một phần của vai trò, không tính minimal;
   - "/" hoặc "|" giữa hai danh từ ("LibreOffice/OpenOffice", "region|city", "file/files") không tính atomic; giữa hai động từ ("import/export") thì tính;
   - "I would like" khác họ "I want" → uniform khi đa số bộ dùng "I want"; "So that" viết hoa vẫn cùng mẫu "so that".
+
+## Vòng 3 (tập test thứ ba)
+- **Sửa định nghĩa well-formed cho đúng Bảng 1 của bài báo:** chỉ cần có vai trò và cụm chỉ dấu hành động ("I want/can/need/would like …"). Phần hành động là cụm danh từ ("I want an Elasticsearch integration") **vẫn well-formed**. Bỏ vế "hành động không có động từ" ở bảng trên (đó là thêm của nhóm và gây nhãn không nhất quán ở vòng 2).
+- Thêm 5 bộ: g10 scrumalliance (97), g11 nsf (73), g12 camperplus (55), g13 planningpoker (53, mã hoá Windows-1252), g14 datahub (67) → **test3, 345 story**, gán nhãn theo định nghĩa đã sửa và commit trước khi chạy bộ chấm. Dev vòng 3 = g02, g03, g04, g05, g08.
+- Ca biên chốt thêm khi gán: "so that that" (lặp chữ) và "so that so that" là lỗi gõ, không tính lỗi; "etc." trong danh sách tân ngữ không tính minimal; "I'm able to", "I would be able to" không phải cụm chỉ dấu hành động → well-formed và uniform; chi tiết trong ngoặc nhọn tính minimal; "since …" thay "so that" tính uniform.
