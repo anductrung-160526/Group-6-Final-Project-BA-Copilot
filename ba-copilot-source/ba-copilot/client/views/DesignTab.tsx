@@ -1,6 +1,6 @@
 // Design Studio: prompt sinh màn hình, khoanh vùng (click / kéo khung), bình luận theo vùng,
 // gửi bình luận vào prompt, prompt sửa theo vùng, lịch sử phiên bản, xem thử prototype,
-// gợi ý element (chỉ mô hình trong model/): khung mờ phần tử tiếp theo + "Hoàn thành bố cục" (Recursive Transformer,
+// gợi ý element (chỉ mô hình trong model/): khung mờ phần tử tiếp theo + "Tự hoàn thiện bố cục" (Recursive Transformer,
 // Li et al. 2020) và vạch chèn phần tử còn thiếu giữa các phần tử đã có (Transformer phát hiện chỗ thiếu).
 // Đợt 5 (C9): bước "Prototype" của "Thực hiện công việc" (PrototypeStep). AI sinh/sửa màn theo SRS + FRD-NFR + user story;
 // trạng thái Xong / Duyệt / Yêu cầu sửa qua ApprovalBar; mọi lệnh sửa màn gửi baseRev (409 → ConflictNotice);
@@ -32,6 +32,14 @@ const TEMPLATES = [
   { name: "Add product", prompt: "Add product form: name, SKU, category, price, stock quantity, description, image; Save and Cancel buttons." },
   { name: "Home", prompt: "Admin overview dashboard: revenue, orders and new customers metrics, plus a recent orders table." },
 ];
+
+// tên thành phần hiển thị cho người dùng (giá trị lưu trữ vẫn là tên loại gốc)
+const TYPE_LABEL: Record<string, string> = {
+  Sidebar: "Side bar", Textarea: "Multi-line input", Input: "Text input", Select: "Dropdown", Radio: "Radio button", DatePicker: "Date picker",
+  Badge: "Label", Alert: "Notice", Stat: "Metric", Avatar: "Profile picture",
+};
+const typeName = (t?: string | null) => (t ? TYPE_LABEL[t] ?? t : "");
+const typeLabel = (l: string) => l.replace(/^\w+/, (m) => TYPE_LABEL[m] ?? m);
 
 // vi-keep: bỏ dấu tiếng Việt khi so tên màn
 // vi-keep: bỏ dấu tiếng Việt khi so tên màn
@@ -303,7 +311,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
     const c = cur.candidates.find((x) => x.type === curType)!;
     if (await acceptItems(next.versionId, [{ ref: "a", parentId: cur.parentId, index: cur.index, type: curType }])) {
       logSugg(cur, curType, c.p, "applied");
-      toast(`Added ${curType} to ${cur.parentLabel} – change its content with the design edit prompt`, "ok");
+      toast(`Added ${typeName(curType)} to ${typeLabel(cur.parentLabel)} – change its text with "Ask AI to edit the design"`, "ok");
     }
   };
   const dismissNext = () => {
@@ -316,7 +324,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
     if (!gap || !next || !gapCand) return;
     if (await acceptItems(next.versionId, [{ ref: "a", parentId: gap.parentId, index: gap.index, type: gapCand.type, sub: gapCand.sub }], "transformer")) {
       logSugg(gap, gapCand.type, gap.pMissing, "applied", "transformer");
-      toast(`Added ${gapCand.type} before ${gap.beforeLabel} – change its content with the design edit prompt`, "ok");
+      toast(`Added ${typeName(gapCand.type)} before ${typeLabel(gap.beforeLabel)} – change its text with "Ask AI to edit the design"`, "ok");
     }
   };
   const dismissGap = () => {
@@ -326,14 +334,14 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
     setGapPick(0);
   };
 
-  // "Hoàn thành bố cục" trong vùng đang chọn hoặc cả màn
+  // "Tự hoàn thiện bố cục" trong vùng đang chọn hoặc cả màn
   const runComplete = async () => {
     if (!screen) return;
     const layout = measureLayout();
     if (!layout) return;
-    const r = await run("The model is completing the layout…", () => post<{ versionId: string; items: GenItem[] }>(`/api/screens/${screen.id}/suggestions`, { mode: "complete", nodeIds: selected, layout }));
+    const r = await run("AI is completing the layout…", () => post<{ versionId: string; items: GenItem[] }>(`/api/screens/${screen.id}/suggestions`, { mode: "complete", nodeIds: selected, layout }));
     if (!r) return;
-    if (!r.items.length) return toast("The model considers the layout complete (EOS in every container)", "info");
+    if (!r.items.length) return toast("The layout already looks complete – the AI doesn't see any component to add", "info");
     setComplete({ versionId: r.versionId, items: r.items, on: new Set(r.items.map((g) => g.tempId)) });
     setPanel("suggest");
   };
@@ -362,7 +370,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
     if (!list.length) return setComplete(null);
     if (await acceptItems(complete.versionId, list)) {
       for (const g of complete.items) logSugg(g, g.type, g.p, complete.on.has(g.tempId) ? "applied" : "dismissed");
-      toast(`Added ${list.length} ${list.length === 1 ? "element" : "elements"} from the layout suggestion`, "ok");
+      toast(`Added ${list.length} ${list.length === 1 ? "component" : "components"} suggested by the AI`, "ok");
       setComplete(null);
     }
   };
@@ -676,7 +684,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                       r && (
                         <button className="ov ov-ghost" style={box(r)} title="Tab: accept · Esc: dismiss" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); acceptNext(); }} data-testid="ghost">
                           <span className="ghost-tag">
-                            {curType} {Math.round((cur.candidates.find((c) => c.type === curType)?.p ?? 0) * 100)}% · Tab
+                            {typeName(curType)} {Math.round((cur.candidates.find((c) => c.type === curType)?.p ?? 0) * 100)}% · Tab
                           </span>
                         </button>
                       )
@@ -689,7 +697,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                       r && (
                         <button className="ov ov-gap" style={box({ x: r.x, y: r.y - 3, w: r.w, h: 6 })} title={`Insert before ${gap.beforeLabel}${cur && !cur.eos ? "" : " · Tab: accept · Esc: dismiss"}`} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); acceptGap(); }} data-testid="gap-marker">
                           <span className="ghost-tag">
-                            {gapCand.type} missing {Math.round(gap.pMissing * 100)}%
+                            {typeName(gapCand.type)} missing {Math.round(gap.pMissing * 100)}%
                           </span>
                         </button>
                       )
@@ -698,7 +706,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                   {mode !== "prototype" &&
                     complete?.items.map((g) => {
                       const r = ghostRect(g.boxPx);
-                      return r && <button key={g.tempId} className={`ov ov-ghost ${complete.on.has(g.tempId) ? "" : "off"}`} style={box(r)} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); toggleGen(g.tempId); }} title="Click to toggle"><span className="ghost-tag">{g.type}</span></button>;
+                      return r && <button key={g.tempId} className={`ov ov-ghost ${complete.on.has(g.tempId) ? "" : "off"}`} style={box(r)} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); toggleGen(g.tempId); }} title="Click to toggle"><span className="ghost-tag">{typeName(g.type)}</span></button>;
                     })}
                   {mode !== "prototype" &&
                     openAnns.map((a, i) => {
@@ -727,7 +735,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
               </div>
             </div>
             <div className="hint muted small">
-              {mode === "select" && "Click to select an element · Shift+click to select several · Esc to clear · Delete to remove the element · Tab to accept the suggested ghost"}
+              {mode === "select" && "Click to select · Shift+click to select several · Esc to clear · Delete to remove · Tab to use the suggestion"}
               {mode === "region" && "Drag to select a region – elements fully inside the box are selected"}
               {mode === "prototype" && "Click buttons/links with navigation to move between screens like a prototype"}
             </div>
@@ -769,12 +777,12 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                   }}
                   data-testid="layout-toggle"
                 />{" "}
-                Show the next element as a ghost on the canvas
+                Show suggestion previews on the screen
               </label>
 
               {complete ? (
                 <div className="box box-accent">
-                  <div className="box-title">Complete layout – {complete.items.length} {complete.items.length === 1 ? "element" : "elements"}</div>
+                  <div className="box-title">Auto-complete layout – {complete.items.length} {complete.items.length === 1 ? "component" : "components"}</div>
                   <div className="gen-list">
                     {complete.items.map((g) => {
                       const depth = (() => {
@@ -790,15 +798,15 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                       const genParent = complete.items.find((x) => x.tempId === g.parentId);
                       return (
                         <label key={g.tempId} className="gen-item" style={{ paddingLeft: 4 + depth * 14 }}>
-                          <input type="checkbox" checked={complete.on.has(g.tempId)} onChange={() => toggleGen(g.tempId)} /> <strong>{g.type}</strong>{" "}
-                          <span className="muted small">in {parent ? nodeLabel(parent) : `${genParent?.type ?? ""} (new)`} · {Math.round(g.p * 100)}%</span>
+                          <input type="checkbox" checked={complete.on.has(g.tempId)} onChange={() => toggleGen(g.tempId)} /> <strong>{typeName(g.type)}</strong>{" "}
+                          <span className="muted small">in {parent ? typeLabel(nodeLabel(parent)) : `${typeName(genParent?.type)} (new)`} · confidence {Math.round(g.p * 100)}%</span>
                         </label>
                       );
                     })}
                   </div>
                   <div className="sugg-actions">
                     <Btn size="sm" kind="primary" disabled={!complete.on.size || !!previewing} onClick={acceptComplete} data-testid="accept-complete">
-                      Accept {complete.on.size} {complete.on.size === 1 ? "element" : "elements"} (Tab)
+                      Add {complete.on.size} {complete.on.size === 1 ? "component" : "components"} (Tab)
                     </Btn>
                     <Btn size="sm" kind="ghost" onClick={() => setComplete(null)}>
                       Cancel (Esc)
@@ -807,36 +815,36 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                 </div>
               ) : (
                 <>
-                  <div className="muted small">{selected.length ? "Next element in the selected container" : "Next element – select a container to ask about that position"}</div>
+                  <div className="muted small">{selected.length ? "Suggested next component for the selected area" : "Suggested next component – select an area to see suggestions for that area only"}</div>
                   {!layoutOn ? (
                     <div className="muted small pad">Suggestions are turned off.</div>
                   ) : !next ? (
-                    <div className="muted small pad">Calculating…</div>
+                    <div className="muted small pad">AI is analysing the layout…</div>
                   ) : !cur ? (
-                    <div className="muted small pad">The model considers the layout complete (EOS predicted in every container). Select a container to see which element types could be added.</div>
+                    <div className="muted small pad">The layout looks complete. Select an area if you want to see which components could be added.</div>
                   ) : (
                     <div className="sugg" data-testid="suggestion">
                       <div className="sugg-head">
-                        <Badge tone="blue">Next</Badge>
-                        <span className="sugg-title">in {cur.parentLabel}</span>
+                        <Badge tone="blue">Suggested next</Badge>
+                        <span className="sugg-title">in {typeLabel(cur.parentLabel)}</span>
                         <Badge tone="gray" title="Recursive Transformer Tree Decoder (Li et al. 2020)">Recursive</Badge>
                       </div>
-                      {cur.eos && <div className="muted small">The model considers this container complete (EOS {Math.round(cur.pEos * 100)}%). You can still pick a type below.</div>}
+                      {cur.eos && <div className="muted small">This area looks complete (confidence {Math.round(cur.pEos * 100)}%). You can still add a component below.</div>}
                       <div className="cand-list">
                         {cur.candidates.map((c, i) => (
                           <button key={c.type} className={`cand ${curType === c.type ? "on" : ""}`} onClick={() => setPick(i)} data-testid="candidate">
-                            <span>{c.type}</span>
+                            <span>{typeName(c.type)}</span>
                             <span className="cand-bar">
                               <span style={{ width: `${Math.round(c.p * 100)}%` }} />
                             </span>
                             <span className="muted small">{Math.round(c.p * 100)}%</span>
                           </button>
                         ))}
-                        {!cur.eos && <div className="muted small">End (EOS): {Math.round(cur.pEos * 100)}%</div>}
+                        {!cur.eos && <div className="muted small">Chance the area is complete: {Math.round(cur.pEos * 100)}%</div>}
                       </div>
                       <div className="sugg-actions">
                         <Btn size="sm" kind="primary" disabled={!!previewing} onClick={acceptNext} data-testid="accept-next">
-                          Add {curType} {cur.eos ? "" : "(Tab)"}
+                          Add {typeName(curType)} {cur.eos ? "" : "(Tab)"}
                         </Btn>
                         {!cur.eos && (
                           <Btn size="sm" kind="ghost" onClick={dismissNext}>
@@ -846,12 +854,12 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                       </div>
                       {items.length > 1 && (
                         <div className="muted small">
-                          Other positions:{" "}
+                          Suggestions in other areas:{" "}
                           {items.map((e, i) => (
                             <React.Fragment key={e.parentId}>
                               {i > 0 && " · "}
                               <button className={`link small ${i === which ? "strong" : ""}`} onClick={() => { setWhich(i); setPick(0); }}>
-                                {e.candidates[0].type} in {e.parentLabel}
+                                {typeName(e.candidates[0].type)} in {typeLabel(e.parentLabel)}
                               </button>
                             </React.Fragment>
                           ))}
@@ -861,27 +869,27 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                   )}
                   {layoutOn && next && (
                     <>
-                      <div className="muted small">Missing in between – an element the model expects before one that already exists</div>
+                      <div className="muted small">Missing in between – a component the AI expects before one that already exists</div>
                       {!next.gapModel ? (
                         <div className="muted small pad">The missing-element model is not available (model/next-transformer.websight.json).</div>
                       ) : !gap ? (
-                        <div className="muted small pad">No missing element found between the existing ones{selected.length ? " in the selected container" : ""}.</div>
+                        <div className="muted small pad">No missing component found between the existing ones{selected.length ? " in the selected area" : ""}.</div>
                       ) : (
                         <div className="sugg" data-testid="gap-suggestion">
                           <div className="sugg-head">
                             <Badge tone="violet">Missing</Badge>
                             <span className="sugg-title">
-                              in {gap.parentLabel}, before {gap.beforeLabel}
+                              in {typeLabel(gap.parentLabel)}, before {typeLabel(gap.beforeLabel)}
                             </span>
                             <Badge tone="gray" title="Transformer missing-element detector (Li et al. 2020, bidirectional)">Transformer</Badge>
                           </div>
                           <div className="muted small">
-                            {gap.afterLabel ? `Between ${gap.afterLabel} and ${gap.beforeLabel}` : `At the start of ${gap.parentLabel}`} · missing: {Math.round(gap.pMissing * 100)}%
+                            {gap.afterLabel ? `Between ${typeLabel(gap.afterLabel)} and ${typeLabel(gap.beforeLabel)}` : `At the start of ${typeLabel(gap.parentLabel)}`} · confidence it is missing: {Math.round(gap.pMissing * 100)}%
                           </div>
                           <div className="cand-list">
                             {gap.candidates.map((c, i) => (
                               <button key={c.type} className={`cand ${gapCand?.type === c.type ? "on" : ""}`} onClick={() => setGapPick(i)} data-testid="gap-candidate">
-                                <span>{SUB_LABEL[c.sub] ? `${c.type} (${SUB_LABEL[c.sub]})` : c.type}</span>
+                                <span>{SUB_LABEL[c.sub] ? `${typeName(c.type)} (${SUB_LABEL[c.sub]})` : typeName(c.type)}</span>
                                 <span className="cand-bar">
                                   <span style={{ width: `${Math.round(c.p * 100)}%` }} />
                                 </span>
@@ -891,7 +899,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                           </div>
                           <div className="sugg-actions">
                             <Btn size="sm" disabled={!!previewing} onClick={acceptGap} data-testid="accept-gap">
-                              Insert {gapCand?.type} {cur && !cur.eos ? "" : "(Tab)"}
+                              Insert {typeName(gapCand?.type)} {cur && !cur.eos ? "" : "(Tab)"}
                             </Btn>
                             <Btn size="sm" kind="ghost" onClick={dismissGap}>
                               Dismiss{cur && !cur.eos ? "" : " (Esc)"}
@@ -904,7 +912,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                                 <React.Fragment key={`${g.parentId}:${g.index}`}>
                                   {i > 0 && " · "}
                                   <button className={`link small ${i === gapWhich ? "strong" : ""}`} onClick={() => { setGapWhich(i); setGapPick(0); }}>
-                                    {g.candidates[0].type} before {g.beforeLabel}
+                                    {typeName(g.candidates[0].type)} before {typeLabel(g.beforeLabel)}
                                   </button>
                                 </React.Fragment>
                               ))}
@@ -915,17 +923,17 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                     </>
                   )}
                   <div className="box">
-                    <div className="box-title">Complete layout</div>
-                    <div className="muted small">The model generates everything still missing {selected.length ? "in the selected region" : "on the whole screen"} and shows it as ghosts you can accept piece by piece.</div>
+                    <div className="box-title">Auto-complete layout</div>
+                    <div className="muted small">The AI proposes everything still missing {selected.length ? "in the selected region" : "on the whole screen"}. Preview it and choose which components to keep.</div>
                     <Btn size="sm" disabled={!!previewing || !layoutOn} onClick={runComplete} data-testid="run-complete">
                       <Icon name="ai" size="sm" />
-                      Complete layout
+                      Auto-complete layout
                     </Btn>
                   </div>
                 </>
               )}
               <div className="muted small sugg-foot">
-                Element suggestions come only from the models in model/ – no rules, no Claude. Next element and Complete layout: Recursive Transformer Tree Decoder (Li et al. 2020){next?.model ? `, trained on ${next.model.trees.toLocaleString("en-US")} UI trees (${next.model.roots} root screens)` : ""}. Missing in between: Transformer missing-element detector{next?.gapModel ? `, trained on ${next.gapModel.trees.toLocaleString("en-US")} UI trees` : ""}. Suggestions cover element type and position – not content; change text with the design edit prompt.
+                <span title={`Models in model/ only – no rules, no Claude. Suggested next and Auto-complete layout: Recursive Transformer Tree Decoder (Li et al. 2020)${next?.model ? `, ${next.model.trees.toLocaleString("en-US")} UI trees` : ""}. Missing in between: Transformer missing-element detector${next?.gapModel ? `, ${next.gapModel.trees.toLocaleString("en-US")} UI trees` : ""}.`}>AI suggestions{next?.model ? `, learned from ${next.model.roots} business screen samples` : ""}</span>. The AI suggests component type, position and size – not the text; change text with "Ask AI to edit the design".
               </div>
             </div>
           )}
@@ -1015,7 +1023,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
               </div>
 
               <div className="box box-accent">
-                <div className="box-title">Design edit prompt</div>
+                <div className="box-title">Ask AI to edit the design</div>
                 <textarea rows={3} value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder={selected.length ? "E.g. Add a “Sign in with Google” button below" : "E.g. Switch the layout to 2 columns"} data-testid="edit-prompt" />
                 <div className="muted small">
                   Sending: {selected.length ? `${selected.length} ${selected.length === 1 ? "element" : "elements"}` : "whole screen"} · {checked.size} {checked.size === 1 ? "comment" : "comments"}{prompt.trim() ? " · 1 request" : ""}

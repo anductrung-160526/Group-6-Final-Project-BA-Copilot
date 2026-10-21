@@ -110,10 +110,10 @@ This feature **implements only the method of Li et al. (2020)**, *Auto Completio
 - **Complete layout:** greedy decoding until EOS (including containers generated along the way) within the selected region or the whole screen; each generated element can then be accepted individually.
 - **Input:** the current design tree plus each element's bounding box measured on the canvas, discretised onto a grid of 32 columns × 40 px rows (grid parameters are read from the model config).
 - **Output:** type, leaf flag, bounding box. Inserted elements get neutral default props; text content is changed via the design-editing prompt.
-- **Model:** `model/recursive-layout.json`, hidden size 256, 4 layers, 4.3M parameters, **32-column × 40 px-row** grid, selected on the validation set (`dataset/export/eval/STRICT-NEXT.md`). Trained on **500 root screens (399 for training) = 2,793 trees**, 80/10/10 split, using only the team's own web data (no WebSight). On the 38-screen test set: strict Next accuracy 8.8%, IoU ≥ 0.5 at 22.8%.
+- **Model:** `model/recursive-layout.json`, hidden size 256, 4 layers, 4.3M parameters, **32-column × 40 px-row** grid, paper architecture (no position embedding). Trained in two steps: **pre-trained on 23,382 WebSight trees**, then **fine-tuned on the team's 785 root screens** (13,168 training trees, 80/10/10 split) with ×2 layout augmentation and dropout 0.2. On the 38-screen test set: **strict Next accuracy 19.7%** (previous 500-screen model: 8.8%), IoU ≥ 0.5 at 33.8%, Edit 37.0 s (no suggestions: 60.5 s). Beyond the paper: WebSight, coarse grid, augmentation, dropout. Details and caveats (no ablation, small test set): `dataset/export/eval/DATA-LIMITED.md`.
   - Inference is pure TypeScript (`shared/recursive.ts`) and matches PyTorch output (`tests/recursive.test.ts`).
   - CPU latency (42 test screens): querying one container takes ~20–60 ms; a full-screen pass has a median of 0.3 s (max 0.9 s); Complete layout has a median of 0.4 s (max ~6 s on large screens).
-- **Results:** `dataset/export/eval/LAYOUT-SUGGEST.md`.
+- **Results:** `dataset/export/eval/DATA-LIMITED.md` (current model), `STRICT-NEXT.md` (grid selection), `LAYOUT-SUGGEST.md` (KLM simulation, scored on the earlier 400-screen model).
   - A KLM simulation shows step-by-step suggestions save roughly 39–48% of interaction time compared with building by hand; Complete layout saves 16–43%.
   - Includes per-element-type accuracy tables.
   - Point-by-point comparison with the paper: `dataset/export/eval/PAPER-METHOD.md`.

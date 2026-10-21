@@ -79,8 +79,7 @@ npm run dataset:export                            # data/dataset/tf/{train,val,t
 npx tsx scripts/dataset/export-view.ts            # dataset/export/: samples.csv, roots.csv, preview.html, samples.jsonl.gz
 ```
 
-> Mô hình của app đã được huấn luyện lại từ đầu trên phiên bản này, không dùng WebSight. Kết quả và lý do chọn mô hình ở `export/eval/MODEL-SELECTION.md`.
-> Các báo cáo cũ `REPORT.md` và `PAPER-METRICS.md` thuộc phiên bản trước (`80d9c12d5a`) và mô hình có tiền huấn luyện WebSight.
+> Mô hình của app đã được huấn luyện lại từ đầu trên phiên bản này, không dùng WebSight. Mô hình hiện tại của app: `export/eval/DATA-LIMITED.md`.
 
 ## Rà soát chia tập (18/10/2026)
 Kiểm tra tự động trên phiên bản `a2e83358b8`:
@@ -91,4 +90,4 @@ Kiểm tra tự động trên phiên bản `a2e83358b8`:
 - 30 màn tham chiếu không nằm trong bộ dữ liệu.
 - Mọi lựa chọn mô hình (số epoch, kích thước, cấu hình) đều dựa trên val; tập test chỉ dùng để báo cáo.
 
-**Lỗi tìm thấy và đã sửa:** hai script đánh giá cắt cây dở 10/50/80% theo hai quy tắc khác nhau, một bên có tính gốc và một bên không, nên so sánh giữa mô hình app và ba bộ giải mã của bài báo bị lệch. Đã thống nhất và chấm lại (xem `export/eval/MODEL-SELECTION.md`).
+**Lỗi tìm thấy và đã sửa:** hai script đánh giá cắt cây dở 10/50/80% theo hai quy tắc khác nhau, một bên có tính gốc và một bên không, nên so sánh giữa mô hình app và ba bộ giải mã của bài báo bị lệch. Đã thống nhất và chấm lại.

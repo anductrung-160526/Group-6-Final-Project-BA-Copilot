@@ -121,9 +121,11 @@ Quy ước viết hoa: **tiêu đề trang / tên mục menu / tiêu đề cột
 | Chọn / Khoanh vùng / Xem thử | Select / Region / Preview | Chế độ của canvas |
 | Thành phần | Layers | Tab cây thành phần |
 | Gợi ý (bố cục) | Suggest / Layout suggestion | |
-| Hoàn thành bố cục | Complete layout | |
+| Tự hoàn thiện bố cục | Auto-complete layout | Trước đây "Hoàn thành bố cục" / "Complete layout" |
+| Thành phần (trong gợi ý bố cục) | Component | Không dùng "element", "container", "EOS" trên giao diện |
+| Khu vực (nơi gợi ý thêm thành phần) | Area | |
 | Bình luận | Comment | Trạng thái: Open / Sent to AI / Resolved; nút Resolve / Reopen |
-| Prompt sửa thiết kế | Design edit prompt | |
+| Yêu cầu AI sửa thiết kế | Ask AI to edit the design | Trước đây "Prompt sửa thiết kế" / "Design edit prompt" |
 | Sinh mới / Khôi phục / Sửa tay / Sửa theo vùng / Sửa toàn màn hình | Generated / Restored / Manual edit / Region edit / Whole-screen edit | Loại phiên bản |
 | Xuất HTML / JSON | Export HTML / JSON | |
 

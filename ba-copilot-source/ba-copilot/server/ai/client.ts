@@ -22,7 +22,8 @@ export function aiConfig(): AIConfig {
     model: process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-4-5",
     apiKey,
     authToken,
-    baseUrl: (process.env.ANTHROPIC_BASE_URL?.trim() || "https://api.anthropic.com").replace(/\/+$/, ""),
+    // bỏ "/" và "/v1" ở cuối: đường dẫn gọi đã có sẵn /v1/messages
+    baseUrl: (process.env.ANTHROPIC_BASE_URL?.trim() || "https://api.anthropic.com").replace(/\/+$/, "").replace(/\/v1$/, ""),
   };
 }
 

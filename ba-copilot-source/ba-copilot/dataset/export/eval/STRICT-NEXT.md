@@ -124,6 +124,8 @@ Next chặt trên test của 3 seed là 11,0 / 8,8 / 11,4. **Dao động khoản
 - Đã đưa vào app **bản đúng bài báo** (mục 10), theo đồng ý của người dùng.
 
 ## 10. Bản đúng bài báo đưa vào app (không embedding vị trí)
+> **Đã thay thế (20/10):** app nay dùng mô hình tiền huấn luyện WebSight → tinh chỉnh 785 màn, Next chặt 19,7. Xem `DATA-LIMITED.md`.
+
 Cùng G2 × W0, 500 màn, hidden 256 × 4 lớp, seed 42, chạy với `--no-pos`; chấm test một lần.
 
 | | Val loss 1280 | Test: Next chặt | Đúng loại | ±1 ô | IoU ≥ 0,5 | F1 chặt | F1 nới lỏng | Edit (s) |
