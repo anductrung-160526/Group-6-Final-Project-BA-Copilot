@@ -2,7 +2,7 @@
 
 A web application that supports Business Analysts through the end-to-end workflow **Prompt → UI design → Documentation (UC, SRS, Sequence) → Test cases → Traceability**. It is the software artifact of the thesis; all AI output is treated as a *draft* for the BA to review.
 
-**Live demo:** <https://ba-copilot.up.railway.app/> — password: `123321`. After signing in, pick a user from the *Select your name…* dropdown (e.g. **Lan Nguyen**, BA Lead). Deployment guide: [DEPLOY.md](DEPLOY.md).
+**Live demo:** <https://ba-copilot-vz0t.onrender.com/> — password: `123321`. After signing in, pick a user from the *Select your name…* dropdown (e.g. **Lan Nguyen**, BA Lead). Deployment guide: [DEPLOY.md](DEPLOY.md).
 
 ## 1. Running locally
 
