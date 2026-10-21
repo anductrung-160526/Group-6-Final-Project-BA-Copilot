@@ -7,7 +7,8 @@
 //   thấy các story xung quanh khi viết). Mỗi lúc sửa một dòng.
 // - Chặn đè: lưu/xoá gửi baseRev; 409 → ConflictNotice (Tải lại). Dòng đang sửa gửi nhịp presence("story", id) và hiện
 //   EditingBadge khi người khác cũng đang mở story đó.
-// - QUS chấm ngay trên trình duyệt bằng scoreStructured() (giống server), theo từng dòng + điểm tổng mỗi module.
+// - QUS chấm ngay trên trình duyệt bằng scoreStructured() (giống server), theo từng dòng + điểm tổng mỗi module. Mô hình
+//   NLP (public/nlp.js) chưa tải xong thì chưa có điểm, chỉ hiện QusModelStatus.
 // - Đợt 6 (D3) – module trước, story sau: nút "+ Module" (hộp thoại Module mới) nằm ở đầu màn này (đã gỡ khỏi khung
 //   "Thực hiện công việc"). Story phải gắn một module: dự án chưa có module thì "+ Thêm user story" bị khoá kèm lời nhắc;
 //   dòng mới mặc định chọn module đang lọc (hoặc module duy nhất). Story cũ chưa gắn module (module đã xoá) nằm ở nhóm
@@ -19,7 +20,7 @@ import { ApiError, createStory, del, get, isConflict, listStories, post, reorder
 import { currentMemberId, useCurrentMember, withActor } from "../currentMember.ts";
 import { usePresence } from "../presence.ts";
 import { storiesHref, type ProjectPageProps } from "../projectMenu.ts";
-import { QusDetail, QusSummary, QusToggle, toIssueItem } from "../components/QusPanel.tsx";
+import { QusDetail, QusModelStatus, QusSummary, QusToggle, toIssueItem } from "../components/QusPanel.tsx";
 import { Badge, Btn, ConflictNotice, EditingBadge, Empty, Field, Icon, IconBtn, IssueList, Modal, RowActions, ScoreBadge, Select, fmtTime, useUI } from "../components/ui.tsx";
 import { isBlankStructured, scoreStructured, storySentence, type OtherModuleStories, type QusResult, type StoryScore } from "../../shared/qus.ts";
 import type { Module, StoryPriority, UserStory } from "../../shared/types.ts";
@@ -135,8 +136,9 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
     if (window.location.hash !== href) window.location.hash = href;
   };
 
-  const nlpOn = useAqusa(); // tải mô hình NLP của bộ chấm QUS; xong thì chấm lại bằng AQUSA
-  const qus = useMemo(() => scoreByGroup(stories ?? [], modules ?? []), [stories, modules, nlpOn]);
+  // Tải mô hình NLP của bộ chấm QUS; chưa xong thì chưa có điểm (không chấm thay bằng luật).
+  const nlp = useAqusa();
+  const qus = useMemo(() => (nlp === "ready" ? scoreByGroup(stories ?? [], modules ?? []) : new Map<string, QusResult>()), [stories, modules, nlp]);
   const scoreOf = useMemo(() => {
     const m = new Map<string, StoryScore>();
     for (const r of qus.values()) for (const s of r.stories) if (s.id) m.set(s.id, s);
@@ -286,7 +288,7 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
   const editor = (d: Draft, code: string) => {
     const set = (patch: Partial<Draft>) => setDraft({ ...d, ...patch });
     const setAc = (i: number, v: string) => set({ acceptanceCriteria: d.acceptanceCriteria.map((c, j) => (j === i ? v : c)) });
-    const live = isBlankStructured(d) ? undefined : scoreStructured([{ ...payloadOf(d), code }]).stories[0];
+    const live = nlp !== "ready" || isBlankStructured(d) ? undefined : scoreStructured([{ ...payloadOf(d), code }]).stories[0];
     const by = original ? memberName(original.updatedBy) : undefined;
     return (
       <tr className="detail-row" data-testid="story-editor">
@@ -374,6 +376,7 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
                 <IssueList issues={live.issues.map(toIssueItem)} empty="Meets the QUS criteria" />
               </div>
             )}
+            {!isBlankStructured(d) && <QusModelStatus status={nlp} />}
             <div className="qus-title-wrap">
               <span className="spacer" />
               <Btn onClick={() => (setDraft(null), setRowConflict(false))} disabled={busy} data-testid="story-cancel">
@@ -451,6 +454,7 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
           <p className="muted">{stories.length} {stories.length === 1 ? "user story" : "user stories"} · each story belongs to one module and follows the As a / I want / So that template with acceptance criteria</p>
         </div>
         <div className="qus-title-wrap">
+          {stories.length > 0 && <QusModelStatus status={nlp} />}
           {noModule && (
             <span className="muted small" style={{ fontWeight: "var(--font-weight-regular)" }} data-testid="story-add-hint">
               {NEED_MODULE}

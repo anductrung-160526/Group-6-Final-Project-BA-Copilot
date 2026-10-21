@@ -1,14 +1,24 @@
 // Chấm chất lượng User Story theo khung QUS (Quality User Story).
 // Hàm thuần: không gọi AI, không phụ thuộc Node API hay browser API, chạy được cả client và server.
-// Story tiếng Anh: well-formed / atomic / minimal / uniform / unique chấm bằng AQUSA (shared/aqusa.ts, Lucassen et al. 2016).
-// Story tiếng Việt cũ: giữ bộ luật cũ. FULL_SENTENCE, NO_END, AMBIGUOUS, NO_CRITERIA, trùng gần đúng (Jaccard) và thang điểm
-// 100 − 30/15/5 là thiết kế của nhóm (ngoài bài báo).
+// Story tiếng Anh: well-formed / atomic / minimal / uniform / unique chấm bằng AQUSA + mô hình NLP wink-nlp (shared/aqusa.ts,
+// Lucassen et al. 2016), kể cả kiểm chữ đọc được (UNREADABLE). Bắt buộc phải nạp mô hình: chưa nạp thì scoreTexts báo lỗi
+// (QusModelNotLoaded), không chấm thay bằng luật. Story tiếng Việt cũ (AQUSA chỉ dành cho tiếng Anh): giữ bộ luật cũ.
+// FULL_SENTENCE, NO_END, AMBIGUOUS, NO_CRITERIA, trùng gần đúng (Jaccard) và thang điểm 100 − 30/15/5 là thiết kế của nhóm
+// (ngoài bài báo).
 import { analyzeSet, isEnglishStory, nlpReady, type AqusaDefect, type QusCriterion } from "./aqusa.ts";
 
 export const BASE_SCORE = 100;
 export const PENALTY_ERROR = 30;
 export const PENALTY_WARN = 15;
 export const PENALTY_INFO = 5;
+
+/** Mô hình NLP của bộ chấm (wink-nlp) chưa được nạp – không có điểm, giao diện báo đang tải mô hình. */
+export class QusModelNotLoaded extends Error {
+  constructor() {
+    super("The QUS NLP model (wink-nlp) is not loaded, so user stories cannot be scored.");
+    this.name = "QusModelNotLoaded";
+  }
+}
 
 export interface QusIssue {
   code: string;
@@ -466,10 +476,10 @@ function scoreTexts(rawStories: string[], options: ScoreOptions = {}, ex: TextEx
   }
   const label = (i: number) => ex.labels?.[i] ?? `#${i + 1}`;
 
+  if (!nlpReady()) throw new QusModelNotLoaded();
   const parsedList = rawStories.map(parseStory);
   // Story tiếng Anh chấm bằng AQUSA (cùng một bộ để kiểm uniform/unique); story tiếng Việt cũ giữ bộ luật cũ.
-  const useAqusa = nlpReady();
-  const eng = rawStories.map((t, i) => useAqusa && isEnglishStory(t) && parsedList[i].template !== "vi");
+  const eng = rawStories.map((t, i) => isEnglishStory(t) && parsedList[i].template !== "vi");
   const engIdx = rawStories.map((_, i) => i).filter((i) => eng[i]);
   const aq: AqusaDefect[][] = rawStories.map(() => []);
   analyzeSet(engIdx.map((i) => rawStories[i])).forEach((d, k) => (aq[engIdx[k]] = d));
@@ -490,11 +500,13 @@ function scoreTexts(rawStories: string[], options: ScoreOptions = {}, ex: TextEx
 
     if (eng[idx]) {
       // AQUSA: mỗi tiêu chí báo một lỗi (lỗi đầu tiên tìm được) để không trừ điểm nhiều lần cho cùng tiêu chí.
+      // Riêng phần không đọc được (UNREADABLE): mỗi phần một lỗi, nhập linh tinh cả 3 ô thì điểm về gần 0.
       const seen = new Set<string>();
       for (const d of aq[idx]) {
-        if (seen.has(d.criterion)) continue;
-        seen.add(d.criterion);
-        issues.push({ code: AQUSA_CODE[d.criterion], severity: AQUSA_SEVERITY[d.criterion], message: d.message, suggestion: d.suggestion, ...(d.excerpt ? { excerpt: d.excerpt } : {}), criterion: d.criterion, paperRef: d.paperRef });
+        const unreadable = d.code === "WF_UNREADABLE";
+        if (!unreadable && seen.has(d.criterion)) continue;
+        if (!unreadable) seen.add(d.criterion);
+        issues.push({ code: unreadable ? "UNREADABLE" : AQUSA_CODE[d.criterion], severity: unreadable ? "error" : AQUSA_SEVERITY[d.criterion], message: d.message, suggestion: d.suggestion, ...(d.excerpt ? { excerpt: d.excerpt } : {}), criterion: d.criterion, paperRef: d.paperRef });
       }
       if (parsed.isTemplate && !seen.has("well-formed") && (!parsed.end || !parsed.end.trim())) {
         issues.push({

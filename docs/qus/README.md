@@ -28,6 +28,7 @@ Module được xây dựng dựa trên các nghiên cứu khoa học về chấ
 | Mã tiêu chí | Mức độ | Trừ điểm | Ý nghĩa & Cách kiểm tra |
 | :--- | :--- | :--- | :--- |
 | **`WELL_FORMED`** | Error | -30đ | User Story thiếu vai trò (Role) hoặc thiếu hành động (Means). Bắt buộc viết theo mẫu chuẩn. |
+| **`UNREADABLE`** | Error | -30đ / mỗi phần | *(Luật của nhóm, chạy bằng mô hình NLP)* Phần vai trò / hành động / lợi ích không phải tiếng Anh đọc được: hơn nửa số từ không có trong từ điển của mô hình wink-nlp (kể cả dạng gốc của từ và từ ghép tách được). Ví dụ "As a asdf, I want qwer, so that zxcv" → 3 lỗi, còn 10đ. |
 | **`NO_END`** | Warn | -15đ | Có vai trò và hành động nhưng thiếu phần mục đích / giá trị mang lại (`so that` / `để`). |
 | **`ATOMIC`** | Warn | -15đ | Phần hành động (means) chứa nhiều hành động nối bằng "và" / "and" / `;` (phân biệt nối hành động với nối danh từ như *email và mật khẩu*). |
 | **`MINIMAL`** | Info | -5đ | Chứa ghi chú dài trong ngoặc đơn, hoặc chứa các từ "ví dụ", "lưu ý", "e.g.", "note:". Nên đưa vào Acceptance Criteria. |
@@ -35,6 +36,8 @@ Module được xây dựng dựa trên các nghiên cứu khoa học về chấ
 | **`FULL_SENTENCE`**| Warn | -15đ | Câu quá ngắn (< 4 từ), chưa đủ ngữ nghĩa hoàn chỉnh. |
 | **`DUPLICATE`** | Warn | -15đ | *(Cấp tập hợp)* Độ tương đồng Jaccard giữa tập từ vựng của 2 story $\ge 0.7$, chỉ rõ cặp story bị trùng. |
 | **`NOT_UNIFORM`** | Info | -5đ | *(Cấp tập hợp)* Tập hợp chứa lẫn lộn giữa story viết theo mẫu chuẩn và story viết tự do. |
+
+**Nguồn chấm.** Story tiếng Anh: `WELL_FORMED`, `ATOMIC`, `MINIMAL`, `NOT_UNIFORM`, `DUPLICATE` (trùng chính xác) và `UNREADABLE` chấm bằng AQUSA (`shared/aqusa.ts`) với mô hình NLP wink-nlp (gán nhãn từ loại, từ điển). Bắt buộc phải nạp mô hình: server nạp sẵn (`shared/nlp-node.ts`); trình duyệt tải `nlp.js`, khi chưa tải xong thì **không hiện điểm** (hiện "QUS: loading the NLP model…"), không chấm thay bằng luật. Cách kiểm theo từ khoá mô tả trong bảng chỉ còn dùng cho story tiếng Việt cũ (AQUSA chỉ dành cho tiếng Anh) và cho các luật bổ sung của nhóm (`NO_END`, `AMBIGUOUS`, `FULL_SENTENCE`, trùng gần đúng Jaccard).
 
 ---
 

@@ -77,3 +77,22 @@ test("uniform xét phần ends trong các story có ends; '(s)' và '. So that' 
   assert.ok(!crit(["As a clerk, I want to close a case. So that I can finish it."]).has("minimal"));
   assert.ok(crit(["As a clerk, I want to see fees, so that I can plan, such as permit fees."]).has("minimal"));
 });
+
+const codes = (t: string) => analyzeSet([t])[0].map((d) => d.code);
+
+test("đọc được (nhóm): chữ linh tinh trong vai trò / hành động / lý do bị WF_UNREADABLE, mỗi phần một lỗi", () => {
+  assert.equal(codes("As a asdf, I want qwer, so that zxcv.").filter((c) => c === "WF_UNREADABLE").length, 3);
+  assert.equal(codes("As a customer, I want sdfsdf sdf, so that I can track orders.").filter((c) => c === "WF_UNREADABLE").length, 1);
+  assert.equal(codes("As a lkjlkj, I want to view my orders.").filter((c) => c === "WF_UNREADABLE").length, 1);
+});
+
+test("đọc được (nhóm): từ ghép, số nhiều, viết tắt, tên riêng, từ phần mềm không bị bắt nhầm", () => {
+  for (const t of [
+    "As a VisualDesigner, I want to review validations so that the uploaded files are correct.",
+    "As a corporatesponsor, I want non-existent records removed.",
+    "As an admin, I want to export orders to CSV so that I can reconcile payments.",
+    "As a CSM, I want to sync my Shopee listings with Lazada.",
+    "As a BA Lead, I want to approve the BRD of a module so that developers can start.",
+  ])
+    assert.ok(!codes(t).includes("WF_UNREADABLE"), t);
+});

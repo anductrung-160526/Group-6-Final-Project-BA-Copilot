@@ -4,7 +4,7 @@
 //   Yêu cầu nghiệp vụ; điểm tính bằng scoreStructured() trong shared/qus.ts.
 // Chấm ngay trên trình duyệt, chỉ mang tính tư vấn (BR-05): không chặn lưu.
 
-import { useAqusa } from "../useAqusa.ts";
+import { useAqusa, type AqusaStatus } from "../useAqusa.ts";
 import React, { useEffect, useMemo, useState } from "react";
 import { qusRating, scoreStories, type OtherModuleStories, type QusIssue, type QusResult, type StoryScore } from "../../shared/qus.ts";
 import { Empty, Icon, IssueList, ScoreBadge, type IssueItem } from "./ui.tsx";
@@ -41,10 +41,18 @@ const openByDefault = (s: StoryScore) => s.issues.some((i) => i.severity !== "in
 
 export function QusPanel({ text, others }: { text: string; others?: OtherModuleStories[] }) {
   const debounced = useDebounced(text, DEBOUNCE_MS);
-  const nlpOn = useAqusa();
-  const result = useMemo(() => scoreStories(debounced, { others }), [debounced, others, nlpOn]);
+  const nlp = useAqusa();
+  const result = useMemo(() => (nlp === "ready" ? scoreStories(debounced, { others }) : null), [debounced, others, nlp]);
   // Trạng thái bung/thu do BA chọn, theo số thứ tự story (#1, #2…).
   const [picked, setPicked] = useState<Record<number, boolean>>({});
+
+  if (!result) {
+    return (
+      <div data-testid="qus-panel">
+        <QusModelStatus status={nlp} />
+      </div>
+    );
+  }
 
   if (result.stories.length === 0) {
     return (
@@ -106,6 +114,16 @@ export function QusPanel({ text, others }: { text: string; others?: OtherModuleS
         })}
       </div>
     </div>
+  );
+}
+
+/** Mô hình NLP của bộ chấm chưa sẵn sàng: không có điểm (không chấm thay bằng luật), chỉ báo trạng thái. */
+export function QusModelStatus({ status }: { status: AqusaStatus }) {
+  if (status === "ready") return null;
+  return (
+    <span className="muted small" data-testid="qus-model-status">
+      {status === "loading" ? "QUS: loading the NLP model…" : "QUS: the NLP model could not be loaded, so no score is shown. Reload the page to try again."}
+    </span>
   );
 }
 

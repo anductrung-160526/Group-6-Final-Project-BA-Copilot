@@ -7,14 +7,20 @@
 // Gán nhãn từ loại bằng wink-nlp thay cho Stanford CoreNLP (lựa chọn của nhóm). Các tiêu chí ngữ nghĩa (conceptually sound,
 // problem-oriented, unambiguous, conflict-free…) KHÔNG kiểm ở đây: bài báo loại chúng vì cần hiểu nội dung (§4).
 // Hàm thuần, chạy được cả client và server. Mô hình wink-nlp (~3,5 MB) được nạp từ ngoài để không vào bundle app.js:
-// server nạp qua shared/nlp-node.ts; trình duyệt tải public/nlp.js khi cần (client/useAqusa.ts). Chưa nạp → qus.ts dùng bộ luật cũ.
+// server nạp qua shared/nlp-node.ts; trình duyệt tải public/nlp.js khi cần (client/useAqusa.ts). Chưa nạp → qus.ts báo lỗi,
+// không chấm thay bằng luật.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Nlp = any;
-let nlp: Nlp = (globalThis as { __winkNlp?: Nlp }).__winkNlp ?? null;
-let its: Nlp = nlp?.its;
+let nlp: Nlp = null;
+let its: Nlp;
+/** Số từ trong từ điển gốc của mô hình: token có uniqueId từ đây trở lên là từ ngoài từ điển (OOV). */
+let vocabSize = 0;
 export function setNlp(n: Nlp) {
   nlp = n;
   its = n.its;
+  // Mô hình không công khai kích thước từ điển: từ lạ đầu tiên mà bản mô hình mới tạo gặp nhận đúng id = kích thước đó.
+  // Bản mô hình đã đọc từ lạ trước đó cho số lớn hơn → kiểm từ lạ chỉ lỏng hơn, không bắt nhầm.
+  vocabSize = n.readDoc("qzxqzxqzxq").tokens().out(its.uniqueId)[0];
 }
 export const nlpReady = () => {
   if (!nlp && (globalThis as { __winkNlp?: Nlp }).__winkNlp) setNlp((globalThis as { __winkNlp?: Nlp }).__winkNlp);
@@ -99,6 +105,59 @@ function wellFormed(c: Chunks): AqusaDefect[] {
   if (!hasNoun(c.role))
     return [{ criterion: "well-formed", code: "WF_ROLE_CONTENT", message: `The role "${c.role}" contains no noun.`, suggestion: "Name a user type, e.g. \"As a store manager\".", excerpt: c.role, paperRef: "team rule (not in the paper)" }];
   return [];
+}
+
+// nhóm: mỗi phần (vai trò / hành động / lý do) phải là tiếng Anh đọc được. AQUSA chỉ kiểm cú pháp, nên "As a asdf, I want
+// qwer, so that zxcv" qua hết (bộ gán nhãn coi từ lạ là danh từ). Một từ được coi là biết khi nó, dạng gốc (lemma) hoặc gốc
+// từ (stem) do mô hình sinh có trong từ điển của mô hình, hoặc tách được thành các từ có trong từ điển ("VisualDesigner",
+// "corporatesponsor", "non-existent"). Bỏ qua viết tắt viết hoa, từ có chữ số, từ rút gọn (I'm) và từ 1 chữ cái.
+// Một phần bị coi là không đọc được khi hơn nửa số từ là từ lạ. Đo trên 671 story thật (dataset/qus-eval): chỉ bắt nhầm
+// "admin" – từ điển bản lite thiếu một số từ phần mềm, bổ sung ở SOFTWARE_TERMS.
+const SOFTWARE_TERMS = new Set(["admin", "admins", "superuser", "dev", "devops", "app", "apps", "frontend", "backend", "plugin", "plugins", "json", "csv", "api", "apis", "ui", "ux", "analytics", "onboard", "onboarding", "checkin", "checkout", "iframe", "unpublish", "undelete", "embeddable", "stats", "login", "logout", "signup", "username", "email", "emails", "dashboard", "chatbot", "webhook", "sync", "inbox", "url", "urls", "faq", "otp", "sms", "pdf", "crm", "erp", "sku", "kpi", "todo", "workflow", "timestamp", "metadata", "config", "repo", "backlog", "kanban", "scrum", "sprint", "wishlist", "e-commerce", "ecommerce"]);
+
+function inVocab(w: string): boolean {
+  const ids = nlp.readDoc(w).tokens().out(its.uniqueId) as number[];
+  return ids.length === 1 && ids[0] < vocabSize;
+}
+
+// Tách từ dính liền thành tối đa 3 từ có trong từ điển, mỗi từ ≥ 3 chữ cái ("corporatesponsor" = corporate + sponsor).
+function segmentable(w: string, depth = 0): boolean {
+  if (depth > 2 || w.length > 30) return false;
+  for (let i = 3; i <= w.length - 3; i++) if (inVocab(w.slice(0, i)) && (inVocab(w.slice(i)) || segmentable(w.slice(i), depth + 1))) return true;
+  return false;
+}
+
+function knownPiece(piece: string): boolean {
+  const w = piece.toLowerCase();
+  if (w.length < 3 || SOFTWARE_TERMS.has(w) || inVocab(w)) return true;
+  const t = nlp.readDoc(w).tokens();
+  const lemma = (t.out(its.lemma) as string[])[0];
+  const stem = (t.out(its.stem) as string[])[0];
+  return (!!lemma && inVocab(lemma)) || (!!stem && inVocab(stem)) || segmentable(w);
+}
+
+/** Các từ lạ (không có trong từ điển của mô hình) trong một phần của story, và số từ đã xét. */
+export function unknownWords(part: string): { words: number; unknown: string[] } {
+  const t = nlp.readDoc(part).tokens();
+  const vals = t.out(its.value) as string[];
+  const types = t.out(its.type) as string[];
+  const words = vals.filter((w, i) => types[i] === "word" && w.length > 1 && !/\d|['’]|[A-Z]{2}/.test(w));
+  const unknown = words.filter((w) => !SOFTWARE_TERMS.has(w.toLowerCase()) && !w.split(/-|(?<=[a-z])(?=[A-Z])/).every(knownPiece));
+  return { words: words.length, unknown };
+}
+
+const PART_LABEL = { role: "role (As a)", means: "goal (I want)", ends: "benefit (So that)" } as const;
+
+function readable(c: Chunks): AqusaDefect[] {
+  const out: AqusaDefect[] = [];
+  for (const k of ["role", "means", "ends"] as const) {
+    const part = c[k]?.replace(/[\s.!?]+$/u, "");
+    if (!part) continue;
+    const r = unknownWords(part);
+    if (r.words > 0 && r.unknown.length * 2 > r.words)
+      out.push({ criterion: "well-formed", code: "WF_UNREADABLE", message: `The ${PART_LABEL[k]} "${part.slice(0, 60)}" is not recognisable English (unknown words: ${r.unknown.slice(0, 5).join(", ")}).`, suggestion: "Write it in plain English words, or check the spelling.", excerpt: r.unknown.join(" "), paperRef: "team rule (not in the paper)" });
+  }
+  return out;
 }
 
 // Liên từ trong phần hành động nối hai vế đều là cụm động từ (§4.3, §6.3 "/" ">" , §6.4 ngoại lệ động từ).
@@ -208,7 +267,7 @@ const normText = (s: string) => s.normalize("NFC").toLowerCase().replace(/[^\p{L
 /** Chấm một bộ story (cùng module/dự án). Trả về lỗi theo từng story. */
 export function analyzeSet(texts: string[]): AqusaDefect[][] {
   const chunks = texts.map((t) => chunk(t));
-  const res = texts.map((t, i) => [...wellFormed(chunks[i]), ...atomic(chunks[i]), ...minimal(chunks[i], t)]);
+  const res = texts.map((t, i) => [...wellFormed(chunks[i]), ...readable(chunks[i]), ...atomic(chunks[i]), ...minimal(chunks[i], t)]);
   // Uniform (§3.3, §4.3): lệch mẫu chiếm đa số trong bộ (cần ít nhất 2 story). nhóm: đa số xác định riêng cho từng phần (vai
   // trò, hành động, lý do); phần lý do chỉ xét các story có lý do – ends là tuỳ chọn (§3.1), thiếu ends không tính là lệch.
   if (texts.length > 1) {

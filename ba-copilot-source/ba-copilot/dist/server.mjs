@@ -8774,9 +8774,9 @@ var require_stream_readable = __commonJS({
       if (state.endEmitted) pna.nextTick(endFn);
       else src.once("end", endFn);
       dest.on("unpipe", onunpipe);
-      function onunpipe(readable, unpipeInfo) {
+      function onunpipe(readable2, unpipeInfo) {
         debug("onunpipe");
-        if (readable === src) {
+        if (readable2 === src) {
           if (unpipeInfo && unpipeInfo.hasUnpiped === false) {
             unpipeInfo.hasUnpiped = true;
             cleanup();
@@ -17034,11 +17034,13 @@ import { dirname } from "node:path";
 import { randomUUID } from "node:crypto";
 
 // shared/aqusa.ts
-var nlp = globalThis.__winkNlp ?? null;
-var its = nlp?.its;
+var nlp = null;
+var its;
+var vocabSize = 0;
 function setNlp(n) {
   nlp = n;
   its = n.its;
+  vocabSize = n.readDoc("qzxqzxqzxq").tokens().out(its.uniqueId)[0];
 }
 var nlpReady = () => {
   if (!nlp && globalThis.__winkNlp) setNlp(globalThis.__winkNlp);
@@ -17088,6 +17090,44 @@ function wellFormed(c) {
   if (!hasNoun(c.role))
     return [{ criterion: "well-formed", code: "WF_ROLE_CONTENT", message: `The role "${c.role}" contains no noun.`, suggestion: 'Name a user type, e.g. "As a store manager".', excerpt: c.role, paperRef: "team rule (not in the paper)" }];
   return [];
+}
+var SOFTWARE_TERMS = /* @__PURE__ */ new Set(["admin", "admins", "superuser", "dev", "devops", "app", "apps", "frontend", "backend", "plugin", "plugins", "json", "csv", "api", "apis", "ui", "ux", "analytics", "onboard", "onboarding", "checkin", "checkout", "iframe", "unpublish", "undelete", "embeddable", "stats", "login", "logout", "signup", "username", "email", "emails", "dashboard", "chatbot", "webhook", "sync", "inbox", "url", "urls", "faq", "otp", "sms", "pdf", "crm", "erp", "sku", "kpi", "todo", "workflow", "timestamp", "metadata", "config", "repo", "backlog", "kanban", "scrum", "sprint", "wishlist", "e-commerce", "ecommerce"]);
+function inVocab(w) {
+  const ids = nlp.readDoc(w).tokens().out(its.uniqueId);
+  return ids.length === 1 && ids[0] < vocabSize;
+}
+function segmentable(w, depth2 = 0) {
+  if (depth2 > 2 || w.length > 30) return false;
+  for (let i = 3; i <= w.length - 3; i++) if (inVocab(w.slice(0, i)) && (inVocab(w.slice(i)) || segmentable(w.slice(i), depth2 + 1))) return true;
+  return false;
+}
+function knownPiece(piece) {
+  const w = piece.toLowerCase();
+  if (w.length < 3 || SOFTWARE_TERMS.has(w) || inVocab(w)) return true;
+  const t = nlp.readDoc(w).tokens();
+  const lemma = t.out(its.lemma)[0];
+  const stem = t.out(its.stem)[0];
+  return !!lemma && inVocab(lemma) || !!stem && inVocab(stem) || segmentable(w);
+}
+function unknownWords(part) {
+  const t = nlp.readDoc(part).tokens();
+  const vals = t.out(its.value);
+  const types = t.out(its.type);
+  const words2 = vals.filter((w, i) => types[i] === "word" && w.length > 1 && !/\d|['’]|[A-Z]{2}/.test(w));
+  const unknown = words2.filter((w) => !SOFTWARE_TERMS.has(w.toLowerCase()) && !w.split(/-|(?<=[a-z])(?=[A-Z])/).every(knownPiece));
+  return { words: words2.length, unknown };
+}
+var PART_LABEL = { role: "role (As a)", means: "goal (I want)", ends: "benefit (So that)" };
+function readable(c) {
+  const out = [];
+  for (const k of ["role", "means", "ends"]) {
+    const part = c[k]?.replace(/[\s.!?]+$/u, "");
+    if (!part) continue;
+    const r = unknownWords(part);
+    if (r.words > 0 && r.unknown.length * 2 > r.words)
+      out.push({ criterion: "well-formed", code: "WF_UNREADABLE", message: `The ${PART_LABEL[k]} "${part.slice(0, 60)}" is not recognisable English (unknown words: ${r.unknown.slice(0, 5).join(", ")}).`, suggestion: "Write it in plain English words, or check the spelling.", excerpt: r.unknown.join(" "), paperRef: "team rule (not in the paper)" });
+  }
+  return out;
 }
 var CONJ = /* @__PURE__ */ new Set(["and", "or", "/", "\\", ">"]);
 var SKIP = /* @__PURE__ */ new Set(["to", "also", "then", "can", "be", "able", "directly"]);
@@ -17174,7 +17214,7 @@ function templateOf(c) {
 var normText = (s2) => s2.normalize("NFC").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 function analyzeSet(texts) {
   const chunks = texts.map((t) => chunk(t));
-  const res = texts.map((t, i) => [...wellFormed(chunks[i]), ...atomic(chunks[i]), ...minimal(chunks[i], t)]);
+  const res = texts.map((t, i) => [...wellFormed(chunks[i]), ...readable(chunks[i]), ...atomic(chunks[i]), ...minimal(chunks[i], t)]);
   if (texts.length > 1) {
     const slots = chunks.map((c) => templateOf(c).split("|"));
     const major = [0, 1, 2].map((k) => {
@@ -17204,6 +17244,12 @@ var BASE_SCORE = 100;
 var PENALTY_ERROR = 30;
 var PENALTY_WARN = 15;
 var PENALTY_INFO = 5;
+var QusModelNotLoaded = class extends Error {
+  constructor() {
+    super("The QUS NLP model (wink-nlp) is not loaded, so user stories cannot be scored.");
+    this.name = "QusModelNotLoaded";
+  }
+};
 var DUPLICATE_THRESHOLD = 0.8;
 var AMBIGUOUS_WORDS = [
   "user-friendly",
@@ -17527,9 +17573,9 @@ function scoreTexts(rawStories, options = {}, ex = {}) {
     return { stories: [], total: 0 };
   }
   const label3 = (i) => ex.labels?.[i] ?? `#${i + 1}`;
+  if (!nlpReady()) throw new QusModelNotLoaded();
   const parsedList = rawStories.map(parseStory);
-  const useAqusa = nlpReady();
-  const eng = rawStories.map((t, i) => useAqusa && isEnglishStory(t) && parsedList[i].template !== "vi");
+  const eng = rawStories.map((t, i) => isEnglishStory(t) && parsedList[i].template !== "vi");
   const engIdx = rawStories.map((_, i) => i).filter((i) => eng[i]);
   const aq = rawStories.map(() => []);
   analyzeSet(engIdx.map((i) => rawStories[i])).forEach((d, k) => aq[engIdx[k]] = d);
@@ -17548,9 +17594,10 @@ function scoreTexts(rawStories, options = {}, ex = {}) {
     if (eng[idx]) {
       const seen = /* @__PURE__ */ new Set();
       for (const d of aq[idx]) {
-        if (seen.has(d.criterion)) continue;
-        seen.add(d.criterion);
-        issues.push({ code: AQUSA_CODE[d.criterion], severity: AQUSA_SEVERITY[d.criterion], message: d.message, suggestion: d.suggestion, ...d.excerpt ? { excerpt: d.excerpt } : {}, criterion: d.criterion, paperRef: d.paperRef });
+        const unreadable = d.code === "WF_UNREADABLE";
+        if (!unreadable && seen.has(d.criterion)) continue;
+        if (!unreadable) seen.add(d.criterion);
+        issues.push({ code: unreadable ? "UNREADABLE" : AQUSA_CODE[d.criterion], severity: unreadable ? "error" : AQUSA_SEVERITY[d.criterion], message: d.message, suggestion: d.suggestion, ...d.excerpt ? { excerpt: d.excerpt } : {}, criterion: d.criterion, paperRef: d.paperRef });
       }
       if (parsed.isTemplate && !seen.has("well-formed") && (!parsed.end || !parsed.end.trim())) {
         issues.push({
@@ -27521,7 +27568,7 @@ var require_end_of_stream = /* @__PURE__ */ __commonJSMin(((exports, module) => 
     if (typeof opts === "function") return eos(stream, null, opts);
     if (!opts) opts = {};
     callback = once(callback || noop2);
-    var readable = opts.readable || opts.readable !== false && stream.readable;
+    var readable2 = opts.readable || opts.readable !== false && stream.readable;
     var writable = opts.writable || opts.writable !== false && stream.writable;
     var onlegacyfinish = function onlegacyfinish2() {
       if (!stream.writable) onfinish();
@@ -27530,11 +27577,11 @@ var require_end_of_stream = /* @__PURE__ */ __commonJSMin(((exports, module) => 
     var onfinish = function onfinish2() {
       writable = false;
       writableEnded = true;
-      if (!readable) callback.call(stream);
+      if (!readable2) callback.call(stream);
     };
     var readableEnded = stream._readableState && stream._readableState.endEmitted;
     var onend = function onend2() {
-      readable = false;
+      readable2 = false;
       readableEnded = true;
       if (!writable) callback.call(stream);
     };
@@ -27543,7 +27590,7 @@ var require_end_of_stream = /* @__PURE__ */ __commonJSMin(((exports, module) => 
     };
     var onclose = function onclose2() {
       var err;
-      if (readable && !readableEnded) {
+      if (readable2 && !readableEnded) {
         if (!stream._readableState || !stream._readableState.ended) err = new ERR_STREAM_PREMATURE_CLOSE();
         return callback.call(stream, err);
       }
@@ -28118,9 +28165,9 @@ var require__stream_readable = /* @__PURE__ */ __commonJSMin(((exports, module) 
     if (state.endEmitted) process$1.nextTick(endFn);
     else src.once("end", endFn);
     dest.on("unpipe", onunpipe);
-    function onunpipe(readable, unpipeInfo) {
+    function onunpipe(readable2, unpipeInfo) {
       debug("onunpipe");
-      if (readable === src) {
+      if (readable2 === src) {
         if (unpipeInfo && unpipeInfo.hasUnpiped === false) {
           unpipeInfo.hasUnpiped = true;
           cleanup();

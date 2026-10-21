@@ -467,3 +467,15 @@ test("GET /api/modules/:id/qus: chấm user story có cấu trúc của module, 
 
   assert.equal((await api("GET", "/api/modules/khong-co/qus")).status, 404);
 });
+
+test("scoreStructured: nhập linh tinh vào cả 3 ô không còn 100 điểm (UNREADABLE, chấm bằng mô hình NLP)", () => {
+  const ac = ["Shows at most 20 orders"];
+  const junk = scoreStructured([{ asA: "asdf", iWant: "qwer", soThat: "zxcv", acceptanceCriteria: ac }]).stories[0];
+  assert.deepEqual(junk.issues.map((i) => i.code), ["UNREADABLE", "UNREADABLE", "UNREADABLE"]);
+  assert.ok(junk.issues.every((i) => i.severity === "error" && i.criterion === "well-formed"));
+  assert.equal(junk.score, BASE_SCORE - 3 * PENALTY_ERROR);
+  const one = scoreStructured([{ asA: "customer", iWant: "asdfgh", soThat: "I can track purchases", acceptanceCriteria: ac }]).stories[0];
+  assert.deepEqual(one.issues.map((i) => i.code), ["UNREADABLE"]);
+  const good = scoreStructured([{ asA: "customer", iWant: "view my order history", soThat: "I can track purchases", acceptanceCriteria: ac }]).stories[0];
+  assert.equal(good.score, BASE_SCORE);
+});
