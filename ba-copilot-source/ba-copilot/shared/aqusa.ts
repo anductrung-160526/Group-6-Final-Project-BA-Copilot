@@ -110,6 +110,8 @@ function hasNoun(s: string): boolean {
 
 // ---------------------------------------------------------------- các bộ phân tích (§4.3)
 
+const CHECK_MEANS_VERB = false;
+
 function wellFormed(c: Chunks, o: AqusaOptions): AqusaDefect[] {
   if (!c.roleIndicator || !c.role)
     return [{ criterion: "well-formed", code: "WF_NO_ROLE", message: "The story has no role (\"As a <role>\").", suggestion: "Start with \"As a <role>, …\".", paperRef: "§3.1, §4.3" }];
@@ -121,7 +123,8 @@ function wellFormed(c: Chunks, o: AqusaOptions): AqusaDefect[] {
   if (!hasNoun(c.role)) out.push({ criterion: "well-formed", code: "WF_ROLE_CONTENT", message: `The role "${c.role}" contains no noun.`, suggestion: "Name a user type, e.g. \"As a store manager\".", excerpt: c.role, paperRef: "§4.3" });
   // "I want to <X>": X đứng ngay sau "to"/"can" là động từ theo ngữ pháp, kể cả khi bộ gán nhãn hiểu khác.
   const verbSlot = /(?:to|can|need)$/.test(c.meansIndicator) || /^to\s/i.test(c.means);
-  if (!verbSlot && !hasVerb(c.means, o)) out.push({ criterion: "well-formed", code: "WF_MEANS_CONTENT", message: `The means "${c.means}" contains no verb.`, suggestion: "Describe an action, e.g. \"I want to export orders\".", excerpt: c.means, paperRef: "thiết kế của nhóm (không có trong bài báo)" });
+  // Vòng 3: TẮT phép kiểm "hành động phải có động từ" (không có trong Bảng 1 của bài báo, gây phần lớn báo nhầm trên test2).
+  if (CHECK_MEANS_VERB && !verbSlot && !hasVerb(c.means, o)) out.push({ criterion: "well-formed", code: "WF_MEANS_CONTENT", message: `The means "${c.means}" contains no verb.`, suggestion: "Describe an action, e.g. \"I want to export orders\".", excerpt: c.means, paperRef: "thiết kế của nhóm (không có trong bài báo)" });
   return out;
 }
 

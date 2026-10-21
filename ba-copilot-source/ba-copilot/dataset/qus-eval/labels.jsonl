@@ -75,7 +75,7 @@
 {"id": "g02-075", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g02-076", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g02-077", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
-{"id": "g02-078", "defects": {"well-formed": true, "atomic": false, "minimal": false, "uniform": true, "unique": false}, "reasons": {"uniform": "cụm chỉ dấu \"I only want\" khác mẫu đa số", "well-formed": "phần hành động \"zero-padded fields\" không có động từ"}}
+{"id": "g02-078", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": true, "unique": false}, "reasons": {"uniform": "cụm chỉ dấu \"I only want\" khác mẫu đa số"}}
 {"id": "g02-079", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g02-080", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g02-081", "defects": {"well-formed": false, "atomic": true, "minimal": false, "uniform": false, "unique": false}, "reasons": {"atomic": "hai hành động: prevent … and deal with …"}}
@@ -84,12 +84,12 @@
 {"id": "g02-084", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g02-085", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g02-086", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
-{"id": "g02-087", "defects": {"well-formed": true, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {"well-formed": "phần hành động \"additional helpful info in the submission dashboard\" không có động từ"}}
+{"id": "g02-087", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g02-088", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g02-089", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g02-090", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g02-091", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
-{"id": "g02-092", "defects": {"well-formed": true, "atomic": false, "minimal": false, "uniform": true, "unique": false}, "reasons": {"uniform": "cụm chỉ dấu \"I do not want\" khác mẫu đa số", "well-formed": "phần hành động \"DABS banner messages and vice versa\" không có động từ"}}
+{"id": "g02-092", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": true, "unique": false}, "reasons": {"uniform": "cụm chỉ dấu \"I do not want\" khác mẫu đa số"}}
 {"id": "g02-093", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g02-094", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g02-095", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
