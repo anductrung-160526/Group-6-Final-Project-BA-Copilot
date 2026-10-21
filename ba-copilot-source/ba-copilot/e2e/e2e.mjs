@@ -88,12 +88,13 @@ try {
   await page.getByTestId("create-project").click();
   await page.waitForURL(/#\/p\/[^/]+\/tasks/);
   const pid = decodeURIComponent(page.url().match(/#\/p\/([^/]+)\//)[1]);
-  await page.getByTestId("pnav-work").click();
+  // Đợt 6 (D3): tạo module ở màn Yêu cầu nghiệp vụ (module trước, story sau)
+  await page.getByTestId("pnav-stories").click();
   await page.getByTestId("new-module").click();
   await page.getByTestId("module-name").fill("Xác thực");
   await page.getByTestId("create-module").click();
-  await page.waitForURL(/#\/p\/[^/]+\/work\/[^/]+/);
-  const mid = decodeURIComponent(page.url().match(/\/work\/([^/]+)/)[1]);
+  await page.waitForURL(/#\/p\/[^/]+\/stories\/[^/]+/);
+  const mid = decodeURIComponent(page.url().match(/\/stories\/([^/]+)/)[1]);
   await api("POST", `/api/projects/${pid}/stories`, {
     moduleId: mid,
     asA: "khách hàng",

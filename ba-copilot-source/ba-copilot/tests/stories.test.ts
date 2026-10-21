@@ -46,15 +46,15 @@ test("CRUD user story: thêm, xem, lọc theo module, sửa, xoá", async () => 
   assert.equal(s.priority, "High");
   assert.deepEqual(s.acceptanceCriteria, ["Hiện 20 đơn", "Có ô tìm"], "bỏ dòng trống, cắt khoảng trắng");
 
-  // Dòng mới trống (nút "+ Thêm user story") vẫn tạo được, mặc định Medium, chưa gắn module
-  const blank = (await api("POST", `/api/projects/${p.id}/stories`, {})).data;
+  // Dòng mới trống (chỉ có module) vẫn tạo được, mặc định Medium
+  const blank = (await api("POST", `/api/projects/${p.id}/stories`, { moduleId: m2.id })).data;
   assert.equal(blank.priority, "Medium");
-  assert.equal(blank.moduleId, null);
+  assert.equal(blank.moduleId, m2.id);
 
   assert.equal((await api("GET", `/api/stories/${s.id}`)).data.iWant, "xem lịch sử đơn hàng");
   assert.equal((await api("GET", `/api/projects/${p.id}/stories`)).data.length, 2);
   assert.deepEqual((await api("GET", `/api/projects/${p.id}/stories?moduleId=${m1.id}`)).data.map((x: any) => x.id), [s.id]);
-  assert.deepEqual((await api("GET", `/api/projects/${p.id}/stories?moduleId=none`)).data.map((x: any) => x.id), [blank.id]);
+  assert.deepEqual((await api("GET", `/api/projects/${p.id}/stories?moduleId=${m2.id}`)).data.map((x: any) => x.id), [blank.id]);
 
   const upd = await api("PATCH", `/api/stories/${s.id}`, { soThat: "biết khi nào nhận hàng", moduleId: m2.id, baseRev: 1 });
   assert.equal(upd.status, 200);
@@ -72,33 +72,66 @@ test("CRUD user story: thêm, xem, lọc theo module, sửa, xoá", async () => 
 });
 
 test("Kiểm dữ liệu: module khác dự án, độ ưu tiên sai, tiêu chí không phải danh sách → 400", async () => {
-  const { p } = await setup("A");
+  const { p, m1 } = await setup("A");
   const other = await setup("B");
   assert.equal((await api("POST", `/api/projects/${p.id}/stories`, { ...GOOD, moduleId: other.m1.id })).status, 400);
-  assert.equal((await api("POST", `/api/projects/${p.id}/stories`, { ...GOOD, priority: "Urgent" })).status, 400);
-  assert.equal((await api("POST", `/api/projects/${p.id}/stories`, { ...GOOD, acceptanceCriteria: "một dòng" })).status, 400);
-  assert.equal((await api("POST", `/api/projects/khong-co/stories`, GOOD)).status, 404);
+  assert.equal((await api("POST", `/api/projects/${p.id}/stories`, { ...GOOD, moduleId: m1.id, priority: "Urgent" })).status, 400);
+  assert.equal((await api("POST", `/api/projects/${p.id}/stories`, { ...GOOD, moduleId: m1.id, acceptanceCriteria: "một dòng" })).status, 400);
+  assert.equal((await api("POST", `/api/projects/khong-co/stories`, { ...GOOD, moduleId: m1.id })).status, 404);
+});
+
+test("Module bắt buộc: dự án chưa có module / thiếu module → 400 kèm câu nhắc; story cũ chưa gắn module được giữ và gắn lại", async () => {
+  const empty = (await api("POST", "/api/projects", { name: "Trống" })).data;
+  const none = await api("POST", `/api/projects/${empty.id}/stories`, GOOD);
+  assert.equal(none.status, 400);
+  assert.match(none.data.error, /tạo module trước/);
+
+  const { p, m1, m2 } = await setup("Bắt buộc");
+  for (const moduleId of [undefined, null, "", "  "]) {
+    const r = await api("POST", `/api/projects/${p.id}/stories`, { ...GOOD, moduleId });
+    assert.equal(r.status, 400, `moduleId = ${JSON.stringify(moduleId)}`);
+    assert.match(r.data.error, /Chưa chọn module/);
+  }
+  const la = await api("POST", `/api/projects/${p.id}/stories`, { ...GOOD, moduleId: "khong-co" });
+  assert.equal(la.status, 400);
+  assert.match(la.data.error, /Module không tồn tại/);
+  assert.equal((await api("GET", `/api/projects/${p.id}/stories`)).data.length, 0, "không tạo story nào khi bị từ chối");
+
+  // Story cũ: xoá module → story còn, chưa gắn module
+  const s = (await api("POST", `/api/projects/${p.id}/stories`, { ...GOOD, moduleId: m1.id })).data;
+  await api("DELETE", `/api/modules/${m1.id}`);
+  const legacy = (await api("GET", `/api/stories/${s.id}`)).data;
+  assert.equal(legacy.moduleId, null);
+  assert.deepEqual((await api("GET", `/api/projects/${p.id}/stories?moduleId=none`)).data.map((x: any) => x.id), [s.id]);
+  // Sửa nội dung không gửi moduleId → vẫn được; bỏ gắn (null / rỗng) → 400; gắn lại module hợp lệ → được
+  assert.equal((await api("PATCH", `/api/stories/${s.id}`, { iWant: "xem đơn", baseRev: legacy.rev })).status, 200);
+  assert.equal((await api("PATCH", `/api/stories/${s.id}`, { moduleId: null })).status, 400);
+  assert.equal((await api("PATCH", `/api/stories/${s.id}`, { moduleId: "" })).status, 400);
+  const fixed = await api("PATCH", `/api/stories/${s.id}`, { moduleId: m2.id });
+  assert.equal(fixed.status, 200);
+  assert.equal(fixed.data.moduleId, m2.id);
+  assert.equal((await api("GET", `/api/projects/${p.id}/stories?moduleId=none`)).data.length, 0);
 });
 
 test("Mã US tăng dần theo dự án, không dùng lại mã ở giữa đã xoá, dự án khác đánh lại từ US-01", async () => {
-  const { p } = await setup("Mã");
+  const { p, m1 } = await setup("Mã");
   const codes: string[] = [];
   const ids: string[] = [];
   for (let i = 0; i < 3; i++) {
-    const s = (await api("POST", `/api/projects/${p.id}/stories`, GOOD)).data;
+    const s = (await api("POST", `/api/projects/${p.id}/stories`, { ...GOOD, moduleId: m1.id })).data;
     codes.push(s.code);
     ids.push(s.id);
   }
   assert.deepEqual(codes, ["US-01", "US-02", "US-03"]);
   await api("DELETE", `/api/stories/${ids[1]}`);
-  assert.equal((await api("POST", `/api/projects/${p.id}/stories`, GOOD)).data.code, "US-04");
+  assert.equal((await api("POST", `/api/projects/${p.id}/stories`, { ...GOOD, moduleId: m1.id })).data.code, "US-04");
   const q = await setup("Khác");
-  assert.equal((await api("POST", `/api/projects/${q.p.id}/stories`, GOOD)).data.code, "US-01");
+  assert.equal((await api("POST", `/api/projects/${q.p.id}/stories`, { ...GOOD, moduleId: q.m1.id })).data.code, "US-01");
 });
 
 test("Chặn đè: lệch rev khi sửa hoặc xoá → 409 CONFLICT kèm rev hiện tại", async () => {
-  const { p } = await setup("Đè");
-  const s = (await api("POST", `/api/projects/${p.id}/stories`, GOOD)).data;
+  const { p, m1 } = await setup("Đè");
+  const s = (await api("POST", `/api/projects/${p.id}/stories`, { ...GOOD, moduleId: m1.id })).data;
   assert.equal((await api("PATCH", `/api/stories/${s.id}`, { iWant: "A sửa", baseRev: 1 })).data.rev, 2);
   const late = await api("PATCH", `/api/stories/${s.id}`, { iWant: "B sửa trên bản cũ", baseRev: 1 });
   assert.equal(late.status, 409);
@@ -111,9 +144,9 @@ test("Chặn đè: lệch rev khi sửa hoặc xoá → 409 CONFLICT kèm rev hi
 });
 
 test("Sắp xếp: ids theo thứ tự mới, story không gửi xếp sau, id lạ → 400", async () => {
-  const { p } = await setup("Thứ tự");
+  const { p, m1 } = await setup("Thứ tự");
   const ids: string[] = [];
-  for (let i = 0; i < 3; i++) ids.push((await api("POST", `/api/projects/${p.id}/stories`, GOOD)).data.id);
+  for (let i = 0; i < 3; i++) ids.push((await api("POST", `/api/projects/${p.id}/stories`, { ...GOOD, moduleId: m1.id })).data.id);
   const res = await api("POST", `/api/projects/${p.id}/stories/reorder`, { ids: [ids[2], ids[0]] });
   assert.equal(res.status, 200);
   assert.deepEqual(res.data.map((s: any) => s.id), [ids[2], ids[0], ids[1]]);

@@ -5,6 +5,8 @@
 // - Chặn đè theo từng story: `rev` bắt đầu 1, +1 mỗi lần sửa; sửa/xoá kiểm `assertRev(rev, baseRev)`.
 // - Story đổi (thêm / sửa / xoá) → tài liệu đang có của module đó chuyển "Bản cũ" + phát `artifact.stale`
 //   (xem `markModuleDocsOutdated`). Đổi thứ tự không làm tài liệu thành Bản cũ.
+// - Đợt 6 (D3): story phải gắn một module của dự án khi tạo; sửa mà gửi `moduleId` rỗng/null → 400. Story cũ chưa gắn
+//   (module bị xoá → module_id NULL) vẫn giữ, lọc bằng NO_MODULE để BA gắn lại.
 // - `storiesText(moduleId)`: văn bản story của module, đầu vào thống nhất cho AI (tài liệu C5, prototype C9).
 
 import { randomUUID } from "node:crypto";
@@ -111,12 +113,22 @@ function priorityOf(v: unknown): StoryPriority {
   return v as StoryPriority;
 }
 
-/** moduleId rỗng/null → chưa gắn; có giá trị thì phải là module của dự án (400). */
-function moduleOf(projectId: string, v: unknown): string | null {
-  if (v === null || v === undefined || v === "") return null;
+/**
+ * Story phải gắn đúng một module của dự án (đợt 6 – D3: tạo module trước rồi mới tạo story).
+ * Thiếu / rỗng / null → 400; module lạ hoặc của dự án khác → 400. Dữ liệu cũ chưa gắn module (module bị xoá →
+ * `module_id` về NULL) vẫn sửa được các trường khác nếu không gửi `moduleId`; gửi `moduleId` thì phải hợp lệ.
+ */
+function moduleOf(projectId: string, v: unknown): string {
+  if (v === null || v === undefined || (typeof v === "string" && !v.trim())) {
+    const has = getDb().prepare("SELECT 1 FROM modules WHERE project_id = ? LIMIT 1").get(projectId);
+    throw new HttpError(
+      has ? "Chưa chọn module – mỗi user story phải gắn một module của dự án" : "Dự án chưa có module – tạo module trước rồi mới thêm user story",
+      400,
+    );
+  }
   const id = String(v);
   if (!getDb().prepare("SELECT 1 FROM modules WHERE id = ? AND project_id = ?").get(id, projectId)) {
-    throw new HttpError("Module không thuộc dự án này", 400);
+    throw new HttpError("Module không tồn tại hoặc không thuộc dự án này", 400);
   }
   return id;
 }
@@ -173,7 +185,7 @@ export function createStory(projectId: string, input: UserStoryInput, actorId?: 
     ).run(id, projectId, moduleId, code, text(input.asA), text(input.iWant), text(input.soThat), JSON.stringify(criteria), priority, ord, at, memberOrNull(actorId), at);
     const story = getStory(id)!;
     if (!isBlankStory(story)) markModuleDocsOutdated(moduleId, actorId);
-    return { story, modules: moduleId ? [moduleId] : [] };
+    return { story, modules: [moduleId] };
   });
 }
 
