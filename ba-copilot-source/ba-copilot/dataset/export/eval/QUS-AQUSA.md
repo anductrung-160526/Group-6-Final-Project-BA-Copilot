@@ -343,3 +343,9 @@ Lưu ý: luật đã được chỉnh bằng wink-nlp trên g02, g03, g04, g05, 
 javac -cp $D/stanford-corenlp-4.5.7.jar -d scripts/qus-eval/corenlp/classes scripts/qus-eval/corenlp/Tag.java
 npx tsx scripts/qus-eval/eval.ts --split test3 --tagger corenlp --jars $D/stanford-corenlp-4.5.7.jar:$D/stanford-corenlp-4.5.7-models.jar
 ```
+
+
+---
+
+# Gán nhãn lại từ đầu
+Toàn bộ 671 story đã được gán lại theo một bản hướng dẫn thống nhất (`dataset/qus-eval/GUIDELINES.md`). So sánh nhãn, danh sách nhãn đổi, cảnh báo thiên lệch và kết quả đánh giá lại: xem `RELABEL.md`. Các bảng ở những mục trên vẫn dùng nhãn cũ (`dataset/qus-eval/archive/labels-v1.jsonl`).
