@@ -482,3 +482,13 @@ test("scoreStructured: nhập linh tinh vào cả 3 ô không còn 100 điểm (
   const good = scoreStructured([{ asA: "customer", iWant: "view my order history", soThat: "I can track purchases", acceptanceCriteria: ac }]).stories[0];
   assert.equal(good.score, BASE_SCORE);
 });
+
+test("scoreStructured: tiêu chí chấp nhận linh tinh bị UNREADABLE (gộp một lỗi), tiêu chí đúng / tiếng Việt không bị bắt", () => {
+  const story = { asA: "customer", iWant: "view my order history", soThat: "I can track purchases" };
+  const junk = scoreStructured([{ ...story, acceptanceCriteria: ["j", "Shows at most 20 orders", "asdf qwer"] }]).stories[0];
+  assert.deepEqual(junk.issues.map((i) => i.code), ["UNREADABLE"]);
+  assert.match(junk.issues[0].message, /line 1, 3/);
+  assert.equal(junk.score, BASE_SCORE - PENALTY_UNREADABLE);
+  for (const ac of [["Shows at most 20 orders, newest first"], ["Login with OTP via SMS"], ["Hiện 20 đơn mới nhất"], ["≤ 2 s"]])
+    assert.ok(!scoreStructured([{ ...story, acceptanceCriteria: ac }]).stories[0].issues.some((i) => i.code === "UNREADABLE"), ac[0]);
+});

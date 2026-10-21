@@ -17115,7 +17115,7 @@ function unknownWords(part) {
   const t = nlp.readDoc(part).tokens();
   const vals = t.out(its.value);
   const types = t.out(its.type);
-  const words2 = vals.filter((w, i) => types[i] === "word" && !/\d|['’]|[A-Z]{2}/.test(w));
+  const words2 = vals.filter((w, i) => types[i] === "word" && !/\d|['’]|[A-Z]{2}/.test(w) && !(w.length === 1 && types[i - 1] === "number"));
   const unknown = words2.filter((w) => !SOFTWARE_TERMS.has(w.toLowerCase()) && !w.split(/-|(?<=[a-z])(?=[A-Z])/).every(knownPiece));
   return { words: words2.length, unknown };
 }
@@ -17734,19 +17734,36 @@ function criteriaIssues(criteria) {
       }
     ];
   }
+  const out = [];
+  if (nlpReady()) {
+    const bad = list.flatMap((c, i) => {
+      if (!isEnglishStory(c)) return [];
+      const r = unknownWords(c);
+      return r.words > 0 && r.unknown.length * 2 > r.words ? [{ i, unknown: r.unknown }] : [];
+    });
+    if (bad.length) {
+      const unknown = [...new Set(bad.flatMap((b) => b.unknown))];
+      out.push({
+        code: "UNREADABLE",
+        severity: "error",
+        message: `Acceptance criteria (line ${bad.map((b) => b.i + 1).join(", ")}) are not recognisable English (unknown words: ${unknown.slice(0, 5).join(", ")}).`,
+        suggestion: 'Write each criterion as a verifiable condition in plain English, e.g. "Shows at most 20 orders, newest first".',
+        excerpt: unknown.join(" ")
+      });
+    }
+  }
   const hits = list.flatMap((c, i) => findAmbiguous(c).map((w) => ({ w, i })));
-  if (!hits.length) return [];
+  if (!hits.length) return out;
   const words2 = [...new Set(hits.map((h2) => h2.w))].join(", ");
   const rows = [...new Set(hits.map((h2) => h2.i + 1))].join(", ");
-  return [
-    {
-      code: "AMBIGUOUS",
-      severity: "warn",
-      message: `Acceptance criteria (line ${rows}) contain ambiguous terms: "${words2}".`,
-      suggestion: `Replace "${words2}" with a measurable, testable condition, e.g. "\u2264 2 seconds".`,
-      excerpt: words2
-    }
-  ];
+  out.push({
+    code: "AMBIGUOUS",
+    severity: "warn",
+    message: `Acceptance criteria (line ${rows}) contain ambiguous terms: "${words2}".`,
+    suggestion: `Replace "${words2}" with a measurable, testable condition, e.g. "\u2264 2 seconds".`,
+    excerpt: words2
+  });
+  return out;
 }
 function scoreStructured(stories, options = {}) {
   const list = stories.filter((s2) => !isBlankStructured(s2));

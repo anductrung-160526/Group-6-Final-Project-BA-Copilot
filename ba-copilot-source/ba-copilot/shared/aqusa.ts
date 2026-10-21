@@ -144,7 +144,8 @@ export function unknownWords(part: string): { words: number; unknown: string[] }
   const t = nlp.readDoc(part).tokens();
   const vals = t.out(its.value) as string[];
   const types = t.out(its.type) as string[];
-  const words = vals.filter((w, i) => types[i] === "word" && !/\d|['’]|[A-Z]{2}/.test(w));
+  // chữ cái đơn ngay sau số là đơn vị ("2 s", "5 m"), không xét
+  const words = vals.filter((w, i) => types[i] === "word" && !/\d|['’]|[A-Z]{2}/.test(w) && !(w.length === 1 && types[i - 1] === "number"));
   const unknown = words.filter((w) => !SOFTWARE_TERMS.has(w.toLowerCase()) && !w.split(/-|(?<=[a-z])(?=[A-Z])/).every(knownPiece));
   return { words: words.length, unknown };
 }

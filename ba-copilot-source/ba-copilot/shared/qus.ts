@@ -5,7 +5,7 @@
 // (QusModelNotLoaded), không chấm thay bằng luật. Story tiếng Việt cũ (AQUSA chỉ dành cho tiếng Anh): giữ bộ luật cũ.
 // FULL_SENTENCE, NO_END, AMBIGUOUS, NO_CRITERIA, trùng gần đúng (Jaccard) và thang điểm 100 − 30/15/5 là thiết kế của nhóm
 // (ngoài bài báo).
-import { analyzeSet, isEnglishStory, nlpReady, type AqusaDefect, type QusCriterion } from "./aqusa.ts";
+import { analyzeSet, isEnglishStory, nlpReady, unknownWords, type AqusaDefect, type QusCriterion } from "./aqusa.ts";
 
 export const BASE_SCORE = 100;
 export const PENALTY_ERROR = 30;
@@ -671,7 +671,10 @@ export function storySentence(s: StructuredStory): string {
   return parts.length ? parts.join(", ") + "." : "";
 }
 
-/** Lỗi riêng của tiêu chí chấp nhận: chưa có tiêu chí (gợi ý), tiêu chí chứa từ mơ hồ (cảnh báo, gộp một lỗi). */
+/**
+ * Lỗi riêng của tiêu chí chấp nhận: chưa có tiêu chí (gợi ý), tiêu chí không đọc được (lỗi UNREADABLE, gộp một lỗi),
+ * tiêu chí chứa từ mơ hồ (cảnh báo, gộp một lỗi).
+ */
 function criteriaIssues(criteria: string[]): QusIssue[] {
   const list = criteria.map((c) => c.trim()).filter(Boolean);
   if (!list.length) {
@@ -684,19 +687,38 @@ function criteriaIssues(criteria: string[]): QusIssue[] {
       },
     ];
   }
+  const out: QusIssue[] = [];
+  // Cùng luật với vai trò / hành động / lợi ích (hơn nửa số từ lạ); mọi dòng gộp một lỗi, trừ PENALTY_UNREADABLE một lần.
+  // Dòng có dấu tiếng Việt không xét (từ điển của mô hình chỉ có tiếng Anh).
+  if (nlpReady()) {
+    const bad = list.flatMap((c, i) => {
+      if (!isEnglishStory(c)) return [];
+      const r = unknownWords(c);
+      return r.words > 0 && r.unknown.length * 2 > r.words ? [{ i, unknown: r.unknown }] : [];
+    });
+    if (bad.length) {
+      const unknown = [...new Set(bad.flatMap((b) => b.unknown))];
+      out.push({
+        code: "UNREADABLE",
+        severity: "error",
+        message: `Acceptance criteria (line ${bad.map((b) => b.i + 1).join(", ")}) are not recognisable English (unknown words: ${unknown.slice(0, 5).join(", ")}).`,
+        suggestion: "Write each criterion as a verifiable condition in plain English, e.g. \"Shows at most 20 orders, newest first\".",
+        excerpt: unknown.join(" "),
+      });
+    }
+  }
   const hits = list.flatMap((c, i) => findAmbiguous(c).map((w) => ({ w, i })));
-  if (!hits.length) return [];
+  if (!hits.length) return out;
   const words = [...new Set(hits.map((h) => h.w))].join(", ");
   const rows = [...new Set(hits.map((h) => h.i + 1))].join(", ");
-  return [
-    {
-      code: "AMBIGUOUS",
-      severity: "warn",
-      message: `Acceptance criteria (line ${rows}) contain ambiguous terms: "${words}".`,
-      suggestion: `Replace "${words}" with a measurable, testable condition, e.g. "≤ 2 seconds".`,
-      excerpt: words,
-    },
-  ];
+  out.push({
+    code: "AMBIGUOUS",
+    severity: "warn",
+    message: `Acceptance criteria (line ${rows}) contain ambiguous terms: "${words}".`,
+    suggestion: `Replace "${words}" with a measurable, testable condition, e.g. "≤ 2 seconds".`,
+    excerpt: words,
+  });
+  return out;
 }
 
 /**
