@@ -30,7 +30,8 @@ const isSystem = (a: string) => /^(?:system|the system|hệ thống)$/i.test(a.t
 
 // =============================================================== Tiện ích chữ
 const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
-const low = (s: string) => (s ? s.charAt(0).toLowerCase() + s.slice(1) : s);
+// Viết thường chữ đầu để ghép vào câu; giữ nguyên đại từ "I" và từ viết tắt ("SKU", "API")
+const low = (s: string) => (!s || /^(?:I\b|[A-Z]{2})/.test(s) ? s : s.charAt(0).toLowerCase() + s.slice(1));
 const tidy = (s: string) => s.trim().replace(/\s+/g, " ").replace(/[.;,]+$/, "");
 const pad2 = (n: number) => String(n).padStart(2, "0");
 const cell = (s: unknown) => String(s ?? "").replace(/\|/g, "/").replace(/\r?\n/g, " ");

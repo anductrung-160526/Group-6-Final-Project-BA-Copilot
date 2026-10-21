@@ -299,11 +299,12 @@ export function StatusBadge({ status, testId }: { status: string; testId?: strin
 }
 
 /** Tag "Yêu cầu sửa" – hiện khi BA Lead trả task về (cờ `revisionRequested`), giữ tới khi Duyệt. */
-export function RevisionTag({ testId = "revision-tag" }: { testId?: string }) {
+/** `compact`: chỉ hiện icon (tooltip + aria-label "Changes requested") – dùng trong hàng tab chật. */
+export function RevisionTag({ testId = "revision-tag", compact }: { testId?: string; compact?: boolean }) {
   return (
-    <span className="badge badge-red" data-testid={testId}>
+    <span className="badge badge-red" data-testid={testId} title={compact ? "Changes requested" : undefined} aria-label={compact ? "Changes requested" : undefined}>
       <Icon name="revision" size="xs" />
-      Changes requested
+      {!compact && "Changes requested"}
     </span>
   );
 }
@@ -498,8 +499,13 @@ export function ApprovalBar({
 
 export type BadgeTone = "gray" | "blue" | "mint" | "green" | "amber" | "orange" | "red" | "violet" | "flag";
 /** Nhãn trạng thái – luôn ôm sát chữ. Giữ kiểu string để không vỡ chỗ gọi cũ; mã mới dùng BadgeTone. */
-export function Badge({ tone = "gray", children }: { tone?: BadgeTone | (string & {}); children: React.ReactNode }) {
-  return <span className={`badge badge-${tone}`}>{children}</span>;
+/** `title`: tooltip (dùng khi chữ dài có thể bị cắt "…" – bọc chữ trong `<span className="badge-text">`). */
+export function Badge({ tone = "gray", title, children }: { tone?: BadgeTone | (string & {}); title?: string; children: React.ReactNode }) {
+  return (
+    <span className={`badge badge-${tone}`} title={title}>
+      {children}
+    </span>
+  );
 }
 
 export function Modal({ title, onClose, children, footer, wide }: { title: string; onClose: () => void; children: React.ReactNode; footer?: React.ReactNode; wide?: boolean }) {

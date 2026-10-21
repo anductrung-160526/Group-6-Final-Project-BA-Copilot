@@ -194,8 +194,16 @@ export function Gallery() {
             <StatusBadge key={s} status={s} />
           ))}
           <RevisionTag />
+          <RevisionTag compact testId="revision-tag-compact" />
           <EditingBadge names={["Lan Nguyen"]} testId="editing-badge-1" />
           <EditingBadge names={["Lan Nguyen", "Minh Tran", "Chi Hoang", "Ha Le"]} testId="editing-badge-4" />
+        </div>
+        <div className="gallery-label">Long text in a narrow container (badge-text → "…", full text in the tooltip)</div>
+        <div className="gallery-row" style={{ maxWidth: 200 }}>
+          <Badge title="API Spec document – Product Management">
+            <Icon name="doc" size="xs" />
+            <span className="badge-text">API Spec document – Product Management</span>
+          </Badge>
         </div>
         <div className="gallery-row">
           <ScoreBadge score={92} />

@@ -274,7 +274,7 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
               extra: (
                 <>
                   <StatusBadge status={d?.status ?? "none"} testId={`doc-step-${k}-status`} />
-                  {d?.revisionRequested && <RevisionTag testId={`doc-step-${k}-revision`} />}
+                  {d?.revisionRequested && <RevisionTag compact testId={`doc-step-${k}-revision`} />}
                 </>
               ),
               href: stepHref(projectId, moduleId, k),

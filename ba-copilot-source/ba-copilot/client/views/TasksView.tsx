@@ -140,9 +140,9 @@ export function TasksView({ projectId }: { projectId: string; params?: string[] 
                         {t.revisionRequested && <RevisionTag testId={`revision-${t.id}`} />}
                         {priorityBadge(t.priority)}
                         {art && (
-                          <Badge tone={art.missing ? "flag" : "gray"}>
+                          <Badge tone={art.missing ? "flag" : "gray"} title={art.text}>
                             <Icon name={ARTIFACT_ICON[art.kind]} size="xs" />
-                            {art.text}
+                            <span className="badge-text">{art.text}</span>
                           </Badge>
                         )}
                         {!art && mod && <span>{mod}</span>}

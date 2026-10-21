@@ -134,9 +134,9 @@ App chưa có chế độ tối nên chưa có bộ token tối.
 | Component | Props chính | Khi nào dùng |
 |---|---|---|
 | `Btn` | `kind`: `primary` \| `secondary` \| `ghost` \| `danger`; `size`: `sm` \| `md` | `primary` (gradient mint) chỉ cho hành động chính / **Thêm mới**. `secondary` trắng viền xám. `ghost` cho Bỏ qua, Huỷ phụ. `danger` viền đỏ cho xoá. |
-| `Badge` | `tone`: `gray` `blue` `mint` `green` `amber` `orange` `red` `violet` `flag` | Nhãn tuỳ ý. Viền + nền nhạt, bo 4px, ôm sát chữ. `flag` = viền đứt (cảnh báo rủi ro). |
+| `Badge` | `tone`: `gray` `blue` `mint` `green` `amber` `orange` `red` `violet` `flag`, `title?` | Nhãn tuỳ ý. Viền + nền nhạt, bo 4px, ôm sát chữ. `flag` = viền đứt (cảnh báo rủi ro). Chữ có thể dài hơn khung cha (tên sản phẩm gắn task…): bọc chữ trong `<span className="badge-text">` để cắt "…" và truyền `title` làm tooltip (đợt 6 – nhãn tiếng Anh dài hơn). |
 | `StatusBadge` | `status`, `testId?` | Nhãn có sẵn (tiếng Anh, đợt 6). Sản phẩm BA: `none` Not started · `draft` Draft · `done` Done (cam = chờ duyệt) · `approved` Approved · `outdated` Outdated. Công việc: `todo` To do · `doing` In progress · `done` Done · `approved` Approved. Bình luận: `open` Open · `sent` Sent to AI · `resolved` Resolved. |
-| `RevisionTag` | `testId?` | Tag đỏ "Yêu cầu sửa" khi task/sản phẩm có cờ `revisionRequested`; giữ tới khi Duyệt. |
+| `RevisionTag` | `testId?`, `compact?` | Tag đỏ "Changes requested" (Yêu cầu sửa) khi task/sản phẩm có cờ `revisionRequested`; giữ tới khi Duyệt. `compact`: chỉ icon (tooltip + aria-label) – dùng trong hàng tab chật (bước Tài liệu). |
 | `EditingBadge` | `names: string[]`, `max?` (2) | "Being edited by A, B and N others" (badge tím). Danh sách rỗng thì không hiện. Đặt cạnh tiêu đề màn / tài liệu. |
 | `ConflictNotice` | `onReload`, `message?`, `busy?` | Khung vàng khi lưu bị 409. Mặc định: "Bản đã thay đổi – có người vừa sửa. Tải lại để xem bản mới." + nút **Tải lại**. Đặt ngay trên vùng đang sửa. |
 | `ScoreBadge` | `score` 0–100, `showLabel?` | Điểm QUS: ≥ 80 xanh "Good", 60–79 vàng "Fair", < 60 đỏ "Poor" (khớp `shared/qus.ts`). |
