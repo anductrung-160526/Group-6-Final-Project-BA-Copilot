@@ -541,8 +541,9 @@ export function SampleBadge({ provider }: { provider?: "claude" | "mock" | null 
   const server = useAiProvider();
   if ((provider === undefined ? server : provider) !== "mock") return null;
   return (
-    <Badge tone="flag" title="No Claude key is configured (ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN) – this comes from the rule-based sample generator, not Claude">
-      Sample result – Claude not connected
+    // Cột hẹp (vd khối Gợi ý tiếp theo ở cột trái Design Studio): chữ cắt "…" trong khung, câu đầy đủ ở tooltip
+    <Badge tone="flag" title="Sample result – Claude not connected. No Claude key is configured (ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN) – this comes from the rule-based sample generator, not Claude">
+      <span className="badge-text">Sample result – Claude not connected</span>
     </Badge>
   );
 }

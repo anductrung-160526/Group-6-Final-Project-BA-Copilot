@@ -21,9 +21,10 @@ const sysStep = (s: string) => /^(?:system|hệ thống)\b/i.test(s); // vi-keep
 // vi-keep-start: nhận diện đối tượng trong prompt (tiếng Việt cũ + tiếng Anh)
 function entityFrom(prompt: string, fallback: string): string {
   const m =
-    prompt.match(/(?:quản lý|danh sách|thêm|tạo|chỉnh sửa|form|màn hình)\s+([\p{L}\d ]{2,40}?)(?:[,.;:\n]|$| gồm| có| với| cho)/iu) ??
+    prompt.match(/(?:quản lý|danh sách|thêm|tạo|chỉnh sửa|form|màn hình)\s+(?!(?:with|for|to|of|and|has|including)\b)([\p{L}\d ]{2,40}?)(?:[,.;:\n]|$| gồm| có| với| cho)/iu) ??
     prompt.match(/(?:manage|management of|list of|add(?: new)?|create|edit|new)\s+(?:an?\s+|the\s+)?([\p{L}\d ]{2,40}?)(?:[,.;:\n]|$| with| including| for| by)/iu) ??
-    prompt.match(/([\p{L}]+(?: [\p{L}]+)?)\s+(?:management|list)\b/iu);
+    prompt.match(/([\p{L}]+(?: [\p{L}]+)?)\s+(?:management|list)\b/iu) ??
+    prompt.match(/^(?:an?\s+|the\s+)?([\p{L}]+(?: [\p{L}]+){0,2}?)\s+(?:form|screen|page)\b/iu); // "Leave request form with …"
   const e = (m?.[1] ?? fallback).trim();
   return e.charAt(0).toUpperCase() + e.slice(1);
 }
@@ -58,9 +59,21 @@ const ACTIONS: [RegExp, string][] = [
 const SECONDARY_BTN = /hủy|huỷ|quay lại|từ chối|cancel|\bback\b|reject/i;
 const splitList = (s: string) => s.split(/\s*(?:,|;|\/)\s*|\s+(?:và|hoặc|and|or)\s+/).map((x) => x.replace(/["“”']/g, "").trim()).filter((x) => x && x.length <= 40);
 // vi-keep-end
+// Từ chỉ màn / vùng chứa: "Order screen with Approve …", "Customer list with an Export …" → nhãn nút nằm sau "with".
+const CONTAINER_WORDS = /\b(?:screen|page|form|list|dialog|modal|popup|view|panel|management|dashboard|table|section|card|toolbar|header|footer|menu|area|màn hình|trang|danh sách)\b/iu; // vi-keep: từ chỉ màn tiếng Việt cũ
+/**
+ * Nhãn nút trong cụm "… X button": cụm "<màn / vùng> with <nhãn>" → phần sau "with" (lặp lại nếu còn);
+ * "with" không đứng sau từ chỉ màn thì là một phần của nhãn ("Sign in with Google").
+ */
+export function labelAfterContainer(phrase: string): string {
+  const m = phrase.match(/^(.*?)\bwith\b\s*(.*)$/iu);
+  if (!m || !CONTAINER_WORDS.test(m[1])) return phrase.trim();
+  return labelAfterContainer(m[2]);
+}
 const actionOf = (label: string) => ACTIONS.find(([re]) => re.test(label.toLowerCase()))?.[1] ?? "click";
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-const stripArticle = (s: string) => s.replace(/^(?:a|an|the|with)\s+/i, "").trim();
+// bỏ mạo từ / từ nối đầu nhãn, kể cả nhiều từ liền nhau ("and an Add new" → "Add new")
+const stripArticle = (s: string) => s.replace(/^(?:(?:a|an|the|with|and|or)\s+)+/i, "").trim();
 
 export function mockFromPrompt(prompt: string, name: string): UINode | null {
   const text = prompt.trim();
@@ -132,8 +145,11 @@ export function mockFromPrompt(prompt: string, name: string): UINode | null {
   field(/đồng ý|điều khoản|\bagree\b|\bterms\b/, "Checkbox", { label: "I agree to the terms of use" });
   const tenX = blank(text).match(/(?<![Hh]ọ )\btên\s+([\p{L}]+(?:\s[\p{L}]+)?)/u);
   if (tenX && !/^(đăng|tài khoản)/i.test(tenX[1])) field(new RegExp(`tên\\s+${tenX[1].toLowerCase()}`), "Input", { label: `${cap(tenX[1].toLowerCase())} name` });
+  // "<đối tượng> name" → trường "<Đối tượng> name"; từ nối trước "name" ("form with name and email", "form: name, SKU") → trường "Name"
+  const NAME_LINK = /^(with|and|or|of|for|to|in|its|their)$/;
   const nameX = pf.match(/\b([a-z]+) name\b/);
-  if (nameX && !/^(full|user|first|last|file|by|the|a|an|your|my|display)$/.test(nameX[1])) field(new RegExp(`\\b${nameX[1]} name\\b`), "Input", { label: `${cap(nameX[1])} name` });
+  if (nameX && !NAME_LINK.test(nameX[1]) && !/^(full|user|first|last|file|by|the|a|an|your|my|display)$/.test(nameX[1])) field(new RegExp(`\\b${nameX[1]} name\\b`), "Input", { label: `${cap(nameX[1])} name` });
+  else if (!nameX || NAME_LINK.test(nameX[1])) field(/(?:^\s*|[,:;(]\s*|\b(?:with|and)\s+)name\b/, "Input", { label: "Name" });
 
   constrain();
 
@@ -152,7 +168,10 @@ export function mockFromPrompt(prompt: string, name: string): UINode | null {
   const SEARCH_BOX = /^(?:ô tìm kiếm|search\s+(?:box|bar|field|input))$/iu; // vi-keep: "ô tìm kiếm" tiếng Việt cũ
   // exact: nhãn trong ngoặc kép – giữ nguyên, không tách "and" / bỏ cụm vị trí ("Sign in with Google" không thành "Sign")
   const addButtons = (index: number, raw: string, exact = false) => {
-    for (const lb of exact ? [raw.trim()] : splitList(raw.replace(/\s+(vào|ở|bên|phía|cuối|dưới|trên|at|on|in|below|above)\s.*$/i, ""))) {
+    const plain = raw
+      .replace(/^.*\b(?:actions?|thao tác)\s*(?:,|\band\b|\bvà\b)\s*/iu, "") // "edit/delete actions and an Add new" → "an Add new"
+      .replace(/\s+(?:vào|ở|bên|phía|cuối|dưới|trên)\s.*$|\s+(?:at|on|in|below|above)\s+(?:the|a|an|top|bottom|left|right|each|every)\b.*$/iu, "");
+    for (const lb of exact ? [raw.trim()] : splitList(plain)) {
       const label = cap(stripArticle(lb));
       if (SEARCH_BOX.test(label)) continue; // ô tìm kiếm – đã có Input "Search" ở thanh công cụ
       if (label && !buttons.some((b) => String(b.node.props.label).toLowerCase() === label.toLowerCase())) buttons.push({ at: index, node: { type: "Button", props: { label } } });
@@ -160,12 +179,11 @@ export function mockFromPrompt(prompt: string, name: string): UINode | null {
   };
   for (const m of text.matchAll(/nút\s+([^.;:\n]+?)(?=$|[.;:\n]|,\s*(?:có|bảng|phân trang|link|liên kết)\b)/giu)) addButtons(m.index!, m[1]);
   for (const m of text.matchAll(/\bbuttons?\s*(?::\s*|(?=["“]))([^.;:\n]+?)(?=$|[.;:\n]|,\s*(?:with|table|pagination|link|has)\b)/gi)) addButtons(m.index!, m[1]);
-  // nhãn trong ngoặc kép giữ nguyên, kể cả có "with" ('a "Sign in with Google" button')
-  for (const m of text.matchAll(/["“]([^"”\n]+)["”]\s+buttons?\b/gi)) addButtons(m.index!, m[1], true);
-  // nhãn không vượt qua "with" ("Screen with a search bar and an Add new button" → chỉ "a search bar and an Add new")
-  // số ngoặc kép lẻ = mẩu của nhãn trong ngoặc (vd 'Google"' của "Sign in with Google") – đã lấy ở vòng trên, bỏ qua
-  for (const m of text.matchAll(/(?:^|[,.;:\n]|\bwith\b)\s*((?:(?!\bwith\b)[^,.;:\n])+?)\s+buttons?\b/gi))
-    if ((m[1].match(/["“”]/g) ?? []).length % 2 === 0) addButtons(m.index!, m[1].replace(/["“”]/g, ""));
+  // nhãn trong ngoặc kép giữ nguyên, kể cả có "with": 'a "Sign in with Google" button', '"Save" and "Cancel" buttons'
+  for (const m of text.matchAll(/((?:["“][^"”\n]+["”]\s*(?:,|\band\b|\bor\b|\bvà\b)?\s*)+)\s*buttons?\b/giu))
+    for (const q of m[1].matchAll(/["“]([^"”\n]+)["”]/gu)) addButtons(m.index!, q[1], true);
+  // nhãn viết trần: cụm có ngoặc kép đã lấy ở vòng trên; "<màn / vùng> with <nhãn>" → chỉ lấy phần sau "with"
+  for (const m of text.matchAll(/(?:^|[,.;:\n])\s*([^,.;:\n]+?)\s+buttons?\b/gi)) if (!/["“”]/.test(m[1])) addButtons(m.index!, labelAfterContainer(m[1]));
   if (/xuất excel|export (?:to )?excel/.test(p) && !buttons.some((b) => /xuất|export/i.test(String(b.node.props.label)))) buttons.push({ at: at(/xuất excel|export (?:to )?excel/), node: { type: "Button", props: { label: "Export Excel" } } });
 
   // liên kết
@@ -213,7 +231,11 @@ export function mockFromPrompt(prompt: string, name: string): UINode | null {
   if (hasTable) {
     const cols = text.match(/(?:cột|columns?)\s+([^.;\n]+?)(?=$|[.;\n]|,\s*(?:thao tác|nút|phân trang|có|xuất|actions?|buttons?|pagination|with|export)\b)/i)?.[1]; // giữ chữ hoa của BA ("Mã NV")
     const acts = p.match(/(xem\/sửa\/xóa|xem\/sửa\/xoá|sửa\/xóa|sửa\/xoá|sửa và xóa|view\/edit\/delete|edit\/delete|edit and delete)/)?.[1];
-    children.push({ type: "Table", props: { columns: [...(cols ? splitList(cols).map(cap) : ["Code", "Name", "Status"]), ...(acts ? ["Actions"] : [])], rows: [], ...(acts ? { rowActions: splitList(acts).map(cap) } : {}) } });
+    // danh sách cột dừng ở mục nói về thao tác / nút ("…, edit/delete actions and an Add new button")
+    const colList = cols ? splitList(cols) : [];
+    const stop = colList.findIndex((c) => /\b(?:actions?|buttons?|pagination|thao tác|nút|phân trang)\b/iu.test(c) || /^(?:edit|delete|view|xem|sửa|xóa|xoá)$/iu.test(c)); // vi-keep: từ khoá thao tác tiếng Việt cũ
+    const colNames = (stop >= 0 ? colList.slice(0, stop) : colList).map(cap);
+    children.push({ type: "Table", props: { columns: [...(colNames.length ? colNames : ["Code", "Name", "Status"]), ...(acts ? ["Actions"] : [])], rows: [], ...(acts ? { rowActions: splitList(acts).map(cap) } : {}) } });
     if (hasTable && formBtns.length && fields.length === 0) children.push({ type: "Row", props: { gap: 8 }, children: formBtns.map(btn) });
   }
   if (/phân trang|pagination|paging/.test(p)) children.push({ type: "Pagination", props: { pages: 5 } });

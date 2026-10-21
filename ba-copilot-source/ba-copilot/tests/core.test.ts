@@ -4,7 +4,7 @@ import { normalizeTree, validateTree, diffTrees, topMostIds, findNode, collectId
 import { applyPatch } from "../shared/patch.ts";
 import { extractModel } from "../shared/extract.ts";
 import { buildTrace } from "../shared/trace.ts";
-import { mockScreen, mockEditOps, mockUseCases, mockTests, mockSequence } from "../server/ai/mock.ts";
+import { labelAfterContainer, mockScreen, mockEditOps, mockUseCases, mockTests, mockSequence } from "../server/ai/mock.ts";
 import { validateMermaid } from "../server/ai/pipelines.ts";
 
 const tree = normalizeTree({
@@ -144,7 +144,30 @@ test("mock: ô tìm kiếm không thành nút; nhãn nút không lấy phần tr
   assert.deepEqual(controls(mockScreen("Category list with a Search box button and a table", "X")), ["Input:Search"]);
   assert.deepEqual(controls(mockScreen("Screen with a search bar and an Add new button", "X")), ["Input:Search", "Button:Add new"]);
   assert.deepEqual(controls(mockScreen("Order screen with Approve and Reject buttons", "X")), ["Button:Approve", "Button:Reject"]);
-  assert.ok(controls(mockScreen('Sign-in screen with email, password and a "Sign in with Google" button', "X")).includes("Button:Sign in with Google"));
+  // nhãn có "with": trong ngoặc kép hoặc viết trần đều giữ nguyên; "<màn> with <nhãn>" chỉ lấy phần sau "with"
+  assert.deepEqual(controls(mockScreen('Sign-in screen with email, password and a "Sign in with Google" button', "X")), ["Input:Email", "Input:Password", "Button:Sign in with Google"]);
+  assert.deepEqual(controls(mockScreen("Sign-in screen with email, password, Sign in with Google button", "X")), ["Input:Email", "Input:Password", "Button:Sign in with Google"]);
+  assert.deepEqual(controls(mockScreen('Screen with "Save" and "Cancel" buttons', "X")), ["Button:Save", "Button:Cancel"]);
+  assert.deepEqual(controls(mockScreen("Customer list with an Export button and a search box", "X")), ["Input:Search", "Button:Export"]);
+  assert.equal(labelAfterContainer("Order screen with Approve and Reject"), "Approve and Reject");
+  assert.equal(labelAfterContainer("Page with Sign in with Google"), "Sign in with Google");
+  assert.equal(labelAfterContainer("Sign in with Google"), "Sign in with Google");
+  assert.equal(labelAfterContainer("Pay with card"), "Pay with card");
+
+  // thao tác dòng "edit/delete actions" thuộc bảng, không thành nút "Delete actions" (màn mẫu Category Management)
+  const cat = mockScreen("Category management: search by name, a list table with columns Code, Category name, Number of products, edit/delete actions and an Add new button.", "Category Management");
+  assert.deepEqual(controls(cat), ["Input:Search", "Button:Add new"]);
+  const table = (cat.children ?? []).find((n) => n.type === "Table")!;
+  assert.deepEqual(table.props.rowActions, ["Edit", "Delete"]);
+  assert.deepEqual(table.props.columns, ["Code", "Category name", "Number of products", "Actions"]);
+  assert.deepEqual(controls(mockScreen("Product list: search by name, table with columns Code, Name, and an Add new button", "X")), ["Input:Search", "Button:Add new"]);
+
+  // "X form with …": đối tượng là X, không thành trường "With Submit button name"; "form with name and email" → trường "Name"
+  const leave = controls(mockScreen("Leave request form with Submit button", "X"));
+  assert.ok(leave.includes("Input:Leave request name"), leave.join(" | "));
+  assert.ok(!leave.some((c) => /with/i.test(c)), leave.join(" | "));
+  assert.deepEqual(controls(mockScreen("Profile form with name and email, with Save and Cancel buttons", "X")), ["Input:Name", "Input:Email", "Button:Save", "Button:Cancel"]);
+  assert.ok(controls(mockScreen("Add product form: name, SKU, price; Save and Cancel buttons.", "X")).includes("Input:Name"));
 
   const tree = { id: "root", type: "Page", props: { title: "P" }, children: [{ id: "f", type: "Form", props: { title: "F" }, children: [] }] } as Parameters<typeof mockEditOps>[0];
   const added = (instruction: string) => mockEditOps(tree, ["f"], instruction).ops.flatMap((o) => { const n = (o as { node?: { type: string; props: Record<string, unknown> } }).node; return o.op === "insert" && n ? [`${n.type}:${n.props.label}:${n.props.name ?? ""}`] : []; });

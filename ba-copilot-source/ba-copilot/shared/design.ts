@@ -234,3 +234,13 @@ export function compactTree(n: UINode): unknown {
   if (n.children) out.children = n.children.map(compactTree);
   return out;
 }
+
+/**
+ * Chỉ số các cột dữ liệu cần vẽ của một Table. Có `rowActions` thì cột thao tác do bộ vẽ tự thêm ("Actions"),
+ * nên cột tên "Actions" / "Thao tác" đã ghi sẵn trong `columns` (mock, dữ liệu cũ) bị bỏ để không ra hai cột "Actions".
+ */
+export function tableDataColumns(columns: string[], rowActions: string[]): number[] {
+  const idx = columns.map((_, i) => i);
+  if (!rowActions.length) return idx;
+  return idx.filter((i) => !/^(?:actions?|thao tác)$/iu.test(columns[i].trim())); // vi-keep: cột "Thao tác" của bảng cũ
+}

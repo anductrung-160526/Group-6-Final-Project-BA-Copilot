@@ -2,7 +2,7 @@
 // để Design Studio khoanh vùng / gắn bình luận chính xác.
 
 import React from "react";
-import type { UINode } from "../../shared/design.ts";
+import { tableDataColumns, type UINode } from "../../shared/design.ts";
 
 interface Props {
   node: UINode;
@@ -180,13 +180,14 @@ export function Renderer({ node, onNavigate }: Props): React.ReactElement {
       const cols = Array.isArray(p.columns) ? (p.columns as unknown[]).map(String) : [];
       const rows = Array.isArray(p.rows) ? (p.rows as unknown[][]) : [];
       const acts = Array.isArray(p.rowActions) ? (p.rowActions as unknown[]).map(String) : [];
+      const shown = tableDataColumns(cols, acts); // không lặp cột "Actions"
       return (
         <div {...common} className="ds-table-wrap">
           <table className="ds-table">
             <thead>
               <tr>
-                {cols.map((c, i) => (
-                  <th key={i}>{c}</th>
+                {shown.map((i) => (
+                  <th key={i}>{cols[i]}</th>
                 ))}
                 {acts.length ? <th>Actions</th> : null}
               </tr>
@@ -194,7 +195,7 @@ export function Renderer({ node, onNavigate }: Props): React.ReactElement {
             <tbody>
               {(rows.length ? rows : [cols.map(() => "—")]).map((r, i) => (
                 <tr key={i}>
-                  {cols.map((_, j) => (
+                  {shown.map((j) => (
                     <td key={j}>{String((r as unknown[])?.[j] ?? "")}</td>
                   ))}
                   {acts.length ? (
