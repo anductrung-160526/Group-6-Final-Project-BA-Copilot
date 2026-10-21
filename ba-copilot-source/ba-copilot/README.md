@@ -2,7 +2,7 @@
 
 Hệ thống web hỗ trợ Business Analyst đi trọn luồng **Prompt → Thiết kế UI → Tài liệu (UC, SRS, Sequence) → Test case → Truy vết**. Đây là sản phẩm của luận án; mọi đầu ra AI là *bản nháp* để BA duyệt.
 
-**Bản chạy trên web:** _(dán link Railway vào đây sau khi deploy – xem [DEPLOY.md](DEPLOY.md))_
+**Bản chạy trên web:** <https://ba-copilot.up.railway.app/> — mật khẩu: `123321`. Sau khi đăng nhập, chọn tên ở ô *Select your name…* (ví dụ **Lan Nguyen**, vai BA Lead). Cách deploy: [DEPLOY.md](DEPLOY.md).
 
 ## 1. Chạy trên máy
 
