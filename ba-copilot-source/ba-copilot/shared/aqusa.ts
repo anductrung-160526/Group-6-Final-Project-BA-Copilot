@@ -116,11 +116,12 @@ function wellFormed(c: Chunks, o: AqusaOptions): AqusaDefect[] {
   if (!c.meansIndicator || !c.means)
     return [{ criterion: "well-formed", code: "WF_NO_MEANS", message: "The story has no means (\"I want <action>\").", suggestion: "Add \"I want <action>\".", paperRef: "§3.1, §4.3" }];
   const out: AqusaDefect[] = [];
-  // Nội dung chunk (WellFormedContentAnalyzer): vai trò phải có danh từ, hành động phải có động từ.
+  // Nội dung chunk: vai trò phải có danh từ, hành động phải có động từ – THIẾT KẾ CỦA NHÓM, không có trong định nghĩa của bài
+  // báo (Bảng 1 chỉ yêu cầu có role và means). Vòng 2: phép kiểm động từ gây phần lớn báo nhầm trên test2 (xem QUS-AQUSA.md).
   if (!hasNoun(c.role)) out.push({ criterion: "well-formed", code: "WF_ROLE_CONTENT", message: `The role "${c.role}" contains no noun.`, suggestion: "Name a user type, e.g. \"As a store manager\".", excerpt: c.role, paperRef: "§4.3" });
   // "I want to <X>": X đứng ngay sau "to"/"can" là động từ theo ngữ pháp, kể cả khi bộ gán nhãn hiểu khác.
   const verbSlot = /(?:to|can|need)$/.test(c.meansIndicator) || /^to\s/i.test(c.means);
-  if (!verbSlot && !hasVerb(c.means, o)) out.push({ criterion: "well-formed", code: "WF_MEANS_CONTENT", message: `The means "${c.means}" contains no verb.`, suggestion: "Describe an action, e.g. \"I want to export orders\".", excerpt: c.means, paperRef: "§4.3" });
+  if (!verbSlot && !hasVerb(c.means, o)) out.push({ criterion: "well-formed", code: "WF_MEANS_CONTENT", message: `The means "${c.means}" contains no verb.`, suggestion: "Describe an action, e.g. \"I want to export orders\".", excerpt: c.means, paperRef: "thiết kế của nhóm (không có trong bài báo)" });
   return out;
 }
 

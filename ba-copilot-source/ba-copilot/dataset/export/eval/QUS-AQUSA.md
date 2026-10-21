@@ -101,3 +101,94 @@ npx tsx scripts/qus-eval/eval.ts --split test --out dataset/export/eval/qus-eval
 python3 scripts/qus-eval/kappa.py dataset/qus-eval/kappa-sample.csv   # sau khi người gán điền file
 npx tsx --test tests/aqusa.test.ts
 ```
+
+
+---
+
+# Vòng 2: thêm dữ liệu, chỉnh luật tổng quát, chấm trên tập test mới
+
+## A. Quy trình
+- **Dữ liệu mới:** g05 openspending (53) và g08 frictionless (66) = **test2, 119 story**. Nhãn gán và commit **trước** khi chạy bộ chấm. Ca biên chốt thêm ghi trong `GUIDELINES.md`.
+- **Dev vòng 2** = g02 + g03 + g04 (207 story). Tập test vòng 1 đã xem lỗi nên không còn dùng để chấm chính thức; kết quả vòng 1 (mục 3–4) vẫn là kết quả chính thức của phiên bản 1.
+- **Chỉnh luật trên dev, chỉ thêm luật mang tính ngôn ngữ chung**, kèm ví dụ tự viết trong `tests/aqusa.test.ts`:
+  - liên từ trong mệnh đề phụ (that, which, how…) không tính atomic;
+  - "+" dính chữ ("ZIP+4", "C++") không phải liên từ;
+  - "/" sau tính từ hoặc mạo từ là danh từ ghép;
+  - "be + tính từ" là hành động hợp lệ;
+  - "I don't / do not / only want" là một họ cụm chỉ dấu riêng;
+  - mẫu đa số của uniform xác định **riêng từng phần**, phần ends chỉ xét các story có ends;
+  - "(s)" chỉ số nhiều; câu thứ hai mở bằng "So that" là phần ends; "such as" là dấu hiệu ví dụ.
+- **Luật bị loại nhờ kiểm tra theo từng bộ:** "cụm Title Case là tên riêng" (để sửa g02-012 "Upload and Validate") làm hỏng g03, nơi mọi động từ viết hoa và là lỗi atomic thật.
+- **Kiểm tra theo từng bộ trên dev** (F1, bản v1+v2 vòng 1 → vòng 2): g02 54,5 → 76,9; g03 77,8 → 100; g04 71,4 → 71,4. Không bộ nào kém đi.
+- Khoá luật ở commit `be42c91`, chấm test2 **một lần**.
+
+## B. Kết quả trên dev vòng 2 (207 story – dùng để chỉnh, KHÔNG phải kết quả chính thức)
+| Bộ chấm | Recall micro | Precision micro | F1 | Recall macro | Precision macro | KTC 95% recall | KTC 95% precision |
+|---|---|---|---|---|---|---|---|
+| legacy (main) | 42,3 | 68,8 | 52,4 | 34,7 | 49,2 | 21,4–65,2 | 42,1–90 |
+| AQUSA v1 | 69,2 | 62,1 | 65,5 | 65,3 | 61,3 | 52–89,5 | 46,7–78,6 |
+| AQUSA v1+v2 | 88,5 | 76,7 | 82,1 | 88,9 | 78 | 79,2–100 | 60,7–90 |
+
+## C. Kết quả chính thức vòng 2: test2 (119 story, 9,2% story có lỗi, 14 lỗi thật)
+| Bộ chấm | Recall micro | Precision micro | F1 | Recall macro | Precision macro | KTC 95% recall | KTC 95% precision |
+|---|---|---|---|---|---|---|---|
+| legacy (main) | 50 | 20,6 | 29,2 | 29,2 | 12,5 | 16,7–72,7 | 5–32,4 |
+| AQUSA v1 | 57,1 | 27,6 | 37,2 | 33,4 | 14,8 | 33,3–84,6 | 11,1–40,6 |
+| AQUSA v1+v2 | 71,4 | 33,3 | 45,5 | 62,5 | 27,1 | 44,4–100 | 14,3–51,6 |
+
+| Tiêu chí | Lỗi thật | legacy (main): TP/FP/FN | AQUSA v1: TP/FP/FN | AQUSA v1+v2: TP/FP/FN |
+|---|---|---|---|---|
+| well-formed | 1 | 1/5/0 | 1/18/0 | 0/14/1 |
+| atomic | 4 | 0/0/4 | 1/3/3 | 1/4/3 |
+| minimal | 1 | 0/0/1 | 0/0/1 | 1/1/0 |
+| uniform | 8 | 6/0/2 | 6/0/2 | 8/1/0 |
+| unique | 0 | 0/22/0 | 0/0/0 | 0/0/0 |
+
+## D. Nhận xét trung thực
+- **Bộ mới vẫn tốt nhất** trên dữ liệu chưa thấy: F1 45,5 so với 37,2 (AQUSA v1) và 29,2 (bộ cũ); recall 71,4 so với 50,0. Bộ cũ báo nhầm 22 lần "trùng lặp" vì dùng độ giống từ (Jaccard ≥ 0,8) cho các story cùng khuôn ("I want an X integration").
+- **Nhưng thấp hơn nhiều so với dev** (F1 82,1 → 45,5). Khoảng cách này cho thấy luật vẫn còn khớp với kiểu viết của 3 bộ dev, và bộ chấm chưa tổng quát tốt.
+- **Nguyên nhân chính: 14/23 lỗi là well-formed báo nhầm** ở story có phần hành động là cụm danh từ ("I want an Elasticsearch integration"). Đây là lỗi của nhóm ở hai chỗ:
+  1. phép kiểm "phần hành động phải có động từ" **không có trong định nghĩa của bài báo** (Bảng 1 chỉ yêu cầu có role và means). Ở vòng 1 nó bị ghi nhầm là §4.3; nay đã sửa ghi chú thành thiết kế của nhóm;
+  2. **nhãn không nhất quán**: ở g02 nhãn tính lỗi cho means không có động từ (g02-078, 087, 092), ở g08 lại không. Nhãn test2 **không được sửa** sau khi thấy kết quả.
+- **Atomic tổng quát kém:** chỉ bắt 1/4 lỗi trên test2 (bỏ sót "filter, sort and aggregate", "do … and operationalize", "import/export" khi thiếu cụm chỉ dấu).
+- Mẫu nhỏ (14 lỗi thật), khoảng tin cậy rất rộng.
+
+## E. Phân tích độ nhạy (làm SAU khi xem test2 – không phải kết quả chính thức)
+Tắt phép kiểm "phần hành động phải có động từ":
+
+| | Recall | Precision | F1 |
+|---|---|---|---|
+| test2, bản khoá | 71,4 | 33,3 | 45,5 |
+| test2, tắt phép kiểm động từ | 71,4 | 62,5 | 66,7 |
+| dev vòng 2, bản khoá | 88,5 | 76,7 | 82,1 |
+| dev vòng 2, tắt phép kiểm động từ | 80,8 | 75,0 | 77,8 |
+
+Phép kiểm này hại nhiều hơn lợi và không thuộc bài báo. **Khuyến nghị:** bỏ nó và sửa hướng dẫn gán nhãn cho thống nhất ("means là cụm danh từ vẫn well-formed", đúng Bảng 1), rồi kiểm chứng trên **một tập test thứ ba** chưa xem. Không công bố con số 66,7 như kết quả chính thức.
+
+## F. Lỗi của bộ chấm trên test2
+| Loại | Tiêu chí | Story | Nội dung |
+|---|---|---|---|
+| FP | minimal | g05-019 | As a Data Publishing User, I want to know what my data needs to be able to be visualised o… |
+| FP | uniform | g05-019 | As a Data Publishing User, I want to know what my data needs to be able to be visualised o… |
+| FN | atomic | g05-029 | As a Data Consuming User, I want to be able to filter, sort and aggregate data by multiple… |
+| FP | atomic | g05-037 | As a Data Consuming User, I want to be able to share a view state as a URL to social netwo… |
+| FP | atomic | g05-073 | As an API User, I want to be able to normalise measures by GINI and related socioeconomic … |
+| FP | atomic | g05-099 | As a Data Consuming User, I want to visualize by default in treemap, bubble tree, map and … |
+| FP | well-formed | g08-015 | As a Developer, I want a jQuery plugin for Core Data Packages, so that I can use it to app… |
+| FN | atomic | g08-017 | As a Developer, I want to do exploratory data analysis in R and operationalize that analys… |
+| FP | well-formed | g08-022 | As a Developer, I want an Elasticsearch integration, so that I can integrate data-packaged… |
+| FP | well-formed | g08-023 | As a Developer, I want an SPSS integration, so that I can integrate data-packaged data wit… |
+| FP | well-formed | g08-024 | As a Developer, I want an EPrints integration, so that I can integrate data-packaged data … |
+| FP | well-formed | g08-025 | As a Developer, I want a Mongo integration, so that I can integrate data-packaged data wit… |
+| FP | well-formed | g08-026 | As a Developer, I want a DAT integration, so that I can integrate data-packaged data with … |
+| FP | well-formed | g08-032 | As a developer, I want an DSpace integration, so that I can integrate data-packaged data w… |
+| FP | well-formed | g08-033 | As a Developer, I want Feather integration, so that I can integrate data-packaged data wit… |
+| FP | well-formed | g08-034 | As a Developer, I want HDF5 integration, so that I can integrate data-packaged data with p… |
+| FP | well-formed | g08-035 | As a Researcher, working with data, I want an Microsoft Power BI integration, so that I ca… |
+| FP | well-formed | g08-036 | As a ResearcherPublisher, I want an integration with Zenodo, so that when I store my datas… |
+| FN | well-formed | g08-039 | As a ResearcherDeveloper, would like the ability import/export from MS-SQL, so that I can … |
+| FN | atomic | g08-039 | As a ResearcherDeveloper, would like the ability import/export from MS-SQL, so that I can … |
+| FP | well-formed | g08-040 | As a Researcher, working with data in NetCDF, I want NetCDF integration, so that I can sto… |
+| FP | well-formed | g08-041 | As a Researcher, I want an integration with https://data.mendeley.com/, so that I can vali… |
+| FP | well-formed | g08-042 | As a Publisher, I would like an integration with Excel, so that I can output cleaned Data … |
+| FP | atomic | g08-062 | As a RepositoryManagerResearcher, I want an app that acts as a match-making service for pa… |
