@@ -192,3 +192,109 @@ Phép kiểm này hại nhiều hơn lợi và không thuộc bài báo. **Khuy�
 | FP | well-formed | g08-041 | As a Researcher, I want an integration with https://data.mendeley.com/, so that I can vali… |
 | FP | well-formed | g08-042 | As a Publisher, I would like an integration with Excel, so that I can output cleaned Data … |
 | FP | atomic | g08-062 | As a RepositoryManagerResearcher, I want an app that acts as a match-making service for pa… |
+
+
+---
+
+# Vòng 3: tập test thứ ba
+
+## A. Quy trình (định trước, không chỉnh thêm)
+- **test3 = 345 story chưa từng chạy bộ chấm:** g10 scrumalliance, g11 nsf, g12 camperplus, g13 planningpoker, g14 datahub. Nhãn gán theo định nghĩa đã sửa và commit trước khi chạy.
+- **Đúng một thay đổi so với vòng 2,** đã đề xuất trước khi có test3: tắt phép kiểm "phần hành động phải có động từ" và sửa hướng dẫn cho đúng Bảng 1. Sửa 3 nhãn dev (g02-078, 087, 092) cho nhất quán. Không chỉnh luật nào khác.
+- Khoá ở commit `cf79231`, chấm test3 **một lần**.
+
+## B. Dev vòng 3 (g02, g03, g04, g05, g08 – 326 story; không phải kết quả chính thức)
+| Bộ chấm | Recall micro | Precision micro | F1 | Recall macro | Precision macro | KTC 95% recall | KTC 95% precision |
+|---|---|---|---|---|---|---|---|
+| legacy (main) | 43,2 | 32 | 36,8 | 32,5 | 30,9 | 23,1–58,5 | 20–41,8 |
+| AQUSA v1 | 62,2 | 52,3 | 56,8 | 51,4 | 45 | 45–78 | 39,1–62,9 |
+| AQUSA v1+v2 | 83,8 | 70,5 | 76,5 | 79,4 | 67,2 | 72,2–95,1 | 58,3–86,4 |
+
+## C. Kết quả chính thức vòng 3: test3 (345 story, 8,1% story có lỗi, 32 lỗi thật)
+| Bộ chấm | Recall micro | Precision micro | F1 | Recall macro | Precision macro | KTC 95% recall | KTC 95% precision |
+|---|---|---|---|---|---|---|---|
+| legacy (main) | 46,9 | 60 | 52,6 | 26,9 | 43,5 | 21,2–59,1 | 29,4–84,6 |
+| AQUSA v1 | 78,1 | 62,5 | 69,4 | 73 | 61,5 | 64,5–89,7 | 46,3–76,7 |
+| AQUSA v1+v2 | 81,3 | 45,6 | 58,4 | 74,4 | 44,8 | 68–92 | 32,1–59,6 |
+
+| Tiêu chí | Lỗi thật | legacy (main): TP/FP/FN | AQUSA v1: TP/FP/FN | AQUSA v1+v2: TP/FP/FN |
+|---|---|---|---|---|
+| well-formed | 4 | 4/3/0 | 4/0/0 | 4/0/0 |
+| atomic | 16 | 5/1/11 | 12/8/4 | 12/22/4 |
+| minimal | 6 | 1/0/5 | 4/4/2 | 5/5/1 |
+| uniform | 5 | 4/3/1 | 4/3/1 | 4/4/1 |
+| unique | 1 | 1/3/0 | 1/0/0 | 1/0/0 |
+
+## D. Ablation trên test3 (tắt từng cải tiến v2)
+| Tắt cải tiến | Recall | Precision | F1 |
+|---|---|---|---|
+| ends-indicators | 78,1 | 45,5 | 57,5 |
+| chunk-repetition | 78,1 | 59,5 | 67,6 |
+| slash-gt | 81,3 | 45,6 | 58,4 |
+| verb-exceptions | 81,3 | 46,4 | 59,1 |
+| symbol-role | 81,3 | 45,6 | 58,4 |
+| starting-text | 81,3 | 45,6 | 58,4 |
+| abbreviation | 81,3 | 45,6 | 58,4 |
+
+## E. Nhận xét trung thực
+- **Recall cao nhất** vẫn là AQUSA v1+v2 (81,3), đúng định hướng không bỏ sót của bài báo. **F1 cao nhất là AQUSA v1** (69,4); bản v1+v2 chỉ đạt 58,4 do precision 45,6.
+- **Nguyên nhân chính là lỗi cài đặt cải tiến §6.2 (lặp cụm chỉ dấu).** Bản cài đặt đếm "I want" ở bất kỳ đâu trong câu, kể cả trong phần lý do ("so that I can find the ones I want", "decide if I want to attend"). Bài báo mô tả việc lặp cụm trong phần role và means. Hệ quả: phần lớn trong 22 lần báo nhầm atomic.
+- **Uniform báo nhầm "As the site editor"** vì "the" được coi là mẫu khác "As a". Hướng dẫn chỉ nói "a/an" là cùng mẫu, nên đây là lỗ hổng của cả hướng dẫn lẫn bộ chấm.
+- Bỏ phép kiểm động từ đã đúng hướng: well-formed trên test3 đạt 4/4, không báo nhầm.
+- Bộ cũ: precision 60,0 nhưng chỉ bắt 46,9% lỗi; bỏ sót 11/16 lỗi atomic.
+
+## F. Tổng hợp ba lần chấm chính thức (mỗi tập chấm một lần, F1 micro)
+| Tập test | Số story / lỗi thật | Bộ cũ | AQUSA v1 | AQUSA v1+v2 (bản khoá lúc đó) |
+|---|---|---|---|---|
+| test (vòng 1: g02, g03) | 156 / 20 | 62,9 | 56,0 | 62,7 |
+| test2 (vòng 2: g05, g08) | 119 / 14 | 29,2 | 37,2 | 45,5 |
+| test3 (vòng 3: g10–g14) | 345 / 32 | 52,6 | **69,4** | 58,4 |
+
+Trên cả ba tập, AQUSA (v1 hoặc v1+v2) **có recall cao hơn bộ cũ**. Không có phiên bản nào thắng ở mọi tập về F1; chênh lệch nhiều chỗ nằm trong khoảng tin cậy.
+
+## G. Đề xuất (chưa kiểm chứng – cần tập test thứ tư)
+1. Cài đặt lại §6.2 đúng mô tả: chỉ xét lặp cụm chỉ dấu trong phần role và means, không xét phần ends. Ablation sau khi xem test3 cho thấy chỉ riêng việc tắt §6.2 đã đưa F1 lên 67,6; đây là phân tích sau, không phải kết quả.
+2. Coi "As a / an / the" là cùng một mẫu, và bổ sung vào hướng dẫn gán nhãn.
+3. Có người gán nhãn thứ hai và tính kappa (`kappa-sample.csv`).
+4. Trong lúc chờ kiểm chứng, nếu ưu tiên ít báo nhầm cho BA thì có thể cấu hình app dùng AQUSA v1 (`v2: []`), vì v1 có F1 tốt nhất trên test3. Nếu ưu tiên không bỏ sót (đúng tinh thần bài báo) thì giữ v1+v2. Đây là quyết định sản phẩm của nhóm.
+
+## H. Lỗi của bộ chấm trên test3
+| Loại | Tiêu chí | Story | Nội dung |
+|---|---|---|---|
+| FP | minimal | g10-018 | As a site editor, I want to set the following dates on a news item: Start Publishing Date,… |
+| FP | atomic | g10-020 | As a site editor, I want to assign priority numbers to news items, so that I can indicate … |
+| FP | atomic | g10-023 | As a site visitor, I want to see a list of all upcoming Events, so that I can decide if I … |
+| FP | minimal | g10-041 | As a visitor, I want to download presentations, PDFs, etc. on Scrum, so that I can learn f… |
+| FP | atomic | g10-045 | As a site admin, I want to be emailed whenever a job is submitted, so that I am aware of i… |
+| FP | atomic | g10-049 | As a recruiter, I want to be able to extend an ad for another 30 days by visiting the site… |
+| FP | uniform | g10-052 | As the site editor, I want to include a teaser with each article, so that site visitors ca… |
+| FP | uniform | g10-054 | As the site editor, I want to add an article to the site, so that the site has plenty of c… |
+| FP | atomic | g10-055 | As a site editor, I want to set start publishing dates, old article date, and stop publish… |
+| FP | uniform | g10-057 | As the site editor, I want to have pretty good control over how the article, so that artic… |
+| FP | minimal | g10-058 | As a site visitor, I want to click the link from the article teaser to take me directly to… |
+| FP | atomic | g10-062 | As a site visitor, I want to do a full-text search of article body, title, and author name… |
+| FP | atomic | g10-067 | As a trainer, I want to see the upcoming courses are what I want visitors to notice, so th… |
+| FP | atomic | g10-086 | As a CSM, I want to be sent an email welcoming me to the Scrum Alliance and with instructi… |
+| FN | uniform | g10-095 | As a member, I want to have the system email me a new password or a password reminder sinc… |
+| FP | atomic | g11-033 | As a web recruiter manager, I want to confirm the recruiter is set up and working properly… |
+| FP | atomic | g11-053 | As a web recruiter manager, I want to confirm the recruiter is set up and working properly… |
+| FN | atomic | g11-059 | As an author, I want to be able to indent / outdent content.… |
+| FN | atomic | g12-012 | As a camp administrator, I want to be able to create, modify rules that campers and camp w… |
+| FP | uniform | g12-014 | As a camp administrator, I want to create an avenue so parents can submit feedback and gen… |
+| FP | atomic | g12-037 | As a parent, I want to be able to track my child's activity and schedule at camp, so that … |
+| FP | minimal | g12-047 | As a parent, I want to be able to see and edit my enrolled children to the camp year, so t… |
+| FP | atomic | g13-005 | As a moderator, I want to select an item to be estimated or re-estimated, so that the team… |
+| FP | minimal | g13-006 | As a moderator, I want to add an item to the list of items to be estimated, so that so tha… |
+| FN | atomic | g13-015 | As a moderator, I want to copy/paste stories from a spreadsheet, so that I can get started… |
+| FP | atomic | g13-018 | As a moderator, I want to export a transcript of a game as a HTML file, so that I can save… |
+| FP | atomic | g13-019 | As a moderator, I want to export a transcript of a game as a CSV file, so that I can furth… |
+| FN | minimal | g13-035 | As a participant, I want to be able to see each estimator's prior estimates for the story … |
+| FP | atomic | g14-022 | As a Consumer, I want to view a data package online, so that I can get a sense of whether … |
+| FP | atomic | g14-024 | As a consumer, I want to view the data package, so that that I can get a sense of whether … |
+| FP | atomic | g14-029 | As a Consumer, I want to search data packages, so that that I can find the ones I want.… |
+| FP | atomic | g14-032 | As a Developer, I want to use data package as a node lib in my project, so that that I can… |
+| FN | atomic | g14-043 | As a Publisher, I want to version my Data Package and keep multiple versions around includ… |
+| FP | atomic | g14-051 | As a Consumer, I want to browse and find publishers, so that that I can find interesting p… |
+| FP | atomic | g14-057 | As an owner, I want to invite someone using their email to sign up and become a member of … |
+| FP | atomic | g14-059 | As an owner, I want to view all the people in my organization and what roles they have, so… |
+| FP | atomic | g14-061 | As an owner, I want to remove a user as an owner, so that they are just a member and no lo… |

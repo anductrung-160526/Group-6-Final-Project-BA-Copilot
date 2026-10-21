@@ -1,0 +1,432 @@
+{
+ "split": "dev,test,test2",
+ "nStories": 326,
+ "nSets": 5,
+ "goldStoriesWithDefectPct": 9.8,
+ "msPerStory": 0.3,
+ "results": [
+  {
+   "name": "legacy (main)",
+   "perCriterion": {
+    "well-formed": {
+     "def": 10,
+     "tp": 1,
+     "fp": 9,
+     "fn": 0,
+     "recall": 100,
+     "precision": 10,
+     "f1": 18.2
+    },
+    "atomic": {
+     "def": 1,
+     "tp": 1,
+     "fp": 0,
+     "fn": 14,
+     "recall": 6.7,
+     "precision": 100,
+     "f1": 12.5
+    },
+    "minimal": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 3,
+     "recall": 0,
+     "precision": null,
+     "f1": 0
+    },
+    "uniform": {
+     "def": 10,
+     "tp": 10,
+     "fp": 0,
+     "fn": 4,
+     "recall": 71.4,
+     "precision": 100,
+     "f1": 83.3
+    },
+    "unique": {
+     "def": 29,
+     "tp": 4,
+     "fp": 25,
+     "fn": 0,
+     "recall": 100,
+     "precision": 13.8,
+     "f1": 24.2
+    }
+   },
+   "micro": {
+    "def": 50,
+    "tp": 16,
+    "fp": 34,
+    "fn": 21,
+    "recall": 43.2,
+    "precision": 32,
+    "f1": 36.8
+   },
+   "macro": {
+    "recall": 32.5,
+    "precision": 30.9
+   },
+   "storiesWithDefectPct": 12.3,
+   "recall95": [
+    23.1,
+    58.5
+   ],
+   "precision95": [
+    20,
+    41.8
+   ]
+  },
+  {
+   "name": "AQUSA v1",
+   "perCriterion": {
+    "well-formed": {
+     "def": 10,
+     "tp": 1,
+     "fp": 9,
+     "fn": 0,
+     "recall": 100,
+     "precision": 10,
+     "f1": 18.2
+    },
+    "atomic": {
+     "def": 19,
+     "tp": 7,
+     "fp": 12,
+     "fn": 8,
+     "recall": 46.7,
+     "precision": 36.8,
+     "f1": 41.2
+    },
+    "minimal": {
+     "def": 1,
+     "tp": 1,
+     "fp": 0,
+     "fn": 2,
+     "recall": 33.3,
+     "precision": 100,
+     "f1": 50
+    },
+    "uniform": {
+     "def": 10,
+     "tp": 10,
+     "fp": 0,
+     "fn": 4,
+     "recall": 71.4,
+     "precision": 100,
+     "f1": 83.3
+    },
+    "unique": {
+     "def": 4,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0,
+     "recall": 100,
+     "precision": 100,
+     "f1": 100
+    }
+   },
+   "micro": {
+    "def": 44,
+    "tp": 23,
+    "fp": 21,
+    "fn": 14,
+    "recall": 62.2,
+    "precision": 52.3,
+    "f1": 56.8
+   },
+   "macro": {
+    "recall": 51.4,
+    "precision": 45
+   },
+   "storiesWithDefectPct": 9.8,
+   "recall95": [
+    45,
+    78
+   ],
+   "precision95": [
+    39.1,
+    62.9
+   ]
+  },
+  {
+   "name": "AQUSA v1+v2",
+   "perCriterion": {
+    "well-formed": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 1,
+     "recall": 0,
+     "precision": null,
+     "f1": 0
+    },
+    "atomic": {
+     "def": 21,
+     "tp": 10,
+     "fp": 11,
+     "fn": 5,
+     "recall": 66.7,
+     "precision": 47.6,
+     "f1": 55.6
+    },
+    "minimal": {
+     "def": 4,
+     "tp": 3,
+     "fp": 1,
+     "fn": 0,
+     "recall": 100,
+     "precision": 75,
+     "f1": 85.7
+    },
+    "uniform": {
+     "def": 15,
+     "tp": 14,
+     "fp": 1,
+     "fn": 0,
+     "recall": 100,
+     "precision": 93.3,
+     "f1": 96.6
+    },
+    "unique": {
+     "def": 4,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0,
+     "recall": 100,
+     "precision": 100,
+     "f1": 100
+    }
+   },
+   "micro": {
+    "def": 44,
+    "tp": 31,
+    "fp": 13,
+    "fn": 6,
+    "recall": 83.8,
+    "precision": 70.5,
+    "f1": 76.5
+   },
+   "macro": {
+    "recall": 79.4,
+    "precision": 67.2
+   },
+   "storiesWithDefectPct": 12.6,
+   "recall95": [
+    72.2,
+    95.1
+   ],
+   "precision95": [
+    58.3,
+    86.4
+   ]
+  }
+ ],
+ "ablation": [
+  {
+   "without": "ends-indicators",
+   "def": 50,
+   "tp": 27,
+   "fp": 23,
+   "fn": 10,
+   "recall": 73,
+   "precision": 54,
+   "f1": 62.1
+  },
+  {
+   "without": "chunk-repetition",
+   "def": 39,
+   "tp": 29,
+   "fp": 10,
+   "fn": 8,
+   "recall": 78.4,
+   "precision": 74.4,
+   "f1": 76.3
+  },
+  {
+   "without": "slash-gt",
+   "def": 44,
+   "tp": 31,
+   "fp": 13,
+   "fn": 6,
+   "recall": 83.8,
+   "precision": 70.5,
+   "f1": 76.5
+  },
+  {
+   "without": "verb-exceptions",
+   "def": 40,
+   "tp": 27,
+   "fp": 13,
+   "fn": 10,
+   "recall": 73,
+   "precision": 67.5,
+   "f1": 70.1
+  },
+  {
+   "without": "symbol-role",
+   "def": 44,
+   "tp": 31,
+   "fp": 13,
+   "fn": 6,
+   "recall": 83.8,
+   "precision": 70.5,
+   "f1": 76.5
+  },
+  {
+   "without": "starting-text",
+   "def": 44,
+   "tp": 31,
+   "fp": 13,
+   "fn": 6,
+   "recall": 83.8,
+   "precision": 70.5,
+   "f1": 76.5
+  },
+  {
+   "without": "abbreviation",
+   "def": 44,
+   "tp": 31,
+   "fp": 13,
+   "fn": 6,
+   "recall": 83.8,
+   "precision": 70.5,
+   "f1": 76.5
+  }
+ ],
+ "errors": [
+  {
+   "id": "g02-012",
+   "set": "g02",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a Broker user, I want to Upload and Validate the error message to have accurate text."
+  },
+  {
+   "id": "g02-018",
+   "set": "g02",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a Developer, I want D Files generation requests to be managed and cached, so that duplicate requests do not cause performance issues."
+  },
+  {
+   "id": "g02-081",
+   "set": "g02",
+   "criterion": "atomic",
+   "type": "FN",
+   "text": "As a Developer, I want to prevent duplicate transactions from being published and deal with the time gap between validation and the publishing decision."
+  },
+  {
+   "id": "g02-082",
+   "set": "g02",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a FABS user, I want to submit a citywide as a PPoPZIP and pass validations."
+  },
+  {
+   "id": "g02-097",
+   "set": "g02",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As an agency user, I want a landing page to navigate to either FABS or DABS pages, so that I can access both sides of the site."
+  },
+  {
+   "id": "g04-003",
+   "set": "g04",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a user, I want to be able to enter my zip code and get a list of nearby recycling facilities, so that I can determine which ones I should consider."
+  },
+  {
+   "id": "g04-006",
+   "set": "g04",
+   "criterion": "atomic",
+   "type": "FN",
+   "text": "As a user, I want to be able to select different types of recyclable waste, so I have and get a list of facilities that accept each type and their opening hours, so that I can find an optimal route and schedule."
+  },
+  {
+   "id": "g04-048",
+   "set": "g04",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a user, I want to be able to browse through the list of facolities and see which ones are environment-friendly, so that I can know for sure my waste is not going to leave a negative ecological footprint."
+  },
+  {
+   "id": "g04-051",
+   "set": "g04",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a recyclingfacility, I want to be able to communicate directly with the site admin and convey any issues or concerns I have, so that they fix them."
+  },
+  {
+   "id": "g05-019",
+   "set": "g05",
+   "criterion": "minimal",
+   "type": "FP",
+   "text": "As a Data Publishing User, I want to know what my data needs to be able to be visualised on a map, So that I can visualise it on a map."
+  },
+  {
+   "id": "g05-019",
+   "set": "g05",
+   "criterion": "uniform",
+   "type": "FP",
+   "text": "As a Data Publishing User, I want to know what my data needs to be able to be visualised on a map, So that I can visualise it on a map."
+  },
+  {
+   "id": "g05-029",
+   "set": "g05",
+   "criterion": "atomic",
+   "type": "FN",
+   "text": "As a Data Consuming User, I want to be able to filter, sort and aggregate data by multiple dimensions and measures, So that I can get more granular views on the data."
+  },
+  {
+   "id": "g05-037",
+   "set": "g05",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a Data Consuming User, I want to be able to share a view state as a URL to social networks, So that I can share data that I have found with others."
+  },
+  {
+   "id": "g05-073",
+   "set": "g05",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As an API User, I want to be able to normalise measures by GINI and related socioeconomic indexes, So that I work with datasets in reference to their contextual constraints."
+  },
+  {
+   "id": "g05-099",
+   "set": "g05",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a Data Consuming User, I want to visualize by default in treemap, bubble tree, map and pivot table the most recent year when my dataset contain multiple years, So that I'm not confused with the amounts."
+  },
+  {
+   "id": "g08-017",
+   "set": "g08",
+   "criterion": "atomic",
+   "type": "FN",
+   "text": "As a Developer, I want to do exploratory data analysis in R and operationalize that analysis in Python, so that I can use the best tool for the job."
+  },
+  {
+   "id": "g08-039",
+   "set": "g08",
+   "criterion": "well-formed",
+   "type": "FN",
+   "text": "As a ResearcherDeveloper, would like the ability import/export from MS-SQL, so that I can use Data Packages in workflows that involve MS-SQL."
+  },
+  {
+   "id": "g08-039",
+   "set": "g08",
+   "criterion": "atomic",
+   "type": "FN",
+   "text": "As a ResearcherDeveloper, would like the ability import/export from MS-SQL, so that I can use Data Packages in workflows that involve MS-SQL."
+  },
+  {
+   "id": "g08-062",
+   "set": "g08",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a RepositoryManagerResearcher, I want an app that acts as a match-making service for packaging data, so that owners are paired with data packagers."
+  }
+ ]
+}
