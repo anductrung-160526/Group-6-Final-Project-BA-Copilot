@@ -89,3 +89,22 @@ npx tsx scripts/qus-eval/eval.ts --split all --tagger corenlp --jars $D/stanford
 npx tsx scripts/qus-eval/eval.ts --split all --out dataset/export/eval/qus-v1/aqusa-v1-wink.json
 python3 scripts/qus-eval/tables.py dataset/export/eval/qus-v1/aqusa-v1-corenlp.json "AQUSA v1 (paper)"
 ```
+
+## 9. Kiểm tra độ tin cậy của nhãn: 3 người gán độc lập (agent AI không có ký ức)
+- **Cách làm:** 3 agent mới, mỗi agent chỉ được đọc `GUIDELINES.md` và danh sách 671 story (không kèm nhãn), không xem nhãn, mã hay kết quả của bộ chấm. Mỗi agent tự gán toàn bộ 671 story. Nhãn lưu ở `dataset/qus-eval/independent/agent{1,2,3}.jsonl`; nhãn đa số (≥ 2/3) ở `majority.jsonl`. Script: `scripts/qus-eval/agreement.py`.
+- **Độ đồng thuận (Cohen's kappa từng cặp, gộp 5 tiêu chí):** giữa các agent 0,98; giữa từng agent và nhãn chính 0,96–0,97. Fleiss' kappa giữa 3 agent: well-formed 1,00, atomic 0,98, minimal 0,93, uniform 1,00, unique 1,00.
+- **Nhãn chính khác nhãn đa số ở 5 chỗ:** g02-018 atomic, g04-006 uniform, g08-055 atomic, g10-058 minimal (nhãn chính đánh lỗi, đa số không); g03-042 minimal ("such has", đa số đánh lỗi, nhãn chính bỏ sót).
+- **Kết quả AQUSA v1 trên từng bộ nhãn (micro):**
+
+| Bộ nhãn | Lỗi thật | v1 bài báo, CoreNLP: Recall / Precision | v1 bài báo, wink: R / P | Bản trong app (v1+v2 + nhóm): R / P / F1 |
+|---|---|---|---|---|
+| Nhãn chính (AI gán, đã thấy kết quả các vòng trước) | 71 | 70,4 / 43,5 | 67,6 / 43,2 | 84,5 / 59,4 / 69,8 |
+| Agent 1 | 67 | 68,7 / 40,0 | 65,7 / 39,6 | 82,1 / 54,5 / 65,5 |
+| Agent 2 | 70 | 68,6 / 41,7 | 65,7 / 41,4 | 81,4 / 56,4 / 66,7 |
+| Agent 3 | 69 | 69,6 / 41,7 | 66,7 / 41,4 | 82,6 / 56,4 / 67,1 |
+| **Đa số 3 agent** | 68 | **69,1 / 40,9** | 66,2 / 40,5 | 82,4 / 55,4 / 66,3 |
+
+- **Nhận xét:**
+  - Nhãn chính cho kết quả **cao hơn nhãn độc lập khoảng 1–4 điểm** (ví dụ F1 bản trong app 69,8 so với 66,3). Thiên lệch nghi ngờ trước đó **có thật nhưng nhỏ**; kết luận chính không đổi.
+  - Bảng 4–5 ở mục 3 nên đọc kèm khoảng này: với nhãn độc lập, AQUSA v1 (CoreNLP) đạt recall khoảng 69, precision khoảng 41.
+  - **Giới hạn:** các agent cùng một loại mô hình AI nên dễ sai giống nhau; hướng dẫn có ví dụ lấy từ chính bộ dữ liệu nên dễ đồng thuận. Kappa cao không chứng minh nhãn đúng; người gán thật (`kappa-sample.csv`) vẫn là bằng chứng mạnh nhất.
