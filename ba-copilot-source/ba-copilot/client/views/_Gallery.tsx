@@ -28,6 +28,7 @@ import {
   SuggestionCard,
   Tabs,
   ToastItem,
+  fmtTime,
   useUI,
   type ApprovalStatus,
   type BadgeTone,
@@ -120,6 +121,8 @@ export function Gallery() {
   const [appr, setAppr] = useState<ApprovalStatus>("draft");
   const [revision, setRevision] = useState(false);
   const [lead, setLead] = useState(true);
+  const [fname, setFname] = useState("Online store");
+  const [fdesc, setFdesc] = useState("");
   const [cards, setCards] = useState<Record<string, string>>({ t1: "todo", t2: "todo", t3: "doing", t4: "done" });
   const cols = [
     ["todo", "To do"],
@@ -385,6 +388,17 @@ export function Gallery() {
           <Field label="Module name" hint="Required, up to 80 characters">
             <input placeholder="Enter a name…" />
           </Field>
+          <div className="gallery-label">Field required + count + hint (empty → grey reason why the button is disabled)</div>
+          <Field label="Project name" required count={{ value: fname.length, max: 200 }} hint={fname.trim() ? undefined : "Enter a project name to continue"}>
+            <input value={fname} maxLength={200} aria-required="true" onChange={(e) => setFname(e.target.value)} placeholder="e.g. Online sales system" />
+          </Field>
+          <div className="gallery-label">Field error (red line + red border)</div>
+          <Field label="Project name" required count={{ value: 15, max: 200 }} error="A project with this name already exists. Please choose another name.">
+            <input defaultValue="Warehouse admin" maxLength={200} aria-required="true" aria-invalid="true" />
+          </Field>
+          <Field label="Description" count={{ value: fdesc.length, max: 2000 }}>
+            <textarea rows={2} value={fdesc} maxLength={2000} onChange={(e) => setFdesc(e.target.value)} placeholder="Goals, scope, users…" />
+          </Field>
           <Field label="Status">
             <Select
               value={sel}
@@ -496,6 +510,28 @@ export function Gallery() {
           <Empty title="No modules yet">Click "+ New module" to get started.</Empty>
         </Section>
       </div>
+
+      <Section title="Project tiles (.tile) – title max 2 lines + tooltip, footers aligned">
+        <div className="grid">
+          {[
+            ["Online store", "Multi-channel sales for a fashion retailer.", "2026-10-21T09:30:00"],
+            ["Customer relationship management system for a nationwide retail chain – phase two, extended to partner and first-tier dealer channels", "   ", "2026-10-20T14:05:00"],
+            ["Warehouse", "Goods in / out / stock, periodic stock-takes, low-stock alerts and monthly reports for every branch.", "2026-01-02T08:00:00"],
+          ].map(([n, d, t]) => (
+            <div key={n} className="tile">
+              <div className="tile-title" title={n}>
+                {n}
+              </div>
+              <div className="muted small clamp">{d.trim() || "No description"}</div>
+              <div className="tile-foot">
+                <span>2 modules</span>
+                <span>{fmtTime(t)}</span>
+                <RowActions onEdit={() => toast("Edit")} onDelete={() => toast("Deleted")} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
 
       <Section title="Kanban (drag cards between columns)">
         <div className="kanban">

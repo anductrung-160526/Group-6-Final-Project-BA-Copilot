@@ -18,6 +18,7 @@
   --color-strong: #1c2a30;
   --color-body: #3a4a52;
   --color-muted: #7c8b93;
+  --color-placeholder: #9aa8ae; /* chữ gợi ý trong ô nhập – nhạt hơn muted để không lẫn với chữ thật */
   --color-border-strong: #c9d5db;
   --color-border: #e3eaec;
   --color-bg-sub: #f6fbfb;
@@ -107,6 +108,7 @@
   --topbar-live-h: var(--topbar-h); /* chiều cao thật lúc chạy – TopBar ghi đè (màn hẹp, đang thu gọn) */
   --logo-size: 30px;
   --logo-size-compact: 24px;
+  --login-card-w: 420px; /* độ rộng tối đa thẻ trang đăng nhập (LOGIN_HTML) */
   --motion-fast: 180ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --drawer-w: 40vw; /* ngăn phải rộng 40% màn hình (quyết định đợt 5) */
@@ -199,6 +201,12 @@ textarea:focus,
 select:focus {
   outline: 2px solid var(--color-accent-soft);
   border-color: var(--color-accent);
+}
+/* Chữ gợi ý nhạt rõ so với chữ thật (Firefox mặc định giảm opacity → đặt lại 1) */
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-placeholder);
+  opacity: 1;
 }
 .muted {
   color: var(--color-muted);
@@ -365,15 +373,33 @@ select:focus {
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-h3);
   color: var(--color-heading);
+  /* tối đa 2 dòng rồi "…"; tên đầy đủ đặt ở thuộc tính title (tooltip) */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.tile .clamp {
+  overflow-wrap: anywhere;
 }
 .tile-foot {
   display: flex;
-  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--space-3);
+  row-gap: var(--space-1);
   font-size: var(--font-size-small);
   color: var(--color-muted);
-  margin-top: var(--space-2);
+  /* dồn chân thẻ xuống đáy để các thẻ cùng hàng thẳng nhau */
+  margin-top: auto;
+  padding-top: var(--space-2);
 }
-.tile-foot .link-danger {
+.tile-foot > span {
+  white-space: nowrap;
+}
+.tile-foot .link-danger,
+.tile-foot .row-actions {
   margin-left: auto;
 }
 
@@ -658,6 +684,45 @@ select:focus {
 .field-hint {
   font-size: var(--font-size-small);
   color: var(--color-muted);
+}
+/* Field: dấu bắt buộc, hàng ghi chú/lỗi + bộ đếm ký tự, trạng thái lỗi */
+.field-req {
+  color: var(--color-danger);
+  margin-left: var(--space-0-5);
+}
+.field-meta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.field-error {
+  font-size: var(--font-size-small);
+  color: var(--color-danger);
+}
+.field-count {
+  margin-left: auto;
+  font-size: var(--font-size-small);
+  color: var(--color-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.field-count.full {
+  color: var(--color-warning);
+}
+.field-count.over {
+  color: var(--color-danger);
+}
+.field-invalid input,
+.field-invalid textarea,
+.field-invalid select {
+  border-color: var(--color-danger);
+}
+.field-invalid input:focus,
+.field-invalid textarea:focus,
+.field-invalid select:focus {
+  outline-color: var(--color-danger-soft);
+  border-color: var(--color-danger);
 }
 .toasts {
   position: fixed;
@@ -2729,4 +2794,56 @@ select:focus {
   .topbar .logo {
     transition: none;
   }
+}
+
+/* ---------- Sign-in page ----------
+   Trang mật khẩu truy cập (server/auth.ts – LOGIN_HTML, hiện khi đặt APP_PASSWORD).
+   Bố cục căn giữa đặt trên khung bọc .login-page, KHÔNG đặt trên <body>: tiện ích trình duyệt
+   (trình quản lý mật khẩu) chèn phần tử vào body làm lệch lưới căn giữa. */
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: var(--color-bg);
+}
+.login-card {
+  width: min(var(--login-card-w), 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-8) var(--space-6) var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+.login-card .brand {
+  font-size: var(--font-size-lg);
+}
+.login-head h1 {
+  font-size: var(--font-size-h2);
+}
+.login-head p {
+  margin: 0;
+}
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+}
+.login-submit {
+  width: 100%;
+  justify-content: center;
+  padding-top: var(--space-2-5);
+  padding-bottom: var(--space-2-5);
+}
+.login-error {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}
+.login-error:empty {
+  display: none;
 }

@@ -54,6 +54,9 @@ export class ApiError extends Error {
 /** true khi lỗi là chặn đè (409 CONFLICT). */
 export const isConflict = (e: unknown): e is ApiError => e instanceof ApiError && e.code === "CONFLICT";
 
+/** true khi lỗi là 404 (dự án / module không tồn tại) – màn hiện trạng thái "không tìm thấy" thay vì toast. */
+export const isNotFound = (e: unknown): e is ApiError => e instanceof ApiError && e.status === 404;
+
 /** Đường dẫn màn đăng nhập thành viên (C3 làm LoginView). */
 export const LOGIN_HASH = "#/login";
 

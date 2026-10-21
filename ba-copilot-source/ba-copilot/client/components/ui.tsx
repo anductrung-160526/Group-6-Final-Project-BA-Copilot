@@ -537,12 +537,59 @@ export function Empty({ title, children }: { title: string; children?: React.Rea
   );
 }
 
-export function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+/** Số kiểu tiếng Anh: 2000 → "2,000". */
+export const fmtNum = (n: number) => n.toLocaleString("en-US");
+
+/**
+ * Bọc một ô nhập có nhãn.
+ * - `required`: dấu * đỏ sau nhãn (ô nhập nên đặt thêm `aria-required`).
+ * - `count={{ value, max }}`: bộ đếm "12/200" góc phải dưới ô – luôn đặt kèm `maxLength={max}` trên ô nhập.
+ * - `error`: dòng lỗi đỏ dưới ô, viền ô chuyển đỏ; có lỗi thì `hint` bị ẩn.
+ */
+export function Field({
+  label,
+  hint,
+  required,
+  count,
+  error,
+  children,
+}: {
+  label: string;
+  hint?: React.ReactNode;
+  required?: boolean;
+  count?: { value: number; max: number };
+  error?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  const note = error ? (
+    <span className="field-error" role="alert">
+      {error}
+    </span>
+  ) : hint ? (
+    <span className="field-hint">{hint}</span>
+  ) : null;
+  const countState = count ? (count.value > count.max ? "over" : count.value === count.max ? "full" : "") : "";
   return (
-    <label className="field">
-      <span className="field-label">{label}</span>
+    <label className={`field ${error ? "field-invalid" : ""}`}>
+      <span className="field-label">
+        {label}
+        {required && (
+          <span className="field-req" aria-hidden="true">
+            *
+          </span>
+        )}
+      </span>
       {children}
-      {hint && <span className="field-hint">{hint}</span>}
+      {(note || count) && (
+        <span className="field-meta">
+          {note ?? <span />}
+          {count && (
+            <span className={`field-count ${countState}`}>
+              {fmtNum(count.value)}/{fmtNum(count.max)}
+            </span>
+          )}
+        </span>
+      )}
     </label>
   );
 }
@@ -1127,4 +1174,14 @@ export function SuggestionCard({
   );
 }
 
-export const fmtTime = (iso: string) => new Date(iso).toLocaleString("en-US", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" });
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const pad2 = (n: number) => String(n).padStart(2, "0");
+/**
+ * Thời điểm dạng "Oct 21, 2026 11:54" (giờ máy người xem, 24 giờ). Luôn có năm; tên tháng viết chữ để không nhầm
+ * tháng/ngày. Dùng khoảng trắng không ngắt ( ) nên không bao giờ xuống dòng giữa ngày và giờ.
+ */
+export const fmtTime = (iso: string) => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+};

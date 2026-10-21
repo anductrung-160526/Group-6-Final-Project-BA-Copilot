@@ -37,7 +37,7 @@ export function ProjectView({ id, tab, initialModuleId }: { id: string; tab: str
       <div className="page-head">
         <div>
           <h1>{data.name}</h1>
-          <p className="muted">{data.description || "No description"}</p>
+          <p className="muted">{data.description?.trim() || "No description"}</p>
         </div>
         {tab === "modules" && (
           <Btn kind="primary" onClick={() => setOpen(true)} data-testid="new-module">

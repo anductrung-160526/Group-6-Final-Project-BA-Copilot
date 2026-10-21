@@ -5,7 +5,7 @@
 
 import * as members from "../repo/members.ts";
 import * as repo from "../repo.ts";
-import { getDb } from "../db.ts";
+import { MSG, projectDescError, projectNameError } from "../../shared/projectName.ts";
 import { BizError } from "../service.ts";
 import { currentMember, HttpError, route, str, type HandlerCtx } from "../http.ts";
 import { on } from "../events.ts";
@@ -58,14 +58,25 @@ route("DELETE", "/api/members/:id", (ctx) => {
 
 // TẠM (R-041): sửa tên / mô tả dự án cho nút Sửa ở trang chủ. app.ts + repo.ts (khoá / của agent khác) chưa có
 // route này nên đăng ký tạm ở đây; C0 chuyển sang app.ts + repo.updateProject khi gộp rồi xoá khối này.
+// Cùng luật với POST /api/projects (shared/projectName.ts): trim, quá dài → 400 (không cắt), trùng tên dự án KHÁC → 409;
+// đổi về chính tên của mình (kể cả chỉ đổi hoa/thường) vẫn được. Kiểm tra hết rồi mới ghi.
 route("PATCH", "/api/projects/:id", ({ params, body }) => {
   if (!repo.getProject(params.id)) throw new BizError("Project not found", 404);
+  const patch: { name?: string; description?: string } = {};
   if (body.name !== undefined) {
-    const n = str(body.name, 200).trim();
-    if (!n) throw new BizError("Project name is required");
-    getDb().prepare("UPDATE projects SET name = ? WHERE id = ?").run(n, params.id);
+    const n = typeof body.name === "string" ? body.name.trim() : "";
+    const err = projectNameError(n);
+    if (err) throw new BizError(err);
+    if (repo.findProjectByName(n, params.id)) throw new BizError(MSG.duplicateProject(n), 409);
+    patch.name = n;
   }
-  if (body.description !== undefined) getDb().prepare("UPDATE projects SET description = ? WHERE id = ?").run(str(body.description, 2000), params.id);
+  if (body.description !== undefined) {
+    const d = typeof body.description === "string" ? body.description.trim() : "";
+    const err = projectDescError(d);
+    if (err) throw new BizError(err);
+    patch.description = d;
+  }
+  repo.updateProject(params.id, patch);
   return repo.getProject(params.id);
 });
 

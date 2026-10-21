@@ -8,6 +8,12 @@ const COOKIE = "bac_session";
 const TTL_MS = 30 * 24 * 3600 * 1000;
 const attempts = new Map<string, { n: number; reset: number }>();
 
+/**
+ * Tệp tĩnh mở công khai (không cần đăng nhập) để trang đăng nhập dùng chung giao diện với app.
+ * Chỉ stylesheet – KHÔNG bao giờ thêm /app.js, *.map hay /api/* vào đây.
+ */
+export const PUBLIC_PATHS: ReadonlySet<string> = new Set(["/app-style.css"]);
+
 export function authEnabled(): boolean {
   return Boolean(process.env.APP_PASSWORD?.trim());
 }
@@ -80,23 +86,40 @@ export function logout(req: IncomingMessage, res: ServerResponse): void {
   res.setHeader("set-cookie", `${COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${isHttps(req) ? "; Secure" : ""}`);
 }
 
+// Biểu tượng tab: data-URI SVG không đọc được biến CSS nên ghi thẳng mã màu Mint
+// (#16A6AE → #0F5A6E = --color-mint-500 → --color-mint-700). Giữ khớp với public/index.html.
+const FAVICON =
+  "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%2316A6AE'/><stop offset='1' stop-color='%230F5A6E'/></linearGradient></defs><rect width='32' height='32' rx='7' fill='url(%23g)'/><text x='16' y='21' font-size='13' font-family='Arial' font-weight='700' fill='white' text-anchor='middle'>BA</text></svg>";
+
+// Trang đăng nhập (cổng APP_PASSWORD) dùng chung stylesheet của app (/app-style.css, mở công khai qua PUBLIC_PATHS):
+// token, font, .brand/.logo như thanh trên, .field/.field-label, .btn-primary; bố cục ở khối "Sign-in page" cuối client/styles.css.
+// Căn giữa trên khung bọc .login-page, không trên <body> (tiện ích trình duyệt chèn phần tử vào body làm lệch lưới).
+// Khối <style> nhỏ chỉ có hiệu lực khi stylesheet không tải được (lớp .no-css) để trang vẫn dùng được.
 export const LOGIN_HTML = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Sign in – BA Copilot</title>
-<style>
-*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f6f8;font:14px Inter,"Segoe UI",system-ui,-apple-system,Arial,sans-serif;color:#1c2430}
-.card{background:#fff;border:1px solid #e3e6eb;border-radius:12px;padding:28px;width:min(360px,92vw);box-shadow:0 8px 30px rgba(16,24,40,.08)}
-.logo{width:40px;height:40px;border-radius:10px;background:#2f5bea;color:#fff;display:grid;place-items:center;font-weight:700;margin-bottom:14px}
-h1{font-size:18px;margin:0 0 4px}p{color:#677283;margin:0 0 18px}
-input{width:100%;font:inherit;padding:10px 12px;border:1px solid #cfd4dc;border-radius:8px;margin-bottom:12px}
-button{width:100%;font:inherit;font-weight:600;padding:10px;border:0;border-radius:8px;background:#2f5bea;color:#fff;cursor:pointer}
-.err{color:#b42318;min-height:20px;margin-top:10px;font-size:13px}
-</style></head><body>
-<form class="card" id="f"><div class="logo">BA</div><h1>BA Copilot</h1><p>Enter the access password to continue.</p>
-<input id="p" type="password" placeholder="Password" autocomplete="current-password" autofocus required/>
-<button type="submit">Sign in</button><div class="err" id="e"></div></form>
+<link rel="icon" href="${FAVICON}"/>
+<style>.no-css body{font-family:system-ui,sans-serif;max-width:360px;margin:10vh auto;padding:0 16px}.no-css input,.no-css button{display:block;width:100%;margin:8px 0;padding:8px}</style>
+<link rel="stylesheet" href="/app-style.css" onerror="document.documentElement.classList.add('no-css')"/>
+</head><body>
+<div class="login-page"><main class="login-card">
+<div class="brand"><span class="logo">BA</span><span>BA Copilot<span class="brand-sub">Requirements → Documents → Diagrams → Prototype → Test</span></span></div>
+<div class="login-head"><h1>Sign in</h1><p class="muted">Enter the access password to continue.</p></div>
+<form class="login-form" id="f" novalidate>
+<label class="field" for="p"><span class="field-label">Password</span>
+<input id="p" name="password" type="password" placeholder="Enter the password" autocomplete="current-password" aria-describedby="e" autofocus required/></label>
+<p class="login-error" id="e" role="alert" aria-live="polite"></p>
+<button class="btn btn-primary login-submit" id="b" type="submit">Sign in</button>
+</form>
+</main></div>
 <script>
-document.getElementById('f').addEventListener('submit',async function(ev){ev.preventDefault();var e=document.getElementById('e');e.textContent='';
-var r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:document.getElementById('p').value})});
-if(r.ok){location.reload()}else{var d=await r.json().catch(function(){return{}});e.textContent=d.error||'Sign-in failed'}});
+(function(){var f=document.getElementById('f'),p=document.getElementById('p'),e=document.getElementById('e'),b=document.getElementById('b');
+f.addEventListener('submit',async function(ev){ev.preventDefault();if(b.disabled)return;e.textContent='';
+if(!p.value){e.textContent='Please enter the password';p.focus();return}
+b.disabled=true;b.textContent='Signing in…';
+try{var r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:p.value})});
+if(r.ok){location.reload();return}
+var d=await r.json().catch(function(){return{}});e.textContent=d.error||'Sign-in failed'}
+catch(err){e.textContent='Could not reach the server. Please try again.'}
+b.disabled=false;b.textContent='Sign in';p.select()});})();
 </script></body></html>`;

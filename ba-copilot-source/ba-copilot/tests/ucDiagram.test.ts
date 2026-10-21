@@ -148,8 +148,10 @@ before(async () => {
 after(() => server.close());
 
 /** Module có 1 màn đã duyệt và tài liệu đã sinh (Mock). */
+// Tên dự án không được trùng (409 – shared/projectName.ts) nên mỗi lần gọi đánh số riêng.
+let projectNo = 0;
 async function moduleWithDocs() {
-  const p = await api("POST", "/api/projects", { name: "Dự án sơ đồ" });
+  const p = await api("POST", "/api/projects", { name: `Dự án sơ đồ ${++projectNo}` });
   const m = await api("POST", `/api/projects/${p.data.id}/modules`, { name: "Xác thực", requirementInput: "As a Khách hàng, I want đăng nhập để mua hàng" });
   const mid = m.data.id as string;
   const s = await api("POST", `/api/modules/${mid}/screens`, { prompt: "Màn hình đăng nhập bằng email và mật khẩu, nút Đăng nhập", name: "Đăng nhập" });

@@ -66,6 +66,7 @@ Xem trực quan: mở app tại `#/_gallery`.
 | `--color-strong` | `#1C2A30` | Chữ chính |
 | `--color-body` | `#3A4A52` | Chữ phụ đậm |
 | `--color-muted` | `#7C8B93` | Chú thích, nhãn phụ, tiêu đề cột |
+| `--color-placeholder` | `#9AA8AE` | Chữ gợi ý (placeholder) trong mọi ô nhập / ô nhiều dòng – nhạt hơn `muted` để không lẫn với chữ thật (đã đặt sẵn ở `input::placeholder`, `textarea::placeholder`; không khai báo lại trong màn) |
 | `--color-border-strong` | `#C9D5DB` | Viền ô nhập, nút phụ |
 | `--color-border` | `#E3EAEC` | Đường kẻ, viền thẻ |
 | `--color-bg-sub` | `#F6FBFB` | Nền phụ (tiêu đề bảng, vùng kéo thả, canvas) |
@@ -120,6 +121,7 @@ Quy ước: trong thẻ/hộp thoại dùng 12–16 · giữa các khu vực tro
 | `--topbar-h` / `--topbar-h-compact` | 52px / 40px | Chiều cao thanh trên lúc ở đầu trang / khi đã cuộn (màn > 640px) |
 | `--topbar-live-h` | mặc định `--topbar-h` | Chiều cao **thật** của thanh trên lúc chạy (TopBar ghi đè, gồm cả màn hẹp 2 hàng và lúc thu gọn). Phần tử dính bên dưới thanh trên đặt `top` theo biến này, không theo `--topbar-h` |
 | `--logo-size` / `--logo-size-compact` | 30px / 24px | Logo thanh trên |
+| `--login-card-w` | 420px | Độ rộng tối đa thẻ trang đăng nhập (`.login-card`) |
 | `--motion-fast`, `--ease-standard` | 180ms, `cubic-bezier(0.2, 0, 0, 1)` | Chuyển động ngắn (thanh trên thu gọn). Mọi chuyển động phải tắt trong `@media (prefers-reduced-motion: reduce)` |
 | `--side-nav-w` / `--side-nav-rail-w` | 260px / 52px | Menu trái dự án lúc mở / lúc thu gọn còn dải icon |
 | `--kanban-col-min` | 200px | Bề rộng tối thiểu mỗi cột `.kanban`: 4 cột vừa vùng nội dung ở 1280px khi menu trái mở; hẹp hơn thì cuộn ngang trong bảng |
@@ -141,7 +143,7 @@ App chưa có chế độ tối nên chưa có bộ token tối.
 | `EditingBadge` | `names: string[]`, `max?` (2) | "Being edited by A, B and N others" (badge tím). Danh sách rỗng thì không hiện. Đặt cạnh tiêu đề màn / tài liệu. |
 | `ConflictNotice` | `onReload`, `message?`, `busy?` | Khung vàng khi lưu bị 409. Mặc định: "Bản đã thay đổi – có người vừa sửa. Tải lại để xem bản mới." + nút **Tải lại**. Đặt ngay trên vùng đang sửa. |
 | `ScoreBadge` | `score` 0–100, `showLabel?` | Điểm QUS: ≥ 80 xanh "Good", 60–79 vàng "Fair", < 60 đỏ "Poor" (khớp `shared/qus.ts`). |
-| `Field` | `label`, `hint?`, `children` | Bọc mọi ô nhập có nhãn. |
+| `Field` | `label`, `hint?` (chữ / React), `required?`, `count?` (`{ value, max }`), `error?`, `children` | Bọc mọi ô nhập có nhãn. `required` → dấu `*` đỏ sau nhãn (ô nhập đặt thêm `aria-required`). `count` → bộ đếm "12/200" góc phải dưới ô (số kiểu Anh: "…/2,000"; chạm giới hạn chữ vàng, vượt giới hạn – dữ liệu cũ – chữ đỏ); luôn đặt kèm `maxLength={max}` trên ô nhập. `error` → dòng lỗi đỏ dưới ô, viền ô đỏ, thay chỗ `hint` (ô nhập đặt `aria-invalid`). Quy tắc dùng: mục 3.4. |
 | `Select` | `value`, `options`, `onChange`, `placeholder?` | Mọi ô chọn một giá trị. |
 | `MemberPicker` | `members`, `value`, `onChange` | Chọn người phụ trách. Truyền `role` là nhãn đã dịch (`ROLE_LABEL` trong `client/currentMember.ts`: "BA", "BA Lead"), không truyền mã thô. |
 | `Avatar` | `name?`, `size?` | Chữ cái đầu tên, dùng trên thẻ, danh sách. |
@@ -163,6 +165,8 @@ App chưa có chế độ tối nên chưa có bộ token tối.
 | `GitOutcome` | `git` (`message`, `commitUrl?`) | Nội dung toast sau khi BA Lead **Duyệt**: thông báo GitHub của server + liên kết "Xem commit". `toast(<GitOutcome git={r.git} />, r.git.pushed ? "ok" : "info")` – `toast` nhận cả nội dung React. |
 | `useUI().run` | `label`, `fn` | Hiện lớp "AI đang xử lý…" và tự đổi lỗi thành toast. |
 | `useUI().confirm` | `title`, `message?`, `okLabel?`, `danger?` → `Promise<boolean>` | **Mọi câu hỏi xác nhận** (xoá, sinh lại, bỏ duyệt): hiện `Modal` với nút Huỷ + nút đồng ý (`danger` cho xoá). Không dùng `window.confirm`. |
+| `fmtTime(iso)` | chuỗi ISO | Thời điểm dạng **"Oct 21, 2026 11:54"** (giờ máy người xem, 24 giờ, luôn có năm, tên tháng viết chữ để không nhầm ngày/tháng; nối bằng khoảng trắng không ngắt nên không xuống dòng giữa ngày và giờ). Chuỗi không hợp lệ → "—". Mọi chỗ hiện ngày giờ dùng hàm này. |
+| `fmtNum(n)` | số | Số kiểu Anh: 2000 → "2,000" (bộ đếm `Field count`). |
 
 ### 3.1. Bảng tên icon (`Icon name=…`)
 
@@ -230,13 +234,34 @@ Trong cả hai trường hợp, **không** tự gọi `confirm` trước `onDele
 | `.notice`, `.notice-warn` | Thông báo nằm trong trang (dùng qua `ConflictNotice`) |
 | `.screen-item.active`, `.doc-nav button.on` | Menu trái có sẵn ở Design Studio và Tài liệu (cùng kiểu với `.side-nav-item`) |
 | `.tbl` (+ `tr.clickable`, `tr.selected`) | Bảng: tiêu đề cột chữ hoa xám; hàng hover/chọn nền mint-50, vạch trái mint-500 |
-| `.tile`, `.grid` | Lưới thẻ (dự án, module) |
+| `.tile`, `.grid` | Lưới thẻ (dự án, module). `.tile-title` tự cắt tối đa 2 dòng rồi "…" – luôn đặt tên đầy đủ vào thuộc tính `title` (tooltip); mô tả dùng `.clamp` (2 dòng), mô tả rỗng hoặc chỉ có khoảng trắng hiện "No description"; `.tile-foot` tự dồn xuống đáy thẻ để chân các thẻ cùng hàng thẳng nhau, `RowActions` trong chân thẻ tự dạt phải (không cần `.spacer`), thẻ hẹp thì xuống dòng thay vì tràn |
 | `.toolbar`, `.seg`, `.filters` | Thanh công cụ, nút phân đoạn, bộ lọc |
 | `.box`, `.box-title`, `.paper` | Khối nội dung trong panel / tài liệu |
 | `.split-2` | Hai cột bằng nhau (soạn \| xem trước), về 1 cột khi màn hẹp. Dùng ở SCR-05 Sơ đồ UC |
 | `.meters`, `.meter` | Thẻ chỉ số (Truy vết) |
 | `.kanban` | Lưới chứa các `KanbanColumn` |
 | `.suggest-block`, `.suggest-list` | Khung khối Gợi ý tiếp theo (SCR-16) ở cột trái Design Studio, chứa các `SuggestionCard` |
+
+### 3.4. Biểu mẫu trong hộp thoại (quy tắc chung)
+
+Áp dụng cho mọi `Modal` tạo / sửa nhanh (mẫu: hộp thoại **New project / Edit project** ở SCR-08, `Home.tsx`).
+
+1. **Ô bắt buộc** đánh dấu bằng `Field required` (dấu `*` đỏ).
+2. **Giới hạn độ dài** đặt cả hai: `maxLength` trên ô nhập và `Field count={{ value, max }}` để người dùng thấy bộ đếm. Giới hạn lấy từ hằng dùng chung với máy chủ (vd `PROJECT_NAME_MAX` trong `shared/projectName.ts`).
+3. **Nút chính bị khoá thì phải nói lý do ngay dưới ô** (không dùng tooltip):
+   - ô bắt buộc còn trống → `hint` xám, vd "Enter a project name to continue";
+   - dữ liệu sai / trùng → `error` đỏ, vd "A project with this name already exists. Please choose another name.". Kiểm tra trùng ngay khi gõ nếu danh sách đã có sẵn (khi sửa thì bỏ qua chính đối tượng đang sửa).
+4. Máy chủ vẫn từ chối (409 trùng, 400 sai dữ liệu) → **giữ hộp thoại mở**, hiện thông báo của máy chủ vào `error` của đúng ô thay vì toast; sửa ô đó thì lỗi tự mất.
+5. **Enter** trong ô một dòng = bấm nút chính (chỉ khi hợp lệ; bỏ qua lúc bộ gõ đang ghép chữ – `isComposing`); Enter trong `textarea` vẫn xuống dòng. Chặn gửi hai lần.
+6. **Cancel** xoá bản nháp; **Esc / bấm nền / ×** chỉ đóng – hộp thoại **tạo mới** giữ nháp cho lần mở sau. Hộp thoại **sửa** luôn mở ra với giá trị hiện tại của đối tượng.
+
+| Class | Dùng cho |
+|---|---|
+| `.field-req` | Dấu `*` bắt buộc |
+| `.field-meta` | Hàng dưới ô: ghi chú/lỗi bên trái, bộ đếm bên phải |
+| `.field-error` | Dòng lỗi đỏ (`--color-danger`, `role="alert"`) |
+| `.field-count` (`.full`, `.over`) | Bộ đếm ký tự; `.full` chạm giới hạn (`--color-warning`), `.over` vượt giới hạn (`--color-danger`) |
+| `.field-invalid` | Đặt trên `.field` khi có lỗi: viền ô và viền focus chuyển đỏ |
 
 ---
 
@@ -252,6 +277,8 @@ Trong cả hai trường hợp, **không** tự gọi `confirm` trước `onDele
 | SCR-12 Test case, SCR-13 Truy vết, SCR-14 Nhật ký AI | Bảng `.tbl`, thẻ chỉ số `.meter` (số Space Grotesk). |
 | SCR-03 Kho tài liệu | Bảng `.tbl`, nút tải lên primary. A4 chuyển vùng tải lên sang `FileDrop`, xem tệp sang `Drawer`. |
 | SCR-15 Panel QUS | Nền `bg-sub`, điểm theo ngưỡng ScoreBadge, lỗi theo kiểu `IssueList`. |
+| Trang đăng nhập (cổng `APP_PASSWORD`, `LOGIN_HTML` trong `server/auth.ts`) | Trang HTML do máy chủ trả (không qua React) nhưng dùng chung `/app-style.css` – tệp tĩnh **duy nhất** mở công khai khi chưa đăng nhập (`PUBLIC_PATHS`; `app.js`, `*.map`, `/api/*` vẫn bị chặn). Khung bọc `.login-page` căn giữa trên nền `--color-bg` (**không** đặt bố cục lên `<body>`: tiện ích trình duyệt như trình quản lý mật khẩu chèn phần tử vào body làm lệch). Thẻ `.login-card`: nền surface, viền `--color-border`, bo `--radius-lg`, bóng `--shadow-md`, rộng tối đa `--login-card-w`. Logo + tên app như thanh trên (`.brand`, `.logo` gradient mint). H1 "Sign in" Space Grotesk cỡ H2 + câu "Enter the access password to continue." (`.muted`). Ô mật khẩu theo `.field` / `.field-label` với nhãn **"Password"**. Nút **Sign in** `.btn .btn-primary` rộng hết thẻ (`.login-submit`); đang gửi thì khoá nút và đổi chữ "Signing in…". Lỗi `.login-error` màu `--color-danger`, `role="alert"` (để trống → "Please enter the password"; mất mạng → "Could not reach the server. Please try again."; còn lại hiện đúng thông báo của máy chủ). Stylesheet không tải được → khối `<style>` dự phòng tối giản (lớp `.no-css`). Class bố cục ở khối "Sign-in page" cuối `styles.css`. |
+| Biểu tượng tab (favicon) | Ô bo góc gradient mint (`#16A6AE` → `#0F5A6E`) chữ "BA" trắng, ở `public/index.html` và trang đăng nhập (`FAVICON` trong `server/auth.ts`). Là data-URI SVG nên không đọc được biến CSS – mã màu ghi thẳng, phải khớp `--color-mint-500` / `--color-mint-700`. |
 | Màn mới (SCR-01, 04, 05, 06, 07) | Bắt buộc ghép từ component mục 3. |
 
 Bố cục, nội dung và chức năng các màn cũ **không đổi**; chỉ màu, font và kiểu badge đổi theo design system này.

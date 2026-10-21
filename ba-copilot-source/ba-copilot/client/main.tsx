@@ -6,7 +6,7 @@
 // công việc, #/m/:id/<tab> → URL mới theo legacyModuleHref, #/members → #/admin.
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { UIProvider } from "./components/ui.tsx";
+import { UIProvider, useUI } from "./components/ui.tsx";
 import { TopBar } from "./components/TopBar.tsx";
 import { ProjectShell } from "./components/ProjectShell.tsx";
 import { Home } from "./views/Home.tsx";
@@ -45,6 +45,7 @@ function App() {
   const hash = useHash();
   const parts = hash.replace(/^#\/?/, "").split("/");
   const redirect = redirectOf(parts);
+  const { toast } = useUI();
 
   useEffect(() => {
     if (!redirect) return;
@@ -53,7 +54,11 @@ function App() {
     const moduleId = decodeURIComponent(parts[1]);
     get<{ projectId: string }>(`/api/modules/${encodeURIComponent(moduleId)}`)
       .then((m) => alive && window.location.replace(legacyModuleHref(m.projectId, moduleId, parts[2] || "design")))
-      .catch(() => alive && window.location.replace("#/"));
+      .catch(() => {
+        if (!alive) return;
+        toast("Module not found. It may have been deleted, or the link is wrong.", "err");
+        window.location.replace("#/");
+      });
     return () => {
       alive = false;
     };

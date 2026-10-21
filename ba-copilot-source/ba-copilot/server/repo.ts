@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { getDb, tx } from "./db.ts";
 import type { UINode } from "../shared/design.ts";
+import { projectNameKey } from "../shared/projectName.ts";
 import type {
   Annotation,
   ArtifactStatus,
@@ -49,6 +50,24 @@ export function createProject(name: string, description = ""): Project {
   const p: Project = { id: uid(), name, description, createdAt: now() };
   getDb().prepare("INSERT INTO projects (id, name, description, created_at) VALUES (?, ?, ?, ?)").run(p.id, p.name, p.description, p.createdAt);
   return p;
+}
+
+/** Dự án khác (bỏ qua `exceptId`) trùng tên theo `projectNameKey` (NFC, gộp khoảng trắng, không phân biệt hoa/thường). */
+export function findProjectByName(name: string, exceptId?: string): Project | null {
+  const key = projectNameKey(name);
+  const rows = getDb().prepare("SELECT * FROM projects").all() as Row[];
+  const r = rows.find((x) => x.id !== exceptId && projectNameKey(String(x.name ?? "")) === key);
+  return r ? toProject(r) : null;
+}
+
+/** Sửa tên / mô tả dự án (route PATCH /api/projects/:id đã kiểm tra độ dài, trùng tên). */
+export function updateProject(id: string, patch: Partial<Pick<Project, "name" | "description">>): void {
+  const cols: string[] = [];
+  const vals: any[] = [];
+  if (patch.name !== undefined) (cols.push("name = ?"), vals.push(patch.name));
+  if (patch.description !== undefined) (cols.push("description = ?"), vals.push(patch.description));
+  if (!cols.length) return;
+  getDb().prepare(`UPDATE projects SET ${cols.join(", ")} WHERE id = ?`).run(...vals, id);
 }
 
 export function getProject(id: string): Project | null {

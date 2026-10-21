@@ -10,8 +10,9 @@ import { BizError } from "./service.ts";
 import { AIError, aiConfig } from "./ai/client.ts";
 import { buildDocx } from "./export/docx.ts";
 import { testWorkbook } from "./export/xlsx.ts";
-import { authEnabled, isAuthenticated, login, logout, LOGIN_HTML } from "./auth.ts";
+import { authEnabled, isAuthenticated, login, logout, LOGIN_HTML, PUBLIC_PATHS } from "./auth.ts";
 import { buildTrace } from "../shared/trace.ts";
+import { MSG, moduleNameError, projectDescError, projectNameError } from "../shared/projectName.ts";
 import { saveExport } from "./files.ts";
 import {
   route,
@@ -96,11 +97,26 @@ route("DELETE", "/api/presence", (ctx) => {
   return { ok: true };
 });
 
+/** Chuỗi đã trim, KHÔNG cắt bớt – quá dài thì route báo lỗi thay vì lặng lẽ cắt (shared/projectName.ts). */
+const trimmed = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+const check = (err: string | null) => {
+  if (err) throw new BizError(err);
+};
+/** Tên module hợp lệ (tạo + sửa): trim, không rỗng, tối đa MODULE_NAME_MAX ký tự. */
+function moduleName(v: unknown): string {
+  const name = trimmed(v);
+  check(moduleNameError(name));
+  return name;
+}
+
 route("GET", "/api/projects", () => repo.listProjects());
 route("POST", "/api/projects", ({ body }) => {
-  const name = str(body.name, 200).trim();
-  if (!name) throw new BizError("Project name is required");
-  return repo.createProject(name, str(body.description, 2000));
+  const name = trimmed(body.name);
+  check(projectNameError(name));
+  const description = trimmed(body.description);
+  check(projectDescError(description));
+  if (repo.findProjectByName(name)) throw new BizError(MSG.duplicateProject(name), 409);
+  return repo.createProject(name, description);
 });
 route("GET", "/api/projects/:id", ({ params }) => {
   const p = repo.getProject(params.id);
@@ -111,9 +127,7 @@ route("DELETE", "/api/projects/:id", ({ params }) => (repo.deleteProject(params.
 
 route("POST", "/api/projects/:id/modules", ({ params, body }) => {
   if (!repo.getProject(params.id)) throw new BizError("Project not found", 404);
-  const name = str(body.name, 200).trim();
-  if (!name) throw new BizError("Module name is required");
-  const m = repo.createModule(params.id, name, str(body.requirementInput, 50000));
+  const m = repo.createModule(params.id, moduleName(body.name), str(body.requirementInput, 50000));
   saveModuleQus(m.id); // FN-56 (R-020)
   return repo.getModule(m.id);
 });
@@ -123,8 +137,9 @@ route("GET", "/api/modules/:id", ({ params }) => {
   return m;
 });
 route("PATCH", "/api/modules/:id", ({ params, body }) => {
+  if (!repo.getModule(params.id)) throw new BizError("Module not found", 404);
   repo.updateModule(params.id, {
-    ...(typeof body.name === "string" ? { name: str(body.name, 200) } : {}),
+    ...(typeof body.name === "string" ? { name: moduleName(body.name) } : {}),
     ...(typeof body.requirementInput === "string" ? { requirementInput: str(body.requirementInput, 50000) } : {}),
   });
   if (typeof body.requirementInput === "string") saveModuleQus(params.id); // FN-56 (R-020)
@@ -317,9 +332,10 @@ export function createApp(opts: { publicDir: string }): Server {
     try {
       // Kiểm tra sống cho nền tảng deploy (không cần đăng nhập)
       if (url.pathname === "/health") return send(res, 200, { ok: true });
-      // Bắt buộc đăng nhập khi đặt APP_PASSWORD (phiên thành viên hợp lệ cũng qua cổng này – đợt 5)
+      // Bắt buộc đăng nhập khi đặt APP_PASSWORD (phiên thành viên hợp lệ cũng qua cổng này – đợt 5).
+      // PUBLIC_PATHS: chỉ stylesheet để trang đăng nhập dùng chung giao diện (không mở app.js / API).
       const member = sessionMember(req);
-      if (!isAuthenticated(req) && !member && url.pathname !== "/api/login") {
+      if (!isAuthenticated(req) && !member && url.pathname !== "/api/login" && !PUBLIC_PATHS.has(url.pathname)) {
         if (url.pathname.startsWith("/api/")) return send(res, 401, { error: "Not signed in", code: "UNAUTHENTICATED", mode: "app" });
         res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" });
         return res.end(LOGIN_HTML);

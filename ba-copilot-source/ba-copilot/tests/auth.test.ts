@@ -39,6 +39,33 @@ test("APP_PASSWORD: chặn truy cập khi chưa đăng nhập, mở khi có cook
   assert.equal((await fetch(`${base}/api/projects`, { headers: { cookie: token.replace(/.$/, "x") } })).status, 401, "chữ ký sai bị từ chối");
 });
 
+test("trang đăng nhập dùng stylesheet chung; chỉ /app-style.css mở công khai", async () => {
+  const css = await fetch(`${base}/app-style.css`);
+  assert.equal(css.status, 200);
+  assert.match(css.headers.get("content-type") ?? "", /text\/css/);
+  const cssText = await css.text();
+  assert.match(cssText, /--color-mint-500/);
+  assert.match(cssText, /\.login-card/);
+
+  // app.js, source map và mọi trang khác vẫn trả về trang đăng nhập; API vẫn 401
+  const js = await fetch(`${base}/app.js`);
+  assert.match(js.headers.get("content-type") ?? "", /text\/html/);
+  assert.match(await js.text(), /Enter the access password/);
+  assert.equal((await fetch(`${base}/api/projects`)).status, 401);
+  const map = await fetch(`${base}/app-style.css.map`);
+  assert.match(map.headers.get("content-type") ?? "", /text\/html/, ".css.map không công khai");
+  assert.match(await map.text(), /Enter the access password/);
+
+  const html = await (await fetch(`${base}/`)).text();
+  assert.match(html, /<link rel="stylesheet" href="\/app-style\.css"/);
+  assert.match(html, /<label[^>]*>\s*<span class="field-label">Password<\/span>/);
+  assert.match(html, /autocomplete="current-password"/);
+  assert.match(html, /class="btn btn-primary login-submit"/);
+  assert.match(html, /role="alert"/);
+  assert.match(html, /<div class="login-page">/, "căn giữa trên khung bọc, không trên body");
+  assert.doesNotMatch(html, /2f5bea/i, "không còn màu xanh cũ");
+});
+
 test("giới hạn thử mật khẩu sai", async () => {
   let last = 0;
   for (let i = 0; i < 12; i++) {

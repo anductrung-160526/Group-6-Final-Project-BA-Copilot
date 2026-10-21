@@ -4,9 +4,9 @@
 // trước rồi mới viết story) – dự án chưa có module thì bước làm việc chỉ dẫn sang đó. Màn hẹp: menu trái thu thành nút
 // "Menu" mở ngăn phải. Màn rộng: nút thu gọn / mở rộng menu trái (thu gọn còn dải icon), nhớ theo người xem trong localStorage.
 // Chủ sở hữu: C3. Nội dung từng màn do agent chủ màn làm (cột owner trong projectMenu.ts).
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Module, Project } from "../../shared/types.ts";
-import { del, get } from "../api.ts";
+import { del, get, isNotFound } from "../api.ts";
 import { useCurrentMember } from "../currentMember.ts";
 import { PROJECT_MENU, WORK_STEPS, gitHref, projectHref, storiesHref, workHref, type ProjectRoute, type WorkStepItem } from "../projectMenu.ts";
 import { Btn, Drawer, Empty, ICON_NAMES, Icon, IconBtn, RowActions, Select, SideNav, sideNavHasRail, useUI, type IconName, type SideNavItem } from "./ui.tsx";
@@ -84,7 +84,13 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
   const isLead = me?.role === "BA_LEAD";
   const narrow = useNarrow();
   const [project, setProject] = useState<ProjectData | null>(null);
-  const [missing, setMissing] = useState(false);
+  // Lỗi tải dự án: 404 → "Project not found"; lỗi khác khi chưa có dữ liệu → "Couldn't load the project" + Try again
+  // (không kẹt "Loading…"); đã có dữ liệu mà tải lại lỗi → chỉ toast, giữ màn đang xem.
+  const [loadError, setLoadError] = useState<Error | null>(null);
+  const loaded = useRef(false);
+  loaded.current = !!project;
+  // Module trên URL không có trong danh sách: tải lại danh sách một lần (vừa tạo ở màn khác) rồi mới báo "Module not found".
+  const [checkedModule, setCheckedModule] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [navCollapsed, setNavCollapsed] = useState(readNavCollapsed);
   const toggleNav = () =>
@@ -96,10 +102,10 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
   const load = useCallback(
     () =>
       get<ProjectData>(`/api/projects/${encodeURIComponent(pid)}`)
-        .then((p) => (setProject(p), setMissing(false), p))
-        .catch((e) => {
-          if (e?.status === 404 || /not found/i.test(e?.message ?? "")) setMissing(true);
-          else toast(e.message, "err");
+        .then((p) => (setProject(p), setLoadError(null), p))
+        .catch((e: Error) => {
+          setLoadError(e);
+          if (!isNotFound(e) && loaded.current) toast(e.message, "err");
           return null;
         }),
     [pid],
@@ -132,12 +138,18 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
   const remembered = readModule(pid);
   const navModule = validUrlModule || (remembered && modules.some((m) => m.id === remembered) ? remembered : "") || modules[0]?.id || "";
 
-  // Thực hiện công việc: URL chưa có module / module đã bị xoá → chuyển sang module mặc định; có module hợp lệ → nhớ lại.
+  // Thực hiện công việc: URL chưa có module → chuyển sang module mặc định; có module hợp lệ → nhớ lại. URL có module
+  // không thuộc dự án → tải lại danh sách một lần; vẫn không có thì hiện "Module not found" (không tự chuyển đi nơi khác).
+  const moduleMissing = section === "work" && !!project && !!urlModule && !validUrlModule && checkedModule === urlModule;
   useEffect(() => {
     if (section !== "work" || !project) return;
     if (validUrlModule) return writeModule(pid, validUrlModule);
+    if (urlModule) {
+      if (checkedModule !== urlModule) load().then(() => setCheckedModule(urlModule));
+      return;
+    }
     if (navModule) window.location.replace(workHref(pid, navModule, step?.key, subOf(step, params)));
-  }, [section, project, validUrlModule, navModule, step?.key, params.join("/")]);
+  }, [section, project, urlModule, validUrlModule, checkedModule, navModule, step?.key, params.join("/")]);
 
   const workBase = `#/p/${encodeURIComponent(pid)}/work`;
   const items: SideNavItem[] = useMemo(
@@ -174,14 +186,27 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
     window.location.replace(workBase + (step ? `//${step.key}` : ""));
   };
 
-  if (missing)
+  if (loadError && (isNotFound(loadError) || !project))
     return (
       <div className="page">
-        <Empty title="Project not found">
-          The project may have been deleted.{" "}
-          <a className="link" href="#/">
-            Back to the project list
-          </a>
+        <Empty title={isNotFound(loadError) ? "Project not found" : "Couldn't load the project"}>
+          <div>{isNotFound(loadError) ? "It may have been deleted, or the link is wrong." : loadError.message}</div>
+          <div style={{ display: "flex", gap: "var(--space-2)", justifyContent: "center", marginTop: "var(--space-4)" }}>
+            {!isNotFound(loadError) && (
+              <Btn
+                onClick={() => {
+                  setLoadError(null);
+                  void load();
+                }}
+                data-testid="project-retry"
+              >
+                Try again
+              </Btn>
+            )}
+            <Btn kind="primary" onClick={() => (window.location.hash = "#/")} data-testid="back-to-projects">
+              Back to projects
+            </Btn>
+          </div>
         </Empty>
       </div>
     );
@@ -195,6 +220,19 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
   if (section !== "work") {
     const C = item.component;
     content = C ? <C key={section} projectId={pid} params={params} /> : null;
+  } else if (moduleMissing) {
+    content = (
+      <div className="page">
+        <Empty title="Module not found">
+          <div>It may have been deleted, or the link is wrong.</div>
+          <div style={{ display: "flex", justifyContent: "center", marginTop: "var(--space-4)" }}>
+            <Btn kind="primary" onClick={() => (window.location.hash = projectHref(pid))} data-testid="back-to-project">
+              Back to project
+            </Btn>
+          </div>
+        </Empty>
+      </div>
+    );
   } else if (!modules.length) {
     content = (
       <div className="page">
@@ -243,7 +281,7 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
         </div>
         <div className="module-title-row">
           <h1>{project.name}</h1>
-          {project.description && !narrow && <span className="muted small clamp">{project.description}</span>}
+          {project.description?.trim() && !narrow && <span className="muted small clamp">{project.description}</span>}
           <span className="spacer" />
           {narrow && (
             <Btn size="sm" onClick={() => setMenuOpen(true)} aria-expanded={menuOpen} data-testid="project-menu-btn">
