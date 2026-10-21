@@ -4,6 +4,7 @@
 //   Yêu cầu nghiệp vụ; điểm tính bằng scoreStructured() trong shared/qus.ts.
 // Chấm ngay trên trình duyệt, chỉ mang tính tư vấn (BR-05): không chặn lưu.
 
+import { useAqusa } from "../useAqusa.ts";
 import React, { useEffect, useMemo, useState } from "react";
 import { qusRating, scoreStories, type OtherModuleStories, type QusIssue, type QusResult, type StoryScore } from "../../shared/qus.ts";
 import { Empty, Icon, IssueList, ScoreBadge, type IssueItem } from "./ui.tsx";
@@ -40,7 +41,8 @@ const openByDefault = (s: StoryScore) => s.issues.some((i) => i.severity !== "in
 
 export function QusPanel({ text, others }: { text: string; others?: OtherModuleStories[] }) {
   const debounced = useDebounced(text, DEBOUNCE_MS);
-  const result = useMemo(() => scoreStories(debounced, { others }), [debounced, others]);
+  const nlpOn = useAqusa();
+  const result = useMemo(() => scoreStories(debounced, { others }), [debounced, others, nlpOn]);
   // Trạng thái bung/thu do BA chọn, theo số thứ tự story (#1, #2…).
   const [picked, setPicked] = useState<Record<number, boolean>>({});
 

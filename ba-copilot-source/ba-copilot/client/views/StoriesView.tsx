@@ -13,6 +13,7 @@
 //   dòng mới mặc định chọn module đang lọc (hoặc module duy nhất). Story cũ chưa gắn module (module đã xoá) nằm ở nhóm
 //   "Chưa gắn module", bấm Sửa để chọn module rồi Lưu (không bỏ gắn được).
 
+import { useAqusa } from "../useAqusa.ts";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createStory, del, get, isConflict, listStories, post, reorderStories, updateStory } from "../api.ts";
 import { currentMemberId, useCurrentMember, withActor } from "../currentMember.ts";
@@ -128,7 +129,8 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
     if (window.location.hash !== href) window.location.hash = href;
   };
 
-  const qus = useMemo(() => scoreByGroup(stories ?? [], modules ?? []), [stories, modules]);
+  const nlpOn = useAqusa(); // tải mô hình NLP của bộ chấm QUS; xong thì chấm lại bằng AQUSA
+  const qus = useMemo(() => scoreByGroup(stories ?? [], modules ?? []), [stories, modules, nlpOn]);
   const scoreOf = useMemo(() => {
     const m = new Map<string, StoryScore>();
     for (const r of qus.values()) for (const s of r.stories) if (s.id) m.set(s.id, s);
