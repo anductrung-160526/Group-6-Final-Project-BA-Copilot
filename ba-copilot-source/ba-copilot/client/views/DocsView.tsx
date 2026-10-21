@@ -222,7 +222,7 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
           <h1>{label}</h1>
           {has && (
             <div className="muted small" data-testid="doc-meta">
-              Version {doc.rev}
+              Revision {doc.rev}
               {doc.updatedAt ? ` · updated ${fmtTime(doc.updatedAt)}` : ""}
               {who ? ` by ${who}` : ""}
             </div>
