@@ -129,16 +129,16 @@ function addEvent(taskId: string, from: TaskStatus | null, to: TaskStatus, by: S
 const subOf = (f: TaskFields) => (f.artifactType === "doc" || f.artifactType === "diagram" ? (f.artifactSub ?? null) : null);
 
 /** Tạo task và ghi một TaskEvent lúc tạo (fromStatus = null). */
-export function createTask(projectId: string, f: TaskFields, status: TaskStatus = "todo", by: StatusBy = {}): Task {
+export function createTask(projectId: string, f: TaskFields, status: TaskStatus = "todo", by: StatusBy = {}, revisionRequested = false): Task {
   return tx(() => {
     const id = randomUUID();
     const at = now();
     getDb()
       .prepare(
-        `INSERT INTO tasks (id, project_id, module_id, title, description, assignee_id, due_date, priority, status, artifact_type, artifact_id, artifact_sub, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO tasks (id, project_id, module_id, title, description, assignee_id, due_date, priority, status, revision_requested, artifact_type, artifact_id, artifact_sub, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
-      .run(id, projectId, f.moduleId, f.title, f.description, f.assigneeId, f.dueDate, f.priority, status, f.artifactType, f.artifactId, subOf(f), at, at);
+      .run(id, projectId, f.moduleId, f.title, f.description, f.assigneeId, f.dueDate, f.priority, status, revisionRequested ? 1 : 0, f.artifactType, f.artifactId, subOf(f), at, at);
     addEvent(id, null, status, by, at);
     return getTask(id)!;
   });

@@ -8,7 +8,7 @@ import * as tasks from "../repo/tasks.ts";
 import { BizError } from "../service.ts";
 import { route, str, actor, currentMember, HttpError, type HandlerCtx } from "../http.ts";
 import { getArtifactState } from "../db.ts";
-import { moveError, taskMove } from "../../shared/taskRules.ts";
+import { initialTaskState, moveError, taskMove } from "../../shared/taskRules.ts";
 import { applyApproval, parseArtifactRef } from "./approval.ts";
 import { DIAGRAM_KINDS, DOC_KINDS, type ArtifactKind, type DiagramKind, type DocKind, type Task, type TaskPriority, type TaskStatus } from "../../shared/types.ts";
 
@@ -112,11 +112,20 @@ route("GET", "/api/projects/:id/tasks", ({ params, query }) => {
   return tasks.listTasks(params.id, { assigneeId: query.get("assigneeId") || undefined, moduleId: query.get("moduleId") || undefined });
 });
 
+/** Trạng thái hiện tại của sản phẩm gắn task (đợt 5); không gắn / bộ tài liệu cũ / sản phẩm đã xoá → null. */
+function linkedState(f: tasks.TaskFields) {
+  if (!f.artifactType || f.artifactType === "docs" || !f.artifactId) return null;
+  return getArtifactState(parseArtifactRef(f.artifactType, f.artifactId, f.artifactSub ?? undefined));
+}
+
 route("POST", "/api/projects/:id/tasks", ({ params, body }) => {
   mustProject(params.id);
   const st = body.status === undefined || body.status === null ? "todo" : status(body.status);
   if (st !== "todo" && st !== "doing") throw new BizError("A new task can only be To do or In progress");
-  return tasks.createTask(params.id, fields(params.id, body), st, { byMemberId: byMember(body) });
+  const f = fields(params.id, body);
+  // Gắn sản phẩm đã Xong / Đã duyệt (hoặc đang chờ sửa) → task bắt đầu đúng trạng thái đó (shared/taskRules.ts).
+  const init = initialTaskState(st, linkedState(f));
+  return tasks.createTask(params.id, f, init.status, { byMemberId: byMember(body) }, init.revisionRequested);
 });
 
 route("GET", "/api/projects/:id/artifacts", ({ params }) => {
@@ -142,7 +151,7 @@ route("DELETE", "/api/tasks/:id", ({ params }) => {
 });
 
 /**
- * Đổi trạng thái bằng tay. Sai mũi tên → 400; thiếu quyền (Xong không rõ người, Duyệt / Yêu cầu sửa không phải BA Lead) → 403.
+ * Đổi trạng thái bằng tay (body `{ status, actorId?, baseRev? }`). Sai mũi tên → 400; thiếu quyền (Xong không rõ người, Duyệt / Yêu cầu sửa không phải BA Lead) → 403.
  * Task gắn sản phẩm đợt 5 còn tồn tại: Xong / Duyệt / Yêu cầu sửa đi qua luồng duyệt của sản phẩm (task tự đi theo).
  * Sản phẩm đã ở đúng trạng thái đích (lệch do dữ liệu cũ) thì chỉ đồng bộ task.
  */
@@ -164,7 +173,8 @@ route("PATCH", "/api/tasks/:id/status", async (ctx: HandlerCtx) => {
       const target = mv === "done" ? "done" : mv === "approve" ? "approved" : "draft";
       const alreadyThere = st.status === target && (mv !== "request-change" || st.revisionRequested);
       if (!alreadyThere) {
-        await applyApproval(mv!, ref, { req: ctx.req, query: ctx.query, body: { actorId: body.actorId } });
+        // baseRev (rev sản phẩm client đang thấy) đi kèm nếu có → lệch thì 409 như khi bấm trên màn sản phẩm.
+        await applyApproval(mv!, ref, { req: ctx.req, query: ctx.query, body: { actorId: body.actorId, baseRev: body.baseRev } });
         const after = tasks.getTask(t.id)!;
         if (after.status === to) return after; // sự kiện đã kéo task theo
       }

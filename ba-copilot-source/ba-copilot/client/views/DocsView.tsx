@@ -15,6 +15,7 @@ import {
   refineModuleDoc,
   requestArtifactChange,
   saveModuleDoc,
+  withApprovalState,
 } from "../api.ts";
 import { DOC_KINDS, DOC_KIND_LABEL } from "../../shared/types.ts";
 import type { ApprovalResult, DocKind, ModuleDoc } from "../../shared/types.ts";
@@ -201,6 +202,8 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
     setBusy(true);
     try {
       const r = await guard(text, fn);
+      const st = (r as ApprovalResult | undefined)?.state;
+      if (st) setList((l) => l?.map((d) => (d.kind === kind ? withApprovalState(d, st) : d)) ?? l); // rev mới ngay, trước khi tải lại
       const git = (r as ApprovalResult | undefined)?.git;
       if (git) toast(<GitOutcome git={git} />, git.pushed ? "ok" : "info");
       else if (r) toast(ok, "ok");
@@ -292,10 +295,10 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
             disabledReason={draft !== null ? "Editing – save or cancel first" : doneLock}
             onDone={() => flow("Updating…", () => markArtifactDone("doc", moduleId, { ...actorBody, baseRev: doc.rev }), `${label} marked as done`)}
             onApprove={() => flow("Approving…", () => approveArtifact("doc", moduleId, { ...actorBody, baseRev: doc.rev }), `${label} approved`)}
-            onRequestChange={() => flow("Updating…", () => requestArtifactChange("doc", moduleId, actorBody), `Changes requested for ${label}`)}
+            onRequestChange={() => flow("Updating…", () => requestArtifactChange("doc", moduleId, { ...actorBody, baseRev: doc.rev }), `Changes requested for ${label}`)}
           />
         )}
-        {doc.status === "outdated" && <div className="warn-banner">A previous step changed after this document was written. Review it and click "Regenerate" or edit it to match.</div>}
+        {doc.status === "outdated" && <div className="warn-banner">Its sources (a previous step, the user stories or an approved screen design) changed after this document was written. Review it and click "Regenerate" or edit it to match.</div>}
         {conflict && <ConflictNotice onReload={reload} />}
 
         {draft !== null ? (

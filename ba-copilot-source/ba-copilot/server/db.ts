@@ -633,7 +633,8 @@ export function getArtifactState(ref: ArtifactRef, d: DatabaseSync = getDb()): A
 }
 
 /**
- * Đổi trạng thái / cờ Yêu cầu sửa (không tăng rev – rev chỉ tăng khi ghi nội dung, xem `bumpRev`).
+ * Đổi trạng thái / cờ Yêu cầu sửa (không tăng rev). Ghi nội dung và Xong / Duyệt / Yêu cầu sửa (routes/approval.ts) gọi
+ * thêm `bumpRev`; lan "Bản cũ" (BR-02, story đổi, cascadeOutdated) thì không.
  * Trả về trạng thái mới, null nếu sản phẩm chưa có (tài liệu/sơ đồ chưa sinh thì không Xong/Duyệt được).
  */
 export function setArtifactState(

@@ -97,19 +97,16 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
 
   const approval = async (action: "done" | "approve" | "request-change") => {
     const actorId = currentMemberId();
-    const r = await run(action === "done" ? "Marking as done" : action === "approve" ? "Approving" : "Requesting changes", () =>
-      guard(() =>
-        action === "done"
-          ? markArtifactDone("tests", m.id, { baseRev: m.testsRev, actorId })
-          : action === "approve"
-            ? approveArtifact("tests", m.id, { baseRev: m.testsRev, actorId })
-            : requestArtifactChange("tests", m.id, { actorId }),
-      ),
-    );
+    const b = { baseRev: m.testsRev, actorId };
+    // Đổi trạng thái tăng tests_rev: tải lại module (rev mới) ngay trong lúc còn khoá màn, để lần ghi tiếp không bị báo xung đột giả.
+    const r = await run(action === "done" ? "Marking as done" : action === "approve" ? "Approving" : "Requesting changes", async () => {
+      const out = await guard(() => (action === "done" ? markArtifactDone("tests", m.id, b) : action === "approve" ? approveArtifact("tests", m.id, b) : requestArtifactChange("tests", m.id, b)));
+      await reload();
+      return out;
+    });
     if (!r) return;
     if (action === "approve" && r.git) toast(<GitOutcome git={r.git} />, r.git.pushed ? "ok" : "info");
     else toast(action === "done" ? "Marked as done – awaiting BA Lead approval" : action === "approve" ? "Test suite approved" : "Changes requested", "ok");
-    reload();
   };
 
   const canGenerate = !!ready?.ready;
