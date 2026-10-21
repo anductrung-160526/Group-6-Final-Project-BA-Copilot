@@ -1,6 +1,8 @@
 // "Đang được sửa bởi …" (kế hoạch đợt 5, quyết định 9b). Chủ sở hữu: C2.
 // Lưu trong bộ nhớ tiến trình (mất khi khởi động lại – chấp nhận được vì chỉ là gợi ý, không phải khoá).
 // Client gửi nhịp mỗi PRESENCE_BEAT_MS; quá PRESENCE_TTL_MS không có nhịp thì coi như đã rời.
+// Mục hết hạn bị dọn khi đọc khoá đó, và định kỳ (mỗi PRESENCE_BEAT_MS) dọn hết mọi khoá – màn không còn ai mở
+// cũng không giữ mục cũ trong bộ nhớ.
 // Route: POST/GET/DELETE /api/presence (server/app.ts). Hook client: usePresence() trong client/presence.ts.
 
 import type { PresenceEntry, PresenceKind, PresenceTarget } from "../shared/types.ts";
@@ -29,8 +31,27 @@ function prune(key: string, now: number): Map<string, Entry> | undefined {
   return m.size ? m : undefined;
 }
 
+/** Dọn mục hết hạn ở mọi khoá (bộ hẹn giờ gọi định kỳ; test gọi thẳng với `now` giả). */
+export function sweepPresence(now = Date.now()): void {
+  for (const key of [...store.keys()]) prune(key, now);
+}
+
+let sweeper: ReturnType<typeof setInterval> | null = null;
+/** Bật bộ dọn định kỳ ở lần ghi nhịp đầu tiên; `unref` để không giữ tiến trình (test, tắt server) sống. */
+function startSweeper(): void {
+  if (sweeper) return;
+  sweeper = setInterval(() => sweepPresence(), PRESENCE_BEAT_MS);
+  sweeper.unref?.();
+}
+
+/** Số khoá đang giữ trong bộ nhớ (chỉ dùng trong test). */
+export function presenceKeyCount(): number {
+  return store.size;
+}
+
 /** Ghi nhịp "đang mở" của một thành viên. */
 export function touchPresence(t: PresenceTarget, member: { id: string; name: string }, now = Date.now()): void {
+  startSweeper();
   const key = keyOf(t);
   prune(key, now);
   const m = store.get(key) ?? new Map<string, Entry>();

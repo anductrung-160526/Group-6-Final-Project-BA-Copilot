@@ -7,7 +7,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Module, Project } from "../../shared/types.ts";
 import { del, get, isNotFound } from "../api.ts";
-import { useCurrentMember } from "../currentMember.ts";
+import { actorQuery, canDeleteAsLead, useCurrentMember } from "../currentMember.ts";
 import { PROJECT_MENU, WORK_STEPS, gitHref, projectHref, storiesHref, workHref, type ProjectRoute, type WorkStepItem } from "../projectMenu.ts";
 import { Btn, Drawer, Empty, ICON_NAMES, Icon, IconBtn, RowActions, Select, SideNav, sideNavHasRail, useUI, type IconName, type SideNavItem } from "./ui.tsx";
 
@@ -80,8 +80,10 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
   const { projectId: pid, section, item, step, params } = route;
   const urlModule = route.moduleId ?? "";
   const { run, toast } = useUI();
-  const { me } = useCurrentMember();
+  const who = useCurrentMember();
+  const { me } = who;
   const isLead = me?.role === "BA_LEAD";
+  const canDeleteModule = canDeleteAsLead(who); // xoá module chỉ BA Lead (server 403); nhóm chưa có BA Lead thì ai cũng được
   const narrow = useNarrow();
   const [project, setProject] = useState<ProjectData | null>(null);
   // Lỗi tải dự án: 404 → "Project not found"; lỗi khác khi chưa có dữ liệu → "Couldn't load the project" + Try again
@@ -179,7 +181,7 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
   const active = section === "work" ? (step ? `work/${step.key}${sub ? `/${sub}` : ""}` : "work") : section;
 
   const deleteModule = async (m: Module) => {
-    const r = await run("Deleting module", () => del(`/api/modules/${encodeURIComponent(m.id)}`));
+    const r = await run("Deleting module", () => del(`/api/modules/${encodeURIComponent(m.id)}${actorQuery()}`));
     if (!r) return;
     toast(`Module ${m.name} deleted`, "ok");
     await load();
@@ -264,7 +266,7 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
           <RowActions
             testId="module"
             deleteLabel="Delete module"
-            onDelete={() => deleteModule(current)}
+            onDelete={canDeleteModule ? () => deleteModule(current) : undefined}
             deleteConfirm={{ title: `Delete module "${current.name}"?`, message: "The module's documents, diagrams, screens and test cases will be deleted. Its user stories are kept but no longer linked to a module.", okLabel: "Delete" }}
           />
         </div>

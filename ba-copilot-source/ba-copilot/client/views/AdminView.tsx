@@ -1,16 +1,21 @@
 // Quản trị hệ thống (#/admin, đợt 5 – chuyển từ MembersView): thành viên và vai BA / BA Lead, không có mật khẩu.
 // Chủ sở hữu: C3. Chỉ BA Lead (người đang chọn ở ô "Tôi là…") vào được; ngoại lệ khi hệ thống chưa có BA Lead nào
 // thì ai cũng vào được để tạo người đầu tiên. Server chặn lại đúng luật đó (server/routes/members.ts).
+// Nhóm luôn còn BA Lead: BA Lead không tự đổi vai / tự xoá mình (ô vai khoá kèm lý do, không có nút Xoá ở dòng của mình).
+// Tên trùng người khác báo ngay khi gõ; máy chủ vẫn từ chối (409 / 400) thì hiện lỗi dưới đúng ô, giữ hộp thoại mở.
 import React, { useState } from "react";
 import type { MemberRole } from "../../shared/types.ts";
+import { MSG, projectNameKey } from "../../shared/projectName.ts";
 import { Avatar, Badge, Btn, Empty, Field, Icon, Modal, RowActions, Select, fmtTime, useUI } from "../components/ui.tsx";
-import { createMember, del, updateMember } from "../api.ts";
+import { ApiError, createMember, del, updateMember } from "../api.ts";
 import { ROLE_LABEL, currentMemberId, useCurrentMember, withActor } from "../currentMember.ts";
 import type { PageProps } from "../routes.ts";
 
 const ROLE_OPTIONS = (Object.keys(ROLE_LABEL) as MemberRole[]).map((r) => ({ value: r, label: ROLE_LABEL[r] }));
 
 type Form = { id: string | null; name: string; role: MemberRole };
+/** Lỗi dữ liệu máy chủ trả về (409 trùng tên, 400 tự hạ vai…) – hiện dưới đúng ô. */
+type ServerErr = { field: "name" | "role"; msg: string };
 
 /** Xoá thành viên kèm người thao tác (DELETE không có body → gửi actorId qua query). */
 const deleteMemberAsActor = (id: string) => {
@@ -22,14 +27,51 @@ export function AdminView(_: PageProps) {
   const { me, members, loaded, reload } = useCurrentMember();
   const { run, toast } = useUI();
   const [form, setForm] = useState<Form | null>(null);
+  const [serverErr, setServerErr] = useState<ServerErr | null>(null);
 
   const hasLead = members.some((m) => m.role === "BA_LEAD");
   const allowed = !hasLead || me?.role === "BA_LEAD";
+  /** BA Lead đang sửa chính mình: không được tự đổi vai / tự xoá (server trả 400). */
+  const isSelfLead = (id: string | null) => !!id && id === me?.id && me.role === "BA_LEAD";
+
+  const open = (f: Form) => {
+    setServerErr(null);
+    setForm(f);
+  };
+  const change = (patch: Partial<Form>) => {
+    if (!form) return;
+    setForm({ ...form, ...patch });
+    if (serverErr && serverErr.field in patch) setServerErr(null);
+  };
+
+  // Kiểm tra trùng ngay khi gõ – cùng khoá so sánh với máy chủ; bỏ qua chính người đang sửa.
+  const key = form ? projectNameKey(form.name) : "";
+  const duplicate = !!key && members.some((m) => m.id !== form?.id && projectNameKey(m.name) === key);
+  const nameError = duplicate ? MSG.duplicateMember(form!.name.trim()) : serverErr?.field === "name" ? serverErr.msg : null;
+  const roleError = serverErr?.field === "role" ? serverErr.msg : null;
+  const canSave = !!key && !nameError;
 
   const save = async () => {
-    if (!form) return;
+    if (!form || !canSave) return;
     const body = withActor({ name: form.name.trim(), role: form.role });
-    const r = await run("Saving", () => (form.id ? updateMember(form.id, body) : createMember(body)));
+    let invalid = null as ServerErr | null;
+    const r = await run("Saving", async () => {
+      try {
+        return await (form.id ? updateMember(form.id, body) : createMember(body));
+      } catch (e) {
+        // Lỗi do dữ liệu (trùng tên 409, tự hạ vai / BA Lead cuối 400) → hiện dưới đúng ô thay vì toast
+        if (e instanceof ApiError && (e.status === 409 || e.status === 400) && !e.code) {
+          invalid = { field: e.status === 400 && /role|BA Lead/i.test(e.message) ? "role" : "name", msg: e.message };
+          return undefined;
+        }
+        throw e;
+      }
+    });
+    if (invalid) {
+      setServerErr(invalid);
+      await reload(); // cập nhật danh sách để lần sau phát hiện trùng ngay khi gõ
+      return;
+    }
     if (!r) return;
     toast(form.id ? `${r.name} updated` : `${r.name} added`, "ok");
     setForm(null);
@@ -57,7 +99,7 @@ export function AdminView(_: PageProps) {
           <h1>Administration</h1>
           <p className="muted">Team members and roles. A BA Lead approves artifacts and manages members; the person selected in the "Acting as" box is recorded as the actor.</p>
         </div>
-        <Btn kind="primary" onClick={() => setForm({ id: null, name: "", role: hasLead ? "BA" : "BA_LEAD" })} data-testid="new-member">
+        <Btn kind="primary" onClick={() => open({ id: null, name: "", role: hasLead ? "BA" : "BA_LEAD" })} data-testid="new-member">
           <Icon name="plus" size="sm" />
           Add member
         </Btn>
@@ -99,8 +141,8 @@ export function AdminView(_: PageProps) {
                   <td className="actions">
                     <RowActions
                       testId={`member-${m.id}`}
-                      onEdit={() => setForm({ id: m.id, name: m.name, role: m.role })}
-                      onDelete={() => remove(m.id, m.name)}
+                      onEdit={() => open({ id: m.id, name: m.name, role: m.role })}
+                      onDelete={isSelfLead(m.id) ? undefined : () => remove(m.id, m.name)}
                       deleteConfirm={{
                         title: `Remove ${m.name} from the team?`,
                         message: "This person's name is kept on the comments and versions they created. Members with unfinished tasks cannot be deleted.",
@@ -121,25 +163,39 @@ export function AdminView(_: PageProps) {
           footer={
             <>
               <Btn onClick={() => setForm(null)}>Cancel</Btn>
-              <Btn kind="primary" disabled={!form.name.trim()} onClick={save} data-testid="save-member">
+              <Btn kind="primary" disabled={!canSave} onClick={save} data-testid="save-member">
                 {form.id ? "Save" : "Add"}
               </Btn>
             </>
           }
         >
-          <Field label="Full name">
+          <Field label="Full name" error={nameError} hint={key ? undefined : "Enter a name to continue"}>
             <input
               autoFocus
               value={form.name}
               maxLength={80}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              onKeyDown={(e) => e.key === "Enter" && form.name.trim() && save()}
+              aria-invalid={!!nameError}
+              onChange={(e) => change({ name: e.target.value })}
+              onKeyDown={(e) => {
+                // Enter = bấm Lưu; bỏ qua khi bộ gõ đang ghép chữ (IME)
+                if (e.key !== "Enter" || e.nativeEvent.isComposing || e.keyCode === 229) return;
+                e.preventDefault();
+                save();
+              }}
               placeholder="e.g. Sarah Johnson"
               data-testid="member-name"
             />
           </Field>
-          <Field label="Role" hint="A BA Lead approves documents, diagrams, prototypes and test cases, and manages members.">
-            <Select value={form.role} options={ROLE_OPTIONS} onChange={(v) => v && setForm({ ...form, role: v })} testId="member-role" />
+          <Field
+            label="Role"
+            error={roleError}
+            hint={
+              isSelfLead(form.id)
+                ? "You can't change your own role – the team always needs a BA Lead. Ask another BA Lead to change it."
+                : "A BA Lead approves documents, diagrams, prototypes and test cases, and manages members."
+            }
+          >
+            <Select value={form.role} options={ROLE_OPTIONS} disabled={isSelfLead(form.id)} onChange={(v) => v && change({ role: v })} testId="member-role" />
           </Field>
         </Modal>
       )}

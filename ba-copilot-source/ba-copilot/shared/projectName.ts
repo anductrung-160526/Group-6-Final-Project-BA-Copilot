@@ -5,7 +5,7 @@ export const PROJECT_DESC_MAX = 2000;
 export const MODULE_NAME_MAX = 200;
 
 /**
- * Khoá so sánh tên dự án: Unicode NFC, bỏ khoảng trắng đầu/cuối, gộp khoảng trắng liên tiếp,
+ * Khoá so sánh tên dự án (dùng chung cho tên module trong một dự án và tên thành viên): Unicode NFC, bỏ khoảng trắng đầu/cuối, gộp khoảng trắng liên tiếp,
  * không phân biệt hoa/thường. Dấu vẫn được giữ ("Bán hàng" ≠ "Ban hang").
  */
 export function projectNameKey(name: string): string {
@@ -22,6 +22,8 @@ export const MSG = {
   moduleNameRequired: "Module name is required",
   moduleNameTooLong: `Module name must be at most ${MODULE_NAME_MAX} characters`,
   duplicateProject: (name: string) => `A project named “${name}” already exists. Please choose another name.`,
+  duplicateModule: (name: string) => `A module named “${name}” already exists in this project. Please choose another name.`,
+  duplicateMember: (name: string) => `A member named “${name}” already exists. Please choose another name.`,
 };
 
 /** Lỗi của tên dự án (đã trim) – null nếu hợp lệ. Không cắt bớt: quá dài thì báo lỗi. */

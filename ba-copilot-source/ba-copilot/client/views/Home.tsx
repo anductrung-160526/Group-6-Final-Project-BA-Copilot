@@ -1,7 +1,9 @@
 // Trang chủ (đợt 5): danh sách dự án – tạo, sửa, xoá. Bấm vào dự án mở thẳng "Quản lý công việc". Chủ sở hữu: C3.
+// Xoá dự án chỉ BA Lead (server 403): BA không thấy nút Xoá; nhóm chưa có BA Lead thì ai cũng thấy.
 import React, { useEffect, useRef, useState } from "react";
 import { ApiError, del, get, patch, post } from "../api.ts";
 import { Btn, Empty, Field, Icon, Modal, RowActions, fmtTime, useUI } from "../components/ui.tsx";
+import { actorQuery, canDeleteAsLead, useCurrentMember } from "../currentMember.ts";
 import { projectHref } from "../projectMenu.ts";
 import { MSG, PROJECT_DESC_MAX, PROJECT_NAME_MAX, projectNameKey } from "../../shared/projectName.ts";
 
@@ -22,6 +24,7 @@ const DUPLICATE_MSG = "A project with this name already exists. Please choose an
 
 export function Home() {
   const { run, toast } = useUI();
+  const canDelete = canDeleteAsLead(useCurrentMember());
   const [projects, setProjects] = useState<P[] | null>(null);
   /** Hộp thoại đang mở: `id = null` là tạo mới, có `id` là sửa dự án đó. */
   const [dialog, setDialog] = useState<{ id: string | null } | null>(null);
@@ -118,7 +121,7 @@ export function Home() {
     }
   };
   const remove = async (p: P) => {
-    const r = await run("Deleting", () => del(`/api/projects/${encodeURIComponent(p.id)}`));
+    const r = await run("Deleting", () => del(`/api/projects/${encodeURIComponent(p.id)}${actorQuery()}`)); // DELETE không có body → actorId qua query
     if (r) toast(`Project ${p.name} deleted`, "ok");
     load();
   };
@@ -155,7 +158,7 @@ export function Home() {
                 <RowActions
                   testId={`project-${p.id}`}
                   onEdit={() => openEdit(p)}
-                  onDelete={() => remove(p)}
+                  onDelete={canDelete ? () => remove(p) : undefined}
                   deleteConfirm={{ title: `Delete project "${p.name}"?`, message: "All of the project's modules, user stories, documents, diagrams, screens and tasks will be deleted." }}
                 />
               </div>

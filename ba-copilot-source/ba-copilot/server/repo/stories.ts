@@ -7,13 +7,14 @@
 //   (xem `markModuleDocsOutdated`). Đổi thứ tự không làm tài liệu thành Bản cũ.
 // - Đợt 6 (D3): story phải gắn một module của dự án khi tạo; sửa mà gửi `moduleId` rỗng/null → 400. Story cũ chưa gắn
 //   (module bị xoá → module_id NULL) vẫn giữ, lọc bằng NO_MODULE để BA gắn lại.
+// - Tạo story trống cả As a / I want / So that → 400 (như màn Yêu cầu nghiệp vụ).
 // - `storiesText(moduleId)`: văn bản story của module, đầu vào thống nhất cho AI (tài liệu C5, prototype C9).
 
 import { randomUUID } from "node:crypto";
 import { getDb, nextStoryNumber, storyCode, tx } from "../db.ts";
 import { assertRev, HttpError } from "../http.ts";
 import { emit } from "../events.ts";
-import { storySentence } from "../../shared/qus.ts";
+import { isBlankStructured, storySentence } from "../../shared/qus.ts";
 import { DOC_KINDS, type DocKind, type StoryPriority, type UserStory, type UserStoryInput } from "../../shared/types.ts";
 
 type Row = Record<string, any>;
@@ -172,6 +173,8 @@ export function createStory(projectId: string, input: UserStoryInput, actorId?: 
   const d = getDb();
   if (!d.prepare("SELECT 1 FROM projects WHERE id = ?").get(projectId)) throw new HttpError("Project not found", 404);
   const moduleId = moduleOf(projectId, input.moduleId);
+  // Cùng luật với màn Yêu cầu nghiệp vụ (isBlankStructured): trống cả As a / I want / So that thì không tạo.
+  if (isBlankStructured({ asA: text(input.asA), iWant: text(input.iWant), soThat: text(input.soThat) })) throw new HttpError("Fill in at least one of As a / I want / So that", 400);
   const priority = input.priority === undefined ? "Medium" : priorityOf(input.priority);
   const criteria = input.acceptanceCriteria === undefined ? [] : criteriaOf(input.acceptanceCriteria);
   return tx(() => {

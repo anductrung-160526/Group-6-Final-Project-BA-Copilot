@@ -1,5 +1,6 @@
 // Ràng buộc dữ liệu dự án / module qua API thật: quá dài → 400 (không cắt bớt), trùng tên dự án → 409 (tạo + đổi tên),
-// mô tả chỉ có khoảng trắng lưu thành rỗng, dự án / module không tồn tại → 404. Luật dùng chung: shared/projectName.ts.
+// mô tả chỉ có khoảng trắng lưu thành rỗng, dự án / module không tồn tại → 404, trùng tên module trong dự án → 409,
+// xoá dự án / module chỉ BA Lead (403). Luật dùng chung: shared/projectName.ts.
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import type { Server } from "node:http";
@@ -149,4 +150,50 @@ test("dự án / module không tồn tại → 404", async () => {
   assert.equal(m.status, 404);
   assert.equal(m.data.error, "Module not found");
   assert.equal((await api("PATCH", "/api/modules/does-not-exist", { name: "X" })).status, 404);
+});
+
+test("trùng tên module trong cùng dự án (cùng khoá với tên dự án) → 409 khi tạo và đổi tên; khác dự án vẫn được", async () => {
+  const p = await api("POST", "/api/projects", { name: "Module names" });
+  const q = await api("POST", "/api/projects", { name: "Module names 2" });
+  const a = await api("POST", `/api/projects/${p.data.id}/modules`, { name: "Đặt hàng" });
+  assert.equal(a.status, 200);
+  const dup = await api("POST", `/api/projects/${p.data.id}/modules`, { name: "  ĐẶT   hàng " });
+  assert.equal(dup.status, 409);
+  assert.equal(dup.data.error, "A module named “ĐẶT   hàng” already exists in this project. Please choose another name.");
+  assert.equal((await api("POST", `/api/projects/${p.data.id}/modules`, { name: "Dat hang" })).status, 200, "khác dấu là tên khác");
+  assert.equal((await api("POST", `/api/projects/${q.data.id}/modules`, { name: "Đặt hàng" })).status, 200, "dự án khác được trùng");
+
+  const b = await api("POST", `/api/projects/${p.data.id}/modules`, { name: "Thanh toán" });
+  const ren = await api("PATCH", `/api/modules/${b.data.id}`, { name: "đặt HÀNG" });
+  assert.equal(ren.status, 409);
+  assert.equal((await api("GET", `/api/modules/${b.data.id}`)).data.name, "Thanh toán", "bản bị chặn không ghi");
+  assert.equal((await api("PATCH", `/api/modules/${a.data.id}`, { name: "ĐẶT HÀNG" })).status, 200, "đổi hoa/thường tên của chính mình vẫn được");
+});
+
+test("xoá dự án / module: chỉ BA Lead (403 cho BA / thiếu / sai actorId khi nhóm đã có BA Lead); không tồn tại → 404", async () => {
+  // Nhóm chưa có BA Lead: ai cũng xoá được (như màn Quản trị lúc khởi tạo)
+  const p0 = await api("POST", "/api/projects", { name: "Xoá khi chưa có Lead" });
+  assert.equal((await api("DELETE", `/api/projects/${p0.data.id}`)).status, 200);
+
+  const lead = await api("POST", "/api/members", { name: "Del Lead", role: "BA_LEAD" });
+  const ba = await api("POST", "/api/members", { name: "Del BA", role: "BA", actorId: lead.data.id });
+  const p = await api("POST", "/api/projects", { name: "Xoá dự án" });
+  const m = await api("POST", `/api/projects/${p.data.id}/modules`, { name: "Sẽ xoá" });
+  for (const q of ["", `?actorId=${ba.data.id}`, "?actorId=khong-co"]) {
+    const rm = await api("DELETE", `/api/modules/${m.data.id}${q}`);
+    assert.equal(rm.status, 403, `module ${q}`);
+    assert.equal(rm.data.code, "FORBIDDEN");
+    assert.equal((await api("DELETE", `/api/projects/${p.data.id}${q}`)).status, 403, `project ${q}`);
+  }
+  assert.equal((await api("GET", `/api/modules/${m.data.id}`)).status, 200, "module còn nguyên");
+  assert.equal((await api("GET", `/api/projects/${p.data.id}`)).status, 200, "dự án còn nguyên");
+
+  const asLead = `?actorId=${lead.data.id}`;
+  assert.equal((await api("DELETE", `/api/modules/does-not-exist${asLead}`)).status, 404);
+  assert.equal((await api("DELETE", `/api/projects/does-not-exist${asLead}`)).status, 404);
+  assert.equal((await api("DELETE", `/api/modules/${m.data.id}`, { actorId: lead.data.id })).status, 200, "actorId trong body cũng được");
+  assert.equal((await api("GET", `/api/modules/${m.data.id}`)).status, 404);
+  assert.equal((await api("DELETE", `/api/projects/${p.data.id}${asLead}`)).status, 200);
+  assert.equal((await api("GET", `/api/projects/${p.data.id}`)).status, 404);
+  assert.equal((await api("DELETE", `/api/projects/${p.data.id}${asLead}`)).status, 404, "xoá lần hai → 404");
 });

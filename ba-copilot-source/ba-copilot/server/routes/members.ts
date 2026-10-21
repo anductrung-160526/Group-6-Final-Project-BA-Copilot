@@ -2,6 +2,8 @@
 // Đợt 5 (quyết định 15 – không đăng nhập): thêm / sửa / xoá thành viên chỉ dành cho BA Lead, xét theo người thao tác
 // (`actorId` ở body hoặc query, chế độ member thì lấy từ phiên). Ngoại lệ: hệ thống chưa có BA Lead nào thì ai cũng
 // làm được – để tạo người đầu tiên.
+// Nhóm luôn phải còn ít nhất một BA Lead: BA Lead không tự hạ vai / tự xoá mình, không hạ vai / xoá BA Lead cuối (400).
+// Tên thành viên không trùng (trim, không phân biệt hoa/thường – projectNameKey) khi thêm và đổi tên → 409.
 
 import * as members from "../repo/members.ts";
 import * as repo from "../repo.ts";
@@ -9,7 +11,7 @@ import { MSG, projectDescError, projectNameError } from "../../shared/projectNam
 import { BizError } from "../service.ts";
 import { currentMember, HttpError, route, str, type HandlerCtx } from "../http.ts";
 import { on } from "../events.ts";
-import type { MemberRole } from "../../shared/types.ts";
+import type { Member, MemberRole } from "../../shared/types.ts";
 
 const name = (v: unknown) => {
   const n = str(v, 80).trim();
@@ -26,30 +28,52 @@ const mustMember = (id: string) => {
   return m;
 };
 
-/** Chặn 403 khi người thao tác không phải BA Lead; hệ thống chưa có BA Lead thì cho qua. */
-export function requireAdmin(ctx: Pick<HandlerCtx, "req" | "body" | "query">): void {
-  if (!members.hasLead()) return;
+/** Tên chưa có người khác dùng (bỏ qua `exceptId` – đổi về chính tên mình, kể cả chỉ đổi hoa/thường, vẫn được). */
+const uniqueName = (n: string, exceptId?: string) => {
+  if (members.findMemberByName(n, exceptId)) throw new BizError(MSG.duplicateMember(n), 409);
+  return n;
+};
+
+/**
+ * Chặn 403 khi người thao tác không phải BA Lead; hệ thống chưa có BA Lead thì cho qua.
+ * Trả về người thao tác (null khi chưa có BA Lead và không rõ người thao tác).
+ */
+export function requireAdmin(ctx: Pick<HandlerCtx, "req" | "body" | "query">): Member | null {
   const me = currentMember(ctx);
+  if (!members.hasLead()) return me;
   if (!me || me.role !== "BA_LEAD") throw new HttpError("Only a BA Lead can manage members", 403, "FORBIDDEN");
+  return me;
+}
+
+/** BA Lead `m` sắp mất vai (hạ xuống BA hoặc bị xoá): không phải chính người thao tác, không phải BA Lead cuối. */
+function assertKeepsLead(m: Member, me: Member | null, action: "demote" | "delete") {
+  if (m.role !== "BA_LEAD") return;
+  if (me?.id === m.id)
+    throw new BizError(action === "demote" ? "You can't remove your own BA Lead role. Ask another BA Lead to change it." : "You can't delete yourself. Ask another BA Lead to remove you.");
+  if (members.countLeads() <= 1)
+    throw new BizError(`${m.name} is the only BA Lead. Make another member a BA Lead before ${action === "demote" ? "changing this role" : "deleting this member"}.`);
 }
 
 route("GET", "/api/members", () => members.listMembers());
 route("POST", "/api/members", (ctx) => {
   requireAdmin(ctx);
-  return members.createMember({ name: name(ctx.body.name), role: role(ctx.body.role) });
+  return members.createMember({ name: uniqueName(name(ctx.body.name)), role: role(ctx.body.role) });
 });
 route("PATCH", "/api/members/:id", (ctx) => {
-  requireAdmin(ctx);
+  const me = requireAdmin(ctx);
   const { params, body } = ctx;
-  mustMember(params.id);
-  return members.updateMember(params.id, {
-    name: body.name !== undefined ? name(body.name) : undefined,
+  const m = mustMember(params.id);
+  const patch = {
+    name: body.name !== undefined ? uniqueName(name(body.name), m.id) : undefined,
     role: body.role !== undefined ? role(body.role) : undefined,
-  });
+  };
+  if (patch.role === "BA") assertKeepsLead(m, me, "demote");
+  return members.updateMember(params.id, patch);
 });
 route("DELETE", "/api/members/:id", (ctx) => {
-  requireAdmin(ctx);
+  const me = requireAdmin(ctx);
   const m = mustMember(ctx.params.id);
+  assertKeepsLead(m, me, "delete");
   const open = members.countOpenTasks(m.id);
   if (open) throw new BizError(`${m.name} is assigned to ${open} unfinished task(s). Reassign those tasks before deleting.`, 409);
   members.deleteMember(m.id);

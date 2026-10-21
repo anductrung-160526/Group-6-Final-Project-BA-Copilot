@@ -263,8 +263,14 @@ test("FN-19: task theo sản phẩm; xoá màn / module vẫn giữ task", async
   repo.deleteScreen(s);
   const kept = await api("GET", `/api/tasks/${t1.id}`);
   assert.equal(kept.status, 200, "xoá màn không xoá task");
-  assert.equal(kept.data.artifactId, s, "giữ mã sản phẩm cũ để hiện 'Sản phẩm đã xoá'");
-  assert.equal((await api("PATCH", `/api/tasks/${t1.id}`, { title: "Vẫn sửa được" })).status, 200, "task trỏ sản phẩm đã xoá vẫn sửa được");
+  assert.equal(kept.data.artifactType, null, "gỡ liên kết: task không còn trỏ vào màn đã xoá");
+  assert.equal(kept.data.artifactId, null);
+  assert.deepEqual((await api("GET", `/api/artifacts/screen/${s}/tasks`)).data, []);
+  const last = kept.data.events.at(-1);
+  assert.equal(last.bySystem, true, "lịch sử ghi lại màn đã xoá");
+  assert.equal(last.fromStatus, last.toStatus);
+  assert.match(last.reason, /Linked screen “Danh sách” was deleted/);
+  assert.equal((await api("PATCH", `/api/tasks/${t1.id}`, { title: "Vẫn sửa được" })).status, 200, "task đã gỡ liên kết vẫn sửa được");
 
   repo.deleteModule(m);
   const all = (await api("GET", `/api/projects/${p}/tasks`)).data;
