@@ -79,7 +79,7 @@ npm run dataset:export                            # data/dataset/tf/{train,val,t
 npx tsx scripts/dataset/export-view.ts            # dataset/export/: samples.csv, roots.csv, preview.html, samples.jsonl.gz
 ```
 
-> Mô hình của app đã được huấn luyện lại từ đầu trên phiên bản này, không dùng WebSight. Mô hình hiện tại của app: `export/eval/DATA-LIMITED.md`.
+> Mô hình của app đã được huấn luyện lại từ đầu trên phiên bản này, không dùng WebSight. Kết quả mô hình hiện tại của app: `export/eval/TRANSFORMER-RESULTS.md`.
 
 ## Rà soát chia tập (18/10/2026)
 Kiểm tra tự động trên phiên bản `a2e83358b8`:

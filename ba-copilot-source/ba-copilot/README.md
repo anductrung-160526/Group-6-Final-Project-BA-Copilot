@@ -42,7 +42,7 @@ There is no login screen: pick yourself from the **Select your name…** dropdow
 1. **Projects** – project list. **Administration** (BA Lead only): team members and their BA / BA Lead roles.
 2. Click a project to open the project workspace with a **left sidebar**:
    - **Task Board** – Kanban board with 4 columns *To do → In progress → Done → Approved*, plus a *Changes requested* tag.
-   - **Business Requirements** – one user story per row: US-xx ID, *As a / I want / So that*, acceptance criteria, priority; QUS quality scoring per row. A module must exist before stories can be created.
+   - **Business Requirements** – one user story per row: US-xx ID, *As a / I want / So that*, acceptance criteria, priority; QUS quality scoring per row (AQUSA-based NLP scorer; results in the format of Tables 4–5 of the paper: `dataset/export/eval/QUS-AQUSA.md`). A module must exist before stories can be created.
    - **Deliverables** (select a module at the top of the page):
      1. *Documents*: BRD → UC Specification → SRS → FRD-NFR → API Spec (each step unlocks once the previous one is *Done*).
      2. *Diagrams*: Context → Use Case → Sequence → BPMN (rendered with Mermaid) → ERD.
@@ -111,13 +111,10 @@ This feature **implements only the method of Li et al. (2020)**, *Auto Completio
 - **Complete layout:** greedy decoding until EOS (including containers generated along the way) within the selected region or the whole screen; each generated element can then be accepted individually.
 - **Input:** the current design tree plus each element's bounding box measured on the canvas, discretised onto a grid of 32 columns × 40 px rows (grid parameters are read from the model config).
 - **Output:** type, leaf flag, bounding box. Inserted elements get neutral default props; text content is changed via the design-editing prompt.
-- **Model:** `model/recursive-layout.json`, hidden size 256, 4 layers, 4.3M parameters, **32-column × 40 px-row** grid, paper architecture (no position embedding). Trained in two steps: **pre-trained on 23,382 WebSight trees**, then **fine-tuned on the team's 785 root screens** (13,168 training trees, 80/10/10 split) with ×2 layout augmentation and dropout 0.2. On the 38-screen test set: **strict Next accuracy 19.7%** (previous 500-screen model: 8.8%), IoU ≥ 0.5 at 33.8%, Edit 37.0 s (no suggestions: 60.5 s). Beyond the paper: WebSight, coarse grid, augmentation, dropout. Details and caveats (no ablation, small test set): `dataset/export/eval/DATA-LIMITED.md`.
+- **Model:** `model/recursive-layout.json`, hidden size 256, 4 layers, 4.3M parameters, **32-column × 40 px-row** grid, paper architecture (no position embedding). Trained in two steps: **pre-trained on 23,382 WebSight trees**, then **fine-tuned on the team's 785 root screens** (13,168 training trees, 80/10/10 split) with ×2 layout augmentation and dropout 0.2. On the 38-screen test set: **strict Next accuracy 19.7%** (previous 500-screen model: 8.8%), IoU ≥ 0.5 at 33.8%, Edit 37.0 s (no suggestions: 60.5 s). Beyond the paper: WebSight, coarse grid, augmentation, dropout. Full results in the format of Tables 1–3 of the paper: `dataset/export/eval/TRANSFORMER-RESULTS.md`.
   - Inference is pure TypeScript (`shared/recursive.ts`) and matches PyTorch output (`tests/recursive.test.ts`).
   - CPU latency (42 test screens): querying one container takes ~20–60 ms; a full-screen pass has a median of 0.3 s (max 0.9 s); Complete layout has a median of 0.4 s (max ~6 s on large screens).
-- **Results:** `dataset/export/eval/DATA-LIMITED.md` (current model), `STRICT-NEXT.md` (grid selection), `LAYOUT-SUGGEST.md` (KLM simulation, scored on the earlier 400-screen model).
-  - A KLM simulation shows step-by-step suggestions save roughly 39–48% of interaction time compared with building by hand; Complete layout saves 16–43%.
-  - Includes per-element-type accuracy tables.
-  - Point-by-point comparison with the paper: `dataset/export/eval/PAPER-METHOD.md`.
+- **Results** (`dataset/export/eval/TRANSFORMER-RESULTS.md`, re-run with `scripts/paper/eval_app_model.py`): average over the 6 BFS/DFS settings, strict metrics – F1 49.0 (paper 54.4), Next 19.7 (paper 27.8), Edit 48.7 s (paper 49.0; no suggestions 60.5 s). Table 3 (random sibling order) is reported too.
 - **Limitations:**
   - no content suggestions;
   - still weak on Radio, Form and List;
@@ -130,128 +127,12 @@ Source code:
 - `shared/layoutDefaults.ts`: default props for inserted elements.
 - `server/service.ts`: `layoutSuggestions`, `acceptLayout`, `manualEdit`.
 - `client/views/DesignTab.tsx`: ghost boxes, panel.
-- `scripts/paper/train_faithful.py`, `export_recursive.py`, `klm_sim.py`: training, export, evaluation.
+- `scripts/paper/train_final.sh`, `export_recursive.py`, `eval_app_model.py`: training, export, evaluation.
 
 ```bash
-python3 scripts/paper/train_faithful.py --data=data/paper-w7c20-r400 && python3 scripts/paper/export_recursive.py
-python3 scripts/paper/klm_sim.py
+bash scripts/paper/train_final.sh && python3 scripts/paper/export_recursive.py --result dataset/export/eval/data-limited/final.json
+python3 scripts/paper/eval_app_model.py --data data/sn80-G2-w7-r800-aug2
 ```
-
-<details><summary>History: baseline models outside the paper (bidirectional encoder, n-gram) and rule set R1–R9 – removed from the app</summary>
-
-The sections below describe the previous version. The baseline model code (`shared/transformer.ts`, the n-gram in `shared/nextComponent.ts`) is now used only by the evaluation scripts. Rule set R1–R9, the app-side filters and the `suggest` function have been deleted.
-
-While the BA was designing, the system looked for **missing elements** (at the end *or in the middle* of a container) and **issues to fix** within the selected region (or the whole screen).
-
-- **Main model: tree Transformer** following Li et al. (2020), *Auto Completion of User Interface Layout Design Using Transformer-Based Tree Decoders* (arXiv:2001.05308):
-  - The tree is flattened in DFS order, with a closing token `</>` per container (as in the Vanilla decoder, §4.2).
-  - Each token is the sum of attribute embeddings (Eq. 5): component type + **semantic subtype** (email, password, search, submit, cancel, create…) + depth + position. The paper uses bounding-box coordinates; BA Copilot trees have no coordinates, so subtype and depth are used instead.
-  - **Deviation from the paper:** bidirectional attention instead of autoregressive decoding. A tree the BA is editing is not a DFS prefix — the missing element may sit in the middle of a form. Each token predicts "the element missing right before it", and a `</>` token predicts "the element missing at the end of the container". Class 0 means nothing is missing. The subtype is predicted conditioned on the type.
-  - 4 layers, d = 96, 4 heads, ~479K parameters (2.6 MB). Inference is **pure TypeScript** (`shared/transformer.ts`, no extra dependencies), ~10–25 ms per screen, matching PyTorch to within 10⁻⁵.
-- **Self-supervised training:** each complete tree is randomly corrupted in one of 3 ways: left intact, random node deletion, BFS truncation. The model learns to recover what was removed.
-- **Data (23,881 trees):**
-
-  | Source | Trees | Notes |
-  |---|---|---|
-  | WebSight v0.2 | 22,227 | Web pages |
-  | Synthetic business screens | 1,521 | Generated by the design generator to cover Table/Select/Pagination/Stat, which WebSight barely contains |
-  | Internal screens | 133 | |
-  | BA-approved screens | | Pulled from the DB, weighted ×5 |
-- **3 suggestion types:**
-  - *Add:* score = P(missing at slot) × P(type | missing) ≥ 0.3 for the whole screen, ≥ 0.15 within a selected region. The prompt is specific to the subtype, e.g. `Add a search input (Input) "Search" to the Row, right before Select "Status".`
-  - *Fix:* rule set R1–R9.
-  - *Review:* only produced by the n-gram fallback.
-- **Fallback:** if `model/next-transformer.json` is missing, or `NEXT_MODEL=ngram` is set, the app falls back to the n-gram model with *stupid backoff* (Brants et al., 2007).
-- **Apply** selects the container and pre-fills the prompt. Mock mode understands "right after…/right before…" positions. Every impression/Apply/Dismiss is logged to `suggestion_events`.
-- **Continual learning:** approved screens are stored in `model_learned_trees`. The n-gram picks them up immediately; the Transformer uses them on the next retraining.
-
-Source code:
-- `shared/transformer.ts`: tree encoding, inference.
-- `shared/nextComponent.ts`: n-gram, rule set, suggestion ranking.
-- `server/nextModel.ts`: model loading.
-- `scripts/train_transformer.py`: training.
-- `scripts/eval-transformer.ts`: comparison.
-
-### Retraining and evaluation
-
-```bash
-# data (one-off)
-python scripts/websight_to_trees.py --n 30000 --out data/corpus/websight.jsonl    # requires: pip install datasets beautifulsoup4
-npm run build-corpus && npm run build-synthetic -- --n 6000
-# training (4-core CPU, ~5 min for 20 epochs) and evaluation
-npm run export-tf-data                      # includes approved screens from the DB
-pip install torch && npm run train-transformer -- --epochs 20
-npm run eval-transformer -- --limit 1500    # → analysis/eval-transformer.csv
-```
-
-**Results.** Evaluated with the same setup as Li et al. 2020 (§5):
-- "Partially designed" trees consist of the first 10/50/80% of nodes under two design orders, **BFS** and **DFS**.
-- The 3 metrics from §5.2 are used in their **type-relaxed** form (§6 of the paper), since the trees have no coordinates:
-  - **F1** over parent–child pairs between the tree the model *auto-completes* and the ground-truth tree.
-  - **Next:** Top-1 accuracy for predicting the next node, plus Top-3.
-  - **Edit:** Zhang–Shasha tree edit distance, converted to seconds using KLM-GOMS (insert 5.05 s; relabel 3.95 s; delete 0.1 s).
-- The "No suggestion" baseline keeps the partial tree as-is, i.e. the BA adds everything manually.
-- The n-gram is trained on the *same* 23,881 trees. Next is measured on 1,500 trees, F1/Edit on 500 trees (`npm run eval-transformer`).
-
-*WebSight + internal, BFS order (cf. Table 1 of the paper):*
-
-| Model | 10% F1 / Next / Edit | 50% F1 / Next / Edit | 80% F1 / Next / Edit |
-|---|---|---|---|
-| No suggestion | 20.1 / – / 55.9 | 64.3 / – / 32.0 | 86.0 / – / 14.3 |
-| N-gram | 37.7 / **50.6** / 40.2 | 49.2 / 66.1 / **14.7** | 52.4 / 77.3 / 7.7 |
-| Transformer | **42.2** / 46.6 / **33.9** | **75.4 / 69.1** / 15.5 | **88.4 / 79.0 / 6.3** |
-
-*WebSight + internal, DFS order (cf. Table 2):*
-
-| Model | 10% | 50% | 80% |
-|---|---|---|---|
-| No suggestion | 20.1 / – / 55.9 | 64.3 / – / 32.0 | **86.0** / – / 14.3 |
-| N-gram | 38.1 / **47.3** / 39.8 | 47.4 / 74.0 / **20.1** | 51.6 / 63.6 / 11.4 |
-| Transformer | **42.7** / 44.3 / **33.1** | **68.5 / 74.3** / 22.7 | 84.4 / **63.8 / 11.2** |
-
-*Synthetic business screens (189 trees):*
-
-| Model | BFS 10% | BFS 50% | BFS 80% | DFS 50% | DFS 80% |
-|---|---|---|---|---|---|
-| No suggestion | 23.5 / – / 34.2 | 64.2 / – / 20.7 | 84.8 / – / 10.0 | 64.2 / – / 20.7 | 84.8 / – / 10.0 |
-| N-gram | 21.0 / 0.0 / 33.1 | 47.2 / 50.3 / 14.2 | 64.5 / 62.4 / 5.9 | 46.1 / 56.6 / 14.2 | 66.4 / 77.2 / 7.9 |
-| Transformer | **50.1 / 52.9 / 10.5** | **78.8 / 69.8 / 6.5** | **91.7 / 75.1 / 1.6** | **81.0 / 63.5 / 6.8** | **90.5 / 83.1 / 2.8** |
-
-Transformer Next Top-3 on WebSight BFS: 85.5% / 90.2% / 94.0% (paper, relaxed variant at BFS 80%: 92.9–95.3%).
-
-**Interpretation:**
-- The Transformer achieves the highest F1 in most configurations. At 50–80% the n-gram scores *below the no-suggestion baseline* on F1, because it can only append to the end of a container and therefore over-generates.
-- Edit distance is very lenient towards extra elements, since deletion costs only 0.1 s under the paper's setup. That is why, at 50% on WebSight, the n-gram edges ahead on Edit despite a much lower F1.
-- At DFS 80% on WebSight, the Transformer does not yet beat the no-suggestion baseline on F1 (84.4 vs 86.0).
-- On business screens, the Transformer wins clearly on every metric.
-
-*Additional task specific to our use case (not covered by the paper):* missing-element detection. One node is deleted and the model must identify both its position and type; Hit@1 / Hit@3:
-
-| Set | N-gram | Transformer |
-|---|---|---|
-| WebSight + internal | 9.3% / 24.3% | **43.2% / 62.5%** |
-| Synthetic business | 6.9% / 22.2% | **58.7% / 87.3%** |
-
-False-alarm rate (complete trees still receiving an Add suggestion at the app's 0.3 threshold): 18.3% on WebSight, 14.8% on business screens. Latency ~9–15 ms per screen.
-
-**Limitations:**
-- The synthetic business data comes from the design generator itself, so results on that set are optimistic.
-- WebSight is dominated by landing pages, with few forms or tables.
-- A randomly deleted element is sometimes inherently unpredictable (an arbitrary Text block), so Hit@k cannot reach 100%.
-
-**Evaluation on 30 reference screens** (`npm run eval-reference`): hand-designed by the team to mimic real products, with Sidebar/Card/Section/Modal, and never used in training. The results show the model **does not yet generalise well** to layouts that differ from its training distribution:
-- Leave-one-out (removing each of 489 nodes in turn): Transformer Hit@3 11.2%, n-gram 9.2%. Input alone reaches 44.7%, Button 22%.
-- 12 of 30 complete screens still receive spurious suggestions, mostly "Add Heading/Text" (a habit learned from WebSight landing pages).
-- Screens with 2 elements removed (90 runs):
-  - The Transformer is *more diverse*: Jaccard similarity between two different screens is 0.12 vs 0.36 for the n-gram; its most frequent "Add" suggestion accounts for 42% vs 53%.
-  - But the Transformer is *less accurate*: recall 7% vs 42%. The n-gram's hits come mostly from "Add Link" to navigation bars.
-
-<details><summary>Legacy n-gram (WebSight + internal only, 22,429 trees)</summary>
-
-`npm run build-model` / `npm run eval-next`: Top-1/Top-3 at 50% reaches 66.4% / 88.9% on a 2,503-tree holdout. The tables above retrain the n-gram on the same data as the Transformer, hence the different numbers.
-</details>
-
-</details>
 
 ### UI completion dataset (work in progress)
 

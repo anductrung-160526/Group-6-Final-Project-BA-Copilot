@@ -4,6 +4,10 @@ Bộ chấm dựa trên **AQUSA** – Lucassen, Dalpiaz, van der Werf, Brinkkemp
 User Story framework and tool*, Requirements Engineering 21:383–403 – và là phiên bản có chỉ số tốt nhất trong các phiên bản
 nhóm đã thử. Tài liệu này chỉ mô tả phiên bản đó; các phiên bản thử nghiệm khác đã gỡ khỏi repo (còn trong lịch sử git).
 
+> **Chạy lại ngày 21/10/2026 trên nhánh main** (`npx tsx scripts/qus-eval/eval.ts --split all` và `--split test3`): kết quả trùng khớp
+> với các bảng dưới đây. Bảng chỉ đo 5 tiêu chí AQUSA trong `shared/aqusa.ts`; các kiểm tra khác của tính năng chấm QUS trong app
+> (UNREADABLE – phần chữ vô nghĩa, AMBIGUOUS, FULL_SENTENCE, NO_END, NO_CRITERIA) không nằm trong bộ đánh giá này.
+
 ## 1. Phương pháp
 **Quy trình (§4):** tách story thành vai trò / hành động / lý do theo cụm chỉ dấu → gán nhãn từ loại (wink-nlp) → 5 bộ phân tích →
 danh sách lỗi (tiêu chí, đoạn chữ, gợi ý sửa, mục bài báo) → hiển thị trên màn Business Requirements. Mã nguồn: `shared/aqusa.ts`
