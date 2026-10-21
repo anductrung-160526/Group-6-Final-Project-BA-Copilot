@@ -17244,6 +17244,7 @@ var BASE_SCORE = 100;
 var PENALTY_ERROR = 30;
 var PENALTY_WARN = 15;
 var PENALTY_INFO = 5;
+var PENALTY_UNREADABLE = 50;
 var QusModelNotLoaded = class extends Error {
   constructor() {
     super("The QUS NLP model (wink-nlp) is not loaded, so user stories cannot be scored.");
@@ -17544,7 +17545,8 @@ function jaccardSimilarity(a, b) {
 function penaltyOf(issues) {
   let penalty = 0;
   for (const issue of issues) {
-    if (issue.severity === "error") penalty += PENALTY_ERROR;
+    if (issue.code === "UNREADABLE") penalty += PENALTY_UNREADABLE;
+    else if (issue.severity === "error") penalty += PENALTY_ERROR;
     else if (issue.severity === "warn") penalty += PENALTY_WARN;
     else penalty += PENALTY_INFO;
   }

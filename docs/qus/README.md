@@ -28,7 +28,7 @@ Module được xây dựng dựa trên các nghiên cứu khoa học về chấ
 | Mã tiêu chí | Mức độ | Trừ điểm | Ý nghĩa & Cách kiểm tra |
 | :--- | :--- | :--- | :--- |
 | **`WELL_FORMED`** | Error | -30đ | User Story thiếu vai trò (Role) hoặc thiếu hành động (Means). Bắt buộc viết theo mẫu chuẩn. |
-| **`UNREADABLE`** | Error | -30đ / mỗi phần | *(Luật của nhóm, chạy bằng mô hình NLP)* Phần vai trò / hành động / lợi ích không phải tiếng Anh đọc được: hơn nửa số từ không có trong từ điển của mô hình wink-nlp (kể cả dạng gốc của từ và từ ghép tách được). Ví dụ "As a asdf, I want qwer, so that zxcv" → 3 lỗi, còn 10đ. |
+| **`UNREADABLE`** | Error | -50đ / mỗi phần | *(Luật của nhóm, chạy bằng mô hình NLP)* Phần vai trò / hành động / lợi ích không phải tiếng Anh đọc được: hơn nửa số từ không có trong từ điển của mô hình wink-nlp (kể cả dạng gốc của từ và từ ghép tách được). Một ô linh tinh → 50đ (Poor); "As a asdf, I want qwer, so that zxcv" → 3 lỗi, 0đ. |
 | **`NO_END`** | Warn | -15đ | Có vai trò và hành động nhưng thiếu phần mục đích / giá trị mang lại (`so that` / `để`). |
 | **`ATOMIC`** | Warn | -15đ | Phần hành động (means) chứa nhiều hành động nối bằng "và" / "and" / `;` (phân biệt nối hành động với nối danh từ như *email và mật khẩu*). |
 | **`MINIMAL`** | Info | -5đ | Chứa ghi chú dài trong ngoặc đơn, hoặc chứa các từ "ví dụ", "lưu ý", "e.g.", "note:". Nên đưa vào Acceptance Criteria. |
@@ -47,6 +47,7 @@ Module được xây dựng dựa trên các nghiên cứu khoa học về chấ
   - Error: `-30đ`
   - Warn: `-15đ`
   - Info: `-5đ`
+  - `UNREADABLE`: `-50đ` mỗi phần (để chỉ một ô linh tinh cũng xuống mức Poor)
   - Điểm tối thiểu: `0đ` (không âm).
 - **Điểm tổng (`total`)**: Trung bình cộng điểm của tất cả các story, làm tròn đến số nguyên gần nhất (`0 - 100`). Nếu không có story nào, `total = 0`.
 - **Thang đánh giá màu sắc**:

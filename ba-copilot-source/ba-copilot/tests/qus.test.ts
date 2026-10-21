@@ -14,6 +14,7 @@ import {
   PENALTY_ERROR,
   PENALTY_WARN,
   PENALTY_INFO,
+  PENALTY_UNREADABLE,
   type QusIssue,
 } from "../shared/qus.ts";
 import { openDb } from "../server/db.ts";
@@ -473,9 +474,11 @@ test("scoreStructured: nhập linh tinh vào cả 3 ô không còn 100 điểm (
   const junk = scoreStructured([{ asA: "asdf", iWant: "qwer", soThat: "zxcv", acceptanceCriteria: ac }]).stories[0];
   assert.deepEqual(junk.issues.map((i) => i.code), ["UNREADABLE", "UNREADABLE", "UNREADABLE"]);
   assert.ok(junk.issues.every((i) => i.severity === "error" && i.criterion === "well-formed"));
-  assert.equal(junk.score, BASE_SCORE - 3 * PENALTY_ERROR);
+  assert.equal(junk.score, 0);
   const one = scoreStructured([{ asA: "customer", iWant: "asdfgh", soThat: "I can track purchases", acceptanceCriteria: ac }]).stories[0];
   assert.deepEqual(one.issues.map((i) => i.code), ["UNREADABLE"]);
+  assert.equal(one.score, BASE_SCORE - PENALTY_UNREADABLE);
+  assert.equal(qusRating(one.score), "poor"); // một ô linh tinh đã là Poor
   const good = scoreStructured([{ asA: "customer", iWant: "view my order history", soThat: "I can track purchases", acceptanceCriteria: ac }]).stories[0];
   assert.equal(good.score, BASE_SCORE);
 });

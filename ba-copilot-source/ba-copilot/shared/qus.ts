@@ -11,6 +11,8 @@ export const BASE_SCORE = 100;
 export const PENALTY_ERROR = 30;
 export const PENALTY_WARN = 15;
 export const PENALTY_INFO = 5;
+// Phần story không đọc được (UNREADABLE): trừ nặng hơn lỗi thường để chỉ một ô linh tinh cũng xuống mức Poor (< 60).
+export const PENALTY_UNREADABLE = 50;
 
 /** Mô hình NLP của bộ chấm (wink-nlp) chưa được nạp – không có điểm, giao diện báo đang tải mô hình. */
 export class QusModelNotLoaded extends Error {
@@ -423,14 +425,15 @@ export function jaccardSimilarity(a: Set<string>, b: Set<string>): number {
 function penaltyOf(issues: QusIssue[]): number {
   let penalty = 0;
   for (const issue of issues) {
-    if (issue.severity === "error") penalty += PENALTY_ERROR;
+    if (issue.code === "UNREADABLE") penalty += PENALTY_UNREADABLE;
+    else if (issue.severity === "error") penalty += PENALTY_ERROR;
     else if (issue.severity === "warn") penalty += PENALTY_WARN;
     else penalty += PENALTY_INFO;
   }
   return penalty;
 }
 
-// Điểm một story (G4, FN-52): 100 − 30/error − 15/warn − 5/info, thấp nhất 0.
+// Điểm một story (G4, FN-52): 100 − 30/error − 15/warn − 5/info (UNREADABLE − 50), thấp nhất 0.
 export function storyScore(issues: QusIssue[]): number {
   return Math.max(0, BASE_SCORE - penaltyOf(issues));
 }
@@ -500,7 +503,7 @@ function scoreTexts(rawStories: string[], options: ScoreOptions = {}, ex: TextEx
 
     if (eng[idx]) {
       // AQUSA: mỗi tiêu chí báo một lỗi (lỗi đầu tiên tìm được) để không trừ điểm nhiều lần cho cùng tiêu chí.
-      // Riêng phần không đọc được (UNREADABLE): mỗi phần một lỗi, nhập linh tinh cả 3 ô thì điểm về gần 0.
+      // Riêng phần không đọc được (UNREADABLE): mỗi phần một lỗi, trừ PENALTY_UNREADABLE – một ô linh tinh đã là Poor.
       const seen = new Set<string>();
       for (const d of aq[idx]) {
         const unreadable = d.code === "WF_UNREADABLE";
