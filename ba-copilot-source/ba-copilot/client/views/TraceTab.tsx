@@ -38,13 +38,13 @@ function Meter({ label, a, b, testid }: { label: string; a: number; b: number; t
   );
 }
 
-const Missing = () => <Badge tone="red">Chưa có</Badge>;
+const Missing = () => <Badge tone="red">Missing</Badge>;
 
 /** Bước "Truy vết". */
 export function TraceStep({ moduleId }: WorkStepProps) {
   const { m, reload } = useModuleDetail(moduleId);
-  if (!moduleId) return <NoModule what="ma trận truy vết" />;
-  if (!m) return <div className="page muted">Đang tải…</div>;
+  if (!moduleId) return <NoModule what="the traceability matrix" />;
+  if (!m) return <div className="page muted">Loading…</div>;
   return <TraceTab m={m} reload={reload} />;
 }
 
@@ -56,10 +56,10 @@ export function TraceTab({ m }: { m: ModuleDetail; reload?: () => Promise<unknow
       .then(setT)
       .catch((e) => toast(e.message, "err"));
   }, [m]);
-  if (!t) return <div className="muted pad">Đang tải…</div>;
+  if (!t) return <div className="muted pad">Loading…</div>;
   const mx = t.matrix;
   if (!t.stories.length && !t.useCases.length && !t.requirements.length)
-    return <Empty title="Chưa có dữ liệu truy vết">Thêm user story cho module và làm bước Tài liệu (UC Specification, FRD-NFR) để xem ma trận Story → Use Case → Yêu cầu → Màn hình → Test case.</Empty>;
+    return <Empty title="No traceability data yet">Add user stories to the module and complete the Documents step (UC Specification, FRD-NFR) to see the Story → Use Case → Requirement → Screen → Test Case matrix.</Empty>;
 
   const screenName = (id: string) => t.screens.find((s) => s.id === id)?.name ?? id;
   const ucName = (code: string) => t.useCases.find((u) => u.code === code)?.name ?? "";
@@ -68,13 +68,13 @@ export function TraceTab({ m }: { m: ModuleDetail; reload?: () => Promise<unknow
   const inferredStory = (sc: string, uc: string) => mx.storyLinks[sc]?.find((l) => l.code === uc)?.inferred;
   const g = mx.gaps;
   const gapRows: [string, string[], string][] = [
-    ["User story chưa có Use Case", g.storiesWithoutUc, "gap-story"],
-    ["Use Case chưa có yêu cầu (FR/NFR)", g.useCasesWithoutFr, "gap-uc"],
-    ["FR chưa gắn Use Case", g.frWithoutUc, "gap-fr-uc"],
-    ["FR chưa có màn hình", g.frWithoutScreen, "gap-fr-screen"],
-    ["FR chưa có test case", g.frWithoutTest, "gap-fr-test"],
-    ["Màn hình chưa gắn yêu cầu nào", g.screensWithoutFr.map(screenName), "gap-screen"],
-    ["Test case không tham chiếu được", g.testsWithoutReference, "gap-test"],
+    ["User stories without a use case", g.storiesWithoutUc, "gap-story"],
+    ["Use cases without requirements (FR/NFR)", g.useCasesWithoutFr, "gap-uc"],
+    ["FRs not linked to a use case", g.frWithoutUc, "gap-fr-uc"],
+    ["FRs without a screen", g.frWithoutScreen, "gap-fr-screen"],
+    ["FRs without test cases", g.frWithoutTest, "gap-fr-test"],
+    ["Screens not linked to any requirement", g.screensWithoutFr.map(screenName), "gap-screen"],
+    ["Test cases with unresolved references", g.testsWithoutReference, "gap-test"],
   ];
   const openGaps = gapRows.filter(([, list]) => list.length);
   let prevStory: string | null | undefined;
@@ -83,14 +83,14 @@ export function TraceTab({ m }: { m: ModuleDetail; reload?: () => Promise<unknow
   return (
     <div className="docs" data-testid="trace-step">
       <div className="meters">
-        <Meter label="User story có Use Case" a={mx.counts.storiesWithUc} b={mx.counts.stories} testid="cov-story" />
-        <Meter label="Yêu cầu chức năng có màn hình" a={mx.counts.frWithScreen} b={mx.counts.frTotal} testid="cov-screen" />
-        <Meter label="Yêu cầu chức năng có test" a={mx.counts.frWithTest} b={mx.counts.frTotal} testid="cov-fr" />
-        <Meter label="Luồng UC có test" a={t.coverage.flowsWithTests} b={t.coverage.flowsTotal} testid="cov-flow" />
+        <Meter label="User stories with a use case" a={mx.counts.storiesWithUc} b={mx.counts.stories} testid="cov-story" />
+        <Meter label="Functional requirements with a screen" a={mx.counts.frWithScreen} b={mx.counts.frTotal} testid="cov-screen" />
+        <Meter label="Functional requirements with tests" a={mx.counts.frWithTest} b={mx.counts.frTotal} testid="cov-fr" />
+        <Meter label="Use case flows with tests" a={t.coverage.flowsWithTests} b={t.coverage.flowsTotal} testid="cov-flow" />
       </div>
       {openGaps.length > 0 ? (
         <div className="warn-banner" data-testid="trace-gaps">
-          <strong>Chỗ hở cần xử lý</strong>
+          <strong>Gaps to resolve</strong>
           {openGaps.map(([label, list, id]) => (
             <div key={id} data-testid={id}>
               {label}: {list.join(", ")}
@@ -99,18 +99,18 @@ export function TraceTab({ m }: { m: ModuleDetail; reload?: () => Promise<unknow
         </div>
       ) : (
         <div className="muted small" data-testid="trace-gaps-none">
-          Không có chỗ hở – mọi story, Use Case, yêu cầu chức năng đều đã được nối tới màn hình và test case.
+          No gaps – every story, use case and functional requirement is linked to screens and test cases.
         </div>
       )}
-      <div className="muted small">Liên kết có nhãn "suy luận" do hệ thống đoán theo từ khoá (tài liệu chưa ghi rõ) – BA cần xác nhận.</div>
+      <div className="muted small">Links labelled "inferred" were guessed by the system from keywords (not stated explicitly in the documents) – the BA must confirm them.</div>
       <div className="table-wrap">
       <table className="tbl" data-testid="trace-matrix">
         <thead>
           <tr>
             <th>User story</th>
             <th>Use Case</th>
-            <th>Yêu cầu</th>
-            <th>Màn hình</th>
+            <th>Requirement</th>
+            <th>Screen</th>
             <th>Test case</th>
           </tr>
         </thead>
@@ -141,7 +141,7 @@ export function TraceTab({ m }: { m: ModuleDetail; reload?: () => Promise<unknow
                     (r.useCase ? (
                       <>
                         <span className="strong nowrap">{r.useCase}</span> <span className="small">{ucName(r.useCase)}</span>{" "}
-                        {r.story && inferredStory(r.story, r.useCase) && <Badge tone="flag">suy luận</Badge>}
+                        {r.story && inferredStory(r.story, r.useCase) && <Badge tone="flag">inferred</Badge>}
                       </>
                     ) : r.story ? (
                       <Missing />
@@ -169,7 +169,7 @@ export function TraceTab({ m }: { m: ModuleDetail; reload?: () => Promise<unknow
                         {s.inferred && (
                           <>
                             {" "}
-                            <Badge tone="flag">suy luận</Badge>
+                            <Badge tone="flag">inferred</Badge>
                           </>
                         )}
                       </React.Fragment>

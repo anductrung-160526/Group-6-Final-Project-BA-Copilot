@@ -72,7 +72,7 @@ export async function api<T = any>(method: string, path: string, body?: unknown)
   }
   if (!res.ok) {
     const { error, details, code, ...rest } = data ?? {};
-    throw new ApiError(error ?? `Lỗi ${res.status}`, res.status, details, code, rest);
+    throw new ApiError(error ?? `Error ${res.status}`, res.status, details, code, rest);
   }
   return data as T;
 }
@@ -88,7 +88,7 @@ export async function download(path: string): Promise<void> {
   const res = await fetch(path);
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new ApiError(data.error ?? `Lỗi ${res.status}`, res.status);
+    throw new ApiError(data.error ?? `Error ${res.status}`, res.status);
   }
   const blob = await res.blob();
   const cd = res.headers.get("content-disposition") ?? "";

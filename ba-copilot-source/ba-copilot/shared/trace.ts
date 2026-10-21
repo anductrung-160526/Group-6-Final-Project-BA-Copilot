@@ -133,7 +133,7 @@ function words(text: string): string[] {
   return text
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/gi, "d")
+    .replace(/đ/gi, "d") // vi-keep: bỏ dấu tiếng Việt khi so từ khoá
     .toLowerCase()
     .split(/[^a-z0-9]+/)
     .filter((w) => w.length >= 2 && !STOP.has(w));

@@ -77,7 +77,7 @@ export function taskMove(from: TaskStatus, to: TaskStatus): TaskMove | null {
   return null;
 }
 
-export const TASK_STATUS_LABEL: Record<TaskStatus, string> = { todo: "Cần làm", doing: "Đang làm", done: "Xong", approved: "Đã duyệt", redo: "Đang làm" };
+export const TASK_STATUS_LABEL: Record<TaskStatus, string> = { todo: "To do", doing: "In progress", done: "Done", approved: "Approved", redo: "In progress" };
 
 /**
  * Kiểm tra một lần đổi trạng thái bằng tay. Trả về lý do tiếng Việt khi KHÔNG được phép, `null` khi được.
@@ -86,10 +86,10 @@ export const TASK_STATUS_LABEL: Record<TaskStatus, string> = { todo: "Cần làm
 export function moveError(from: TaskStatus, to: TaskStatus, actor: { role: string } | null): string | null {
   if (normStatus(from) === normStatus(to)) return null;
   const mv = taskMove(from, to);
-  if (!mv) return `Không chuyển thẳng từ “${TASK_STATUS_LABEL[from]}” sang “${TASK_STATUS_LABEL[to]}”`;
-  if (mv === "done" && !actor) return "Chọn người ở ô “Tôi là…” trước khi bấm Xong";
-  if (mv === "approve" && actor?.role !== "BA_LEAD") return "Chỉ BA Lead được duyệt";
-  if (mv === "request-change" && actor?.role !== "BA_LEAD") return "Chỉ BA Lead được yêu cầu sửa";
+  if (!mv) return `Cannot move directly from “${TASK_STATUS_LABEL[from]}” to “${TASK_STATUS_LABEL[to]}”`;
+  if (mv === "done" && !actor) return "Select a person in the “Acting as” box before marking as done";
+  if (mv === "approve" && actor?.role !== "BA_LEAD") return "Only a BA Lead can approve";
+  if (mv === "request-change" && actor?.role !== "BA_LEAD") return "Only a BA Lead can request changes";
   return null;
 }
 
@@ -99,15 +99,15 @@ export function moveError(from: TaskStatus, to: TaskStatus, actor: { role: strin
 export function artifactKindLabel(kind: ArtifactKind, sub?: string | null): string {
   switch (kind) {
     case "screen":
-      return "Màn hình";
+      return "Screen";
     case "doc":
-      return `Tài liệu ${DOC_KIND_LABEL[sub as DocKind] ?? sub ?? ""}`.trim();
+      return `${DOC_KIND_LABEL[sub as DocKind] ?? sub ?? ""} document`.trim();
     case "diagram":
-      return `Sơ đồ ${DIAGRAM_KIND_LABEL[(sub || "UC") as DiagramKind] ?? sub}`;
+      return `${DIAGRAM_KIND_LABEL[(sub || "UC") as DiagramKind] ?? sub} diagram`;
     case "tests":
-      return "Bộ test";
+      return "Test suite";
     case "docs":
-      return "Tài liệu (cũ)";
+      return "Documents (legacy)";
   }
 }
 
@@ -126,16 +126,16 @@ export function statusReason(event: ArtifactEventType, kind: ArtifactKind, name 
   const what = artifactTitle(kind, sub, name);
   switch (event) {
     case "artifact.drafted":
-      return kind === "tests" ? `${what} vừa được sinh` : `${what} có bản nháp mới`;
+      return kind === "tests" ? `${what} was generated` : `${what} has a new draft`;
     case "artifact.done":
-      return `BA bấm Xong ${what}`;
+      return `BA marked ${what} as done`;
     case "artifact.approved":
-      return `BA Lead duyệt ${what}`;
+      return `BA Lead approved ${what}`;
     case "artifact.revision_requested":
-      return `BA Lead yêu cầu sửa ${what}`;
+      return `BA Lead requested changes to ${what}`;
     case "artifact.stale":
-      return `${what} thành Bản cũ do bước trước thay đổi`;
+      return `${what} became Outdated because a previous step changed`;
     case "artifact.unapproved":
-      return `${what} bị bỏ duyệt`;
+      return `${what} approval was withdrawn`;
   }
 }

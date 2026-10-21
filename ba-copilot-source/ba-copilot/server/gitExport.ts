@@ -44,11 +44,11 @@ export interface ExportResult {
 // ---------------------------------------------------------------- tên thư mục / tệp
 
 /** Slug không dấu, an toàn cho đường dẫn: chữ thường a-z0-9 nối bằng "-". Rỗng → `fallback`. */
-export function slugify(text: string, fallback = "muc"): string {
+export function slugify(text: string, fallback = "item"): string {
   const s = (text ?? "")
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
-    .replace(/[đĐ]/g, "d")
+    .replace(/[đĐ]/g, "d") // vi-keep: bỏ dấu tiếng Việt trong đường dẫn
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
@@ -78,7 +78,7 @@ interface ModuleRow {
 
 function moduleRow(moduleId: string): ModuleRow {
   const m = getDb().prepare("SELECT id, project_id, name FROM modules WHERE id = ?").get(moduleId) as ModuleRow | undefined;
-  if (!m) throw new Error("Không tìm thấy module của sản phẩm");
+  if (!m) throw new Error("The artifact's module was not found");
   return m;
 }
 
@@ -183,23 +183,23 @@ function prototypeCss(): string {
 export function screenHtml(name: string, tree: UINode | null, moduleName: string): string {
   if (!tree) {
     return `<!doctype html>
-<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(name)} – ${esc(moduleName)}</title></head>
-<body><p style="padding:24px">Màn chưa có bản thiết kế.</p></body></html>
+<body><p style="padding:24px">This screen has no design yet.</p></body></html>
 `;
   }
-  return screenToHtml(tree, { title: `${name} – ${moduleName}`, backHref: "index.html", footer: `Xuất từ BA Copilot – ${moduleName}` });
+  return screenToHtml(tree, { title: `${name} – ${moduleName}`, backHref: "index.html", footer: `Exported from BA Copilot – ${moduleName}` });
 }
 
 function prototypeIndex(moduleName: string, items: { name: string; file: string }[]): string {
-  const list = items.length ? items.map((s) => `<li><a href="${esc(s.file)}">${esc(s.name)}</a></li>`).join("\n") : "<li>Chưa có màn nào được duyệt.</li>";
+  const list = items.length ? items.map((s) => `<li><a href="${esc(s.file)}">${esc(s.name)}</a></li>`).join("\n") : "<li>No screens have been approved yet.</li>";
   return `<!doctype html>
-<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Prototype – ${esc(moduleName)}</title>
 <style>body{margin:0;padding:32px;font-family:Inter,system-ui,sans-serif;color:#1c2a30;background:#fff}h1{font-size:24px}li{margin:6px 0}a{color:#0f5a6e}</style>
 </head><body>
 <h1>Prototype – ${esc(moduleName)}</h1>
-<p>Các màn đã được BA Lead duyệt:</p>
+<p>Screens approved by the BA Lead:</p>
 <ul>
 ${list}
 </ul>
@@ -226,17 +226,17 @@ function parseJson<T>(raw: string | null | undefined, fallback: T): T {
 
 export function testsMarkdown(moduleName: string, cases: TestCase[]): string {
   const lines = [`# Test case – ${moduleName}`, ""];
-  if (!cases.length) return lines.concat("_(Chưa có test case)_", "").join("\n");
-  lines.push(`Tổng: ${cases.length} test case.`, "", "| Mã | Tên | Loại | Ưu tiên | Use case | Yêu cầu |", "|---|---|---|---|---|---|");
+  if (!cases.length) return lines.concat("_(No test cases yet)_", "").join("\n");
+  lines.push(`Total: ${cases.length} test case(s).`, "", "| ID | Title | Type | Priority | Use case | Requirements |", "|---|---|---|---|---|---|");
   for (const c of cases) lines.push(`| ${cell(c.code)} | ${cell(c.title)} | ${cell(c.type)} | ${cell(c.priority)} | ${cell(c.useCaseCode)} | ${cell((c.requirementCodes ?? []).join(", "))} |`);
   for (const c of cases) {
     lines.push("", `## ${c.code} – ${c.title}`, "");
-    lines.push(`- **Loại:** ${c.type} · **Ưu tiên:** ${c.priority} · **Use case:** ${c.useCaseCode || "—"}${c.flowRef ? ` (${c.flowRef})` : ""}`);
-    if (c.requirementCodes?.length) lines.push(`- **Yêu cầu:** ${c.requirementCodes.join(", ")}`);
-    if (c.preconditions) lines.push(`- **Điều kiện trước:** ${c.preconditions}`);
-    if (c.testData) lines.push(`- **Dữ liệu test:** ${c.testData}`);
-    if (c.steps?.length) lines.push("", "**Các bước:**", "", ...c.steps.map((s, i) => `${i + 1}. ${s}`));
-    if (c.expected) lines.push("", `**Kết quả mong đợi:** ${c.expected}`);
+    lines.push(`- **Type:** ${c.type} · **Priority:** ${c.priority} · **Use case:** ${c.useCaseCode || "—"}${c.flowRef ? ` (${c.flowRef})` : ""}`);
+    if (c.requirementCodes?.length) lines.push(`- **Requirements:** ${c.requirementCodes.join(", ")}`);
+    if (c.preconditions) lines.push(`- **Preconditions:** ${c.preconditions}`);
+    if (c.testData) lines.push(`- **Test data:** ${c.testData}`);
+    if (c.steps?.length) lines.push("", "**Test steps:**", "", ...c.steps.map((s, i) => `${i + 1}. ${s}`));
+    if (c.expected) lines.push("", `**Expected result:** ${c.expected}`);
   }
   return lines.join("\n") + "\n";
 }
@@ -248,7 +248,7 @@ export function refModuleId(ref: ArtifactRef): string {
   if (ref.kind !== "screen") return ref.id;
   if (ref.moduleId) return ref.moduleId;
   const r = getDb().prepare("SELECT module_id FROM screens WHERE id = ?").get(ref.id) as { module_id: string } | undefined;
-  if (!r) throw new Error("Không tìm thấy màn hình");
+  if (!r) throw new Error("Screen not found");
   return r.module_id;
 }
 
@@ -257,16 +257,16 @@ export function artifactLabel(ref: ArtifactRef): string {
   switch (ref.kind) {
     case "screen": {
       const r = getDb().prepare("SELECT name FROM screens WHERE id = ?").get(ref.id) as { name: string } | undefined;
-      return `Màn ${r?.name ?? ref.id}`;
+      return `Screen ${r?.name ?? ref.id}`;
     }
     case "doc":
-      return `Tài liệu ${DOC_KIND_LABEL[(ref.sub as DocKind) ?? "BRD"] ?? ref.sub}`;
+      return `${DOC_KIND_LABEL[(ref.sub as DocKind) ?? "BRD"] ?? ref.sub} document`;
     case "diagram":
-      return `Sơ đồ ${DIAGRAM_KIND_LABEL[(ref.sub as DiagramKind) ?? "UC"] ?? ref.sub}`;
+      return `${DIAGRAM_KIND_LABEL[(ref.sub as DiagramKind) ?? "UC"] ?? ref.sub} diagram`;
     case "tests":
       return "Test case";
     default:
-      return "Tài liệu";
+      return "Documents";
   }
 }
 
@@ -281,9 +281,9 @@ export function buildExport(ref: ArtifactRef): ExportResult {
   switch (ref.kind) {
     case "doc": {
       const kind = ref.sub as DocKind;
-      if (!DOC_KINDS.includes(kind)) throw new Error("Thiếu loại tài liệu");
+      if (!DOC_KINDS.includes(kind)) throw new Error("Missing document type");
       const r = d.prepare("SELECT content FROM module_docs WHERE module_id = ? AND kind = ?").get(moduleId, kind) as { content: string } | undefined;
-      const content = r?.content?.trim() ? r.content : `# ${DOC_KIND_LABEL[kind]} – ${m.name}\n\n_(Chưa có nội dung)_`;
+      const content = r?.content?.trim() ? r.content : `# ${DOC_KIND_LABEL[kind]} – ${m.name}\n\n_(No content yet)_`;
       files.push({ path: `${dir}/docs/${DOC_FILE[kind]}`, content: content.endsWith("\n") ? content : content + "\n" });
       break;
     }
@@ -297,7 +297,7 @@ export function buildExport(ref: ArtifactRef): ExportResult {
       const screens = moduleScreens(moduleId);
       const names = screenFiles(screens);
       const me = screens.find((s) => s.id === ref.id);
-      if (!me) throw new Error("Không tìm thấy màn hình");
+      if (!me) throw new Error("Screen not found");
       files.push({ path: `${dir}/prototype/${names.get(me.id)}`, content: screenHtml(me.name, parseJson<UINode | null>(me.tree, null), m.name) });
       // index.html: các màn đã duyệt + màn đang được duyệt (trạng thái chưa đổi lúc đẩy).
       const approved = screens.filter((s) => s.id === me.id || s.status === "approved").map((s) => ({ name: s.name, file: names.get(s.id)! }));
@@ -311,7 +311,7 @@ export function buildExport(ref: ArtifactRef): ExportResult {
       break;
     }
     default:
-      throw new Error("Loại sản phẩm không đẩy lên GitHub được");
+      throw new Error("This artifact type cannot be pushed to GitHub");
   }
 
   return { projectId: m.project_id, moduleId, moduleName: m.name, moduleDir: dir, label: artifactLabel(ref), files };

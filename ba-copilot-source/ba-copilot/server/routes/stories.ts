@@ -37,14 +37,14 @@ route("POST", "/api/projects/:id/stories", (ctx) => {
 
 route("POST", "/api/projects/:id/stories/reorder", (ctx) => {
   requireMember(ctx);
-  if (!Array.isArray(ctx.body?.ids)) throw new HttpError("Thiếu danh sách ids", 400);
+  if (!Array.isArray(ctx.body?.ids)) throw new HttpError("Missing ids list", 400);
   return stories.reorderStories(ctx.params.id, arr(ctx.body.ids));
 });
 
 route("GET", "/api/stories/:id", (ctx) => {
   requireMember(ctx);
   const s = stories.getStory(ctx.params.id);
-  if (!s) throw new HttpError("Không tìm thấy user story", 404);
+  if (!s) throw new HttpError("User story not found", 404);
   return s;
 });
 

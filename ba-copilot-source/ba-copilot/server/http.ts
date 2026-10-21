@@ -62,7 +62,7 @@ export class HttpError extends Error {
 /** Handler giữ chỗ cho endpoint đã có trong docs/api.md nhưng chưa làm: trả 501. */
 export function notImplemented(fn: string): Handler {
   const h: Handler = () => {
-    throw new HttpError(`Chưa triển khai (${fn})`, 501);
+    throw new HttpError(`Not implemented (${fn})`, 501);
   };
   return Object.assign(h, { [STUB]: true });
 }
@@ -103,7 +103,7 @@ export function baseRevOf(body: any, query?: URLSearchParams): number | undefine
  */
 export function assertRev(currentRev: number, baseRev: number | null | undefined): void {
   if (baseRev === undefined || baseRev === null) return;
-  if (Number(baseRev) !== Number(currentRev)) throw new HttpError("Bản đã thay đổi – tải lại", 409, "CONFLICT", { rev: currentRev });
+  if (Number(baseRev) !== Number(currentRev)) throw new HttpError("This version has changed – reload", 409, "CONFLICT", { rev: currentRev });
 }
 
 // =============================================================== Đợt 5 – đăng nhập theo thành viên
@@ -200,14 +200,14 @@ function rateLimited(ip: string): number {
 /** Đăng nhập thành viên: đúng mật khẩu → đặt cookie phiên và trả Member; sai → HttpError 401 / 429. */
 export function loginMember(req: IncomingMessage, res: ServerResponse, input: { memberId?: string; name?: string; password: string }): Member {
   const wait = rateLimited(clientIp(req));
-  if (wait) throw new HttpError(`Thử sai quá nhiều lần. Vui lòng chờ ${Math.ceil(wait / 60)} phút.`, 429);
+  if (wait) throw new HttpError(`Too many failed attempts. Please wait ${Math.ceil(wait / 60)} minute(s).`, 429);
   const d = getDb();
   const r = (
     input.memberId
       ? memberRow(input.memberId)
       : (d.prepare("SELECT id, name, role, created_at, password_hash FROM members WHERE name = ? COLLATE NOCASE ORDER BY created_at LIMIT 1").get((input.name ?? "").trim()) as MemberRow | undefined)
   ) as MemberRow | undefined;
-  if (!r || !r.password_hash || !verifyPassword(input.password, r.password_hash)) throw new HttpError("Tên đăng nhập hoặc mật khẩu không đúng", 401, "UNAUTHENTICATED");
+  if (!r || !r.password_hash || !verifyPassword(input.password, r.password_hash)) throw new HttpError("Incorrect username or password", 401, "UNAUTHENTICATED");
   const exp = String(Date.now() + SESSION_TTL_MS);
   const value = `${r.id}.${exp}.${signSession(r.id, exp, r.password_hash)}`;
   res.setHeader("set-cookie", `${MEMBER_COOKIE}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_TTL_MS / 1000}${isHttps(req) ? "; Secure" : ""}`);
@@ -228,15 +228,15 @@ export function logoutMemberCookie(req: IncomingMessage): string {
 export function setMemberPassword(memberId: string, password: string | null): Member {
   const d = getDb();
   const r = memberRow(memberId);
-  if (!r) throw new HttpError("Không tìm thấy thành viên", 404);
+  if (!r) throw new HttpError("Member not found", 404);
   if (password) {
-    if (password.length < MIN_PASSWORD) throw new HttpError(`Mật khẩu cần ít nhất ${MIN_PASSWORD} ký tự`, 400);
-    if (!memberAuthEnabled() && r.role !== "BA_LEAD") throw new HttpError("Cần đặt mật khẩu cho một BA Lead trước", 400);
+    if (password.length < MIN_PASSWORD) throw new HttpError(`Password must be at least ${MIN_PASSWORD} characters`, 400);
+    if (!memberAuthEnabled() && r.role !== "BA_LEAD") throw new HttpError("Set a password for a BA Lead first", 400);
     d.prepare("UPDATE members SET password_hash = ? WHERE id = ?").run(hashPassword(password), memberId);
   } else if (r.password_hash) {
     const leadsWithPw = Number((d.prepare("SELECT COUNT(*) AS n FROM members WHERE role = 'BA_LEAD' AND password_hash IS NOT NULL AND password_hash <> ''").get() as { n: number }).n);
     const othersWithPw = Number((d.prepare("SELECT COUNT(*) AS n FROM members WHERE id <> ? AND password_hash IS NOT NULL AND password_hash <> ''").get(memberId) as { n: number }).n);
-    if (r.role === "BA_LEAD" && leadsWithPw === 1 && othersWithPw > 0) throw new HttpError("Không xoá được mật khẩu của BA Lead cuối cùng khi người khác còn mật khẩu", 400);
+    if (r.role === "BA_LEAD" && leadsWithPw === 1 && othersWithPw > 0) throw new HttpError("Cannot remove the last BA Lead's password while other members still have passwords", 400);
     d.prepare("UPDATE members SET password_hash = NULL WHERE id = ?").run(memberId);
   }
   return toMember(memberRow(memberId)!);
@@ -258,7 +258,7 @@ export function currentMember(ctx: Pick<HandlerCtx, "req" | "body" | "query">): 
 /** Bắt buộc là thành viên đã đăng nhập (chế độ member) → Member; chế độ demo luôn cho qua (có thể trả null). */
 export function requireMember(ctx: Pick<HandlerCtx, "req" | "body" | "query">): Member | null {
   const m = currentMember(ctx);
-  if (!m && memberAuthEnabled()) throw new HttpError("Chưa đăng nhập", 401, "UNAUTHENTICATED", { mode: "member" });
+  if (!m && memberAuthEnabled()) throw new HttpError("Not signed in", 401, "UNAUTHENTICATED", { mode: "member" });
   return m;
 }
 
@@ -268,6 +268,6 @@ export function requireMember(ctx: Pick<HandlerCtx, "req" | "body" | "query">): 
  */
 export function requireLead(ctx: Pick<HandlerCtx, "req" | "body" | "query">): Member | null {
   const m = requireMember(ctx);
-  if (m && m.role !== "BA_LEAD") throw new HttpError("Chỉ BA Lead được thực hiện thao tác này", 403, "FORBIDDEN");
+  if (m && m.role !== "BA_LEAD") throw new HttpError("Only a BA Lead can perform this action", 403, "FORBIDDEN");
   return m;
 }

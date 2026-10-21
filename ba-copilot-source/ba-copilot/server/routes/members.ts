@@ -13,16 +13,16 @@ import type { MemberRole } from "../../shared/types.ts";
 
 const name = (v: unknown) => {
   const n = str(v, 80).trim();
-  if (!n) throw new BizError("Tên thành viên không được để trống");
+  if (!n) throw new BizError("Member name is required");
   return n;
 };
 const role = (v: unknown): MemberRole => {
-  if (!members.MEMBER_ROLES.includes(v as MemberRole)) throw new BizError("Vai trò phải là BA hoặc BA Lead");
+  if (!members.MEMBER_ROLES.includes(v as MemberRole)) throw new BizError("Role must be BA or BA Lead");
   return v as MemberRole;
 };
 const mustMember = (id: string) => {
   const m = members.getMember(id);
-  if (!m) throw new BizError("Không tìm thấy thành viên", 404);
+  if (!m) throw new BizError("Member not found", 404);
   return m;
 };
 
@@ -30,7 +30,7 @@ const mustMember = (id: string) => {
 export function requireAdmin(ctx: Pick<HandlerCtx, "req" | "body" | "query">): void {
   if (!members.hasLead()) return;
   const me = currentMember(ctx);
-  if (!me || me.role !== "BA_LEAD") throw new HttpError("Chỉ BA Lead được quản trị thành viên", 403, "FORBIDDEN");
+  if (!me || me.role !== "BA_LEAD") throw new HttpError("Only a BA Lead can manage members", 403, "FORBIDDEN");
 }
 
 route("GET", "/api/members", () => members.listMembers());
@@ -51,7 +51,7 @@ route("DELETE", "/api/members/:id", (ctx) => {
   requireAdmin(ctx);
   const m = mustMember(ctx.params.id);
   const open = members.countOpenTasks(m.id);
-  if (open) throw new BizError(`${m.name} đang phụ trách ${open} công việc chưa xong. Hãy giao lại các công việc đó trước khi xoá.`, 409);
+  if (open) throw new BizError(`${m.name} is assigned to ${open} unfinished task(s). Reassign those tasks before deleting.`, 409);
   members.deleteMember(m.id);
   return { ok: true };
 });
@@ -59,10 +59,10 @@ route("DELETE", "/api/members/:id", (ctx) => {
 // TẠM (R-041): sửa tên / mô tả dự án cho nút Sửa ở trang chủ. app.ts + repo.ts (khoá / của agent khác) chưa có
 // route này nên đăng ký tạm ở đây; C0 chuyển sang app.ts + repo.updateProject khi gộp rồi xoá khối này.
 route("PATCH", "/api/projects/:id", ({ params, body }) => {
-  if (!repo.getProject(params.id)) throw new BizError("Không tìm thấy dự án", 404);
+  if (!repo.getProject(params.id)) throw new BizError("Project not found", 404);
   if (body.name !== undefined) {
     const n = str(body.name, 200).trim();
-    if (!n) throw new BizError("Tên dự án không được để trống");
+    if (!n) throw new BizError("Project name is required");
     getDb().prepare("UPDATE projects SET name = ? WHERE id = ?").run(n, params.id);
   }
   if (body.description !== undefined) getDb().prepare("UPDATE projects SET description = ? WHERE id = ?").run(str(body.description, 2000), params.id);

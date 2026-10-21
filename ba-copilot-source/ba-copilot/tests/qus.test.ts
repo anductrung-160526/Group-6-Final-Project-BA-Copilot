@@ -200,7 +200,7 @@ test("Công thức điểm (G4) và xếp hạng Tốt/Khá/Cần sửa", () => 
   assert.equal(qusRating(79), "fair");
   assert.equal(qusRating(60), "fair");
   assert.equal(qusRating(59), "poor");
-  assert.equal(RATING_LABEL[qusRating(59)], "Cần sửa");
+  assert.equal(RATING_LABEL[qusRating(59)], "Poor");
 });
 
 test("Các trường hợp biên: chuỗi rỗng, khoảng trắng, 1 story, đánh số, tiếng Việt có dấu, hoa thường", () => {
@@ -287,7 +287,7 @@ test("5 story mẫu: điểm khớp với tính tay", () => {
     [100, 50, 85, 85, 90],
   );
   assert.equal(res.total, 82);
-  assert.equal(RATING_LABEL[qusRating(res.total)], "Tốt");
+  assert.equal(RATING_LABEL[qusRating(res.total)], "Good");
 });
 
 test("FN-55: lỗi chỉ ra đoạn chữ gây lỗi và gợi ý viết lại", () => {
@@ -387,7 +387,7 @@ test("scoreStructured: chấm từng story theo câu ghép + tiêu chí chấp n
   assert.deepEqual(res.stories.map((s) => s.score), [100, 85, 65, 95, 85]);
   assert.equal(res.total, Math.round((100 + 85 + 65 + 95 + 85) / 5));
   const amb = res.stories[4].issues[0];
-  assert.match(amb.message, /dòng 1, 3/);
+  assert.match(amb.message, /line 1, 3/);
   assert.match(amb.message, /nhanh, thân thiện/);
 });
 
@@ -449,7 +449,7 @@ test("GET /api/modules/:id/qus: chấm user story có cấu trúc của module, 
   assert.equal(fresh.data.result.stories[0].code, "US-01");
   // Trùng với story của module "Trùng" cùng dự án (G1) → −15
   assert.equal(fresh.data.result.total, 85);
-  assert.match(fresh.data.result.stories[0].issues[0].message, /Trùng/);
+  assert.match(fresh.data.result.stories[0].issues[0].message, /Duplicates/);
 
   // Điểm đã được lưu khi thêm story (FN-56); đọc lại
   assert.equal(saveModuleQus(m2.id), 85);

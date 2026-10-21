@@ -33,13 +33,13 @@ export function checkScope(tree: UINode, op: PatchOp, selectedIds: string[]): st
     case "update":
     case "replace":
     case "remove":
-      return allowed.has(op.id) ? null : `Node ${op.id} nằm ngoài vùng khoanh`;
+      return allowed.has(op.id) ? null : `Node ${op.id} is outside the selected region`;
     case "insert":
       return allowed.has(op.parentId) || parentsOfSelected.has(op.parentId)
         ? null
-        : `Không được chèn vào ${op.parentId} (ngoài vùng khoanh)`;
+        : `Cannot insert into ${op.parentId} (outside the selected region)`;
     default:
-      return "Thao tác không hợp lệ";
+      return "Invalid operation";
   }
 }
 
@@ -52,7 +52,7 @@ export function applyPatch(tree: UINode, ops: PatchOp[], opts: PatchOptions = {}
 
   for (const op of ops) {
     if (!op || typeof op !== "object" || !("op" in op)) {
-      rejected.push({ op, reason: "Thao tác không đúng định dạng" });
+      rejected.push({ op, reason: "Malformed operation" });
       continue;
     }
     // Kiểm tra phạm vi so với cây GỐC (vùng BA đã khoanh), không phải cây đang sửa,
@@ -74,7 +74,7 @@ export function applyPatch(tree: UINode, ops: PatchOp[], opts: PatchOptions = {}
     switch (op.op) {
       case "update": {
         const n = findNode(root, op.id);
-        if (!n) return `Không tìm thấy node ${op.id}`;
+        if (!n) return `Node ${op.id} not found`;
         const next = { ...n.props };
         for (const [k, v] of Object.entries(op.props ?? {})) {
           if (v === null) delete next[k];
@@ -86,10 +86,10 @@ export function applyPatch(tree: UINode, ops: PatchOp[], opts: PatchOptions = {}
       }
       case "replace": {
         const n = findNode(root, op.id);
-        if (!n) return `Không tìm thấy node ${op.id}`;
+        if (!n) return `Node ${op.id} not found`;
         if (n === root) {
           const fresh = normalizeTree(op.node, new Set());
-          if (fresh.type !== "Page") return "Node gốc phải là Page";
+          if (fresh.type !== "Page") return "The root node must be a Page";
           working = fresh;
           touchedSet.add(fresh.id);
           return null;
@@ -106,8 +106,8 @@ export function applyPatch(tree: UINode, ops: PatchOp[], opts: PatchOptions = {}
       }
       case "insert": {
         const parent = findNode(root, op.parentId);
-        if (!parent) return `Không tìm thấy node cha ${op.parentId}`;
-        if (!isContainer(parent.type)) return `${parent.type} không chứa được node con`;
+        if (!parent) return `Parent node ${op.parentId} not found`;
+        if (!isContainer(parent.type)) return `${parent.type} cannot contain child nodes`;
         const fresh = normalizeTree(op.node, existing);
         parent.children = parent.children ?? [];
         const idx = typeof op.index === "number" ? Math.max(0, Math.min(op.index, parent.children.length)) : parent.children.length;
@@ -117,15 +117,15 @@ export function applyPatch(tree: UINode, ops: PatchOp[], opts: PatchOptions = {}
         return null;
       }
       case "remove": {
-        if (root.id === op.id) return "Không được xóa node gốc";
+        if (root.id === op.id) return "The root node cannot be deleted";
         const parent = findParent(root, op.id);
-        if (!parent || !parent.children) return `Không tìm thấy node ${op.id}`;
+        if (!parent || !parent.children) return `Node ${op.id} not found`;
         parent.children = parent.children.filter((c) => c.id !== op.id);
         touchedSet.add(parent.id);
         return null;
       }
     }
-    return "Thao tác không hỗ trợ";
+    return "Unsupported operation";
   }
 }
 

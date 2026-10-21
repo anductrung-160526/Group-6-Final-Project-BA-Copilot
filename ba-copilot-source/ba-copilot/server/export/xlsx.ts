@@ -103,21 +103,21 @@ ${sheets.map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.open
   return zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 }
 
-const typeVi = (t: string) => ({ Positive: "Tích cực", Negative: "Tiêu cực", Boundary: "Giá trị biên" })[t] ?? t;
-const prioVi = (p: string) => ({ High: "Cao", Medium: "Trung bình", Low: "Thấp" })[p] ?? p;
+const typeVi = (t: string) => ({ Positive: "Positive", Negative: "Negative", Boundary: "Boundary" })[t] ?? t;
+const prioVi = (p: string) => ({ High: "High", Medium: "Medium", Low: "Low" })[p] ?? p;
 
 export function testWorkbook(tests: TestCase[], trace: TraceResult, screenName: (id: string) => string): Promise<Buffer> {
   return buildXlsx([
     {
       name: "Test case",
-      header: ["Mã TC", "Tiêu đề", "Loại", "Ưu tiên", "Use Case", "Luồng", "Yêu cầu", "Tiền điều kiện", "Dữ liệu test", "Các bước", "Kết quả mong đợi", "Kết quả thực tế", "Trạng thái"],
-      rows: tests.map((t) => [t.code, t.title, typeVi(t.type), prioVi(t.priority), t.useCaseCode, t.flowRef, t.requirementCodes.join(", "), t.preconditions, t.testData, t.steps.map((s, i) => `${i + 1}. ${s}`).join("\n"), t.expected, "", "Chưa chạy"]),
+      header: ["TC ID", "Title", "Type", "Priority", "Use Case", "Flow", "Requirements", "Preconditions", "Test Data", "Test Steps", "Expected Result", "Actual Result", "Status"],
+      rows: tests.map((t) => [t.code, t.title, typeVi(t.type), prioVi(t.priority), t.useCaseCode, t.flowRef, t.requirementCodes.join(", "), t.preconditions, t.testData, t.steps.map((s, i) => `${i + 1}. ${s}`).join("\n"), t.expected, "", "Not run"]),
       widths: [10, 38, 13, 12, 10, 8, 14, 26, 28, 46, 40, 24, 12],
     },
     {
-      name: "Truy vết",
-      header: ["Yêu cầu", "Loại", "Nội dung", "Use Case", "Màn hình", "Test case", "Bao phủ"],
-      rows: trace.rows.map((r) => [r.requirement.code, r.requirement.type, r.requirement.statement, r.useCases.join(", "), r.screenIds.map(screenName).join(", "), r.tests.join(", "), r.tests.length ? "Có test" : "CHƯA CÓ TEST"]),
+      name: "Traceability",
+      header: ["Requirement", "Type", "Statement", "Use Case", "Screens", "Test Cases", "Coverage"],
+      rows: trace.rows.map((r) => [r.requirement.code, r.requirement.type, r.requirement.statement, r.useCases.join(", "), r.screenIds.map(screenName).join(", "), r.tests.join(", "), r.tests.length ? "Covered" : "NOT COVERED"]),
       widths: [10, 8, 60, 16, 24, 36, 16],
     },
   ]);

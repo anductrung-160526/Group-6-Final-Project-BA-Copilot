@@ -131,11 +131,11 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
 
   const generate = async () => {
     if (!d) return;
-    if (exists && !(await confirm({ title: `Sinh lại sơ đồ ${DIAGRAM_KIND_LABEL[kind]}?`, message: dirty ? "Mã đang sửa chưa lưu sẽ bị thay." : "Sơ đồ hiện có sẽ bị thay bằng bản AI mới.", okLabel: "Sinh lại" }))) return;
-    const x = await write(`AI đang vẽ sơ đồ ${DIAGRAM_KIND_LABEL[kind]}…`, () => generateModuleDiagram(moduleId, kind, withActor({ baseRev: d.rev })));
+    if (exists && !(await confirm({ title: `Regenerate the ${DIAGRAM_KIND_LABEL[kind]} diagram?`, message: dirty ? "The unsaved code you are editing will be replaced." : "The current diagram will be replaced by a new AI version.", okLabel: "Regenerate" }))) return;
+    const x = await write(`AI is drawing the ${DIAGRAM_KIND_LABEL[kind]} diagram…`, () => generateModuleDiagram(moduleId, kind, withActor({ baseRev: d.rev })));
     if (x) {
       afterWrite(x);
-      toast(`Đã sinh sơ đồ ${DIAGRAM_KIND_LABEL[kind]}`, "ok");
+      toast(`${DIAGRAM_KIND_LABEL[kind]} diagram generated`, "ok");
     }
   };
 
@@ -148,7 +148,7 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
     }
     const errs = checkDiagram(kind, { code, parts });
     if (!errs.length) return null;
-    const m = errs[0].match(/^(?:(\S+) – )?Dòng (\d+): (.*)$/);
+    const m = errs[0].match(/^(?:(\S+) – )?(?:Line|Dòng) (\d+): (.*)$/); // vi-keep: thông báo lỗi cũ "Dòng N"
     return m ? { line: Number(m[2]), message: m[3], part: m[1] } : { line: 0, message: errs[0] };
   };
 
@@ -175,9 +175,9 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
     if (bad) {
       setIssue(bad);
       goToLine(bad);
-      return toast(`Mã Mermaid sai${bad.line ? ` ở dòng ${bad.line}` : ""} – chưa lưu`, "err");
+      return toast(`Invalid Mermaid code${bad.line ? ` on line ${bad.line}` : ""} – not saved`, "err");
     }
-    const x = await write("Đang lưu sơ đồ", async () => {
+    const x = await write("Saving diagram", async () => {
       try {
         return await saveModuleDiagram(moduleId, kind, withActor({ code: isSeq ? "" : code, ...(isSeq ? { parts } : {}), baseRev: d.rev }));
       } catch (e) {
@@ -187,7 +187,7 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
     });
     if (x) {
       afterWrite(x);
-      toast(d.status === "done" || d.status === "approved" ? "Đã lưu – sơ đồ trở về Đang làm, cần bấm Xong lại" : "Đã lưu sơ đồ", "ok");
+      toast(d.status === "done" || d.status === "approved" ? "Saved – the diagram is back to Draft; mark it as done again" : "Diagram saved", "ok");
     }
   };
 
@@ -221,7 +221,7 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
   return (
     <div className="page" data-testid="diagrams-view">
       <div className="page-head">
-        <h1>Sơ đồ</h1>
+        <h1>Diagrams</h1>
         <EditingBadge names={others.map((o) => o.name)} />
       </div>
       <Tabs
@@ -242,15 +242,15 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
             revisionRequested={d.revisionRequested}
             isLead={isLead}
             busy={busy}
-            disabledReason={dirty ? "Lưu mã trước khi bấm Xong" : doneLock}
-            onDone={() => approval("Đã đánh dấu Xong", () => markArtifactDone("diagram", moduleId, ref()))}
-            onApprove={() => approval("Đã duyệt sơ đồ", () => approveArtifact("diagram", moduleId, ref()))}
-            onRequestChange={() => approval("Đã yêu cầu sửa", () => requestArtifactChange("diagram", moduleId, { sub: kind, actorId: currentMemberId() }))}
+            disabledReason={dirty ? "Save the code before marking as done" : doneLock}
+            onDone={() => approval("Marked as done", () => markArtifactDone("diagram", moduleId, ref()))}
+            onApprove={() => approval("Diagram approved", () => approveArtifact("diagram", moduleId, ref()))}
+            onRequestChange={() => approval("Changes requested", () => requestArtifactChange("diagram", moduleId, { sub: kind, actorId: currentMemberId() }))}
           />
           {conflict && <ConflictNotice onReload={reload} />}
           {d.status === "outdated" && (
             <div className="notice notice-warn">
-              <span className="notice-text">Tài liệu nguồn đã thay đổi sau khi vẽ sơ đồ này. Hãy sinh lại hoặc sửa mã cho khớp.</span>
+              <span className="notice-text">A source document changed after this diagram was drawn. Regenerate it or edit the code to match.</span>
             </div>
           )}
 
@@ -261,48 +261,48 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
             {blockReason && <span className="muted small" data-testid="generate-reason">{blockReason}</span>}
             <Btn kind={exists ? "secondary" : "primary"} size="sm" disabled={!!blockReason} title={blockReason ?? ""} onClick={generate} data-testid="generate-diagram">
               <Icon name={blockReason ? "lock" : exists ? "regenerate" : "ai"} size="sm" />
-              {exists ? "Sinh lại" : "Sinh bằng AI"}
+              {exists ? "Regenerate" : "Generate with AI"}
             </Btn>
             {exists && (
               <>
                 <Btn kind={dirty ? "primary" : "secondary"} size="sm" disabled={!dirty} onClick={save} data-testid="save-diagram">
-                  Lưu mã
+                  Save code
                 </Btn>
                 <Btn kind="ghost" size="sm" onClick={downloadMd} data-testid="download-md">
                   <Icon name="download" size="sm" />
-                  Tải .md
+                  Download .md
                 </Btn>
               </>
             )}
           </div>
 
           {!exists ? (
-            <Empty title={blockReason ? "Chưa sinh được sơ đồ" : `Sẵn sàng sinh sơ đồ ${DIAGRAM_KIND_LABEL[kind]}`}>
-              {blockReason ? `${blockReason}. Mở bước Tài liệu để hoàn thành rồi quay lại.` : 'Bấm "Sinh bằng AI" để tạo sơ đồ, sau đó có thể sửa mã và bấm Xong.'}
+            <Empty title={blockReason ? "The diagram cannot be generated yet" : `Ready to generate the ${DIAGRAM_KIND_LABEL[kind]} diagram`}>
+              {blockReason ? `${blockReason}. Open the Documents step to complete it, then come back.` : 'Click "Generate with AI" to create the diagram; you can then edit the code and mark it as done.'}
             </Empty>
           ) : (
             (() => {
               const editorBox = (
                 <div className="box">
-                  <div className="box-title">Mã Mermaid{isSeq && part ? ` – ${part.title}` : ""}</div>
+                  <div className="box-title">Mermaid code{isSeq && part ? ` – ${part.title}` : ""}</div>
                   {issue && (!issue.part || issue.part === part?.key) && (
                     <div className="notice notice-warn" role="alert" data-testid="mermaid-issue">
-                      <span className="notice-text">{issue.line ? `Dòng ${issue.line}: ${issue.message}` : issue.message}</span>
+                      <span className="notice-text">{issue.line ? `Line ${issue.line}: ${issue.message}` : issue.message}</span>
                       {issue.line > 0 && (
                         <Btn size="sm" onClick={() => goToLine(issue)}>
-                          Tới dòng {issue.line}
+                          Go to line {issue.line}
                         </Btn>
                       )}
                     </div>
                   )}
-                  <textarea ref={editor} value={text} onChange={(e) => setText(e.target.value)} rows={isSeq ? 14 : 24} spellCheck={false} aria-label="Mã Mermaid của sơ đồ" data-testid="diagram-code" />
+                  <textarea ref={editor} value={text} onChange={(e) => setText(e.target.value)} rows={isSeq ? 14 : 24} spellCheck={false} aria-label="Diagram Mermaid code" data-testid="diagram-code" />
                   {dirty && <span className="muted small">Có thay đổi chưa lưu</span>}
                 </div>
               );
               const previewBox = (
                 <div className="box">
                   <div className="box-title">Xem trước</div>
-                  {preview.trim() ? <Mermaid code={preview} name={isSeq ? `sequence-${part?.key ?? ""}` : `so-do-${kind.toLowerCase()}`} /> : <Empty title="Chưa có mã để vẽ" />}
+                  {preview.trim() ? <Mermaid code={preview} name={isSeq ? `sequence-${part?.key ?? ""}` : `diagram-${kind.toLowerCase()}`} /> : <Empty title="No code to render yet" />}
                 </div>
               );
               if (!isSeq)
@@ -314,7 +314,7 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
                 );
               return (
                 <div className="doc-layout">
-                  <nav className="doc-nav" aria-label="Sơ đồ tuần tự theo Use Case" data-testid="sequence-parts">
+                  <nav className="doc-nav" aria-label="Sequence diagrams by use case" data-testid="sequence-parts">
                     {parts.map((p) => (
                       <button key={p.key} type="button" className={p.key === part?.key ? "on" : ""} onClick={() => setPartKey(p.key)}>
                         <span className="code-tag">{p.key}</span> {p.title.replace(`${p.key} – `, "")}

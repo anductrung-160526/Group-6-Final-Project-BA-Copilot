@@ -8,9 +8,9 @@ import { Badge, Btn, Drawer, Empty, Icon, RowActions, fmtTime, useUI, type Delet
 
 /** Câu hỏi xác nhận xoá tệp – dùng chung cho bảng Kho tài liệu và ngăn xem tệp. */
 export const deleteConfirm = (file: FileItem): DeleteConfirm => ({
-  title: "Xoá tệp?",
-  message: `Xoá "${file.name}" khỏi kho? Tệp bị xoá khỏi máy chủ và không khôi phục được.`,
-  okLabel: "Xoá tệp",
+  title: "Delete file?",
+  message: `Delete "${file.name}" from the repository? The file is removed from the server and cannot be restored.`,
+  okLabel: "Delete file",
 });
 
 /** Loại tệp cho phép (khớp server/files.ts): Word, PDF, Excel, ảnh. */
@@ -25,21 +25,26 @@ export function fmtSize(bytes: number): string {
 }
 
 /** "2026-10-18" → "18/10/2026". */
-export const fmtDay = (d?: string | null) => (d ? d.split("-").reverse().join("/") : "");
+/** Ngày YYYY-MM-DD → MM/DD/YYYY (en-US). */
+export const fmtDay = (d?: string | null) => (d ? usDate(d) : "");
+const usDate = (d: string) => {
+  const [y, m, day] = d.split("-");
+  return m && day ? `${m}/${day}/${y}` : d;
+};
 
 /** Nhãn loại tệp theo mime. */
 export function kindLabel(mime: string): string {
   if (mime === "application/pdf") return "PDF";
-  if (mime.startsWith("image/")) return "Ảnh";
+  if (mime.startsWith("image/")) return "Image";
   if (mime.includes("wordprocessingml") || mime === "application/msword") return "Word";
   if (mime.includes("spreadsheetml") || mime === "application/vnd.ms-excel") return "Excel";
-  return "Khác";
+  return "Other";
 }
 
 export const canPreview = (mime: string) => mime === "application/pdf" || mime.startsWith("image/");
 
 /** Bỏ dấu, chữ thường – tìm "tai lieu" ra "Tài liệu". */
-export const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase();
+export const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase(); // vi-keep: bỏ dấu tiếng Việt khi tìm kiếm
 
 export function useDownload() {
   const { toast } = useUI();
@@ -63,14 +68,14 @@ export function FileDrawer({
   const dl = useDownload();
   const isPdf = file.mime === "application/pdf";
   const rows: [string, React.ReactNode][] = [
-    ["Loại", kindLabel(file.mime)],
-    ["Kích thước", fmtSize(file.size)],
+    ["Type", kindLabel(file.mime)],
+    ["Size", fmtSize(file.size)],
     ["Module", moduleName],
-    ["Người gửi", file.sender || <span className="muted">Chưa ghi</span>],
-    ["Ngày nhận", fmtDay(file.receivedAt) || <span className="muted">Chưa ghi</span>],
-    ["Ghi chú", file.note || <span className="muted">Không có</span>],
-    ["Nguồn", file.source === "export" ? <Badge tone="violet">Bản xuất tự động</Badge> : "Tải lên"],
-    ["Ngày lưu", fmtTime(file.createdAt)],
+    ["Sender", file.sender || <span className="muted">Not recorded</span>],
+    ["Received on", fmtDay(file.receivedAt) || <span className="muted">Not recorded</span>],
+    ["Note", file.note || <span className="muted">None</span>],
+    ["Source", file.source === "export" ? <Badge tone="violet">Automatic export</Badge> : "Upload"],
+    ["Saved on", fmtTime(file.createdAt)],
   ];
   return (
     <Drawer
@@ -85,7 +90,7 @@ export function FileDrawer({
       footer={
         <RowActions
           variant="buttons"
-          editLabel="Sửa thông tin"
+          editLabel="Edit details"
           onEdit={onEdit}
           onDelete={onDelete}
           deleteConfirm={deleteConfirm(file)}
@@ -95,19 +100,19 @@ export function FileDrawer({
     >
       <div className="box box-accent" data-testid="file-preview">
         {isPdf ? (
-          <iframe src={filePreviewUrl(file.id)} title={`Xem trước ${file.name}`} style={{ width: "100%", height: "60vh", border: 0 }} />
+          <iframe src={filePreviewUrl(file.id)} title={`Preview of ${file.name}`} style={{ width: "100%", height: "60vh", border: 0 }} />
         ) : canPreview(file.mime) ? (
           <img src={filePreviewUrl(file.id)} alt={file.name} style={{ maxWidth: "100%", maxHeight: "60vh", objectFit: "contain", alignSelf: "center" }} />
         ) : (
-          <Empty title="Tải về để xem">
-            Tệp {kindLabel(file.mime)} không xem trước được trong trình duyệt.{" "}
+          <Empty title="Download to view">
+            {kindLabel(file.mime)} files cannot be previewed in the browser.{" "}
             <button className="link" onClick={() => dl(file)}>
-              Tải về
+              Download
             </button>
           </Empty>
         )}
       </div>
-      <h3>Thông tin nguồn</h3>
+      <h3>Source information</h3>
       <table className="tbl" data-testid="file-info">
         <tbody>
           {rows.map(([k, v]) => (

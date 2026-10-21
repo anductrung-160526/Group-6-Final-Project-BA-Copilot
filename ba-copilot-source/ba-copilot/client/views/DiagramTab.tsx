@@ -46,55 +46,55 @@ export function DiagramTab({ m }: ModuleTabProps) {
   }, [code]);
 
   const generate = async () => {
-    if (diagram && !(await confirm({ title: "Sinh lại sơ đồ Use Case?", message: dirty ? "Sinh lại sẽ thay mã đang sửa chưa lưu." : "Sinh lại sẽ thay sơ đồ hiện có.", okLabel: "Sinh lại" }))) return;
-    const d = await run("AI đang vẽ sơ đồ Use Case…", () => generateDiagram(m.id, currentMemberId()));
+    if (diagram && !(await confirm({ title: "Regenerate the use case diagram?", message: dirty ? "Regenerating replaces the unsaved code you are editing." : "Regenerating replaces the current diagram.", okLabel: "Regenerate" }))) return;
+    const d = await run("AI is drawing the use case diagram…", () => generateDiagram(m.id, currentMemberId()));
     if (d) {
       apply(d);
-      toast("Đã sinh sơ đồ Use Case", "ok");
+      toast("Use case diagram generated", "ok");
     }
   };
 
   const save = async () => {
-    const d = await run("Đang lưu sơ đồ", () => saveDiagram(m.id, code, currentMemberId()));
+    const d = await run("Saving diagram", () => saveDiagram(m.id, code, currentMemberId()));
     if (d) {
       apply(d);
-      toast(diagram?.status === "approved" ? "Đã lưu – sơ đồ trở về Bản nháp, cần duyệt lại" : "Đã lưu sơ đồ", "ok");
+      toast(diagram?.status === "approved" ? "Saved – the diagram is back to Draft and must be approved again" : "Diagram saved", "ok");
     }
   };
 
   const approve = async (ok: boolean) => {
-    const d = await run("Đang cập nhật", () => approveDiagram(m.id, ok, currentMemberId()));
+    const d = await run("Updating", () => approveDiagram(m.id, ok, currentMemberId()));
     if (d) {
       apply(d);
-      toast(ok ? "Đã duyệt sơ đồ" : "Đã bỏ duyệt sơ đồ", "ok");
+      toast(ok ? "Diagram approved" : "Diagram approval withdrawn", "ok");
     }
   };
 
   return (
     <div className="docs" data-testid="diagram-tab">
       <div className="toolbar">
-        <strong>Sơ đồ Use Case</strong>
+        <strong>Use Case Diagram</strong>
         <StatusBadge status={badgeStatus(diagram)} />
-        {dirty && <span className="muted small">Có thay đổi chưa lưu</span>}
+        {dirty && <span className="muted small">Unsaved changes</span>}
         <div className="spacer" />
         {loaded && (
           <>
-            <Btn kind={diagram ? "secondary" : "primary"} size="sm" disabled={!hasUc} onClick={generate} data-testid="generate-diagram" title={hasUc ? "" : "Cần sinh tài liệu (Use Case) trước"}>
+            <Btn kind={diagram ? "secondary" : "primary"} size="sm" disabled={!hasUc} onClick={generate} data-testid="generate-diagram" title={hasUc ? "" : "Generate the documents (use cases) first"}>
               <Icon name={diagram ? "regenerate" : "ai"} size="sm" />
-              {diagram ? "Sinh lại" : "Sinh sơ đồ"}
+              {diagram ? "Regenerate" : "Generate diagram"}
             </Btn>
             {diagram && (
               <>
                 <Btn size="sm" disabled={!dirty || !code.trim()} onClick={save} data-testid="save-diagram">
-                  Lưu mã
+                  Save code
                 </Btn>
                 {diagram.status === "approved" ? (
                   <Btn size="sm" onClick={() => approve(false)} data-testid="unapprove-diagram">
-                    Bỏ duyệt
+                    Withdraw approval
                   </Btn>
                 ) : (
-                  <Btn size="sm" kind="primary" disabled={dirty} title={dirty ? "Lưu mã trước khi duyệt" : ""} onClick={() => approve(true)} data-testid="approve-diagram">
-                    ✓ Duyệt sơ đồ
+                  <Btn size="sm" kind="primary" disabled={dirty} title={dirty ? "Save the code before approving" : ""} onClick={() => approve(true)} data-testid="approve-diagram">
+                    ✓ Approve diagram
                   </Btn>
                 )}
               </>
@@ -102,24 +102,24 @@ export function DiagramTab({ m }: ModuleTabProps) {
           </>
         )}
       </div>
-      {diagram?.status === "stale" && <div className="warn-banner">Use Case đã thay đổi sau khi vẽ sơ đồ (FN-14). Hãy bấm "Sinh lại" hoặc sửa mã cho khớp rồi lưu và duyệt lại.</div>}
+      {diagram?.status === "stale" && <div className="warn-banner">The use cases changed after this diagram was drawn (FN-14). Click "Regenerate" or edit the code to match, then save and approve again.</div>}
 
       {!loaded ? null : !diagram ? (
-        <Empty title={hasUc ? "Sẵn sàng sinh sơ đồ Use Case" : "Cần sinh tài liệu trước"}>
+        <Empty title={hasUc ? "Ready to generate the use case diagram" : "Generate the documents first"}>
           {hasUc
-            ? `Module có ${m.docs.useCases.length} Use Case. Bấm "Sinh sơ đồ" để AI vẽ sơ đồ, sau đó bạn có thể sửa mã và duyệt.`
-            : 'Sơ đồ được vẽ từ Use Case. Hãy mở tab "2. Tài liệu" và sinh tài liệu trước.'}
+            ? `The module has ${m.docs.useCases.length} use case(s). Click "Generate diagram" to let the AI draw it; you can then edit the code and approve.`
+            : 'The diagram is drawn from the use cases. Open the "2. Documents" tab and generate the documents first.'}
         </Empty>
       ) : (
         <div className="split-2">
           <div className="box">
-            <div className="box-title">Mã Mermaid</div>
-            <textarea value={code} onChange={(e) => setCode(e.target.value)} rows={24} spellCheck={false} aria-label="Mã Mermaid của sơ đồ" data-testid="diagram-code" />
-            <span className="muted small">Actor là hình tròn (( )), Use Case là hình bầu dục ([ ]). Quan hệ: A -.-&gt;|"«include»"| B.</span>
+            <div className="box-title">Mermaid code</div>
+            <textarea value={code} onChange={(e) => setCode(e.target.value)} rows={24} spellCheck={false} aria-label="Diagram Mermaid code" data-testid="diagram-code" />
+            <span className="muted small">Actors are circles (( )), use cases are ellipses ([ ]). Relationships: A -.-&gt;|"«include»"| B.</span>
           </div>
           <div className="box">
-            <div className="box-title">Xem trước</div>
-            {preview.trim() ? <Mermaid code={preview} name={`so-do-uc-${m.name}`} /> : <Empty title="Chưa có mã để vẽ" />}
+            <div className="box-title">Preview</div>
+            {preview.trim() ? <Mermaid code={preview} name={`diagram-uc-${m.name}`} /> : <Empty title="No code to render yet" />}
           </div>
         </div>
       )}

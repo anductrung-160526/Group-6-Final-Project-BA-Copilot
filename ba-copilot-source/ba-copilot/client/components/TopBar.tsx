@@ -68,7 +68,7 @@ export function TopBar() {
 
   const isLead = me?.role === "BA_LEAD";
   const menu = [
-    { key: "projects", label: "Dự án", href: "#/", testId: "nav-projects" },
+    { key: "projects", label: "Projects", href: "#/", testId: "nav-projects" },
     ...PAGES.filter((p) => !p.hidden && (!p.leadOnly || isLead)).map((p) => ({ key: p.key, label: p.label, href: pageHref(p), testId: `nav-${p.key}` })),
   ];
   // Trang chủ và mọi trang trong dự án / module đều thuộc mục "Dự án".
@@ -79,36 +79,36 @@ export function TopBar() {
       <a href="#/" className="brand">
         <span className="logo">BA</span>
         <span>
-          BA Copilot<span className="brand-sub">Yêu cầu → Tài liệu → Sơ đồ → Prototype → Test</span>
+          BA Copilot<span className="brand-sub">Requirements → Documents → Diagrams → Prototype → Test</span>
         </span>
       </a>
       <Tabs variant="pill" items={menu} active={active} />
       <span className="spacer" />
-      <label className="member-picker" title="Người đang thao tác: tên được ghi lên bình luận, phiên bản và công việc; quyền BA Lead xét theo người này">
-        <span className="muted small">Tôi là</span>
+      <label className="member-picker" title="Current user: this name is recorded on comments, versions and tasks; BA Lead permissions are checked for this person">
+        <span className="muted small">Acting as</span>
         {loaded && !members.length ? (
           <a className="link small" href="#/admin" data-testid="me-empty">
-            Thêm thành viên trước
+            Add members first
           </a>
         ) : (
           <MemberPicker
             members={members.map((m) => ({ id: m.id, name: m.name, role: ROLE_LABEL[m.role] }))}
             value={me?.id ?? null}
             onChange={setMe}
-            placeholder="Chọn tên của bạn…"
+            placeholder="Select your name…"
             testId="me-picker"
           />
         )}
       </label>
       {settings && (
-        <span className={`ai-pill ${settings.provider === "claude" ? "on" : ""}`} title={settings.provider === "claude" ? "Đang dùng Claude API" : "Chưa có ANTHROPIC_API_KEY – đang chạy bộ sinh rule-based"}>
-          {settings.provider === "claude" ? `Claude · ${settings.model}` : "Chế độ Mock (rule-based)"}
+        <span className={`ai-pill ${settings.provider === "claude" ? "on" : ""}`} title={settings.provider === "claude" ? "Using the Claude API" : "No ANTHROPIC_API_KEY – running the rule-based generator"}>
+          {settings.provider === "claude" ? `Claude · ${settings.model}` : "Mock mode (rule-based)"}
         </span>
       )}
       {settings?.auth && (
         <button className="btn btn-ghost btn-sm" onClick={() => fetch("/api/logout", { method: "POST" }).then(() => window.location.reload())}>
           <Icon name="logout" size="sm" />
-          Đăng xuất
+          Sign out
         </button>
       )}
     </header>

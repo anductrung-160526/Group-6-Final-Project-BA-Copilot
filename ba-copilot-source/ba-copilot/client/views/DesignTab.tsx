@@ -821,7 +821,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                 </>
               )}
               <div className="muted small sugg-foot">
-                Recursive Transformer Tree Decoder (Li et al. 2020){next?.model ? ` · học từ ${next.model.trees.toLocaleString("vi-VN")} cây giao diện (${next.model.roots} màn gốc)` : ""}. Gợi ý gồm loại, vị trí và kích thước phần tử – không gồm nội dung; đổi chữ bằng Prompt sửa thiết kế.
+                Recursive Transformer Tree Decoder (Li et al. 2020){next?.model ? ` · học từ ${next.model.trees.toLocaleString("en-US")} cây giao diện (${next.model.roots} màn gốc)` : ""}. Gợi ý gồm loại, vị trí và kích thước phần tử – không gồm nội dung; đổi chữ bằng Prompt sửa thiết kế.
               </div>
             </div>
           )}

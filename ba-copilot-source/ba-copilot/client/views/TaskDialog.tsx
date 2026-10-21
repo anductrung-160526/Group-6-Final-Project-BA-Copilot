@@ -82,7 +82,11 @@ export function artifactHref(projectId: string, t: Pick<Task, "artifactType" | "
 }
 
 /** "2026-10-30" → "30/10/2026". */
-export const fmtDate = (d: string) => d.split("-").reverse().join("/");
+/** Ngày YYYY-MM-DD → MM/DD/YYYY (en-US). */
+export const fmtDate = (d: string) => {
+  const [y, m, day] = d.split("-");
+  return m && day ? `${m}/${day}/${y}` : d;
+};
 export const isOverdue = (t: Pick<Task, "dueDate" | "status">) => !!t.dueDate && t.status !== "done" && t.status !== "approved" && t.dueDate < new Date().toLocaleDateString("sv-SE");
 
 type V5Kind = Exclude<ArtifactKind, "docs">;

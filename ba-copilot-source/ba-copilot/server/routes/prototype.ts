@@ -15,10 +15,10 @@ function fileSafe(s: string) {
     s
       .normalize("NFD")
       .replace(/[̀-ͯ]/g, "")
-      .replace(/đ/g, "d")
-      .replace(/Đ/g, "D")
+      .replace(/đ/g, "d") // vi-keep: bỏ dấu tiếng Việt trong tên tệp
+      .replace(/Đ/g, "D") // vi-keep: bỏ dấu tiếng Việt trong tên tệp
       .replace(/[^\w-]+/g, "_")
-      .slice(0, 60) || "man_hinh"
+      .slice(0, 60) || "screen"
   );
 }
 
@@ -26,8 +26,8 @@ route("GET", "/api/screens/:id/export/html", (ctx) => {
   requireMember(ctx);
   const s = repo.getScreen(ctx.params.id);
   const v = s?.currentVersionId ? repo.getVersion(s.currentVersionId) : null;
-  if (!s || !v) throw new svc.BizError("Không tìm thấy màn hình", 404);
-  const html = screenToHtml(v.tree, { title: s.name, footer: `${s.name} – phiên bản v${v.number} · xuất từ BA Copilot` });
+  if (!s || !v) throw new svc.BizError("Screen not found", 404);
+  const html = screenToHtml(v.tree, { title: s.name, footer: `${s.name} – version v${v.number} · exported from BA Copilot` });
   return new FileResponse(Buffer.from(html, "utf8"), `${fileSafe(s.name)}.html`, "text/html; charset=utf-8", ctx.query.get("inline") === "1" ? "inline" : "attachment");
 });
 

@@ -76,7 +76,7 @@ export async function runAI<T>(opts: RunAIOptions<T>): Promise<T> {
   // Chặn chi phí ngoài ý muốn khi deploy công khai
   const limit = Number(process.env.MAX_AI_CALLS_PER_DAY ?? 0);
   if (limit > 0 && countClaudeRunsToday() >= limit) {
-    throw new AIError(`Đã đạt giới hạn ${limit} lượt gọi AI trong ngày (MAX_AI_CALLS_PER_DAY). Thử lại vào ngày mai hoặc tăng giới hạn.`);
+    throw new AIError(`The daily limit of ${limit} AI calls has been reached (MAX_AI_CALLS_PER_DAY). Try again tomorrow or raise the limit.`);
   }
   const messages: ClaudeMessage[] = [{ role: "user", content: opts.prompt }];
   let inTok = 0;
@@ -104,19 +104,19 @@ export async function runAI<T>(opts: RunAIOptions<T>): Promise<T> {
         }),
       });
     } catch (e) {
-      return fail(`Không kết nối được Claude API: ${(e as Error).message}`);
+      return fail(`Could not connect to the Claude API: ${(e as Error).message}`);
     }
     const body = (await res.json().catch(() => ({}))) as any;
     if (!res.ok) {
-      return fail(`Claude API lỗi ${res.status}: ${body?.error?.message ?? JSON.stringify(body).slice(0, 300)}`);
+      return fail(`Claude API error ${res.status}: ${body?.error?.message ?? JSON.stringify(body).slice(0, 300)}`);
     }
     inTok += body.usage?.input_tokens ?? 0;
     outTok += body.usage?.output_tokens ?? 0;
     const block = (body.content ?? []).find((c: any) => c.type === "tool_use");
     if (!block) {
-      lastErrors = ["Model không gọi tool"];
+      lastErrors = ["The model did not call the tool"];
       messages.push({ role: "assistant", content: body.content ?? [] });
-      messages.push({ role: "user", content: `Hãy gọi tool ${opts.tool.name} để trả kết quả.` });
+      messages.push({ role: "user", content: `Call the ${opts.tool.name} tool to return the result.` });
       continue;
     }
     lastRaw = block.input;
@@ -135,14 +135,14 @@ export async function runAI<T>(opts: RunAIOptions<T>): Promise<T> {
         input: opts.prompt.slice(0, 20000),
         output: JSON.stringify(block.input).slice(0, 50000),
         ok: true,
-        error: attempt ? `tự sửa sau lỗi: ${lastErrors.join("; ")}` : "",
+        error: attempt ? `self-corrected after errors: ${lastErrors.join("; ")}` : "",
         inputTokens: inTok,
         outputTokens: outTok,
         latencyMs: Date.now() - started,
       });
       return parsed.value;
     }
-    lastErrors = parsed.errors ?? ["Kết quả không hợp lệ"];
+    lastErrors = parsed.errors ?? ["Invalid result"];
     messages.push({ role: "assistant", content: body.content });
     messages.push({
       role: "user",
@@ -151,12 +151,12 @@ export async function runAI<T>(opts: RunAIOptions<T>): Promise<T> {
           type: "tool_result",
           tool_use_id: block.id,
           is_error: true,
-          content: `Kết quả chưa hợp lệ, hãy gọi lại tool với bản đã sửa. Lỗi:\n- ${lastErrors.slice(0, 15).join("\n- ")}`,
+          content: `The result is invalid; call the tool again with a corrected version. Errors:\n- ${lastErrors.slice(0, 15).join("\n- ")}`,
         },
       ],
     });
   }
-  return fail(`AI trả kết quả không hợp lệ sau 2 lần: ${lastErrors.slice(0, 5).join("; ")}`);
+  return fail(`The AI returned an invalid result after 2 attempts: ${lastErrors.slice(0, 5).join("; ")}`);
 
   function fail(msg: string): never {
     logRun({

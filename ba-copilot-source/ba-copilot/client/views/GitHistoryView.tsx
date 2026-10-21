@@ -22,7 +22,7 @@ const repoUrl = (repo: string) => {
 
 /** "Duyệt: Tài liệu BRD – Module · BA … · duyệt bởi …" → "Tài liệu BRD". */
 const productOf = (p: GitPush) => {
-  const head = p.message.replace(/^Duyệt:\s*/, "").split(" · ")[0];
+  const head = p.message.replace(/^(?:Approved|Duyệt):\s*/, "").split(" · ")[0]; // vi-keep: commit cũ bắt đầu bằng "Duyệt:"
   const i = head.lastIndexOf(" – ");
   return i > 0 ? head.slice(0, i) : head;
 };
@@ -59,10 +59,10 @@ export function GitHistoryView({ projectId }: ProjectPageProps) {
       .catch(() => undefined);
   }, [projectId]);
 
-  const memberName = (id: string | null) => (id ? (members.find((m) => m.id === id)?.name ?? "Thành viên đã xoá") : "—");
+  const memberName = (id: string | null) => (id ? (members.find((m) => m.id === id)?.name ?? "Deleted member") : "—");
   const moduleName = (id: string) => modules.find((m) => m.id === id)?.name ?? "—";
 
-  if (!hist) return <div className="page muted">Đang tải…</div>;
+  if (!hist) return <div className="page muted">Loading…</div>;
   const configured = hist.configured;
   const hasRepo = !!git?.repo;
 
@@ -70,67 +70,67 @@ export function GitHistoryView({ projectId }: ProjectPageProps) {
     <div className="page" data-testid="git-history">
       <div className="page-head">
         <div>
-          <h1>Lịch sử GitHub</h1>
-          <p className="muted">Mỗi lần BA Lead bấm Duyệt, đúng các tệp của sản phẩm đó được đưa lên GitHub thành một commit.</p>
+          <h1>GitHub History</h1>
+          <p className="muted">Each time a BA Lead clicks Approve, exactly that artifact's files are pushed to GitHub as one commit.</p>
         </div>
         <div className="toolbar">
           <Btn onClick={load} disabled={loading} data-testid="git-reload">
-            <Icon name="reload" size="sm" /> Tải lại
+            <Icon name="reload" size="sm" /> Reload
           </Btn>
           {isLead && (
             <Btn kind="primary" onClick={() => setSettings(true)} data-testid="git-open-settings">
-              <Icon name="settings" size="sm" /> Cài đặt
+              <Icon name="settings" size="sm" /> Settings
             </Btn>
           )}
         </div>
       </div>
 
       <section className="box" style={{ marginBottom: "var(--space-6)" }} data-testid="git-status">
-        <div className="box-title">Kết nối</div>
+        <div className="box-title">Connection</div>
         {configured ? (
           <div className="toolbar">
-            <Badge tone="green">Đã cấu hình</Badge>
+            <Badge tone="green">Configured</Badge>
             <ExternalLink href={repoUrl(hist.repo)} testId="git-repo-link">
               {hist.repo}
             </ExternalLink>
             <span className="muted">
-              · Nhánh <b>{hist.branch}</b>
+              · Branch <b>{hist.branch}</b>
             </span>
-            {git?.updatedAt && <span className="muted small">· Cập nhật {fmtTime(git.updatedAt)}{git.updatedBy ? ` bởi ${memberName(git.updatedBy)}` : ""}</span>}
+            {git?.updatedAt && <span className="muted small">· Updated {fmtTime(git.updatedAt)}{git.updatedBy ? ` by ${memberName(git.updatedBy)}` : ""}</span>}
           </div>
         ) : (
           <div className="toolbar">
-            <Badge tone="amber">Chưa cấu hình</Badge>
-            <span className="muted">{hasRepo ? "Đã có link repo nhưng chưa có token." : "Chưa có repo GitHub cho dự án."} Duyệt vẫn được, nhưng chưa đẩy lên GitHub.</span>
+            <Badge tone="amber">Not configured</Badge>
+            <span className="muted">{hasRepo ? "A repository link is set but there is no token yet." : "The project has no GitHub repository yet."} Approving still works, but nothing is pushed to GitHub.</span>
           </div>
         )}
       </section>
 
       {!configured && !hist.pushes.length ? (
-        <Empty title="Dự án chưa kết nối GitHub">
+        <Empty title="The project is not connected to GitHub">
           {isLead
-            ? 'Bấm "Cài đặt" ở góc phải, dán link repo của dự án và token GitHub (quyền ghi nội dung repo), chọn nhánh rồi bấm "Thử kết nối". Sau đó mỗi lần bạn Duyệt một sản phẩm, app sẽ tự đưa lên GitHub.'
-            : 'Nhờ BA Lead của dự án vào màn này, bấm "Cài đặt" để dán link repo và token GitHub.'}
+            ? 'Click "Settings" in the top-right corner, paste the project\'s repository link and a GitHub token (with write access to repository contents), choose a branch and click "Test connection". After that, every time you approve an artifact the app pushes it to GitHub.'
+            : 'Ask the project\'s BA Lead to open this screen and click "Settings" to paste the repository link and GitHub token.'}
         </Empty>
       ) : (
         <>
           {configured && (
             <section style={{ marginBottom: "var(--space-6)" }}>
               <h2>
-                Commit trên nhánh {hist.branch} <Badge>{hist.commits.length}</Badge>
+                Commits on branch {hist.branch} <Badge>{hist.commits.length}</Badge>
               </h2>
               {hist.commitsError ? (
-                <Empty title="Không đọc được lịch sử commit">{hist.commitsError}</Empty>
+                <Empty title="Could not read the commit history">{hist.commitsError}</Empty>
               ) : !hist.commits.length ? (
-                <Empty title="Nhánh chưa có commit nào">Commit đầu tiên xuất hiện sau lần BA Lead Duyệt một sản phẩm.</Empty>
+                <Empty title="The branch has no commits yet">The first commit appears after a BA Lead approves an artifact.</Empty>
               ) : (
                 <div className="table-wrap">
                   <table className="tbl" data-testid="git-commits">
                     <thead>
                       <tr>
-                        <th>Nội dung</th>
-                        <th>Người commit</th>
-                        <th>Thời gian</th>
+                        <th>Message</th>
+                        <th>Committed by</th>
+                        <th>Time</th>
                         <th>Commit</th>
                       </tr>
                     </thead>
@@ -154,20 +154,20 @@ export function GitHistoryView({ projectId }: ProjectPageProps) {
 
           <section>
             <h2>
-              Nhật ký Duyệt → GitHub <Badge>{hist.pushes.length}</Badge>
+              Approve → GitHub log <Badge>{hist.pushes.length}</Badge>
             </h2>
             {!hist.pushes.length ? (
-              <Empty title="Chưa có lần đẩy nào">Khi BA Lead Duyệt tài liệu, sơ đồ, prototype hoặc test case, mỗi lần đẩy được ghi lại ở đây.</Empty>
+              <Empty title="Nothing has been pushed yet">When a BA Lead approves a document, diagram, prototype or test suite, each push is recorded here.</Empty>
             ) : (
               <div className="table-wrap">
                 <table className="tbl" data-testid="git-pushes">
                   <thead>
                     <tr>
-                      <th>Sản phẩm</th>
+                      <th>Artifact</th>
                       <th>Module</th>
-                      <th>Người duyệt</th>
-                      <th>Thời gian</th>
-                      <th>Nhánh</th>
+                      <th>Approved by</th>
+                      <th>Time</th>
+                      <th>Branch</th>
                       <th>Commit</th>
                     </tr>
                   </thead>

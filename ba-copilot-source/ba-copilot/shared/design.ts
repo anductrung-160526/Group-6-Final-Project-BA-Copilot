@@ -54,34 +54,34 @@ export function isContainer(type: string): boolean {
 
 /** Mô tả props của từng component – dùng trong prompt AI và tài liệu luận án. */
 export const COMPONENT_CATALOG: Record<ComponentType, string> = {
-  Page: "Gốc màn hình. props: { title }",
-  Header: "Thanh đầu trang. props: { title? }",
-  Sidebar: "Thanh điều hướng bên. props: {}",
-  Section: "Nhóm nội dung có tiêu đề. props: { title? }",
-  Card: "Khung thẻ. props: { title? }",
-  Row: "Xếp con theo hàng ngang. props: { gap?: number, align?: 'start'|'center'|'end'|'between' }",
-  Column: "Xếp con theo cột dọc. props: { gap?: number, width?: 'auto'|'1/3'|'1/2'|'2/3'|'full' }",
-  Form: "Biểu mẫu. props: { title?, submitAction? }",
-  List: "Danh sách lặp. props: { title? }",
-  Modal: "Hộp thoại. props: { title, open?: boolean }",
-  Heading: "Tiêu đề. props: { text, level?: 1|2|3 }",
-  Text: "Đoạn văn. props: { text, tone?: 'default'|'muted' }",
-  Button: "Nút. props: { label, variant?: 'primary'|'secondary'|'danger'|'ghost', action?: string, navigateTo?: string }",
-  Link: "Liên kết. props: { text, navigateTo? }",
-  Input: "Ô nhập. props: { label, name?, placeholder?, inputType?: 'text'|'email'|'password'|'number'|'tel', required?: boolean, minLength?, maxLength?, min?, max?, pattern? }",
-  Textarea: "Ô nhập nhiều dòng. props: { label, name?, placeholder?, required?, maxLength? }",
-  Select: "Hộp chọn. props: { label, name?, options: string[], required? }",
-  Checkbox: "Ô tích. props: { label, name? }",
-  Radio: "Nhóm lựa chọn. props: { label, name?, options: string[], required? }",
-  DatePicker: "Chọn ngày. props: { label, name?, required? }",
-  Table: "Bảng dữ liệu. props: { columns: string[], rows?: string[][], rowActions?: string[] }",
-  Image: "Ảnh minh họa. props: { alt, height?: number }",
-  Badge: "Nhãn trạng thái. props: { text, tone?: 'info'|'success'|'warning'|'danger' }",
-  Alert: "Thông báo. props: { text, tone?: 'info'|'success'|'warning'|'danger' }",
-  Stat: "Chỉ số. props: { label, value }",
-  Avatar: "Ảnh đại diện. props: { name }",
-  Divider: "Đường kẻ. props: {}",
-  Pagination: "Phân trang. props: { pages?: number }",
+  Page: "Screen root. props: { title }",
+  Header: "Page header bar. props: { title? }",
+  Sidebar: "Side navigation bar. props: {}",
+  Section: "Titled content group. props: { title? }",
+  Card: "Card container. props: { title? }",
+  Row: "Lays out children horizontally. props: { gap?: number, align?: 'start'|'center'|'end'|'between' }",
+  Column: "Lays out children vertically. props: { gap?: number, width?: 'auto'|'1/3'|'1/2'|'2/3'|'full' }",
+  Form: "Form. props: { title?, submitAction? }",
+  List: "Repeating list. props: { title? }",
+  Modal: "Dialog. props: { title, open?: boolean }",
+  Heading: "Heading. props: { text, level?: 1|2|3 }",
+  Text: "Paragraph. props: { text, tone?: 'default'|'muted' }",
+  Button: "Button. props: { label, variant?: 'primary'|'secondary'|'danger'|'ghost', action?: string, navigateTo?: string }",
+  Link: "Link. props: { text, navigateTo? }",
+  Input: "Text input. props: { label, name?, placeholder?, inputType?: 'text'|'email'|'password'|'number'|'tel', required?: boolean, minLength?, maxLength?, min?, max?, pattern? }",
+  Textarea: "Multi-line text input. props: { label, name?, placeholder?, required?, maxLength? }",
+  Select: "Drop-down list. props: { label, name?, options: string[], required? }",
+  Checkbox: "Checkbox. props: { label, name? }",
+  Radio: "Radio button group. props: { label, name?, options: string[], required? }",
+  DatePicker: "Date picker. props: { label, name?, required? }",
+  Table: "Data table. props: { columns: string[], rows?: string[][], rowActions?: string[] }",
+  Image: "Illustration image. props: { alt, height?: number }",
+  Badge: "Status badge. props: { text, tone?: 'info'|'success'|'warning'|'danger' }",
+  Alert: "Alert message. props: { text, tone?: 'info'|'success'|'warning'|'danger' }",
+  Stat: "Metric. props: { label, value }",
+  Avatar: "Avatar. props: { name }",
+  Divider: "Divider line. props: {}",
+  Pagination: "Pagination. props: { pages?: number }",
 };
 
 export interface ValidationResult {
@@ -117,21 +117,21 @@ export function normalizeTree(input: unknown, seen: Set<string> = new Set()): UI
 export function validateTree(root: UINode): ValidationResult {
   const errors: string[] = [];
   const ids = new Set<string>();
-  if (root.type !== "Page") errors.push(`Node gốc phải là Page (đang là ${root.type})`);
+  if (root.type !== "Page") errors.push(`The root node must be a Page (currently ${root.type})`);
   walk(root, (n, parent) => {
-    if (!n.id) errors.push("Có node thiếu id");
-    if (ids.has(n.id)) errors.push(`Trùng id: ${n.id}`);
+    if (!n.id) errors.push("A node is missing its id");
+    if (ids.has(n.id)) errors.push(`Duplicate id: ${n.id}`);
     ids.add(n.id);
-    if (!ALL_TYPES.includes(n.type)) errors.push(`Loại component không hỗ trợ: ${n.type} (id ${n.id})`);
-    if (!isContainer(n.type) && n.children && n.children.length) errors.push(`${n.type} (id ${n.id}) không được có children`);
-    if (n.type === "Page" && parent) errors.push(`Page chỉ được là node gốc (id ${n.id})`);
+    if (!ALL_TYPES.includes(n.type)) errors.push(`Unsupported component type: ${n.type} (id ${n.id})`);
+    if (!isContainer(n.type) && n.children && n.children.length) errors.push(`${n.type} (id ${n.id}) cannot have children`);
+    if (n.type === "Page" && parent) errors.push(`Page can only be the root node (id ${n.id})`);
     const p = n.props ?? {};
     const needText = ["Heading", "Text", "Badge", "Alert", "Link"];
-    if (needText.includes(n.type) && typeof p.text !== "string") errors.push(`${n.type} (id ${n.id}) thiếu props.text`);
+    if (needText.includes(n.type) && typeof p.text !== "string") errors.push(`${n.type} (id ${n.id}) is missing props.text`);
     const needLabel = ["Button", "Input", "Textarea", "Select", "Checkbox", "Radio", "DatePicker", "Stat"];
-    if (needLabel.includes(n.type) && typeof p.label !== "string") errors.push(`${n.type} (id ${n.id}) thiếu props.label`);
-    if ((n.type === "Select" || n.type === "Radio") && !Array.isArray(p.options)) errors.push(`${n.type} (id ${n.id}) thiếu props.options`);
-    if (n.type === "Table" && !Array.isArray(p.columns)) errors.push(`Table (id ${n.id}) thiếu props.columns`);
+    if (needLabel.includes(n.type) && typeof p.label !== "string") errors.push(`${n.type} (id ${n.id}) is missing props.label`);
+    if ((n.type === "Select" || n.type === "Radio") && !Array.isArray(p.options)) errors.push(`${n.type} (id ${n.id}) is missing props.options`);
+    if (n.type === "Table" && !Array.isArray(p.columns)) errors.push(`Table (id ${n.id}) is missing props.columns`);
   });
   return { ok: errors.length === 0, errors };
 }

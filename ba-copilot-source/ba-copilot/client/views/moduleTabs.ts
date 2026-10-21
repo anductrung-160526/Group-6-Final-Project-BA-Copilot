@@ -26,16 +26,16 @@ export interface ModuleTab {
 export const MODULE_TABS: ModuleTab[] = [
   {
     key: "design",
-    label: "1. Thiết kế",
+    label: "1. Design",
     component: DesignTab,
     note: (m) => {
       const approved = m.screens.filter((s) => s.status === "approved").length;
-      return m.screens.length ? (approved ? `${approved}/${m.screens.length} đã duyệt` : `${m.screens.length} màn hình`) : "Chưa có";
+      return m.screens.length ? (approved ? `${approved}/${m.screens.length} approved` : `${m.screens.length} ${m.screens.length === 1 ? "screen" : "screens"}`) : "Not started";
     },
   },
-  { key: "docs", label: "2. Tài liệu", component: DocsTab, note: (m) => m.docsStatus },
-  { key: "diagram", label: "Sơ đồ UC", component: DiagramTab },
-  { key: "tests", label: "3. Test case", component: TestsTab, note: (m) => m.testsStatus },
-  { key: "trace", label: "4. Truy vết", component: TraceTab },
-  { key: "logs", label: "Nhật ký AI", component: ({ m }) => createElement(LogsTab, { moduleId: m.id }) },
+  { key: "docs", label: "2. Documents", component: DocsTab, note: (m) => m.docsStatus },
+  { key: "diagram", label: "Use Case Diagram", component: DiagramTab },
+  { key: "tests", label: "3. Test Cases", component: TestsTab, note: (m) => m.testsStatus },
+  { key: "trace", label: "4. Traceability", component: TraceTab },
+  { key: "logs", label: "AI Log", component: ({ m }) => createElement(LogsTab, { moduleId: m.id }) },
 ];

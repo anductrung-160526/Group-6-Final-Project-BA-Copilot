@@ -17,7 +17,7 @@ export const DIAGRAM_SOURCES: Record<DiagramKind, DocKind[]> = {
   ERD: ["SRS", "FRD_NFR"],
 };
 
-const STATUS_VI: Record<ArtifactStatus, string> = { none: "chưa có", draft: "Đang làm", done: "Xong", approved: "Đã duyệt", outdated: "Bản cũ" };
+const STATUS_LABEL: Record<ArtifactStatus, string> = { none: "Not started", draft: "Draft", done: "Done", approved: "Approved", outdated: "Outdated" };
 
 /**
  * Lý do chưa sinh được loại sơ đồ: tài liệu nguồn chưa Xong / Đã duyệt (quyết định 8). null = sinh được.
@@ -29,8 +29,8 @@ export function diagramBlockReason(kind: DiagramKind, statusOf: (doc: DocKind) =
     return s !== "done" && s !== "approved";
   });
   if (!missing.length) return null;
-  const list = missing.map((k) => `${DOC_KIND_LABEL[k]} (hiện: ${STATUS_VI[statusOf(k) ?? "none"]})`).join(", ");
-  return `Cần tài liệu ${list} ở trạng thái Xong trước khi sinh sơ đồ ${DIAGRAM_KIND_LABEL[kind]}`;
+  const list = missing.map((k) => `${DOC_KIND_LABEL[k]} (current: ${STATUS_LABEL[statusOf(k) ?? "none"]})`).join(", ");
+  return `Source document ${list} must be Done before generating the ${DIAGRAM_KIND_LABEL[kind]} diagram`;
 }
 
 /** Loại cú pháp Mermaid mà mỗi sơ đồ phải dùng. */
@@ -42,19 +42,19 @@ export const DIAGRAM_SYNTAX: Record<DiagramKind, MermaidSyntax> = {
   BPMN: "flowchart",
   ERD: "er",
 };
-const SYNTAX_HEAD: Record<MermaidSyntax, string> = { flowchart: '"flowchart LR" (hoặc TB/TD/RL/BT)', sequence: '"sequenceDiagram"', er: '"erDiagram"' };
+const SYNTAX_HEAD: Record<MermaidSyntax, string> = { flowchart: '"flowchart LR" (or TB/TD/RL/BT)', sequence: '"sequenceDiagram"', er: '"erDiagram"' };
 
 /** Mô tả ngắn hiện trên màn cho từng loại. */
 export const DIAGRAM_HINT: Record<DiagramKind, string> = {
-  CONTEXT: "Hệ thống ở giữa, các tác nhân và hệ thống ngoài xung quanh, mũi tên là luồng dữ liệu. Sinh từ BRD.",
-  UC: "Tác nhân (hình tròn) và Use Case (bầu dục) trong khung hệ thống, quan hệ «include»/«extend». Sinh từ UC Specification.",
-  SEQUENCE: "Mỗi Use Case một sơ đồ tuần tự: tác nhân → giao diện → máy chủ API → cơ sở dữ liệu. Sinh từ UC Specification.",
-  BPMN: "Quy trình nghiệp vụ: làn theo tác nhân, sự kiện bắt đầu/kết thúc (hình tròn), công việc (chữ nhật bo), cổng rẽ nhánh (hình thoi). Sinh từ BRD + UC Specification.",
-  ERD: "Thực thể, thuộc tính chính và quan hệ dữ liệu. Sinh từ SRS + FRD-NFR.",
+  CONTEXT: "The system in the centre, surrounded by actors and external systems; arrows are data flows. Generated from the BRD.",
+  UC: "Actors (circles) and use cases (ellipses) inside the system boundary, with «include»/«extend» relationships. Generated from the UC Specification.",
+  SEQUENCE: "One sequence diagram per use case: actor → user interface → API server → database. Generated from the UC Specification.",
+  BPMN: "Business process: one lane per actor, start/end events (circles), tasks (rounded rectangles), gateways (diamonds). Generated from the BRD + UC Specification.",
+  ERD: "Entities, key attributes and data relationships. Generated from the SRS + FRD-NFR.",
 };
 
 /** Chú thích bắt buộc trên màn BPMN (quyết định 7). */
-export const BPMN_NOTE = "BPMN mô phỏng bằng Mermaid";
+export const BPMN_NOTE = "BPMN simulated with Mermaid";
 
 /** Tên tệp của sơ đồ trong repo GitHub: `<module>/diagrams/<tên>.md` (kế hoạch mục 3 "C8"). */
 export const DIAGRAM_FILE: Record<DiagramKind, string> = {
@@ -91,8 +91,8 @@ export function stripAccents(s: string): string {
   return String(s ?? "")
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
-    .replace(/đ/g, "d")
-    .replace(/Đ/g, "D");
+    .replace(/đ/g, "d") // vi-keep: bỏ dấu tiếng Việt khi dựng mã ASCII (dữ liệu cũ tiếng Việt)
+    .replace(/Đ/g, "D"); // vi-keep: bỏ dấu tiếng Việt khi dựng mã ASCII
 }
 
 /** Mã định danh ASCII: "Đơn hàng" → "DON_HANG" (upper) / "don_hang". Rỗng → fallback. */
@@ -142,8 +142,8 @@ export const CONTEXT_SYSTEM = "SYSTEM";
 
 /** Sơ đồ ngữ cảnh: hệ thống (hình tròn) ở giữa, tác nhân (chữ nhật bo) và hệ thống ngoài (hình hộp kép), luồng dữ liệu có nhãn. */
 export function buildContextMermaid(input: ContextInput): string {
-  const lines = ["flowchart LR", "  %% so-do: CONTEXT – hệ thống ở giữa, tác nhân (chữ nhật bo), hệ thống ngoài (hộp kép)"];
-  lines.push(`  SYS(("${mmLabel(input.system || "Hệ thống", 60)}"))`);
+  const lines = ["flowchart LR", "  %% diagram: CONTEXT – system in the centre, actors (rounded rectangles), external systems (double boxes)"];
+  lines.push(`  SYS(("${mmLabel(input.system || "System", 60)}"))`);
   const ids = new Map<string, string>();
   const seen = new Set<string>();
   let a = 0;
@@ -196,9 +196,9 @@ export interface BpmnInput {
  * công việc = chữ nhật bo, cổng rẽ nhánh = hình thoi. Node thuộc làn không khai báo thì thêm làn mới.
  */
 export function buildBpmnMermaid(input: BpmnInput): string {
-  const lines = ["flowchart LR", `  %% ${BPMN_NOTE}: làn = subgraph, sự kiện = hình tròn, công việc = chữ nhật bo, cổng = hình thoi`];
+  const lines = ["flowchart LR", `  %% ${BPMN_NOTE}: lane = subgraph, event = circle, task = rounded rectangle, gateway = diamond`];
   const lanes: string[] = [];
-  const laneKey = (l: string) => mmLabel(l, 50) || "Quy trình";
+  const laneKey = (l: string) => mmLabel(l, 50) || "Process";
   for (const l of [...(input.lanes ?? []), ...(input.nodes ?? []).map((n) => n.lane)]) {
     const k = laneKey(l);
     if (!lanes.some((x) => x.toLowerCase() === k.toLowerCase())) lanes.push(k);
@@ -208,7 +208,7 @@ export function buildBpmnMermaid(input: BpmnInput): string {
     if (n && n.id && !nodeId.has(String(n.id))) nodeId.set(String(n.id), `N${i + 1}`);
   });
   const shape = (n: BpmnNode) => {
-    const label = mmLabel(n.label, 60) || (n.type === "start" ? "Bắt đầu" : n.type === "end" ? "Kết thúc" : "Công việc");
+    const label = mmLabel(n.label, 60) || (n.type === "start" ? "Start" : n.type === "end" ? "End" : "Task");
     switch (n.type) {
       case "start":
         return `(("${label}"))`;
@@ -274,14 +274,14 @@ const ATTR_TYPES = new Set(["string", "text", "int", "bigint", "decimal", "float
 
 /** erDiagram: thực thể (mã ASCII + nhãn tiếng Việt), thuộc tính (kiểu, tên, PK/FK/UK, chú thích), quan hệ. */
 export function buildErdMermaid(input: ErdInput): string {
-  const lines = ["erDiagram", "  %% so-do: ERD – thực thể, thuộc tính chính, quan hệ"];
+  const lines = ["erDiagram", "  %% diagram: ERD – entities, key attributes, relationships"];
   const alloc = idAllocator();
   const ids = new Map<string, string>();
   for (const e of input.entities ?? []) {
     if (!e?.name) continue;
     const key = norm(e.name);
     if (ids.has(key)) continue;
-    const id = alloc(asciiId(e.name, "THUC_THE"));
+    const id = alloc(asciiId(e.name, "ENTITY"));
     ids.set(key, id);
     if (e.label) ids.set(norm(e.label), id);
     const label = mmLabel(e.label || e.name, 50);
@@ -290,7 +290,7 @@ export function buildErdMermaid(input: ErdInput): string {
     for (const a of e.attributes ?? []) {
       if (!a?.name) continue;
       const type = ATTR_TYPES.has(String(a.type ?? "").toLowerCase()) ? String(a.type).toLowerCase() : "string";
-      const name = attrAlloc(asciiId(a.name, "truong", false));
+      const name = attrAlloc(asciiId(a.name, "field", false));
       const key = a.key === "PK" || a.key === "FK" || a.key === "UK" ? ` ${a.key}` : "";
       const comment = mmLabel(a.comment, 50);
       attrs.push(`    ${type} ${name}${key}${comment ? ` "${comment}"` : ""}`);
@@ -306,7 +306,7 @@ export function buildErdMermaid(input: ErdInput): string {
     const k = `${from}|${to}`;
     if (seen.has(k)) continue;
     seen.add(k);
-    lines.push(`  ${from} ${CARD[r.cardinality] ?? CARD["1-n"]} ${to} : "${mmLabel(r.label, 40) || "có"}"`);
+    lines.push(`  ${from} ${CARD[r.cardinality] ?? CARD["1-n"]} ${to} : "${mmLabel(r.label, 40) || "has"}"`);
   }
   return lines.join("\n");
 }
@@ -361,7 +361,7 @@ export function buildSequenceMermaid(input: SequenceInput): string {
   for (const m of input.messages ?? []) msg(m, "  ");
   const alts = (input.alts ?? []).filter((a) => a && (a.messages ?? []).length);
   alts.forEach((a, i) => {
-    lines.push(`  ${i === 0 ? "alt" : "else"} ${seqText(a.condition, 60) || "Ngoại lệ"}`);
+    lines.push(`  ${i === 0 ? "alt" : "else"} ${seqText(a.condition, 60) || "Exception"}`);
     for (const m of a.messages) msg(m, "    ");
   });
   if (alts.length) lines.push("  end");
@@ -407,10 +407,10 @@ function bracketIssue(l: string): string | null {
   for (const ch of s) {
     if (ch === "(" || ch === "[" || ch === "{") stack.push(ch);
     else if (ch in pairs) {
-      if (stack.pop() !== pairs[ch]) return `Ngoặc "${ch}" không khớp`;
+      if (stack.pop() !== pairs[ch]) return `Unmatched bracket "${ch}"`;
     }
   }
-  return stack.length ? `Thiếu ngoặc đóng cho "${stack[stack.length - 1]}"` : null;
+  return stack.length ? `Missing closing bracket for "${stack[stack.length - 1]}"` : null;
 }
 
 function checkFlowchart(rows: { n: number; l: string }[], issues: MermaidIssue[]) {
@@ -420,21 +420,21 @@ function checkFlowchart(rows: { n: number; l: string }[], issues: MermaidIssue[]
     else if (l === "end") {
       depth--;
       if (depth < 0) {
-        issues.push({ line: n, message: 'Thừa "end" (không có subgraph tương ứng)' });
+        issues.push({ line: n, message: 'Extra "end" (no matching subgraph)' });
         depth = 0;
       }
       continue;
     }
     const q = stripQuoted(l);
     if (q === null) {
-      issues.push({ line: n, message: "Thiếu dấu ngoặc kép đóng" });
+      issues.push({ line: n, message: "Missing closing double quote" });
       continue;
     }
     if (/^(classDef|class|style|linkStyle|click|direction)\b/.test(l)) continue;
     const b = bracketIssue(q);
     if (b) issues.push({ line: n, message: b });
   }
-  if (depth > 0) issues.push({ line: rows[rows.length - 1]?.n ?? 0, message: 'Thiếu "end" cho khối subgraph' });
+  if (depth > 0) issues.push({ line: rows[rows.length - 1]?.n ?? 0, message: 'Missing "end" for subgraph block' });
 }
 
 const SEQ_BLOCK = /^(alt|opt|loop|par|critical|break|rect|box)\b/;
@@ -451,19 +451,19 @@ function checkSequence(rows: { n: number; l: string }[], issues: MermaidIssue[])
     if (l === "end") {
       depth--;
       if (depth < 0) {
-        issues.push({ line: n, message: 'Thừa "end" (không có khối alt/opt/loop tương ứng)' });
+        issues.push({ line: n, message: 'Extra "end" (no matching alt/opt/loop block)' });
         depth = 0;
       }
       continue;
     }
     if (/^(else|and|option)\b/.test(l)) {
-      if (depth === 0) issues.push({ line: n, message: `"${l.split(/\s/)[0]}" nằm ngoài khối alt/par` });
+      if (depth === 0) issues.push({ line: n, message: `"${l.split(/\s/)[0]}" is outside an alt/par block` });
       continue;
     }
     if (/^(participant|actor|autonumber|title|note|activate|deactivate|create|destroy|links?|properties|details|accTitle|accDescr)\b/i.test(l)) continue;
-    if (SEQ_ARROW.test(l) && !SEQ_MESSAGE.test(l)) issues.push({ line: n, message: 'Tin nhắn sai cú pháp – cần dạng "A->>B: nội dung"' });
+    if (SEQ_ARROW.test(l) && !SEQ_MESSAGE.test(l)) issues.push({ line: n, message: 'Invalid message syntax – expected "A->>B: text"' });
   }
-  if (depth > 0) issues.push({ line: rows[rows.length - 1]?.n ?? 0, message: 'Thiếu "end" cho khối alt/opt/loop' });
+  if (depth > 0) issues.push({ line: rows[rows.length - 1]?.n ?? 0, message: 'Missing "end" for alt/opt/loop block' });
 }
 
 const ER_ENTITY = String.raw`[A-Za-z_][\w-]*(\[("[^"]*"|[^\]"]*)\])?`;
@@ -477,7 +477,7 @@ function checkEr(rows: { n: number; l: string }[], issues: MermaidIssue[]) {
   for (const { n, l } of rows) {
     if (inBlock) {
       if (l === "}") inBlock = 0;
-      else if (!ER_ATTR.test(l)) issues.push({ line: n, message: 'Thuộc tính sai cú pháp – cần dạng "kiểu ten_truong PK "chú thích""' });
+      else if (!ER_ATTR.test(l)) issues.push({ line: n, message: 'Invalid attribute syntax – expected "type field_name PK "comment""' });
       continue;
     }
     if (ER_OPEN.test(l)) {
@@ -485,14 +485,14 @@ function checkEr(rows: { n: number; l: string }[], issues: MermaidIssue[]) {
       continue;
     }
     if (l === "}") {
-      issues.push({ line: n, message: 'Thừa "}"' });
+      issues.push({ line: n, message: 'Extra "}"' });
       continue;
     }
     if (ER_REL.test(l) || ER_ALONE.test(l)) continue;
     if (/^(title|direction|classDef|class|style|accTitle|accDescr)\b/.test(l)) continue;
-    issues.push({ line: n, message: 'Dòng không hợp lệ – cần thực thể "TEN {", thuộc tính hoặc quan hệ "A ||--o{ B : nhan"' });
+    issues.push({ line: n, message: 'Invalid line – expected an entity "NAME {", an attribute or a relationship "A ||--o{ B : label"' });
   }
-  if (inBlock) issues.push({ line: inBlock, message: 'Thiếu "}" đóng khối thực thể' });
+  if (inBlock) issues.push({ line: inBlock, message: 'Missing "}" to close the entity block' });
 }
 
 /**
@@ -502,11 +502,11 @@ function checkEr(rows: { n: number; l: string }[], issues: MermaidIssue[]) {
 export function checkMermaid(code: string, expect?: MermaidSyntax): MermaidIssue[] {
   const all = String(code ?? "").split(/\r?\n/);
   const rows = all.map((l, i) => ({ n: i + 1, l: l.trim() })).filter((r) => !isSkippable(r.l));
-  if (!rows.length) return [{ line: 0, message: "Mã sơ đồ trống" }];
+  if (!rows.length) return [{ line: 0, message: "Diagram code is empty" }];
   const head = rows[0];
   const syntax = HEADS.find(([re]) => re.test(head.l))?.[1] ?? null;
-  if (!syntax) return [{ line: head.n, message: `Dòng đầu phải là ${expect ? SYNTAX_HEAD[expect] : "loại sơ đồ Mermaid (flowchart, sequenceDiagram, erDiagram)"}` }];
-  if (expect && syntax !== expect) return [{ line: head.n, message: `Sơ đồ này phải bắt đầu bằng ${SYNTAX_HEAD[expect]}` }];
+  if (!syntax) return [{ line: head.n, message: `The first line must be ${expect ? SYNTAX_HEAD[expect] : "a Mermaid diagram type (flowchart, sequenceDiagram, erDiagram)"}` }];
+  if (expect && syntax !== expect) return [{ line: head.n, message: `This diagram must start with ${SYNTAX_HEAD[expect]}` }];
   const issues: MermaidIssue[] = [];
   const body = rows.slice(1);
   if (syntax === "flowchart") checkFlowchart(body, issues);
@@ -515,7 +515,7 @@ export function checkMermaid(code: string, expect?: MermaidSyntax): MermaidIssue
   return issues;
 }
 
-export const issueText = (i: MermaidIssue) => (i.line ? `Dòng ${i.line}: ${i.message}` : i.message);
+export const issueText = (i: MermaidIssue) => (i.line ? `Line ${i.line}: ${i.message}` : i.message);
 
 /**
  * Kiểm tra một sơ đồ trước khi lưu. SEQUENCE: `code` để trống, cần ≥ 1 phần, mỗi phần có `key` và mã sequenceDiagram hợp lệ.
@@ -524,13 +524,13 @@ export const issueText = (i: MermaidIssue) => (i.line ? `Dòng ${i.line}: ${i.me
 export function checkDiagram(kind: DiagramKind, d: { code?: string; parts?: DiagramPart[] }): string[] {
   if (kind === "SEQUENCE") {
     const parts = d.parts ?? [];
-    if (!parts.length) return ["Sơ đồ Sequence cần ít nhất một phần (mỗi Use Case một phần)"];
+    if (!parts.length) return ["A Sequence diagram needs at least one part (one part per use case)"];
     const out: string[] = [];
     const keys = new Set<string>();
     parts.forEach((p, i) => {
-      const name = p.key || `Phần ${i + 1}`;
-      if (!p.key) out.push(`Phần ${i + 1}: thiếu mã (key)`);
-      else if (keys.has(p.key)) out.push(`${name}: trùng mã phần`);
+      const name = p.key || `Part ${i + 1}`;
+      if (!p.key) out.push(`Part ${i + 1}: missing key`);
+      else if (keys.has(p.key)) out.push(`${name}: duplicate part key`);
       keys.add(p.key);
       for (const e of checkMermaid(p.code, "sequence")) out.push(`${name} – ${issueText(e)}`);
     });
@@ -553,14 +553,14 @@ export function normalizeParts(raw: unknown): DiagramPart[] {
 
 /** Markdown của một sơ đồ (khối ```mermaid). Dùng cho nút tải .md và cho bản đẩy GitHub. */
 export function diagramMarkdown(d: { kind: DiagramKind; code: string; parts?: DiagramPart[] }, moduleName = ""): string {
-  const title = `# Sơ đồ ${DIAGRAM_KIND_LABEL[d.kind]}${moduleName ? ` – ${moduleName}` : ""}`;
+  const title = `# ${DIAGRAM_KIND_LABEL[d.kind]} Diagram${moduleName ? ` – ${moduleName}` : ""}`;
   const out = [title, ""];
-  if (d.kind === "BPMN") out.push(`> ${BPMN_NOTE}: làn = tác nhân, hình tròn = sự kiện bắt đầu/kết thúc, chữ nhật bo = công việc, hình thoi = cổng rẽ nhánh.`, "");
+  if (d.kind === "BPMN") out.push(`> ${BPMN_NOTE}: lane = actor, circle = start/end event, rounded rectangle = task, diamond = gateway.`, "");
   const block = (code: string) => ["```mermaid", code.trim(), "```", ""];
   if (d.kind === "SEQUENCE") {
     for (const p of d.parts ?? []) out.push(`## ${p.title || p.key}`, "", ...block(p.code));
-    if (!(d.parts ?? []).length) out.push("_Chưa có sơ đồ._", "");
+    if (!(d.parts ?? []).length) out.push("_No diagram yet._", "");
   } else if (d.code.trim()) out.push(...block(d.code));
-  else out.push("_Chưa có sơ đồ._", "");
+  else out.push("_No diagram yet._", "");
   return out.join("\n");
 }

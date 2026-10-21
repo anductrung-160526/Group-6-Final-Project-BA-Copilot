@@ -37,7 +37,7 @@ const norm = (x: string) =>
   x
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
-    .replace(/đ/gi, "d")
+    .replace(/đ/gi, "d") // vi-keep: bỏ dấu tiếng Việt khi tạo tên tệp
     .toLowerCase()
     .trim();
 
@@ -86,7 +86,7 @@ function render(n: UINode, ctx: Ctx): string {
     case "List":
       return `<div ${at} class="ds-list">${p.title ? `<div class="ds-card-title">${esc(p.title)}</div>` : ""}${kids}</div>`;
     case "Modal":
-      return `<div ${at} class="ds-modal"><div class="ds-modal-head">${esc(s(p.title, "Hộp thoại"))}</div>${kids}</div>`;
+      return `<div ${at} class="ds-modal"><div class="ds-modal-head">${esc(s(p.title, "Dialog"))}</div>${kids}</div>`;
     case "Heading": {
       const lvl = Math.min(3, Math.max(1, Math.round(num(p.level, 2, 1, 3))));
       return `<h${lvl} ${at} class="ds-h ds-h${lvl}">${esc(p.text)}</h${lvl}>`;
@@ -97,7 +97,7 @@ function render(n: UINode, ctx: Ctx): string {
       const href = navHref(ctx, p.navigateTo);
       const title = p.navigateTo ? ` title="&#8594; ${esc(p.navigateTo)}"` : "";
       const c = `ds-btn ds-btn-${cls(p.variant, "primary")}`;
-      const text = esc(s(p.label, "Nút"));
+      const text = esc(s(p.label, "Button"));
       return href ? `<a ${at} href="${esc(href)}" class="${c}"${title}>${text}</a>` : `<span ${at} role="button" class="${c}"${title}>${text}</span>`;
     }
     case "Link": {
@@ -125,7 +125,7 @@ function render(n: UINode, ctx: Ctx): string {
       const cols = Array.isArray(p.columns) ? (p.columns as unknown[]).map(String) : [];
       const rows = Array.isArray(p.rows) ? (p.rows as unknown[][]) : [];
       const acts = Array.isArray(p.rowActions) ? (p.rowActions as unknown[]).map(String) : [];
-      const head = cols.map((c) => `<th>${esc(c)}</th>`).join("") + (acts.length ? "<th>Thao tác</th>" : "");
+      const head = cols.map((c) => `<th>${esc(c)}</th>`).join("") + (acts.length ? "<th>Actions</th>" : "");
       const body = (rows.length ? rows : [cols.map(() => "—")])
         .map((r) => {
           const cells = cols.map((_, j) => `<td>${esc((Array.isArray(r) ? r : [])[j] ?? "")}</td>`).join("");
@@ -136,7 +136,7 @@ function render(n: UINode, ctx: Ctx): string {
       return `<div ${at} class="ds-table-wrap"><table class="ds-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
     }
     case "Image":
-      return `<div ${at} class="ds-image" style="height:${num(p.height, 140, 20, 1200)}px"><span>${esc(s(p.alt, "Ảnh"))}</span></div>`;
+      return `<div ${at} class="ds-image" style="height:${num(p.height, 140, 20, 1200)}px"><span>${esc(s(p.alt, "Image"))}</span></div>`;
     case "Badge":
       return `<span ${at} class="ds-badge ds-tone-${cls(p.tone, "info")}">${esc(p.text)}</span>`;
     case "Alert":
@@ -256,7 +256,7 @@ a.ds-btn{text-decoration:none}
 
 function page(title: string, body: string): string {
   return `<!doctype html>
-<html lang="vi">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -273,10 +273,10 @@ ${body}
 
 /** Một màn hình → trang HTML tự chứa (giống bản xem trước trên canvas: khung trình duyệt + bản thiết kế). */
 export function screenToHtml(tree: UINode, opts: ExportHtmlOptions = {}): string {
-  const title = opts.title || s(tree?.props?.title, "Màn hình");
+  const title = opts.title || s(tree?.props?.title, "Screen");
   const links = new Map(Object.entries(opts.links ?? {}).map(([k, v]) => [norm(k), v]));
   const content = tree ? render(tree, { links }) : "";
-  const nav = opts.backHref ? `<div class="pt-nav"><a href="${esc(opts.backHref)}">&#8592; Danh sách màn hình</a></div>` : "";
+  const nav = opts.backHref ? `<div class="pt-nav"><a href="${esc(opts.backHref)}">&#8592; Screen list</a></div>` : "";
   const foot = opts.footer ? `<div class="pt-foot">${esc(opts.footer)}</div>` : "";
   const body = `<div class="pt-shell">${nav}<div class="pt-frame"><div class="pt-bar"><span class="pt-dot"></span><span class="pt-dot"></span><span class="pt-dot"></span><span class="pt-url">${esc(title)}</span></div>${content}</div>${foot}</div>`;
   return page(title, body);
@@ -308,6 +308,6 @@ export function prototypeFiles(screens: PrototypeScreen[], opts: { title?: strin
   const files = named.map((sc) => ({ path: sc.file, html: screenToHtml(sc.tree, { title: sc.name, links, footer: opts.footer, backHref: "index.html" }) }));
   const title = opts.title || "Prototype";
   const list = named.map((sc) => `<li><a href="${esc(sc.file)}">${esc(sc.name)}</a></li>`).join("");
-  files.push({ path: "index.html", html: page(title, `<div class="pt-index"><h1>${esc(title)}</h1><ul>${list || "<li><a>(Chưa có màn hình)</a></li>"}</ul>${opts.footer ? `<div class="pt-foot">${esc(opts.footer)}</div>` : ""}</div>`) });
+  files.push({ path: "index.html", html: page(title, `<div class="pt-index"><h1>${esc(title)}</h1><ul>${list || "<li><a>(No screens yet)</a></li>"}</ul>${opts.footer ? `<div class="pt-foot">${esc(opts.footer)}</div>` : ""}</div>`) });
   return files;
 }

@@ -92,41 +92,41 @@ function markdownBlocks(md: string): (Paragraph | Table)[] {
 }
 
 function useCaseBlocks(u: UseCase, screenName: (id: string) => string): (Paragraph | Table)[] {
-  const flow = (f: { code: string; name: string; branchFrom: number; steps: string[] }) => `${f.code}. ${f.name} (từ bước ${f.branchFrom})\n${f.steps.map((s, i) => `  ${i + 1}. ${s}`).join("\n")}`;
+  const flow = (f: { code: string; name: string; branchFrom: number; steps: string[] }) => `${f.code}. ${f.name} (from step ${f.branchFrom})\n${f.steps.map((s, i) => `  ${i + 1}. ${s}`).join("\n")}`;
   const rows: string[][] = [
-    ["Mã", u.code],
-    ["Tên Use Case", u.name],
-    ["Tác nhân", u.actors.join(", ")],
-    ["Mô tả", u.description],
-    ["Sự kiện kích hoạt", u.trigger],
-    ["Tiền điều kiện", u.preconditions.map((x) => `- ${x}`).join("\n")],
-    ["Hậu điều kiện", u.postconditions.map((x) => `- ${x}`).join("\n")],
-    ["Luồng chính", u.mainFlow.map((s) => `${s.no}. [${s.actor}] ${s.text}`).join("\n")],
-    ["Luồng thay thế", u.altFlows.map(flow).join("\n") || "-"],
-    ["Ngoại lệ", u.exceptions.map(flow).join("\n") || "-"],
-    ["Quy tắc nghiệp vụ", u.businessRules.map((x) => `- ${x}`).join("\n") || "-"],
-    ["Màn hình liên quan", u.screenIds.map(screenName).join(", ") || "-"],
-    ["Giả định (cần BA xác nhận)", u.assumptions.map((x) => `- ${x}`).join("\n") || "-"],
+    ["ID", u.code],
+    ["Use Case Name", u.name],
+    ["Actors", u.actors.join(", ")],
+    ["Description", u.description],
+    ["Trigger", u.trigger],
+    ["Preconditions", u.preconditions.map((x) => `- ${x}`).join("\n")],
+    ["Postconditions", u.postconditions.map((x) => `- ${x}`).join("\n")],
+    ["Main Flow", u.mainFlow.map((s) => `${s.no}. [${s.actor}] ${s.text}`).join("\n")],
+    ["Alternative Flows", u.altFlows.map(flow).join("\n") || "-"],
+    ["Exception Flows", u.exceptions.map(flow).join("\n") || "-"],
+    ["Business Rules", u.businessRules.map((x) => `- ${x}`).join("\n") || "-"],
+    ["Related Screens", u.screenIds.map(screenName).join(", ") || "-"],
+    ["Assumptions (to be confirmed by the BA)", u.assumptions.map((x) => `- ${x}`).join("\n") || "-"],
   ];
-  return [h(`${u.code}: ${u.name}`, HeadingLevel.HEADING_2), table(["Mục", "Nội dung"], rows, [2400, CONTENT_W - 2400]), new Paragraph({ children: [] })];
+  return [h(`${u.code}: ${u.name}`, HeadingLevel.HEADING_2), table(["Item", "Content"], rows, [2400, CONTENT_W - 2400]), new Paragraph({ children: [] })];
 }
 
 export async function buildDocx(project: Project, module: Module, docs: DocBundle, screenName: (id: string) => string): Promise<Buffer> {
   const children: (Paragraph | Table)[] = [
-    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 120 }, children: [new TextRun({ text: `TÀI LIỆU PHÂN TÍCH – ${module.name.toUpperCase()}`, bold: true, size: 32, font: FONT })] }),
-    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 360 }, children: [new TextRun({ text: `Dự án: ${project.name} · Trạng thái: ${statusVi(module.docsStatus)} · Xuất ngày ${new Date().toLocaleDateString("vi-VN")}`, font: FONT, color: "666666" })] }),
-    new Paragraph({ children: [new TextRun({ text: "Bản nháp do BA Copilot sinh tự động – các mục gắn nhãn Giả định cần BA xác nhận.", italics: true, font: FONT, color: "8A6D00" })], spacing: { after: 240 } }),
-    h("Phần A. Đặc tả Use Case", HeadingLevel.HEADING_1),
+    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 120 }, children: [new TextRun({ text: `ANALYSIS DOCUMENT – ${module.name.toUpperCase()}`, bold: true, size: 32, font: FONT })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 360 }, children: [new TextRun({ text: `Project: ${project.name} · Status: ${statusVi(module.docsStatus)} · Exported on ${new Date().toLocaleDateString("en-US")}`, font: FONT, color: "666666" })] }),
+    new Paragraph({ children: [new TextRun({ text: "Draft generated automatically by BA Copilot – items labelled Assumption must be confirmed by the BA.", italics: true, font: FONT, color: "8A6D00" })], spacing: { after: 240 } }),
+    h("Part A. Use Case Specification", HeadingLevel.HEADING_1),
     table(
-      ["Mã", "Use Case", "Tác nhân", "Màn hình"],
+      ["ID", "Use Case", "Actors", "Screens"],
       docs.useCases.map((u) => [u.code, u.name, u.actors.join(", "), u.screenIds.map(screenName).join(", ")]),
       [1100, 4060, 2000, 2200],
     ),
     ...docs.useCases.flatMap((u) => useCaseBlocks(u, screenName)),
-    h("Phần B. Đặc tả yêu cầu phần mềm (SRS)", HeadingLevel.HEADING_1),
-    ...(docs.srs?.sections.flatMap((s) => [h(s.title, HeadingLevel.HEADING_2), ...markdownBlocks(s.content)]) ?? [p("Chưa có SRS")]),
-    h("Phần C. Sequence Diagram (mã Mermaid)", HeadingLevel.HEADING_1),
-    p("Sơ đồ có thể xem dạng hình trong BA Copilot hoặc dán mã vào mermaid.live.", { italics: true }),
+    h("Part B. Software Requirements Specification (SRS)", HeadingLevel.HEADING_1),
+    ...(docs.srs?.sections.flatMap((s) => [h(s.title, HeadingLevel.HEADING_2), ...markdownBlocks(s.content)]) ?? [p("No SRS yet")]),
+    h("Part C. Sequence Diagrams (Mermaid code)", HeadingLevel.HEADING_1),
+    p("View the diagrams graphically in BA Copilot, or paste the code into mermaid.live.", { italics: true }),
     ...docs.sequences.flatMap((s) => [
       h(s.title, HeadingLevel.HEADING_2),
       ...s.mermaid.split("\n").map((line) => new Paragraph({ children: [new TextRun({ text: line, font: "Courier New", size: 18 })], spacing: { after: 0 } })),
@@ -134,7 +134,7 @@ export async function buildDocx(project: Project, module: Module, docs: DocBundl
   ];
   const doc = new Document({
     creator: "BA Copilot",
-    title: `Tài liệu ${module.name}`,
+    title: `Documents – ${module.name}`,
     styles: {
       default: { document: { run: { font: FONT, size: 22 } } },
       paragraphStyles: [
@@ -149,5 +149,5 @@ export async function buildDocx(project: Project, module: Module, docs: DocBundl
 }
 
 export function statusVi(s: string): string {
-  return ({ none: "Chưa có", draft: "Bản nháp", approved: "Đã duyệt", outdated: "Bản cũ" } as Record<string, string>)[s] ?? s;
+  return ({ none: "Not started", draft: "Draft", done: "Done", approved: "Approved", outdated: "Outdated" } as Record<string, string>)[s] ?? s;
 }
