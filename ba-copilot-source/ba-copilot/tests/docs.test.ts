@@ -158,7 +158,7 @@ test("PUT sửa tay: 409 khi lệch rev, cấu trúc UC đọc ngược từ Mar
   const uc = (await gen(mid, "UC_SPEC")).data as ModuleDoc;
   done(mid, "UC_SPEC");
 
-  const edited = uc.content.replace("thanh toán đơn hàng", "thanh toán đơn hàng bằng ví điện tử").replace("**Quy tắc nghiệp vụ:**", "**Quy tắc nghiệp vụ:**\n- Ví phải đủ số dư");
+  const edited = uc.content.replace("thanh toán đơn hàng", "thanh toán đơn hàng bằng ví điện tử").replace("**Business rules:**", "**Business rules:**\n- Ví phải đủ số dư");
   const stale = await api("PUT", `/api/modules/${mid}/docs/UC_SPEC`, { content: edited, baseRev: uc.rev - 1, actorId });
   assert.equal(stale.status, 409);
   assert.equal(stale.data.code, "CONFLICT");
@@ -188,11 +188,11 @@ test("Chỉnh bằng AI theo mục (Mock): chỉ đổi đúng mục, giữ cấ
   addStory(pid, mid, { asA: "nhân viên", iWant: "tra cứu khách hàng" });
   const brd = (await gen(mid, "BRD")).data as ModuleDoc;
 
-  const r = await api("POST", `/api/modules/${mid}/docs/BRD/refine`, { instruction: "Thêm mục tiêu giảm thời gian nhập liệu", section: "1. Bối cảnh và mục tiêu", baseRev: brd.rev });
+  const r = await api("POST", `/api/modules/${mid}/docs/BRD/refine`, { instruction: "Thêm mục tiêu giảm thời gian nhập liệu", section: "1. Background and Objectives", baseRev: brd.rev });
   assert.equal(r.status, 200, JSON.stringify(r.data));
   assert.equal(r.data.rev, brd.rev + 1);
   const secs = splitSections(r.data.content).sections;
-  assert.match(secs[0].text, /Ghi chú chỉnh sửa \(BA\):\*\* Thêm mục tiêu giảm thời gian nhập liệu/);
+  assert.match(secs[0].text, /Refinement note \(BA\):\*\* Thêm mục tiêu giảm thời gian nhập liệu/);
   assert.equal(secs[1].text, splitSections(brd.content).sections[1].text);
 
   assert.equal((await api("POST", `/api/modules/${mid}/docs/BRD/refine`, { instruction: "x", baseRev: brd.rev })).status, 409);

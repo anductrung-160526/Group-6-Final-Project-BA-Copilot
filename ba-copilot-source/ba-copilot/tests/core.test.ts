@@ -89,7 +89,7 @@ test("extractModel trích trường, ràng buộc, thao tác và điều hướn
   const s = m.screens[0];
   assert.equal(s.fields.length, 2);
   assert.ok(s.fields[0].required);
-  assert.ok(s.fields[0].constraints.includes("định dạng email"));
+  assert.ok(s.fields[0].constraints.includes("email format"));
   assert.ok(s.fields[1].constraints.includes("minLength=8"));
   assert.equal(s.actions[0].formId, "form");
   assert.deepEqual(m.navigation[0], { from: "Đăng nhập", to: "Trang chủ", via: "Đăng nhập" });

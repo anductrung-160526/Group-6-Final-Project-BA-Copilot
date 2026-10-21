@@ -45,7 +45,7 @@ describe("buildUcMermaid", () => {
     assert.equal(lines[0], "flowchart LR");
     assert.ok(lines.includes('A1(("Khách hàng"))'));
     assert.ok(lines.includes('A2(("Quản trị viên"))'));
-    assert.ok(lines.includes('subgraph SYS["Hệ thống"]'));
+    assert.ok(lines.includes('subgraph SYS["System"]'));
     assert.ok(lines.includes('UC1(["UC-01: Đặt hàng"])'));
     assert.ok(lines.includes('UC3(["UC-03: Áp mã giảm giá"])'));
     assert.ok(lines.includes("A1 --- UC1"));
@@ -97,7 +97,7 @@ describe("buildUcMermaid", () => {
 
   test("không có UC: vẫn sinh mã hợp lệ có ô giữ chỗ", () => {
     const code = buildUcMermaid([], []);
-    assert.ok(code.includes("Chưa có Use Case"));
+    assert.ok(code.includes("No use cases yet"));
     assert.deepEqual(checkUcMermaid(code), []);
   });
 
@@ -115,9 +115,9 @@ describe("buildUcMermaid", () => {
 
   test("checkUcMermaid bắt lỗi thường gặp", () => {
     assert.deepEqual(checkUcMermaid(""), ["Diagram code is empty"]);
-    assert.ok(checkUcMermaid("sequenceDiagram\n A->>B: x").some((e) => e.includes("Dòng đầu")));
-    assert.ok(checkUcMermaid('flowchart LR\n subgraph S["x"]\n A').some((e) => e.includes('Thiếu "end"')));
-    assert.ok(checkUcMermaid('flowchart LR\n A(("x))').some((e) => e.includes("ngoặc kép")));
+    assert.ok(checkUcMermaid("sequenceDiagram\n A->>B: x").some((e) => e.includes("first line")));
+    assert.ok(checkUcMermaid('flowchart LR\n subgraph S["x"]\n A').some((e) => e.includes('Missing "end"')));
+    assert.ok(checkUcMermaid('flowchart LR\n A(("x))').some((e) => e.includes("double quote")));
   });
 
   test("bản Mock dùng lại buildUcMermaid với actor gom từ UC", () => {
@@ -169,7 +169,7 @@ describe("API sơ đồ UC (Mock)", () => {
     assert.equal((await api("GET", "/api/modules/khong-co/diagram")).status, 404);
     const g = await api("POST", `/api/modules/${m.data.id}/diagram/generate`, {});
     assert.equal(g.status, 400);
-    assert.match(g.data.error, /Use Case/);
+    assert.match(g.data.error, /use cases/i);
     assert.equal((await api("POST", `/api/modules/${m.data.id}/diagram/approve`, { approved: true })).status, 400);
   });
 

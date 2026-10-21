@@ -199,9 +199,9 @@ test("slugify bỏ dấu tiếng Việt, an toàn cho đường dẫn", () => {
 
 test("dịch lỗi GitHub 401/403/404 sang tiếng Việt", () => {
   assert.match(translateError(401, "Bad credentials", "a/b"), /GitHub token is invalid/);
-  assert.match(translateError(403, "", "a/b"), /không có quyền ghi/);
-  assert.match(translateError(403, "API rate limit exceeded", "a/b"), /gọi quá nhiều/);
-  assert.match(translateError(404, "Not Found", "a/b"), /Không tìm thấy repo a\/b/);
+  assert.match(translateError(403, "", "a/b"), /cannot write/);
+  assert.match(translateError(403, "API rate limit exceeded", "a/b"), /rate-limiting/);
+  assert.match(translateError(404, "Not Found", "a/b"), /Repository a\/b not found/);
 });
 
 test("gitExport: bố cục tệp đúng kế hoạch", () => {
@@ -273,10 +273,10 @@ test("thử kết nối: có quyền ghi, báo nhánh chưa có; sai token → t
   gh.push = false;
   const ro = await api("POST", "/api/projects/p1/git/test", { actorId: "lead" });
   assert.equal(ro.data.ok, false);
-  assert.match(ro.data.message, /không có quyền ghi/);
+  assert.match(ro.data.message, /cannot write/);
   gh.exists = false;
   const nf = await api("POST", "/api/projects/p1/git/test", { actorId: "lead" });
-  assert.match(nf.data.message, /Không tìm thấy repo acme\/ba-docs/);
+  assert.match(nf.data.message, /Repository acme\/ba-docs not found/);
   await configure();
 });
 
@@ -343,14 +343,14 @@ test("lỗi GitHub khi đã cấu hình → ném lỗi tiếng Việt (401/403/4
   await assert.rejects(pushApproved({ kind: "doc", id: "m1", moduleId: "m1", sub: "BRD" }, "lead"), /GitHub token is invalid/);
   forceStatus = null;
   gh.push = false;
-  await assert.rejects(pushApproved({ kind: "doc", id: "m1", moduleId: "m1", sub: "BRD" }, "lead"), /không có quyền ghi/);
+  await assert.rejects(pushApproved({ kind: "doc", id: "m1", moduleId: "m1", sub: "BRD" }, "lead"), /cannot write/);
   gh.exists = false;
-  await assert.rejects(pushApproved({ kind: "doc", id: "m1", moduleId: "m1", sub: "BRD" }, "lead"), (e: Error) => /Không tìm thấy repo/.test(e.message) && !e.message.includes(FAKE_TOKEN));
+  await assert.rejects(pushApproved({ kind: "doc", id: "m1", moduleId: "m1", sub: "BRD" }, "lead"), (e: Error) => /not found/.test(e.message) && !e.message.includes(FAKE_TOKEN));
   assert.equal(n(), before);
   // lịch sử vẫn trả nhật ký trong app, kèm lỗi đọc commit
   const hist = await api("GET", "/api/projects/p1/git/history");
   assert.equal(hist.status, 200);
-  assert.match(hist.data.commitsError, /Không tìm thấy repo/);
+  assert.match(hist.data.commitsError, /not found/);
 });
 
 test("lỗi mạng → thông báo kiểm tra mạng", async () => {
@@ -359,7 +359,7 @@ test("lỗi mạng → thông báo kiểm tra mạng", async () => {
     throw new Error("ECONNREFUSED " + FAKE_TOKEN);
   });
   try {
-    await assert.rejects(pushApproved({ kind: "doc", id: "m1", moduleId: "m1", sub: "BRD" }, "lead"), (e: Error) => /Không kết nối được GitHub/.test(e.message) && !e.message.includes(FAKE_TOKEN));
+    await assert.rejects(pushApproved({ kind: "doc", id: "m1", moduleId: "m1", sub: "BRD" }, "lead"), (e: Error) => /Could not connect to GitHub/.test(e.message) && !e.message.includes(FAKE_TOKEN));
   } finally {
     setGitHubFetch(fakeFetch);
   }

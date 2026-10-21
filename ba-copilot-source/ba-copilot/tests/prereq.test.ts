@@ -24,8 +24,8 @@ test("doneBlockReason: tài liệu theo chuỗi BRD → UC Spec → SRS → FRD-
     doneBlockReason({ kind: "doc", sub: "UC_SPEC" }, facts({ BRD: "draft" })),
     "The previous step (BRD) is not Done (current: Draft). Complete BRD and mark it as done before marking UC Specification as done.",
   );
-  assert.match(doneBlockReason({ kind: "doc", sub: "SRS" }, facts({ UC_SPEC: "outdated" }))!, /UC Specification\) chưa Xong \(hiện: Bản cũ\)/);
-  assert.match(doneBlockReason({ kind: "doc", sub: "API_SPEC" }, facts({}))!, /FRD-NFR\) chưa Xong \(hiện: Chưa có\)/);
+  assert.match(doneBlockReason({ kind: "doc", sub: "SRS" }, facts({ UC_SPEC: "outdated" }))!, /UC Specification\) is not Done \(current: Outdated\)/);
+  assert.match(doneBlockReason({ kind: "doc", sub: "API_SPEC" }, facts({}))!, /FRD-NFR\) is not Done \(current: Not started\)/);
   for (const ok of ["done", "approved"] as ArtifactStatus[]) assert.equal(doneBlockReason({ kind: "doc", sub: "SRS" }, facts({ UC_SPEC: ok })), null);
 });
 
@@ -36,8 +36,8 @@ test("doneBlockReason: sơ đồ cần mọi tài liệu nguồn; bộ test cầ
     "Source document UC Specification (current: Draft) must be Done before marking the BPMN diagram as done.",
   );
   assert.equal(doneBlockReason({ kind: "diagram", sub: "BPMN" }, facts({ BRD: "approved", UC_SPEC: "done" })), null);
-  assert.match(doneBlockReason({ kind: "diagram", sub: "ERD" }, facts({ SRS: "done" }))!, /FRD-NFR \(hiện: Chưa có\)/);
-  assert.match(doneBlockReason({ kind: "diagram" }, facts({}))!, /UC Specification.*sơ đồ Use Case/, "thiếu sub = sơ đồ UC");
+  assert.match(doneBlockReason({ kind: "diagram", sub: "ERD" }, facts({ SRS: "done" }))!, /FRD-NFR \(current: Not started\)/);
+  assert.match(doneBlockReason({ kind: "diagram" }, facts({}))!, /UC Specification.*Use Case diagram/, "thiếu sub = sơ đồ UC");
 
   assert.match(doneBlockReason({ kind: "tests" }, facts({ FRD_NFR: "draft" }))!, /FRD-NFR must be Done before marking the test suite as done \(current: Draft\)/);
   assert.equal(doneBlockReason({ kind: "tests" }, facts({ FRD_NFR: "done" })), null);
@@ -54,10 +54,10 @@ test("prereqBlockReason 'generate' giữ đúng câu cũ của nút Sinh bằng 
   );
   assert.equal(
     prereqBlockReason({ kind: "doc", sub: "BRD" }, facts({}, { storyCount: 0 }), "generate"),
-    "Module chưa có user story. Hãy thêm ít nhất một user story ở mục Yêu cầu nghiệp vụ trước khi sinh BRD.",
+    "This module has no user stories yet. Add at least one user story under Business Requirements before generating BRD.",
   );
   assert.match(prereqBlockReason({ kind: "doc", sub: "SRS" }, facts({ UC_SPEC: "done" }), "approve") ?? "null", /^null$/);
-  assert.match(prereqBlockReason({ kind: "tests" }, facts({}), "approve")!, /trước khi duyệt bộ test case/);
+  assert.match(prereqBlockReason({ kind: "tests" }, facts({}), "approve")!, /before approving the test suite/);
 });
 
 // ---------------------------------------------------------------- API
@@ -128,7 +128,7 @@ test("API Xong tài liệu: bước trước chưa Xong → 400 kèm lý do, tr�
   setDoc(empty, "BRD", "draft");
   const b = await done(`doc/${empty}`, { sub: "BRD", actorId: ba });
   assert.equal(b.status, 400);
-  assert.match(b.data.error, /chưa có user story/);
+  assert.match(b.data.error, /no user stories yet/);
 });
 
 test("API Xong trên bản Bản cũ cũng phải có bước trước Xong (lỗ hổng đợt 5)", async () => {

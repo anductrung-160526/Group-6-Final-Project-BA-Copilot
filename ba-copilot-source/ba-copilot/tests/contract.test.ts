@@ -273,7 +273,7 @@ test("route: endpoint còn là stub trả 501", async () => {
     const path = r.path.replace(/:(\w+)/g, "x");
     const res = await fetch(base + path, { method: r.method, headers: { "content-type": "application/json" }, body: r.method === "GET" ? undefined : "{}" });
     assert.equal(res.status, 501, `${r.method} ${r.path}`);
-    assert.match((await res.json()).error, /Chưa triển khai/);
+    assert.match((await res.json()).error, /Not implemented/);
   }
 });
 

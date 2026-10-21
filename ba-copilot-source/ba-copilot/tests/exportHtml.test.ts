@@ -37,7 +37,7 @@ test("screenToHtml: trang HTML đầy đủ, tự chứa (CSS nội tuyến, kh�
   assert.match(html, /<style>[\s\S]*\.ds-btn\{/);
   assert.ok(!/<script/i.test(html), "không được có thẻ script");
   assert.ok(!/<link\b|src=|url\(http/i.test(html), "không được tải tài nguyên ngoài");
-  for (const t of ["Email", "Mật khẩu", "Ghi nhớ", "Khách hàng", "Đăng nhập", "Quên mật khẩu?", "Thao tác", "Đơn"]) assert.ok(html.includes(t), t);
+  for (const t of ["Email", "Mật khẩu", "Ghi nhớ", "Khách hàng", "Đăng nhập", "Quên mật khẩu?", "Actions", "Đơn"]) assert.ok(html.includes(t), t);
   assert.ok(html.includes('class="ds-req"'), "trường bắt buộc có dấu *");
   assert.ok(html.includes("••••••••"), "ô mật khẩu che ký tự như bản xem trước");
   assert.ok(html.includes('data-node-id="btn_login"'));

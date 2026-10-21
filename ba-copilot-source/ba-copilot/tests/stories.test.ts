@@ -90,11 +90,11 @@ test("Module bắt buộc: dự án chưa có module / thiếu module → 400 k�
   for (const moduleId of [undefined, null, "", "  "]) {
     const r = await api("POST", `/api/projects/${p.id}/stories`, { ...GOOD, moduleId });
     assert.equal(r.status, 400, `moduleId = ${JSON.stringify(moduleId)}`);
-    assert.match(r.data.error, /Chưa chọn module/);
+    assert.match(r.data.error, /No module selected/);
   }
   const la = await api("POST", `/api/projects/${p.id}/stories`, { ...GOOD, moduleId: "khong-co" });
   assert.equal(la.status, 400);
-  assert.match(la.data.error, /Module không tồn tại/);
+  assert.match(la.data.error, /module does not exist/);
   assert.equal((await api("GET", `/api/projects/${p.id}/stories`)).data.length, 0, "không tạo story nào khi bị từ chối");
 
   // Story cũ: xoá module → story còn, chưa gắn module
@@ -206,7 +206,7 @@ test("QUS lưu theo module khi story đổi; storiesText ghép story cho AI", as
   await api("POST", `/api/projects/${p.id}/stories`, { moduleId: m1.id, iWant: "xuất hoá đơn", acceptanceCriteria: [] });
   assert.equal(
     storiesText(m1.id),
-    ["US-01 (High): As a Khách hàng, I want xem lịch sử đơn hàng.", "  Tiêu chí chấp nhận:", "  - Hiện 20 đơn mới nhất", "US-02 (Medium): I want xuất hoá đơn."].join("\n"),
+    ["US-01 (High): As a Khách hàng, I want xem lịch sử đơn hàng.", "  Acceptance criteria:", "  - Hiện 20 đơn mới nhất", "US-02 (Medium): I want xuất hoá đơn."].join("\n"),
   );
   await api("DELETE", `/api/stories/${s.id}`);
   assert.ok((await qus()).score < 85);
