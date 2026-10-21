@@ -85,6 +85,13 @@ function report(name: string, pred: Pred) {
   return { name, perCriterion: perCrit, micro, macro: { recall: avg(sets.map((x) => x.recall)), precision: avg(sets.map((x) => x.precision)) }, storiesWithDefectPct: anyDefect, ...bootstrap(pred, ids) };
 }
 
+// --tagger corenlp: thay bộ gán nhãn bằng Stanford CoreNLP (thí nghiệm so sánh); --jars <đường dẫn jar CoreNLP và models>.
+const tagger = arg("tagger", "wink");
+if (tagger === "corenlp") {
+  const { useCoreNLP } = await import("./corenlp-tagger.ts");
+  const info = useCoreNLP(arg("jars", ""), () => { predictAqusa(ALL_V2); predictAqusa([]); for (const f of ALL_V2) predictAqusa(ALL_V2.filter((x) => x !== f)); });
+  console.log(`CoreNLP: ${info.strings} chuỗi, ${info.passes} lượt`);
+}
 const t0 = performance.now();
 const full = predictAqusa(ALL_V2);
 const msPerStory = Math.round(((performance.now() - t0) / Math.max(evalStories.length, 1)) * 10) / 10;
@@ -97,7 +104,7 @@ const errors = evalStories.flatMap((s) => CRIT.flatMap((c) => {
   return g === y ? [] : [{ id: s.id, set: s.set, criterion: c, type: y ? "FP" : "FN", text: s.text }];
 }));
 
-const out = { split, nStories: evalStories.length, nSets: bySet.size, goldStoriesWithDefectPct: goldAny, msPerStory, results, ablation, errors };
+const out = { split, tagger, nStories: evalStories.length, nSets: bySet.size, goldStoriesWithDefectPct: goldAny, msPerStory, results, ablation, errors };
 writeFileSync(arg("out", `dataset/export/eval/qus-eval-${split}.json`), JSON.stringify(out, null, 1));
 console.log(`${split}: ${evalStories.length} stories, ${bySet.size} sets, gold ≥1 defect ${goldAny}%, ${msPerStory} ms/story`);
 for (const r of results) {

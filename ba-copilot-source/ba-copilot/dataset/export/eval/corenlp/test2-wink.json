@@ -1,0 +1,370 @@
+{
+ "split": "test2",
+ "tagger": "wink",
+ "nStories": 119,
+ "nSets": 2,
+ "goldStoriesWithDefectPct": 9.2,
+ "msPerStory": 0.5,
+ "results": [
+  {
+   "name": "legacy (main)",
+   "perCriterion": {
+    "well-formed": {
+     "def": 6,
+     "tp": 1,
+     "fp": 5,
+     "fn": 0,
+     "recall": 100,
+     "precision": 16.7,
+     "f1": 28.6
+    },
+    "atomic": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 4,
+     "recall": 0,
+     "precision": null,
+     "f1": 0
+    },
+    "minimal": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 1,
+     "recall": 0,
+     "precision": null,
+     "f1": 0
+    },
+    "uniform": {
+     "def": 6,
+     "tp": 6,
+     "fp": 0,
+     "fn": 2,
+     "recall": 75,
+     "precision": 100,
+     "f1": 85.7
+    },
+    "unique": {
+     "def": 22,
+     "tp": 0,
+     "fp": 22,
+     "fn": 0,
+     "recall": null,
+     "precision": 0,
+     "f1": 0
+    }
+   },
+   "micro": {
+    "def": 34,
+    "tp": 7,
+    "fp": 27,
+    "fn": 7,
+    "recall": 50,
+    "precision": 20.6,
+    "f1": 29.2
+   },
+   "macro": {
+    "recall": 29.2,
+    "precision": 12.5
+   },
+   "storiesWithDefectPct": 23.5,
+   "recall95": [
+    16.7,
+    72.7
+   ],
+   "precision95": [
+    5,
+    32.4
+   ]
+  },
+  {
+   "name": "AQUSA v1",
+   "perCriterion": {
+    "well-formed": {
+     "def": 6,
+     "tp": 1,
+     "fp": 5,
+     "fn": 0,
+     "recall": 100,
+     "precision": 16.7,
+     "f1": 28.6
+    },
+    "atomic": {
+     "def": 4,
+     "tp": 1,
+     "fp": 3,
+     "fn": 3,
+     "recall": 25,
+     "precision": 25,
+     "f1": 25
+    },
+    "minimal": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 1,
+     "recall": 0,
+     "precision": null,
+     "f1": 0
+    },
+    "uniform": {
+     "def": 6,
+     "tp": 6,
+     "fp": 0,
+     "fn": 2,
+     "recall": 75,
+     "precision": 100,
+     "f1": 85.7
+    },
+    "unique": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 0,
+     "recall": null,
+     "precision": null,
+     "f1": 0
+    }
+   },
+   "micro": {
+    "def": 16,
+    "tp": 8,
+    "fp": 8,
+    "fn": 6,
+    "recall": 57.1,
+    "precision": 50,
+    "f1": 53.3
+   },
+   "macro": {
+    "recall": 33.4,
+    "precision": 28.6
+   },
+   "storiesWithDefectPct": 8.4,
+   "recall95": [
+    33.3,
+    84.6
+   ],
+   "precision95": [
+    31.3,
+    66.7
+   ]
+  },
+  {
+   "name": "AQUSA v1+v2",
+   "perCriterion": {
+    "well-formed": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 1,
+     "recall": 0,
+     "precision": null,
+     "f1": 0
+    },
+    "atomic": {
+     "def": 5,
+     "tp": 1,
+     "fp": 4,
+     "fn": 3,
+     "recall": 25,
+     "precision": 20,
+     "f1": 22.2
+    },
+    "minimal": {
+     "def": 2,
+     "tp": 1,
+     "fp": 1,
+     "fn": 0,
+     "recall": 100,
+     "precision": 50,
+     "f1": 66.7
+    },
+    "uniform": {
+     "def": 9,
+     "tp": 8,
+     "fp": 1,
+     "fn": 0,
+     "recall": 100,
+     "precision": 88.9,
+     "f1": 94.1
+    },
+    "unique": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 0,
+     "recall": null,
+     "precision": null,
+     "f1": 0
+    }
+   },
+   "micro": {
+    "def": 16,
+    "tp": 10,
+    "fp": 6,
+    "fn": 4,
+    "recall": 71.4,
+    "precision": 62.5,
+    "f1": 66.7
+   },
+   "macro": {
+    "recall": 62.5,
+    "precision": 53.4
+   },
+   "storiesWithDefectPct": 11.8,
+   "recall95": [
+    44.4,
+    100
+   ],
+   "precision95": [
+    35.7,
+    85.7
+   ]
+  }
+ ],
+ "ablation": [
+  {
+   "without": "ends-indicators",
+   "def": 18,
+   "tp": 8,
+   "fp": 10,
+   "fn": 6,
+   "recall": 57.1,
+   "precision": 44.4,
+   "f1": 50
+  },
+  {
+   "without": "chunk-repetition",
+   "def": 12,
+   "tp": 9,
+   "fp": 3,
+   "fn": 5,
+   "recall": 64.3,
+   "precision": 75,
+   "f1": 69.2
+  },
+  {
+   "without": "slash-gt",
+   "def": 16,
+   "tp": 10,
+   "fp": 6,
+   "fn": 4,
+   "recall": 71.4,
+   "precision": 62.5,
+   "f1": 66.7
+  },
+  {
+   "without": "verb-exceptions",
+   "def": 16,
+   "tp": 10,
+   "fp": 6,
+   "fn": 4,
+   "recall": 71.4,
+   "precision": 62.5,
+   "f1": 66.7
+  },
+  {
+   "without": "symbol-role",
+   "def": 16,
+   "tp": 10,
+   "fp": 6,
+   "fn": 4,
+   "recall": 71.4,
+   "precision": 62.5,
+   "f1": 66.7
+  },
+  {
+   "without": "starting-text",
+   "def": 16,
+   "tp": 10,
+   "fp": 6,
+   "fn": 4,
+   "recall": 71.4,
+   "precision": 62.5,
+   "f1": 66.7
+  },
+  {
+   "without": "abbreviation",
+   "def": 16,
+   "tp": 10,
+   "fp": 6,
+   "fn": 4,
+   "recall": 71.4,
+   "precision": 62.5,
+   "f1": 66.7
+  }
+ ],
+ "errors": [
+  {
+   "id": "g05-019",
+   "set": "g05",
+   "criterion": "minimal",
+   "type": "FP",
+   "text": "As a Data Publishing User, I want to know what my data needs to be able to be visualised on a map, So that I can visualise it on a map."
+  },
+  {
+   "id": "g05-019",
+   "set": "g05",
+   "criterion": "uniform",
+   "type": "FP",
+   "text": "As a Data Publishing User, I want to know what my data needs to be able to be visualised on a map, So that I can visualise it on a map."
+  },
+  {
+   "id": "g05-029",
+   "set": "g05",
+   "criterion": "atomic",
+   "type": "FN",
+   "text": "As a Data Consuming User, I want to be able to filter, sort and aggregate data by multiple dimensions and measures, So that I can get more granular views on the data."
+  },
+  {
+   "id": "g05-037",
+   "set": "g05",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a Data Consuming User, I want to be able to share a view state as a URL to social networks, So that I can share data that I have found with others."
+  },
+  {
+   "id": "g05-073",
+   "set": "g05",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As an API User, I want to be able to normalise measures by GINI and related socioeconomic indexes, So that I work with datasets in reference to their contextual constraints."
+  },
+  {
+   "id": "g05-099",
+   "set": "g05",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a Data Consuming User, I want to visualize by default in treemap, bubble tree, map and pivot table the most recent year when my dataset contain multiple years, So that I'm not confused with the amounts."
+  },
+  {
+   "id": "g08-017",
+   "set": "g08",
+   "criterion": "atomic",
+   "type": "FN",
+   "text": "As a Developer, I want to do exploratory data analysis in R and operationalize that analysis in Python, so that I can use the best tool for the job."
+  },
+  {
+   "id": "g08-039",
+   "set": "g08",
+   "criterion": "well-formed",
+   "type": "FN",
+   "text": "As a ResearcherDeveloper, would like the ability import/export from MS-SQL, so that I can use Data Packages in workflows that involve MS-SQL."
+  },
+  {
+   "id": "g08-039",
+   "set": "g08",
+   "criterion": "atomic",
+   "type": "FN",
+   "text": "As a ResearcherDeveloper, would like the ability import/export from MS-SQL, so that I can use Data Packages in workflows that involve MS-SQL."
+  },
+  {
+   "id": "g08-062",
+   "set": "g08",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a RepositoryManagerResearcher, I want an app that acts as a match-making service for packaging data, so that owners are paired with data packagers."
+  }
+ ]
+}

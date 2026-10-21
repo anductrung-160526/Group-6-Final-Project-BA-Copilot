@@ -1,0 +1,328 @@
+{
+ "split": "dev",
+ "tagger": "wink",
+ "nStories": 51,
+ "nSets": 1,
+ "goldStoriesWithDefectPct": 7.8,
+ "msPerStory": 0.8,
+ "results": [
+  {
+   "name": "legacy (main)",
+   "perCriterion": {
+    "well-formed": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 0,
+     "recall": null,
+     "precision": null,
+     "f1": 0
+    },
+    "atomic": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 4,
+     "recall": 0,
+     "precision": null,
+     "f1": 0
+    },
+    "minimal": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 1,
+     "recall": 0,
+     "precision": null,
+     "f1": 0
+    },
+    "uniform": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 1,
+     "recall": 0,
+     "precision": null,
+     "f1": 0
+    },
+    "unique": {
+     "def": 1,
+     "tp": 0,
+     "fp": 1,
+     "fn": 0,
+     "recall": null,
+     "precision": 0,
+     "f1": 0
+    }
+   },
+   "micro": {
+    "def": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 6,
+    "recall": 0,
+    "precision": 0,
+    "f1": 0
+   },
+   "macro": {
+    "recall": 0,
+    "precision": 0
+   },
+   "storiesWithDefectPct": 2,
+   "recall95": [
+    0,
+    0
+   ],
+   "precision95": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "AQUSA v1",
+   "perCriterion": {
+    "well-formed": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 0,
+     "recall": null,
+     "precision": null,
+     "f1": 0
+    },
+    "atomic": {
+     "def": 6,
+     "tp": 3,
+     "fp": 3,
+     "fn": 1,
+     "recall": 75,
+     "precision": 50,
+     "f1": 60
+    },
+    "minimal": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 1,
+     "recall": 0,
+     "precision": null,
+     "f1": 0
+    },
+    "uniform": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 1,
+     "recall": 0,
+     "precision": null,
+     "f1": 0
+    },
+    "unique": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 0,
+     "recall": null,
+     "precision": null,
+     "f1": 0
+    }
+   },
+   "micro": {
+    "def": 6,
+    "tp": 3,
+    "fp": 3,
+    "fn": 3,
+    "recall": 50,
+    "precision": 50,
+    "f1": 50
+   },
+   "macro": {
+    "recall": 50,
+    "precision": 50
+   },
+   "storiesWithDefectPct": 11.8,
+   "recall95": [
+    0,
+    100
+   ],
+   "precision95": [
+    0,
+    100
+   ]
+  },
+  {
+   "name": "AQUSA v1+v2",
+   "perCriterion": {
+    "well-formed": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 0,
+     "recall": null,
+     "precision": null,
+     "f1": 0
+    },
+    "atomic": {
+     "def": 6,
+     "tp": 3,
+     "fp": 3,
+     "fn": 1,
+     "recall": 75,
+     "precision": 50,
+     "f1": 60
+    },
+    "minimal": {
+     "def": 1,
+     "tp": 1,
+     "fp": 0,
+     "fn": 0,
+     "recall": 100,
+     "precision": 100,
+     "f1": 100
+    },
+    "uniform": {
+     "def": 1,
+     "tp": 1,
+     "fp": 0,
+     "fn": 0,
+     "recall": 100,
+     "precision": 100,
+     "f1": 100
+    },
+    "unique": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 0,
+     "recall": null,
+     "precision": null,
+     "f1": 0
+    }
+   },
+   "micro": {
+    "def": 8,
+    "tp": 5,
+    "fp": 3,
+    "fn": 1,
+    "recall": 83.3,
+    "precision": 62.5,
+    "f1": 71.4
+   },
+   "macro": {
+    "recall": 83.3,
+    "precision": 62.5
+   },
+   "storiesWithDefectPct": 13.7,
+   "recall95": [
+    70,
+    100
+   ],
+   "precision95": [
+    16.7,
+    100
+   ]
+  }
+ ],
+ "ablation": [
+  {
+   "without": "ends-indicators",
+   "def": 7,
+   "tp": 4,
+   "fp": 3,
+   "fn": 2,
+   "recall": 66.7,
+   "precision": 57.1,
+   "f1": 61.5
+  },
+  {
+   "without": "chunk-repetition",
+   "def": 7,
+   "tp": 4,
+   "fp": 3,
+   "fn": 2,
+   "recall": 66.7,
+   "precision": 57.1,
+   "f1": 61.5
+  },
+  {
+   "without": "slash-gt",
+   "def": 8,
+   "tp": 5,
+   "fp": 3,
+   "fn": 1,
+   "recall": 83.3,
+   "precision": 62.5,
+   "f1": 71.4
+  },
+  {
+   "without": "verb-exceptions",
+   "def": 7,
+   "tp": 4,
+   "fp": 3,
+   "fn": 2,
+   "recall": 66.7,
+   "precision": 57.1,
+   "f1": 61.5
+  },
+  {
+   "without": "symbol-role",
+   "def": 8,
+   "tp": 5,
+   "fp": 3,
+   "fn": 1,
+   "recall": 83.3,
+   "precision": 62.5,
+   "f1": 71.4
+  },
+  {
+   "without": "starting-text",
+   "def": 8,
+   "tp": 5,
+   "fp": 3,
+   "fn": 1,
+   "recall": 83.3,
+   "precision": 62.5,
+   "f1": 71.4
+  },
+  {
+   "without": "abbreviation",
+   "def": 8,
+   "tp": 5,
+   "fp": 3,
+   "fn": 1,
+   "recall": 83.3,
+   "precision": 62.5,
+   "f1": 71.4
+  }
+ ],
+ "errors": [
+  {
+   "id": "g04-003",
+   "set": "g04",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a user, I want to be able to enter my zip code and get a list of nearby recycling facilities, so that I can determine which ones I should consider."
+  },
+  {
+   "id": "g04-006",
+   "set": "g04",
+   "criterion": "atomic",
+   "type": "FN",
+   "text": "As a user, I want to be able to select different types of recyclable waste, so I have and get a list of facilities that accept each type and their opening hours, so that I can find an optimal route and schedule."
+  },
+  {
+   "id": "g04-048",
+   "set": "g04",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a user, I want to be able to browse through the list of facolities and see which ones are environment-friendly, so that I can know for sure my waste is not going to leave a negative ecological footprint."
+  },
+  {
+   "id": "g04-051",
+   "set": "g04",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a recyclingfacility, I want to be able to communicate directly with the site admin and convey any issues or concerns I have, so that they fix them."
+  }
+ ]
+}

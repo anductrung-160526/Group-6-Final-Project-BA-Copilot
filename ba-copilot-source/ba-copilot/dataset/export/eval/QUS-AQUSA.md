@@ -298,3 +298,48 @@ Trên cả ba tập, AQUSA (v1 hoặc v1+v2) **có recall cao hơn bộ cũ**. K
 | FP | atomic | g14-057 | As an owner, I want to invite someone using their email to sign up and become a member of … |
 | FP | atomic | g14-059 | As an owner, I want to view all the people in my organization and what roles they have, so… |
 | FP | atomic | g14-061 | As an owner, I want to remove a user as an owner, so that they are just a member and no lo… |
+
+
+---
+
+# Thí nghiệm: thay bộ gán nhãn bằng Stanford CoreNLP (như bài báo)
+
+## Mục đích
+Bài báo dùng Stanford CoreNLP để gán nhãn từ loại; bản của nhóm dùng wink-nlp. Thí nghiệm trả lời: khoảng cách so với bài báo (recall 78 so với 94) **có phải do bộ gán nhãn không**.
+
+## Cách làm
+- CoreNLP 4.5.7 (tải từ Maven Central), MaxentTagger với mô hình mặc định `english-left3words-distsim`. Chương trình `scripts/qus-eval/corenlp/Tag.java`, adapter `scripts/qus-eval/corenlp-tagger.ts`.
+- **Giữ nguyên toàn bộ luật** (code khoá vòng 3, `cf79231`); chỉ thay bộ gán nhãn. Nhãn Penn Treebank quy đổi sang Universal POS (quy đổi của nhóm: dạng của "be" và MD → AUX, VB* khác → VERB).
+- Chấm cả hai bộ gán nhãn trên mọi tập, cùng nhãn vàng. Kết quả: `dataset/export/eval/corenlp/*.json`.
+
+## Kết quả (F1 micro; trong ngoặc: recall / precision)
+| Tập | Số story | v1 – wink | v1 – CoreNLP | v1+v2 – wink | v1+v2 – CoreNLP |
+|---|---|---|---|---|---|
+| dev vòng 1 (g04) | 51 | 50,0 (50,0 / 50,0) | 61,5 (66,7 / 57,1) | 71,4 (83,3 / 62,5) | 71,4 (83,3 / 62,5) |
+| test vòng 1 (g02, g03) | 156 | 61,5 (70,6 / 54,5) | 66,7 (76,5 / 59,1) | 86,5 (94,1 / 80,0) | 91,9 (100 / 85,0) |
+| test2 (g05, g08) | 119 | 53,3 (57,1 / 50,0) | 60,0 (64,3 / 56,3) | 66,7 (71,4 / 62,5) | 73,3 (78,6 / 68,8) |
+| **test3 (g10–g14)** | 345 | **69,4** (78,1 / 62,5) | 65,7 (71,9 / 60,5) | 58,4 (81,3 / 45,6) | 55,2 (75,0 / 43,6) |
+| **Toàn bộ 10 bộ** | 671 | 62,7 (69,6 / 57,1) | 64,5 (71,0 / 59,0) | 67,1 (82,6 / 56,4) | 67,9 (82,6 / 57,6) |
+
+Lưu ý: luật đã được chỉnh bằng wink-nlp trên g02, g03, g04, g05, g08, nên ở các tập này so sánh **thiên vị wink**. test3 là tập công bằng nhất, vì cả hai đều chưa chỉnh trên đó.
+
+## Tốc độ và tài nguyên (máy này)
+| | wink-nlp | CoreNLP |
+|---|---|---|
+| Khởi động / nạp mô hình | 75 ms | ~0,9 s (JVM + mô hình) |
+| Gán nhãn 671 câu | 91 ms (~0,14 ms/câu) | ~3,8 s sau khởi động (~5,6 ms/câu) |
+| Chạy trên trình duyệt | được | không (Java, cần server) |
+| Kích thước | ~3,5 MB | ~480 MB (jar + mô hình) |
+
+## Nhận xét
+- **Bộ gán nhãn không phải nguyên nhân chính của khoảng cách với bài báo.** Trên toàn bộ 671 story, hai bộ gán nhãn gần như ngang nhau (F1 67,1 so với 67,9; recall bằng nhau 82,6). Trên test3, wink còn nhỉnh hơn.
+- CoreNLP gán nhãn đúng một số động từ mà wink sai ("support", "select"), nhất quán với lỗi bài báo nêu ở §6.4. Lợi thế này chủ yếu thể hiện ở **v1** (không có danh sách ngoại lệ động từ): toàn bộ 10 bộ F1 62,7 → 64,5. Ở v1+v2, danh sách ngoại lệ §6.4 đã bù gần hết.
+- Khoảng cách còn lại so với bài báo nhiều khả năng do **luật** (ví dụ lỗi cài đặt §6.2), **cách gán nhãn** (định nghĩa ca biên khác người chấm của bài báo) và **dữ liệu** (bộ khác, ít lỗi hơn: khoảng 9% so với 56% story có lỗi).
+- **Kết luận cho sản phẩm:** giữ wink-nlp. Chất lượng tương đương, nhanh hơn khoảng 40 lần, nhỏ hơn khoảng 140 lần, chạy được ngay trên trình duyệt.
+
+## Chạy lại
+```bash
+# tải stanford-corenlp-4.5.7.jar và stanford-corenlp-4.5.7-models.jar từ Maven Central vào $D
+javac -cp $D/stanford-corenlp-4.5.7.jar -d scripts/qus-eval/corenlp/classes scripts/qus-eval/corenlp/Tag.java
+npx tsx scripts/qus-eval/eval.ts --split test3 --tagger corenlp --jars $D/stanford-corenlp-4.5.7.jar:$D/stanford-corenlp-4.5.7-models.jar
+```
