@@ -162,6 +162,8 @@ export const getModuleQus = (moduleId: string) => get<ModuleQus>(`/api/modules/$
 
 // Gợi ý màn tiếp theo – A9
 export const getScreenSuggestions = (moduleId: string) => get<ScreenSuggestions>(`/api/modules/${enc(moduleId)}/suggestions`);
+/** Hỏi AI (Claude) màn còn thiếu của module – chỉ gọi khi BA bấm. */
+export const refreshScreenSuggestions = (moduleId: string) => post<ScreenSuggestions>(`/api/modules/${enc(moduleId)}/suggestions/refresh`, {});
 export const dismissSuggestion = (moduleId: string, key: string) => post<{ ok: true }>(`/api/modules/${enc(moduleId)}/suggestions/${enc(key)}/dismiss`);
 export const restoreSuggestion = (moduleId: string, key: string) => del<{ ok: true }>(`/api/modules/${enc(moduleId)}/suggestions/${enc(key)}/dismiss`);
 

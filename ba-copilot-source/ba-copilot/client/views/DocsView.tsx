@@ -19,7 +19,7 @@ import {
 import { DOC_KINDS, DOC_KIND_LABEL } from "../../shared/types.ts";
 import type { ApprovalResult, DocKind, ModuleDoc } from "../../shared/types.ts";
 import { doneBlockReason } from "../../shared/prereq.ts";
-import { ApprovalBar, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Field, Icon, Modal, RevisionTag, Select, StatusBadge, Tabs, fmtTime, useUI } from "../components/ui.tsx";
+import { SampleBadge, ApprovalBar, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Field, Icon, Modal, RevisionTag, Select, StatusBadge, Tabs, fmtTime, useUI } from "../components/ui.tsx";
 import { Markdown } from "../components/Markdown.tsx";
 import { currentMemberId, useCurrentMember, withActor } from "../currentMember.ts";
 import { usePresence } from "../presence.ts";
@@ -232,6 +232,7 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
               <Icon name="lock" size="sm" /> {lockReason}
             </span>
           )}
+          <SampleBadge />
           <Btn kind={has ? "secondary" : "primary"} onClick={generate} disabled={!!lockReason || draft !== null} title={lockReason} data-testid="doc-generate">
             <Icon name={has ? "regenerate" : "ai"} size="sm" />
             {has ? "Regenerate" : "Generate with AI"}

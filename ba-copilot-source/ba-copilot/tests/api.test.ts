@@ -387,3 +387,65 @@ test("gợi ý bố cục (Recursive): phần tử tiếp theo, hoàn thành b�
   assert.equal(st.data.applied, 1);
   assert.equal(st.data.acceptanceRate, 0.5);
 });
+
+test("gợi ý element (Transformer): phần tử còn thiếu ở giữa, chèn kèm loại con, thống kê theo mô hình", async () => {
+  const p = await api("POST", "/api/projects", { name: "Gợi ý giữa" });
+  const m = await api("POST", `/api/projects/${p.data.id}/modules`, { name: "Đăng nhập" });
+  const s = await api("POST", `/api/modules/${m.data.id}/screens`, { prompt: "Sign-in form: email, password, a Sign in button", name: "Sign in" });
+  const sid = s.data.screen.id;
+  const tree = s.data.version.tree;
+  const boxes: Record<string, number[]> = {};
+  let y = 0;
+  const lay = (n: any, depth: number) => {
+    const y0 = y;
+    y += 40;
+    (n.children ?? []).forEach((c: any) => lay(c, depth + 1));
+    boxes[n.id] = [depth * 16, y0, 1280 - depth * 16, Math.max(y, y0 + 40)];
+  };
+  lay(tree, 0);
+  const layout = { pageWidth: 1280, boxes };
+  const find = (n: any, id: string): any => (n.id === id ? n : (n.children ?? []).map((c: any) => find(c, id)).find(Boolean));
+
+  const r = await api("POST", `/api/screens/${sid}/suggestions`, { nodeIds: [], layout, mode: "next" });
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.equal(r.data.gapModel.kind, "transformer");
+  assert.ok(r.data.gapModel.trees >= 1);
+  assert.ok(Array.isArray(r.data.gaps) && r.data.gaps.length <= 3);
+  assert.ok(r.data.items.every((e: any) => e.source === "recursive"));
+  // chỉ khe GIỮA: đứng trước một phần tử đã có, P(thiếu) ≥ 0.5, xếp giảm dần
+  for (const g of r.data.gaps) {
+    const parent = find(tree, g.parentId);
+    assert.equal(g.source, "transformer");
+    assert.ok(g.index < parent.children.length);
+    assert.equal(parent.children[g.index].id, g.beforeId);
+    assert.ok(g.pMissing >= 0.5 && g.pMissing <= 1);
+    assert.ok(g.candidates.length >= 1 && g.candidates.every((c: any) => c.type !== "Page" && typeof c.sub === "string"));
+  }
+  assert.deepEqual(r.data.gaps.map((g: any) => g.pMissing), [...r.data.gaps.map((g: any) => g.pMissing)].sort((a: number, b: number) => b - a));
+  // có container đang chọn → chỉ khe trong container đó
+  const form = tree.children.find((c: any) => c.type === "Form") ?? tree;
+  const inForm = await api("POST", `/api/screens/${sid}/suggestions`, { nodeIds: [form.id], layout, mode: "next" });
+  assert.ok(inForm.data.gaps.every((g: any) => g.parentId === form.id));
+  // "complete" vẫn chỉ là Recursive
+  assert.equal((await api("POST", `/api/screens/${sid}/suggestions`, { nodeIds: [], layout, mode: "complete" })).data.gaps, undefined);
+
+  // chèn ở giữa kèm loại con: Input email → nhãn và kiểu ô nhập theo loại con; loại con "icon" giữ props trung tính
+  const acc = await api("POST", `/api/screens/${sid}/layout/accept`, {
+    versionId: r.data.versionId,
+    source: "transformer",
+    items: [{ ref: "a", parentId: form.id, index: 0, type: "Input", sub: "email" }, { ref: "b", parentId: form.id, index: 0, type: "Button", sub: "icon" }],
+  });
+  assert.equal(acc.status, 200, JSON.stringify(acc.data));
+  assert.match(acc.data.version.prompt, /Transformer/);
+  const f2 = find(acc.data.version.tree, form.id);
+  assert.equal(f2.children[0].type, "Input");
+  assert.equal(f2.children[0].props.inputType, "email");
+  assert.equal(f2.children[0].props.label, "Email");
+  assert.equal(f2.children[1].type, "Button");
+  assert.equal(f2.children[1].props.icon, undefined);
+
+  await api("POST", "/api/suggestions/events", { screenId: sid, kind: "layout:transformer", targetNodeId: form.id, title: "Input", confidence: 0.8, action: "shown" });
+  await api("POST", "/api/suggestions/events", { screenId: sid, kind: "layout:transformer", targetNodeId: form.id, title: "Input", confidence: 0.8, action: "applied" });
+  const st = await api("GET", `/api/modules/${m.data.id}/suggestion-stats`);
+  assert.deepEqual(st.data.byKind["layout:transformer"], { shown: 1, applied: 1 });
+});

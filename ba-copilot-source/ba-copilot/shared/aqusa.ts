@@ -29,7 +29,7 @@ export interface AqusaDefect {
   message: string;
   suggestion: string;
   excerpt?: string;
-  /** Mục của bài báo làm căn cứ ("nhóm" = luật ngoài bài báo). */
+  /** Mục của bài báo làm căn cứ ("team rule" = luật ngoài bài báo). */
   paperRef: string;
 }
 
@@ -97,7 +97,7 @@ function wellFormed(c: Chunks): AqusaDefect[] {
     return [{ criterion: "well-formed", code: "WF_NO_MEANS", message: "The story has no means (\"I want <action>\").", suggestion: "Add \"I want <action>\".", paperRef: "§3.1, §4.3" }];
   // nhóm: vai trò phải chứa danh từ (chỉ một loại người dùng).
   if (!hasNoun(c.role))
-    return [{ criterion: "well-formed", code: "WF_ROLE_CONTENT", message: `The role "${c.role}" contains no noun.`, suggestion: "Name a user type, e.g. \"As a store manager\".", excerpt: c.role, paperRef: "nhóm" }];
+    return [{ criterion: "well-formed", code: "WF_ROLE_CONTENT", message: `The role "${c.role}" contains no noun.`, suggestion: "Name a user type, e.g. \"As a store manager\".", excerpt: c.role, paperRef: "team rule (not in the paper)" }];
   return [];
 }
 
@@ -192,7 +192,7 @@ function minimal(c: Chunks, raw: string): AqusaDefect[] {
     out.push({ criterion: "minimal", code: "MN_EXTRA", message: `The story contains more than role, means and ends: "${extra[0].trim().slice(0, 60)}".`, suggestion: "Keep only role, means and ends; move the rest to the acceptance criteria.", excerpt: extra[0].trim().slice(0, 60), paperRef: "§3.1" });
   // nhóm (mở rộng §6.2 cho phần lý do): hai phần lý do lồng nhau ("…, so I have …, so that …").
   if (c.ends && /(?<![\p{L}])so that(?![\p{L}])/iu.test(c.ends))
-    out.push({ criterion: "minimal", code: "MN_ENDS_REPEAT", message: "The story has two reasons (ends) one after another.", suggestion: "Keep one reason; move the rest to the description.", excerpt: c.ends.slice(0, 50), paperRef: "§6.2, nhóm" });
+    out.push({ criterion: "minimal", code: "MN_ENDS_REPEAT", message: "The story has two reasons (ends) one after another.", suggestion: "Keep one reason; move the rest to the description.", excerpt: c.ends.slice(0, 50), paperRef: "§6.2, team rule (not in the paper)" });
   return out;
 }
 
@@ -236,4 +236,4 @@ export function analyzeSet(texts: string[]): AqusaDefect[][] {
 }
 
 /** Nhận diện story tiếng Anh (bộ chấm AQUSA chỉ dành cho tiếng Anh). */
-export const isEnglishStory = (t: string) => !/[ăâđêôơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]/iu.test(t);
+export const isEnglishStory = (t: string) => !/[ăâđêôơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]/iu.test(t); // vi-keep: chữ cái có dấu để nhận diện story tiếng Việt

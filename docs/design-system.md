@@ -84,7 +84,7 @@ Xem trực quan: mở app tại `#/_gallery`.
 | `--color-orange` | `#C2410C` | Chờ người duyệt |
 | `--color-danger` | `#B42318` | Lỗi, xoá, toast lỗi |
 | `--color-violet` | `#6B3FD6` | Đã gửi AI, xem trước phiên bản |
-| `--color-ai` | `#7C5CFF` | Gợi ý của mô hình ML trên canvas |
+| `--color-ai` | `#7C5CFF` | Gợi ý của mô hình ML trên canvas: khung mờ `.ov-ghost` (Recursive) và vạch chèn `.ov-gap` (Transformer – phần tử còn thiếu ở giữa) |
 
 ### 2.2. Chữ
 
@@ -143,6 +143,7 @@ App chưa có chế độ tối nên chưa có bộ token tối.
 | `EditingBadge` | `names: string[]`, `max?` (2) | "Being edited by A, B and N others" (badge tím). Danh sách rỗng thì không hiện. Đặt cạnh tiêu đề màn / tài liệu. |
 | `ConflictNotice` | `onReload`, `message?`, `busy?` | Khung vàng khi lưu bị 409. Mặc định: "Bản đã thay đổi – có người vừa sửa. Tải lại để xem bản mới." + nút **Tải lại**. Đặt ngay trên vùng đang sửa. |
 | `ScoreBadge` | `score` 0–100, `showLabel?` | Điểm QUS: ≥ 80 xanh "Good", 60–79 vàng "Fair", < 60 đỏ "Poor" (khớp `shared/qus.ts`). |
+| `SampleBadge` | `provider?` (`"claude"` \| `"mock"` \| `null`) | "Sample result – Claude not connected" (badge `flag`). Đặt cạnh **mọi** nút / kết quả của tính năng dùng Claude (sinh/sửa màn, tài liệu, sơ đồ, test case, màn còn thiếu). Chỉ hiện khi máy chủ chạy Mock (chưa có khoá Claude); bỏ trống `provider` thì theo `/api/settings` (`useAiProvider()`), truyền `provider` khi biết nguồn của một kết quả đã lưu. **Không** đặt cạnh QUS (bộ luật) hay gợi ý element (mô hình trong `model/`). |
 | `Field` | `label`, `hint?` (chữ / React), `required?`, `count?` (`{ value, max }`), `error?`, `children` | Bọc mọi ô nhập có nhãn. `required` → dấu `*` đỏ sau nhãn (ô nhập đặt thêm `aria-required`). `count` → bộ đếm "12/200" góc phải dưới ô (số kiểu Anh: "…/2,000"; chạm giới hạn chữ vàng, vượt giới hạn – dữ liệu cũ – chữ đỏ); luôn đặt kèm `maxLength={max}` trên ô nhập. `error` → dòng lỗi đỏ dưới ô, viền ô đỏ, thay chỗ `hint` (ô nhập đặt `aria-invalid`). Quy tắc dùng: mục 3.4. |
 | `Select` | `value`, `options`, `onChange`, `placeholder?` | Mọi ô chọn một giá trị. |
 | `MemberPicker` | `members`, `value`, `onChange` | Chọn người phụ trách. Truyền `role` là nhãn đã dịch (`ROLE_LABEL` trong `client/currentMember.ts`: "BA", "BA Lead"), không truyền mã thô. |
@@ -241,6 +242,7 @@ Trong cả hai trường hợp, **không** tự gọi `confirm` trước `onDele
 | `.meters`, `.meter` | Thẻ chỉ số (Truy vết) |
 | `.kanban` | Lưới chứa các `KanbanColumn` |
 | `.suggest-block`, `.suggest-list` | Khung khối Gợi ý tiếp theo (SCR-16) ở cột trái Design Studio, chứa các `SuggestionCard` |
+| `.suggest-ai` | Hàng "Find missing screens" trong khối Gợi ý tiếp theo: mô tả + nút hỏi Claude, sau lần hỏi là thời điểm kiểm tra, badge `Outdated` (amber), `SampleBadge`, liên kết "Check again" |
 
 ### 3.4. Biểu mẫu trong hộp thoại (quy tắc chung)
 

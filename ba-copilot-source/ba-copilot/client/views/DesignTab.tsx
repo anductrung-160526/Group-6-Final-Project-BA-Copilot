@@ -1,6 +1,7 @@
 // Design Studio: prompt sinh màn hình, khoanh vùng (click / kéo khung), bình luận theo vùng,
 // gửi bình luận vào prompt, prompt sửa theo vùng, lịch sử phiên bản, xem thử prototype,
-// gợi ý bố cục (Recursive Transformer, Li et al. 2020): khung mờ phần tử tiếp theo trên canvas + "Hoàn thành bố cục".
+// gợi ý element (chỉ mô hình trong model/): khung mờ phần tử tiếp theo + "Hoàn thành bố cục" (Recursive Transformer,
+// Li et al. 2020) và vạch chèn phần tử còn thiếu giữa các phần tử đã có (Transformer phát hiện chỗ thiếu).
 // Đợt 5 (C9): bước "Prototype" của "Thực hiện công việc" (PrototypeStep). AI sinh/sửa màn theo SRS + FRD-NFR + user story;
 // trạng thái Xong / Duyệt / Yêu cầu sửa qua ApprovalBar; mọi lệnh sửa màn gửi baseRev (409 → ConflictNotice);
 // "Đang được sửa bởi …" qua usePresence. Bình luận theo component giữ nguyên – đó là cách BA Lead góp ý.
@@ -15,7 +16,7 @@ import { Renderer } from "../components/Renderer.tsx";
 import { SuggestionsPanel } from "../components/SuggestionsPanel.tsx";
 import { RelatedTasks } from "../components/RelatedTasks.tsx";
 import { currentMemberId, useCurrentMember, withActor } from "../currentMember.ts";
-import { ApprovalBar, Badge, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Field, Icon, Modal, RowActions, StatusBadge, fmtTime, useUI } from "../components/ui.tsx";
+import { SampleBadge, ApprovalBar, Badge, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Field, Icon, Modal, RowActions, StatusBadge, fmtTime, useUI } from "../components/ui.tsx";
 
 type Mode = "select" | "region" | "prototype";
 interface Rect {
@@ -97,9 +98,11 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
       return true;
     }
   });
-  const [next, setNext] = useState<{ versionId: string; items: NextItem[]; model: ModelInfo } | null>(null);
+  const [next, setNext] = useState<NextResult | null>(null);
   const [which, setWhich] = useState(0); // vị trí đang hiển thị (khi không chọn gì, tối đa 3 container)
   const [pick, setPick] = useState(0); // loại ứng viên đang chọn trong top-3
+  const [gapWhich, setGapWhich] = useState(0); // khe còn thiếu đang hiển thị (Transformer, tối đa 3)
+  const [gapPick, setGapPick] = useState(0);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [complete, setComplete] = useState<{ versionId: string; items: GenItem[]; on: Set<string> } | null>(null);
   const shownRef = useRef<Set<string>>(new Set());
@@ -245,11 +248,13 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
     setNext(null);
     setWhich(0);
     setPick(0);
+    setGapWhich(0);
+    setGapPick(0);
     if (!canSuggest || complete) return;
     const t = setTimeout(() => {
       const layout = measureLayout();
       if (!layout) return;
-      post<{ versionId: string; items: NextItem[]; model: ModelInfo }>(`/api/screens/${screen!.id}/suggestions`, { mode: "next", nodeIds: selected, layout })
+      post<NextResult>(`/api/screens/${screen!.id}/suggestions`, { mode: "next", nodeIds: selected, layout })
         .then((r) => setNext(r))
         .catch(() => setNext(null));
     }, 500);
@@ -259,8 +264,14 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
   const items = (next?.items ?? []).filter((e) => !dismissed.has(`${next!.versionId}:${e.parentId}`));
   const cur: NextItem | null = items[Math.min(which, items.length - 1)] ?? null;
   const curType = cur ? cur.candidates[Math.min(pick, cur.candidates.length - 1)]?.type : null;
-  const logSugg = (e: { parentId: string }, title: string, p: number, action: "shown" | "applied" | "dismissed") =>
-    screen && post("/api/suggestions/events", { screenId: screen.id, versionId: next?.versionId ?? complete?.versionId, kind: "layout", targetNodeId: e.parentId, title, confidence: p, action }).catch(() => {});
+  // Khe còn thiếu giữa các phần tử đã có (Transformer)
+  const gapKey = (g: GapItem) => `${next!.versionId}:gap:${g.parentId}:${g.index}`;
+  const gaps = (next?.gaps ?? []).filter((g) => !dismissed.has(gapKey(g)));
+  const gap: GapItem | null = gaps[Math.min(gapWhich, gaps.length - 1)] ?? null;
+  const gapCand = gap ? gap.candidates[Math.min(gapPick, gap.candidates.length - 1)] ?? null : null;
+  // Mỗi mô hình một loại sự kiện để thống kê tỷ lệ chấp nhận riêng (suggestion-stats.byKind)
+  const logSugg = (e: { parentId: string }, title: string, p: number, action: "shown" | "applied" | "dismissed", source: SuggestionSource = "recursive") =>
+    screen && post("/api/suggestions/events", { screenId: screen.id, versionId: next?.versionId ?? complete?.versionId, kind: SOURCE_KIND[source], targetNodeId: e.parentId, title, confidence: p, action }).catch(() => {});
 
   // ghi "shown" một lần cho mỗi gợi ý hiển thị trên canvas
   useEffect(() => {
@@ -270,10 +281,17 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
     shownRef.current.add(key);
     logSugg(cur, cur.candidates[0].type, cur.candidates[0].p, "shown");
   }, [cur?.parentId, next?.versionId]);
+  useEffect(() => {
+    if (!gap || !next) return;
+    const key = gapKey(gap);
+    if (shownRef.current.has(key)) return;
+    shownRef.current.add(key);
+    logSugg(gap, gap.candidates[0].type, gap.pMissing, "shown", "transformer");
+  }, [gap?.parentId, gap?.index, next?.versionId]);
 
-  const acceptItems = async (versionId: string, list: { ref: string; parentId: string; index: number; type: string }[]) => {
+  const acceptItems = async (versionId: string, list: { ref: string; parentId: string; index: number; type: string; sub?: string }[], source: SuggestionSource = "recursive") => {
     if (!screen) return false;
-    const r = await writeScreen("Inserting elements", `/api/screens/${screen.id}/layout/accept`, { versionId, items: list });
+    const r = await writeScreen("Inserting elements", `/api/screens/${screen.id}/layout/accept`, { versionId, items: list, source });
     if (!r) return false;
     setShowChanges(true);
     await reload();
@@ -293,6 +311,19 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
     setDismissed((d) => new Set([...d, `${next.versionId}:${cur.parentId}`]));
     logSugg(cur, curType ?? "", cur.candidates[0].p, "dismissed");
     setPick(0);
+  };
+  const acceptGap = async () => {
+    if (!gap || !next || !gapCand) return;
+    if (await acceptItems(next.versionId, [{ ref: "a", parentId: gap.parentId, index: gap.index, type: gapCand.type, sub: gapCand.sub }], "transformer")) {
+      logSugg(gap, gapCand.type, gap.pMissing, "applied", "transformer");
+      toast(`Added ${gapCand.type} before ${gap.beforeLabel} – change its content with the design edit prompt`, "ok");
+    }
+  };
+  const dismissGap = () => {
+    if (!gap || !next) return;
+    setDismissed((d) => new Set([...d, gapKey(gap)]));
+    logSugg(gap, gapCand?.type ?? "", gap.pMissing, "dismissed", "transformer");
+    setGapPick(0);
   };
 
   // "Hoàn thành bố cục" trong vùng đang chọn hoặc cả màn
@@ -362,10 +393,12 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
       if (e.key === "Escape") {
         if (complete) setComplete(null);
         else if (cur && !cur.eos) dismissNext();
+        else if (gap) dismissGap();
         else setSelected([]);
-      } else if (e.key === "Tab" && !e.shiftKey && (complete || (cur && !cur.eos)) && !previewing) {
+      } else if (e.key === "Tab" && !e.shiftKey && (complete || (cur && !cur.eos) || gap) && !previewing) {
+        // Tab: hoàn thành bố cục → phần tử tiếp theo (Recursive) → phần tử còn thiếu ở giữa (Transformer)
         e.preventDefault();
-        complete ? acceptComplete() : acceptNext();
+        complete ? acceptComplete() : cur && !cur.eos ? acceptNext() : acceptGap();
       } else if ((e.key === "Delete" || e.key === "Backspace") && selected.length === 1 && tree && selected[0] !== tree.id && !previewing) {
         e.preventDefault();
         manual("remove", selected[0]);
@@ -649,6 +682,19 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                       )
                     );
                   })()}
+                  {mode !== "prototype" && !complete && gap && gapCand && (() => {
+                    // vạch chèn ngay trên phần tử đứng sau khe còn thiếu (Transformer không dự đoán khung bao)
+                    const r = rectOf(gap.beforeId);
+                    return (
+                      r && (
+                        <button className="ov ov-gap" style={box({ x: r.x, y: r.y - 3, w: r.w, h: 6 })} title={`Insert before ${gap.beforeLabel}${cur && !cur.eos ? "" : " · Tab: accept · Esc: dismiss"}`} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); acceptGap(); }} data-testid="gap-marker">
+                          <span className="ghost-tag">
+                            {gapCand.type} missing {Math.round(gap.pMissing * 100)}%
+                          </span>
+                        </button>
+                      )
+                    );
+                  })()}
                   {mode !== "prototype" &&
                     complete?.items.map((g) => {
                       const r = ghostRect(g.boxPx);
@@ -703,7 +749,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
               Versions ({versions.length})
             </button>
             <button className={panel === "suggest" ? "on" : ""} onClick={() => setPanel("suggest")} data-testid="suggest-tab">
-              Suggest {complete ? `(${complete.on.size})` : cur && !cur.eos ? "•" : ""}
+              Suggest {complete ? `(${complete.on.size})` : (cur && !cur.eos) || gap ? "•" : ""}
             </button>
           </div>
 
@@ -773,6 +819,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                       <div className="sugg-head">
                         <Badge tone="blue">Next</Badge>
                         <span className="sugg-title">in {cur.parentLabel}</span>
+                        <Badge tone="gray" title="Recursive Transformer Tree Decoder (Li et al. 2020)">Recursive</Badge>
                       </div>
                       {cur.eos && <div className="muted small">The model considers this container complete (EOS {Math.round(cur.pEos * 100)}%). You can still pick a type below.</div>}
                       <div className="cand-list">
@@ -812,6 +859,61 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                       )}
                     </div>
                   )}
+                  {layoutOn && next && (
+                    <>
+                      <div className="muted small">Missing in between – an element the model expects before one that already exists</div>
+                      {!next.gapModel ? (
+                        <div className="muted small pad">The missing-element model is not available (model/next-transformer.websight.json).</div>
+                      ) : !gap ? (
+                        <div className="muted small pad">No missing element found between the existing ones{selected.length ? " in the selected container" : ""}.</div>
+                      ) : (
+                        <div className="sugg" data-testid="gap-suggestion">
+                          <div className="sugg-head">
+                            <Badge tone="violet">Missing</Badge>
+                            <span className="sugg-title">
+                              in {gap.parentLabel}, before {gap.beforeLabel}
+                            </span>
+                            <Badge tone="gray" title="Transformer missing-element detector (Li et al. 2020, bidirectional)">Transformer</Badge>
+                          </div>
+                          <div className="muted small">
+                            {gap.afterLabel ? `Between ${gap.afterLabel} and ${gap.beforeLabel}` : `At the start of ${gap.parentLabel}`} · missing: {Math.round(gap.pMissing * 100)}%
+                          </div>
+                          <div className="cand-list">
+                            {gap.candidates.map((c, i) => (
+                              <button key={c.type} className={`cand ${gapCand?.type === c.type ? "on" : ""}`} onClick={() => setGapPick(i)} data-testid="gap-candidate">
+                                <span>{SUB_LABEL[c.sub] ? `${c.type} (${SUB_LABEL[c.sub]})` : c.type}</span>
+                                <span className="cand-bar">
+                                  <span style={{ width: `${Math.round(c.p * 100)}%` }} />
+                                </span>
+                                <span className="muted small">{Math.round(c.p * 100)}%</span>
+                              </button>
+                            ))}
+                          </div>
+                          <div className="sugg-actions">
+                            <Btn size="sm" disabled={!!previewing} onClick={acceptGap} data-testid="accept-gap">
+                              Insert {gapCand?.type} {cur && !cur.eos ? "" : "(Tab)"}
+                            </Btn>
+                            <Btn size="sm" kind="ghost" onClick={dismissGap}>
+                              Dismiss{cur && !cur.eos ? "" : " (Esc)"}
+                            </Btn>
+                          </div>
+                          {gaps.length > 1 && (
+                            <div className="muted small">
+                              Other gaps:{" "}
+                              {gaps.map((g, i) => (
+                                <React.Fragment key={`${g.parentId}:${g.index}`}>
+                                  {i > 0 && " · "}
+                                  <button className={`link small ${i === gapWhich ? "strong" : ""}`} onClick={() => { setGapWhich(i); setGapPick(0); }}>
+                                    {g.candidates[0].type} before {g.beforeLabel}
+                                  </button>
+                                </React.Fragment>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
                   <div className="box">
                     <div className="box-title">Complete layout</div>
                     <div className="muted small">The model generates everything still missing {selected.length ? "in the selected region" : "on the whole screen"} and shows it as ghosts you can accept piece by piece.</div>
@@ -823,7 +925,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                 </>
               )}
               <div className="muted small sugg-foot">
-                Recursive Transformer Tree Decoder (Li et al. 2020){next?.model ? ` · trained on ${next.model.trees.toLocaleString("en-US")} UI trees (${next.model.roots} root screens)` : ""}. Suggestions cover element type, position and size – not content; change text with the design edit prompt.
+                Element suggestions come only from the models in model/ – no rules, no Claude. Next element and Complete layout: Recursive Transformer Tree Decoder (Li et al. 2020){next?.model ? `, trained on ${next.model.trees.toLocaleString("en-US")} UI trees (${next.model.roots} root screens)` : ""}. Missing in between: Transformer missing-element detector{next?.gapModel ? `, trained on ${next.gapModel.trees.toLocaleString("en-US")} UI trees` : ""}. Suggestions cover element type and position – not content; change text with the design edit prompt.
               </div>
             </div>
           )}
@@ -918,6 +1020,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                 <div className="muted small">
                   Sending: {selected.length ? `${selected.length} ${selected.length === 1 ? "element" : "elements"}` : "whole screen"} · {checked.size} {checked.size === 1 ? "comment" : "comments"}{prompt.trim() ? " · 1 request" : ""}
                 </div>
+                <SampleBadge />
                 <Btn kind="primary" disabled={!!previewing || (!prompt.trim() && !checked.size)} onClick={applyEdit} data-testid="apply-edit">
                   <Icon name="ai" size="sm" />
                   {selected.length ? "Edit selected region" : "Edit whole screen"}
@@ -1037,6 +1140,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
           footer={
             <>
               <Btn onClick={() => setNewScreen(null)}>Cancel</Btn>
+              <SampleBadge />
               <Btn kind="primary" disabled={!newScreen.prompt.trim() && !newScreen.name.trim()} onClick={createScreen} data-testid="generate-screen">
                 <Icon name="ai" size="sm" />
                 Generate design
@@ -1072,7 +1176,14 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
 const box = (r: Rect): React.CSSProperties => ({ left: r.x, top: r.y, width: r.w, height: r.h });
 
 interface ModelInfo { kind: string; trees: number; roots: number }
+type SuggestionSource = "recursive" | "transformer";
+/** Loại sự kiện gợi ý theo mô hình: "layout" giữ như cũ cho Recursive để không lệch thống kê đã có. */
+const SOURCE_KIND: Record<SuggestionSource, string> = { recursive: "layout", transformer: "layout:transformer" };
+/** Nhãn loại con mang nghĩa của Transformer (shared/transformer.ts SUBTYPES); loại không có nhãn thì chỉ hiện tên loại. */
+const SUB_LABEL: Record<string, string> = { email: "email", password: "password", search: "search", phone: "phone", number: "number", name: "name", submit: "submit", cancel: "cancel", create: "add new", delete: "delete", auth: "sign-in link", remember: "remember me", agree: "agree to terms" };
 interface NextItem { parentId: string; parentLabel: string; index: number; boxPx: number[]; leaf: boolean; candidates: { type: string; p: number }[]; pEos: number; eos: boolean }
+interface GapItem { parentId: string; parentLabel: string; index: number; beforeId: string; beforeLabel: string; afterLabel: string | null; pMissing: number; candidates: { type: string; p: number; sub: string }[] }
+interface NextResult { versionId: string; items: NextItem[]; model: ModelInfo; gaps: GapItem[]; gapModel: { kind: string; trees: number } | null }
 interface GenItem { tempId: string; parentId: string; index: number; type: string; leaf: boolean; boxPx: number[]; p: number }
 
 function LayerTree({ node, selected, onPick, depth = 0 }: { node: UINode; selected: string[]; onPick: (id: string, multi: boolean) => void; depth?: number }) {

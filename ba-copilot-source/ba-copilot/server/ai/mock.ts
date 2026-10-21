@@ -8,6 +8,9 @@ import type { PatchOp } from "../../shared/patch.ts";
 import type { DesignModel, ScreenModel, FieldSpec } from "../../shared/extract.ts";
 import type { AltFlow, Requirement, SequenceDiagram, SrsDoc, TestCase, UseCase, FlowStep } from "../../shared/types.ts";
 import { buildUcMermaid } from "../../shared/ucDiagram.ts";
+import { slug } from "../../shared/extract.ts";
+import { parseStory } from "../../shared/qus.ts";
+import type { MissingScreen, SuggestSource } from "../../shared/suggest.ts";
 
 // ------------------------------------------------------------------ Screens
 const has = (s: string, re: RegExp) => re.test(s.toLowerCase());
@@ -816,4 +819,90 @@ function sampleValue(f: FieldSpec): string {
 export function mockUcDiagram(useCases: UseCase[]): { code: string } {
   const actors = [...new Set(useCases.flatMap((u) => u.actors))];
   return { code: buildUcMermaid(useCases, actors) };
+}
+
+// ------------------------------------------------------------------ Màn còn thiếu (UC-29, FN-58) – bản Mock của suggestMissingScreens
+// So khớp từ khoá: FR / story coi là đã phủ khi ≥ COVERAGE_THRESHOLD từ khoá của nó có trên một màn. Chỉ chạy khi chưa có khoá
+// Claude; giao diện gắn nhãn "Sample result" cho kết quả này.
+
+// Tỉ lệ từ khoá của FR/story phải xuất hiện trên một màn để coi là đã phủ.
+export const COVERAGE_THRESHOLD = 0.6;
+
+// Từ không mang nghĩa nghiệp vụ, bỏ đi khi so khớp (đã bỏ dấu qua slug).
+const STOPWORDS = new Set(
+  [
+    "he thong", "nguoi dung", "cho phep", "co the", "phai", "duoc", "can", "cua", "cho", "voi", "va", "hoac", "cac", "nhung", "mot",
+    "la", "toi", "muon", "de", "khi", "theo", "trong", "tren", "tu", "den", "vao", "ra", "nay", "do", "the",
+    "system", "user", "shall", "should", "must", "can", "the", "a", "an", "to", "of", "for", "and", "or", "with", "in", "on", "by", "be", "i", "my",
+  ].flatMap((w) => w.split(" ")),
+);
+
+function keywords(text: string): string[] {
+  return [...new Set(slug(text).split("_").filter((t) => t.length > 1 && !STOPWORDS.has(t)))];
+}
+
+// Toàn bộ chữ có trên một màn: tên, tiêu đề, heading, nhãn nút, nhãn trường, link, cột bảng.
+function screenVocabulary(s: ScreenModel): Set<string> {
+  const parts = [
+    s.screenName,
+    s.title,
+    ...s.headings,
+    ...s.actions.map((a) => a.label),
+    ...s.fields.map((f) => f.label),
+    ...s.links.map((l) => l.text),
+    ...s.displays.flatMap((d) => [d.title, ...d.columns, ...d.rowActions]),
+    ...s.forms.map((f) => f.title),
+  ];
+  return new Set(parts.flatMap((p) => slug(p).split("_")).filter(Boolean));
+}
+
+function isCovered(text: string, vocabularies: Set<string>[]): boolean {
+  const kw = keywords(text);
+  if (!kw.length) return true; // không có từ khoá nào để so: không gợi ý
+  return vocabularies.some((v) => kw.filter((k) => v.has(k)).length / kw.length >= COVERAGE_THRESHOLD);
+}
+
+// FR kiểm tra dữ liệu ("Hệ thống phải kiểm tra: Tên là bắt buộc") là quy tắc của trường trên màn đã có, không phải màn mới.
+// vi-keep-start: mẫu câu FR tiếng Việt cũ trong DB, song song tiếng Anh
+const VALIDATION_FR = /^(?:(?:hệ thống|the system)\s+(?:phải|shall|must|should)\s+)?(?:kiểm tra|validate)\s*:/iu;
+// Phần mở đầu không mang tên màn: "Hệ thống phải (cho phép <vai trò> thực hiện)", "The system shall (allow <role> to)".
+const LEAD = /^(?:hệ thống|the system)\s+(?:phải|shall|must|should)\s+(?:cho phép\s+(?:\S+\s+){0,4}?thực hiện\s+|allow\s+(?:\S+\s+){0,3}?to\s+)?/iu;
+// Từ mở đầu mệnh đề phụ: tên màn dừng trước chúng ("… theo trạng thái", "… để xử lý").
+const CLAUSE_WORDS = new Set(["để", "nhằm", "theo", "khi", "trong", "cho", "when", "for", "by", "so", "via"]);
+// Từ nối không được đứng cuối tên.
+const TRAILING_WORDS = new Set(["và", "hoặc", "của", "các", "với", "and", "or", "of", "the", "a", "an", "to", "with"]);
+// vi-keep-end
+const MAX_NAME_WORDS = 8;
+
+// Tên màn đề xuất: bỏ phần mở đầu chung, dừng ở mệnh đề phụ, tối đa 8 từ, không kết thúc bằng từ nối, viết hoa chữ đầu.
+// FR dạng 'cho phép Quản trị viên thực hiện "Thêm sản phẩm"' lấy tên là thao tác trong ngoặc kép.
+export function mockScreenName(text: string): string {
+  const quoted = text.match(/["“]([^"”]+)["”]/u)?.[1];
+  let words: string[] = [];
+  if (quoted) {
+    words = quoted.trim().replace(/^(?:mở màn hình|open(?: the)? screen)\s+/iu, "").replace(/\s*\(([^)]+)\)\s*$/u, " – $1").split(/\s+/); // vi-keep: FR tiếng Việt cũ
+  } else {
+    // Bỏ chú thích trong ngoặc ("… ra Excel (ví dụ theo tháng)"), kể cả ngoặc chưa đóng
+    const core = text.replace(/\s*[(（][^)）]*[)）]?/gu, " ").replace(/[.。!?]+$/u, "").trim().replace(LEAD, "");
+    for (const w of core.split(/\s+/)) {
+      if (words.length && CLAUSE_WORDS.has(w.toLowerCase())) break;
+      words.push(w);
+    }
+  }
+  words = words.slice(0, MAX_NAME_WORDS);
+  while (words.length > 1 && TRAILING_WORDS.has(words[words.length - 1].toLowerCase())) words.pop();
+  const name = words.join(" ").replace(/[\s:;,–-]+$/u, "");
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+export function mockMissingScreens(model: DesignModel, sources: SuggestSource[]): MissingScreen[] {
+  const vocabularies = model.screens.map(screenVocabulary);
+  const out: MissingScreen[] = [];
+  for (const src of sources) {
+    if (src.kind === "fr" && VALIDATION_FR.test(src.text)) continue;
+    const text = src.kind === "story" ? parseStory(src.text).means ?? src.text : src.text;
+    if (isCovered(text, vocabularies)) continue;
+    out.push({ key: src.key, name: mockScreenName(text) });
+  }
+  return out;
 }

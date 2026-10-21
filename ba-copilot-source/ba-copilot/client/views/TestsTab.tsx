@@ -9,7 +9,7 @@ import { doneBlockReason } from "../../shared/prereq.ts";
 import type { WorkStepProps } from "../projectMenu.ts";
 import { usePresence } from "../presence.ts";
 import { currentMemberId, useCurrentMember } from "../currentMember.ts";
-import { ApprovalBar, Badge, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Icon, useUI } from "../components/ui.tsx";
+import { SampleBadge, ApprovalBar, Badge, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Icon, useUI } from "../components/ui.tsx";
 
 const TYPE_VI: Record<string, [string, string]> = { Positive: ["Positive", "green"], Negative: ["Negative", "red"], Boundary: ["Boundary", "amber"] };
 
@@ -138,6 +138,7 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
             Export Excel
           </Btn>
         )}
+        <SampleBadge />
         <Btn kind={tests.length ? "secondary" : "primary"} size="sm" disabled={!canGenerate} onClick={generate} title={canGenerate ? "" : blockReason} data-testid="generate-tests">
           <Icon name={tests.length ? "regenerate" : "ai"} size="sm" />
           {tests.length ? "Regenerate" : "Generate test cases"}

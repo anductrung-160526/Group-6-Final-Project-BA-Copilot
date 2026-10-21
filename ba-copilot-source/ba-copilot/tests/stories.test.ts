@@ -9,7 +9,8 @@ import { on } from "../server/events.ts";
 import { storiesText } from "../server/repo/stories.ts";
 import type { ArtifactEvent } from "../shared/types.ts";
 import { extractModel } from "../shared/extract.ts";
-import { storyKey, suggestNextScreens } from "../shared/suggest.ts";
+import { storyKey, suggestionSources, suggestNextScreens, toSuggestion } from "../shared/suggest.ts";
+import { mockMissingScreens } from "../server/ai/mock.ts";
 
 let server: Server;
 let base = "";
@@ -213,16 +214,16 @@ test("QUS lưu theo module khi story đổi; storiesText ghép story cho AI", as
   assert.ok((await qus()).score < 85);
 });
 
-test("Gợi ý màn (shared/suggest.ts) đọc story có cấu trúc: tên màn từ I want, nguồn là mã US, bỏ story trống", () => {
+test("Gợi ý màn (shared/suggest.ts + Mock) đọc story có cấu trúc: tên màn từ I want, nguồn là mã US, bỏ story trống", () => {
   const model = extractModel([]);
-  const res = suggestNextScreens({
-    model,
-    requirements: [],
-    stories: [
-      { code: "US-01", asA: "Khách hàng", iWant: "xem lịch sử đơn hàng", soThat: "theo dõi giao hàng" },
-      { code: "US-02", asA: "", iWant: "", soThat: "" },
-    ],
-  });
+  const sources = suggestionSources([], [
+    { code: "US-01", asA: "Khách hàng", iWant: "xem lịch sử đơn hàng", soThat: "theo dõi giao hàng" },
+    { code: "US-02", asA: "", iWant: "", soThat: "" },
+  ]);
+  assert.equal(sources.length, 1);
+  const byKey = new Map(sources.map((s) => [s.key, s]));
+  const uncovered = mockMissingScreens(model, sources).map((x) => toSuggestion(byKey.get(x.key)!, x.name, x.reason));
+  const res = suggestNextScreens({ model, uncovered });
   assert.equal(res.length, 1);
   assert.equal(res[0].kind, "uncovered-story");
   assert.equal(res[0].source, "US-01");

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { post, download } from "../api.ts";
 import type { ModuleDetail, UseCase } from "../../shared/types.ts";
-import { Badge, Btn, Empty, Icon, StatusBadge, useUI } from "../components/ui.tsx";
+import { SampleBadge, Badge, Btn, Empty, Icon, StatusBadge, useUI } from "../components/ui.tsx";
 import { Markdown } from "../components/Markdown.tsx";
 import { Mermaid } from "../components/Mermaid.tsx";
 import { RelatedTasks } from "../components/RelatedTasks.tsx";
@@ -54,6 +54,7 @@ export function DocsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise<
         <StatusBadge status={m.docsStatus} />
         <span className="muted small">Source: {approvedScreens.length} approved screen(s)</span>
         <div className="spacer" />
+        <SampleBadge />
         <Btn kind={m.docsStatus === "none" ? "primary" : "secondary"} size="sm" disabled={!approvedScreens.length} onClick={generate} data-testid="generate-docs" title={!approvedScreens.length ? "BR-01: at least 1 screen must be approved" : ""}>
           <Icon name={m.docsStatus === "none" ? "ai" : "regenerate"} size="sm" />
           {m.docsStatus === "none" ? "Generate documents" : "Regenerate"}

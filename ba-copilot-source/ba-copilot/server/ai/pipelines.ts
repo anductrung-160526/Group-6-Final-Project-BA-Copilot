@@ -1,4 +1,4 @@
-// Các pipeline AI: sinh màn hình, sửa theo vùng, sinh UC/SRS/Sequence, sinh test case, chỉnh tài liệu.
+// Các pipeline AI (Claude API): sinh màn hình, sửa theo vùng, sinh UC/SRS/Sequence, sinh test case, chỉnh tài liệu, màn còn thiếu.
 
 import { COMPONENT_CATALOG, compactTree, findNode, nodeLabel, normalizeTree, UINode, validateTree } from "../../shared/design.ts";
 import type { PatchOp } from "../../shared/patch.ts";
@@ -6,7 +6,8 @@ import type { DesignModel } from "../../shared/extract.ts";
 import type { Requirement, SequenceDiagram, SrsDoc, SrsSection, TestCase, UseCase } from "../../shared/types.ts";
 import { runAI } from "./client.ts";
 import { mockEditOps, mockScreen, mockSequence, mockSrs, mockTests, mockUseCases } from "./mock.ts";
-import { mockUcDiagram } from "./mock.ts";
+import { mockMissingScreens, mockUcDiagram } from "./mock.ts";
+import type { MissingScreen, SuggestSource } from "../../shared/suggest.ts";
 import { buildUcMermaid, type UcRelation } from "../../shared/ucDiagram.ts";
 
 const SYSTEM_BASE = `You are a Business Analyst's assistant in the BA Copilot system.
@@ -539,6 +540,78 @@ export async function refineSrsSection(args: { moduleId: string; section: SrsSec
     tool: { name: "submit_section", description: "Return the revised section content", input_schema: { type: "object", properties: { content: { type: "string" } }, required: ["content"] } },
     parse: (raw: any) => (raw?.content ? { value: { ...args.section, content: String(raw.content) } } : { errors: ["Missing content"] }),
     mock: () => ({ ...args.section, content: `${args.section.content}\n\n> **BA note:** ${args.instruction}` }),
+  });
+}
+
+// ---------------------------------------------------------------- Màn còn thiếu (UC-29, FN-58)
+// AI xét từng FR / user story (đã chọn theo BR-07 ở shared/suggest.ts suggestionSources) xem đã có màn nào phủ chưa và đề xuất
+// MỘT màn mới cho nguồn chưa phủ. Không tạo màn (BR-06): kết quả chỉ là gợi ý để BA bấm Tạo.
+export async function suggestMissingScreens(args: { moduleId: string; moduleName: string; model: DesignModel; sources: SuggestSource[] }): Promise<MissingScreen[]> {
+  if (!args.sources.length) return [];
+  const byRef = new Map(args.sources.map((s, i) => [`S${i + 1}`, s]));
+  const screens = args.model.screens.map((s) => ({
+    name: s.screenName,
+    title: s.title,
+    headings: s.headings,
+    fields: s.fields.map((f) => f.label),
+    actions: s.actions.map((a) => a.label),
+    links: s.links.map((l) => l.text),
+    tables: s.displays.map((d) => ({ title: d.title, columns: d.columns, rowActions: d.rowActions })),
+  }));
+  const prompt = `Find the ${args.sources[0].kind === "fr" ? "functional requirements" : "user stories"} of module "${args.moduleName}" that no existing screen covers, and propose ONE new screen for each of them.
+Rules:
+- A source is covered when an existing screen lets the user do what it asks (its fields, actions, tables or links), even if the wording differs.
+- Do not propose a screen for a source that is only a validation rule, a field constraint or a small action that belongs on an existing screen.
+- Screen name: short noun phrase in English Title Case, at most 8 words, e.g. "Order History", "Add Product". Do not reuse the name of an existing screen.
+- reason: one sentence saying what the user cannot do yet on the existing screens.
+- Use only the source refs below (S1, S2…). Return an empty list when every source is covered.
+
+## Sources
+${[...byRef].map(([ref, s]) => `${ref}${s.code ? ` (${s.code})` : ""}: ${s.text}`).join("\n")}
+## Existing screens
+${screens.length ? JSON.stringify(screens) : "(none)"}`;
+  return runAI({
+    type: "suggest_missing_screens",
+    moduleId: args.moduleId,
+    system: SYSTEM_BASE + "\nYou act as a Senior Business Analyst reviewing screen coverage.",
+    prompt,
+    tool: {
+      name: "submit_missing_screens",
+      description: "Return the screens still missing, one per uncovered source",
+      input_schema: {
+        type: "object",
+        properties: {
+          screens: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: { sourceRef: { type: "string", description: "S1, S2…" }, name: { type: "string" }, reason: { type: "string" } },
+              required: ["sourceRef", "name", "reason"],
+            },
+          },
+        },
+        required: ["screens"],
+      },
+    },
+    maxTokens: 4000,
+    parse: (raw: any) => {
+      if (!Array.isArray(raw?.screens)) return { errors: ["Missing screens array"] };
+      const errors: string[] = [];
+      const out: MissingScreen[] = [];
+      const seen = new Set<string>();
+      for (const x of raw.screens) {
+        const src = byRef.get(String(x?.sourceRef ?? "").trim());
+        const name = String(x?.name ?? "").trim().replace(/\s+/g, " ");
+        if (!src) errors.push(`Unknown sourceRef: ${x?.sourceRef}`);
+        else if (!name || name.length > 120) errors.push(`${x.sourceRef}: invalid name`);
+        else if (!seen.has(src.key)) {
+          seen.add(src.key);
+          out.push({ key: src.key, name, reason: String(x?.reason ?? "").trim().slice(0, 300) || undefined });
+        }
+      }
+      return errors.length ? { errors } : { value: out };
+    },
+    mock: () => mockMissingScreens(args.model, args.sources),
   });
 }
 

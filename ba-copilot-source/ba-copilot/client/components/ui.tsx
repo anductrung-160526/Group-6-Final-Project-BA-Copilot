@@ -508,6 +508,39 @@ export function Badge({ tone = "gray", title, children }: { tone?: BadgeTone | (
   );
 }
 
+// Nhà cung cấp AI của máy chủ (GET /api/settings), hỏi một lần cho cả trang. Lỗi mạng → coi như không biết (không hiện nhãn).
+let aiProviderReq: Promise<"claude" | "mock" | null> | null = null;
+export function useAiProvider(): "claude" | "mock" | null {
+  const [p, setP] = useState<"claude" | "mock" | null>(null);
+  useEffect(() => {
+    aiProviderReq ??= fetch("/api/settings")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((s) => (s?.provider === "claude" || s?.provider === "mock" ? s.provider : null))
+      .catch(() => null);
+    let alive = true;
+    aiProviderReq.then((v) => alive && setP(v));
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return p;
+}
+
+/**
+ * Nhãn "Sample result – Claude not connected" đặt cạnh mọi nút / kết quả của tính năng dùng Claude: chưa có khoá Claude thì máy chủ
+ * chạy bộ sinh mẫu rule-based (Mock). `provider`: nguồn đã biết của một kết quả cụ thể (vd lần chạy đã lưu); bỏ trống thì theo
+ * cấu hình hiện tại của máy chủ. Có Claude thì không hiện gì.
+ */
+export function SampleBadge({ provider }: { provider?: "claude" | "mock" | null }) {
+  const server = useAiProvider();
+  if ((provider === undefined ? server : provider) !== "mock") return null;
+  return (
+    <Badge tone="flag" title="No Claude key is configured (ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN) – this comes from the rule-based sample generator, not Claude">
+      Sample result – Claude not connected
+    </Badge>
+  );
+}
+
 export function Modal({ title, onClose, children, footer, wide }: { title: string; onClose: () => void; children: React.ReactNode; footer?: React.ReactNode; wide?: boolean }) {
   useEffect(() => {
     const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();

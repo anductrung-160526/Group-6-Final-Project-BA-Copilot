@@ -5,8 +5,10 @@ import type { AddressInfo } from "node:net";
 import { extractModel } from "../shared/extract.ts";
 import type { UINode } from "../shared/design.ts";
 import type { Requirement, ScreenSuggestions } from "../shared/types.ts";
-import { splitStories } from "../shared/qus.ts";
-import { storyKey, suggestNextScreens } from "../shared/suggest.ts";
+import { splitStories, type StructuredStory } from "../shared/qus.ts";
+import { storyKey, suggestionSources, suggestNextScreens, toSuggestion } from "../shared/suggest.ts";
+import { mockMissingScreens } from "../server/ai/mock.ts";
+import { createServer } from "node:http";
 import { openDb } from "../server/db.ts";
 import { createApp } from "../server/app.ts";
 import * as repo from "../server/repo.ts";
@@ -40,8 +42,34 @@ const model = extractModel([
   { id: "s2", name: "Trang chủ", tree: homeTree },
 ]);
 
-test("(a) FR chưa có màn nào phủ thì được gợi ý; FR đã phủ và NFR thì không", () => {
-  const res = suggestNextScreens({
+// Màn còn thiếu do AI đề xuất; các test hàm thuần dùng bản Mock (so khớp từ khoá) để có kết quả xác định.
+const withMock = (i: { model: ReturnType<typeof extractModel>; requirements: Requirement[]; stories: (string | StructuredStory)[]; dismissed?: string[] }) => {
+  const sources = suggestionSources(i.requirements, i.stories);
+  const byKey = new Map(sources.map((s) => [s.key, s]));
+  const uncovered = mockMissingScreens(i.model, sources).map((x) => toSuggestion(byKey.get(x.key)!, x.name, x.reason));
+  return suggestNextScreens({ model: i.model, uncovered, dismissed: i.dismissed });
+};
+
+test("Nguồn hỏi AI (BR-07 / G5): có FR thì chỉ FR (bỏ NFR), chưa có FR thì story (bỏ story trống)", () => {
+  const stories = ["Là khách hàng, tôi muốn xem lịch sử đơn hàng."];
+  assert.deepEqual(
+    suggestionSources([fr("FR-01", "Xem lịch sử đơn hàng"), fr("NFR-01", "Nhanh", "NFR")], stories).map((s) => [s.key, s.kind, s.code]),
+    [["fr:FR-01", "fr", "FR-01"]],
+  );
+  const fromStories = suggestionSources([fr("NFR-01", "Nhanh", "NFR")], [...stories, { code: "US-02", asA: "", iWant: "", soThat: "" }]);
+  assert.deepEqual(fromStories.map((s) => [s.key, s.kind]), [[storyKey(stories[0]), "story"]]);
+});
+
+test("toSuggestion: lý do của AI được giữ, thiếu thì dùng lý do mặc định kèm nguồn (FN-59)", () => {
+  const [src] = suggestionSources([fr("FR-04", "Xem lịch sử đơn hàng")], []);
+  const s = toSuggestion(src, "Order History", "No screen lists past orders.");
+  assert.deepEqual([s.key, s.kind, s.name, s.reason, s.source], ["fr:FR-04", "uncovered-fr", "Order History", "No screen lists past orders.", "FR-04"]);
+  assert.equal(s.prompt, "Screen Order History satisfying FR-04: Xem lịch sử đơn hàng");
+  assert.equal(toSuggestion(src, "Order History").reason, "FR-04 is not covered by any screen");
+});
+
+test("(a) [Mock] FR chưa có màn nào phủ thì được gợi ý; FR đã phủ và NFR thì không", () => {
+  const res = withMock({
     model,
     requirements: [fr("FR-01", "Người dùng đăng nhập bằng email và mật khẩu"), fr("FR-04", "Xem lịch sử đơn hàng"), fr("NFR-01", "Thời gian phản hồi dưới 2 giây", "NFR")],
     stories: [],
@@ -54,7 +82,7 @@ test("(a) FR chưa có màn nào phủ thì được gợi ý; FR đã phủ và
 });
 
 test("(b) link gãy: ghi rõ màn nguồn và nhãn nút, xếp trước FR chưa phủ", () => {
-  const res = suggestNextScreens({ model, requirements: [fr("FR-04", "Xem lịch sử đơn hàng")], stories: [] });
+  const res = withMock({ model, requirements: [fr("FR-04", "Xem lịch sử đơn hàng")], stories: [] });
   assert.equal(res[0].kind, "broken-link");
   assert.equal(res[0].name, "Quên mật khẩu");
   assert.equal(res[0].key, "link:s1:forgot");
@@ -69,14 +97,14 @@ test("(c) không còn khoảng trống thì trả về danh sách rỗng", () =>
     { id: "s1", name: "Đăng nhập", tree: { ...loginTree, children: loginTree.children!.filter((c) => c.id !== "forgot") } },
     { id: "s2", name: "Trang chủ", tree: homeTree },
   ]);
-  const res = suggestNextScreens({ model: full, requirements: [fr("FR-01", "Người dùng đăng nhập bằng email và mật khẩu")], stories: [] });
+  const res = withMock({ model: full, requirements: [fr("FR-01", "Người dùng đăng nhập bằng email và mật khẩu")], stories: [] });
   assert.deepEqual(res, []);
 });
 
 test("(d) chưa có FR thì dựa trên user story (G5 / BR-07); có FR thì bỏ qua story", () => {
   const stories = splitStories(`- Là khách hàng, tôi muốn đăng nhập bằng email để mua hàng.
 - Là khách hàng, tôi muốn xem lịch sử đơn hàng để theo dõi giao hàng.`);
-  const fromStories = suggestNextScreens({ model, requirements: [], stories }).filter((s) => s.kind === "uncovered-story");
+  const fromStories = withMock({ model, requirements: [], stories }).filter((s) => s.kind === "uncovered-story");
   assert.equal(fromStories.length, 1);
   assert.equal(fromStories[0].name, "Xem lịch sử đơn hàng");
   assert.ok(fromStories[0].prompt.includes(stories[1]));
@@ -86,12 +114,12 @@ test("(d) chưa có FR thì dựa trên user story (G5 / BR-07); có FR thì b�
   assert.equal(storyKey(stories[1]), storyKey(`  ${stories[1].replace(/\.$/, "")} `));
   assert.notEqual(storyKey(stories[0]), storyKey(stories[1]));
 
-  const withFr = suggestNextScreens({ model, requirements: [fr("FR-01", "Người dùng đăng nhập bằng email và mật khẩu")], stories });
+  const withFr = withMock({ model, requirements: [fr("FR-01", "Người dùng đăng nhập bằng email và mật khẩu")], stories });
   assert.ok(!withFr.some((s) => s.kind === "uncovered-story"));
 });
 
 test("(d2) tên màn đề xuất gọn, không cắt giữa cụm; FR kiểm tra dữ liệu không thành gợi ý màn (Q-10)", () => {
-  const res = suggestNextScreens({
+  const res = withMock({
     model,
     requirements: [
       fr("FR-01", 'Hệ thống phải cho phép Quản trị viên thực hiện "Mở màn hình thêm mới (Quản lý sản phẩm)".'),
@@ -114,12 +142,12 @@ test("(d2) tên màn đề xuất gọn, không cắt giữa cụm; FR kiểm tr
   const stories = splitStories(`- Là nhân viên bán hàng, tôi muốn xem danh sách các đơn hàng theo trạng thái để xử lý đơn mới.
 - Là nhân viên bán hàng, tôi muốn tạo đơn hàng và in hóa đơn cho khách.
 - Là kế toán, tôi muốn xuất danh sách đơn hàng ra Excel (ví dụ theo tháng) để đối soát.`);
-  const names = suggestNextScreens({ model, requirements: [], stories }).map((s) => s.name);
+  const names = withMock({ model, requirements: [], stories }).map((s) => s.name);
   assert.deepEqual(names.slice(1), ["Xem danh sách các đơn hàng", "Tạo đơn hàng và in hóa đơn", "Xuất danh sách đơn hàng ra excel"]);
 });
 
 test("(e) gợi ý đã bị bỏ qua thì không hiện lại", () => {
-  const res = suggestNextScreens({
+  const res = withMock({
     model,
     requirements: [fr("FR-04", "Xem lịch sử đơn hàng")],
     stories: [],
@@ -133,12 +161,12 @@ test("(e) gợi ý đã bị bỏ qua thì không hiện lại", () => {
     { id: "s2", name: "Trang chủ", tree: homeTree },
     { id: "s3", name: "Hồ sơ", tree: { id: "root", type: "Page", props: { title: "Hồ sơ" }, children: [{ id: "pw", type: "Button", props: { label: "Đổi mật khẩu", navigateTo: "Quên mật khẩu" } }] } },
   ]);
-  assert.deepEqual(suggestNextScreens({ model: twoSources, requirements: [], stories: [] }).map((s) => s.key), ["link:s1:forgot"]);
-  assert.deepEqual(suggestNextScreens({ model: twoSources, requirements: [], stories: [], dismissed: ["link:s1:forgot"] }), []);
+  assert.deepEqual(withMock({ model: twoSources, requirements: [], stories: [] }).map((s) => s.key), ["link:s1:forgot"]);
+  assert.deepEqual(withMock({ model: twoSources, requirements: [], stories: [], dismissed: ["link:s1:forgot"] }), []);
 });
 
 test("Đã có màn trùng tên đề xuất (vừa tạo từ gợi ý) thì gợi ý biến mất", () => {
-  const before = suggestNextScreens({ model, requirements: [fr("FR-04", "Xem lịch sử đơn hàng")], stories: [] });
+  const before = withMock({ model, requirements: [fr("FR-04", "Xem lịch sử đơn hàng")], stories: [] });
   assert.deepEqual(before.map((s) => s.key), ["link:s1:forgot", "fr:FR-04"]);
   const after = extractModel([
     { id: "s1", name: "Đăng nhập", tree: loginTree },
@@ -146,15 +174,16 @@ test("Đã có màn trùng tên đề xuất (vừa tạo từ gợi ý) thì g�
     { id: "s3", name: "Quên mật khẩu", tree: { id: "root", type: "Page", props: { title: "Khôi phục tài khoản" }, children: [] } },
     { id: "s4", name: before[1].name, tree: { id: "root", type: "Page", props: { title: "Đơn của tôi" }, children: [] } },
   ]);
-  assert.deepEqual(suggestNextScreens({ model: after, requirements: [fr("FR-04", "Xem lịch sử đơn hàng")], stories: [] }), []);
+  assert.deepEqual(withMock({ model: after, requirements: [fr("FR-04", "Xem lịch sử đơn hàng")], stories: [] }), []);
 });
 
 test("Hàm thuần: không đổi đầu vào, gọi hai lần cho cùng kết quả", () => {
   const input = { model, requirements: [fr("FR-04", "Xem lịch sử đơn hàng")], stories: [] as string[] };
   const before = JSON.stringify(input);
-  assert.deepEqual(suggestNextScreens(input), suggestNextScreens(input));
+  assert.deepEqual(withMock(input), withMock(input));
   assert.equal(JSON.stringify(input), before);
 });
+
 
 // ------------------------------------------------------------------ API (FN-57 → FN-61, docs/api.md mục 6)
 let server: Server;
@@ -174,29 +203,56 @@ const call = async <T = any>(method: string, path: string, body?: unknown) => {
   return { status: res.status, data: (await res.json()) as T };
 };
 const sugg = (mid: string) => call<ScreenSuggestions>("GET", `/api/modules/${mid}/suggestions`);
+const refresh = (mid: string) => call<ScreenSuggestions>("POST", `/api/modules/${mid}/suggestions/refresh`, {});
 const enc = encodeURIComponent;
 
-function seedModule() {
+function seedModule(requirementInput = "- Là khách hàng, tôi muốn xem lịch sử đơn hàng để theo dõi giao hàng.") {
   const p = repo.createProject("Shop");
-  const m = repo.createModule(p.id, "Tài khoản", "- Là khách hàng, tôi muốn xem lịch sử đơn hàng để theo dõi giao hàng.");
+  const m = repo.createModule(p.id, "Tài khoản", requirementInput);
   const s = repo.createScreen(m.id, "Đăng nhập");
   repo.addVersion(s.id, { kind: "generate", prompt: "", tree: loginTree });
   return { m, s };
 }
 
-test("API: GET trả link gãy trước, story chưa phủ sau (chưa có FR)", async () => {
+test("API: GET chỉ có link gãy cho tới khi BA bấm hỏi AI; refresh (Mock) thêm story chưa phủ", async () => {
   const { m, s } = seedModule();
   const r = await sugg(m.id);
   assert.equal(r.status, 200);
   assert.deepEqual(r.data.dismissed, []);
-  assert.deepEqual(
-    r.data.items.map((i) => i.kind),
-    ["broken-link", "broken-link", "uncovered-story"],
-  );
+  assert.deepEqual(r.data.items.map((i) => i.kind), ["broken-link", "broken-link"]);
+  assert.deepEqual(r.data.ai, { hasSource: true, checkedAt: null, outdated: false, provider: null });
   const forgot = r.data.items.find((i) => i.key === `link:${s.id}:forgot`)!;
   assert.equal(forgot.name, "Quên mật khẩu");
   assert.ok(forgot.prompt.includes("Quên mật khẩu?") && forgot.prompt.includes("Đăng nhập"));
+
+  const f = await refresh(m.id);
+  assert.equal(f.status, 200, JSON.stringify(f.data));
+  assert.deepEqual(f.data.items.map((i) => i.kind), ["broken-link", "broken-link", "uncovered-story"]);
+  assert.equal(f.data.ai.provider, "mock");
+  assert.ok(f.data.ai.checkedAt);
+  assert.equal(f.data.ai.outdated, false);
+  // GET sau đó đọc lại kết quả đã lưu, không gọi AI lại
+  assert.deepEqual((await sugg(m.id)).data.items, f.data.items);
+  const runs = (await call<any[]>("GET", `/api/modules/${m.id}/runs`)).data;
+  assert.equal(runs.filter((x) => x.type === "suggest_missing_screens").length, 1);
+
   assert.equal((await sugg("khong-co")).status, 404);
+  assert.equal((await refresh("khong-co")).status, 404);
+});
+
+test("API: yêu cầu đổi sau lần hỏi AI thì báo đã cũ; module không có FR / story thì không hỏi được", async () => {
+  const { m } = seedModule();
+  await refresh(m.id);
+  assert.equal((await call("PATCH", `/api/modules/${m.id}`, { requirementInput: "- Là khách hàng, tôi muốn đổi địa chỉ giao hàng." })).status, 200);
+  const r = await sugg(m.id);
+  assert.equal(r.data.ai.outdated, true);
+  // story cũ không còn → gợi ý của nó mất theo
+  assert.ok(!r.data.items.some((i) => i.kind === "uncovered-story"));
+  assert.equal((await refresh(m.id)).data.ai.outdated, false);
+
+  const empty = seedModule("");
+  assert.equal((await sugg(empty.m.id)).data.ai.hasSource, false);
+  assert.equal((await refresh(empty.m.id)).status, 400);
 });
 
 test("API: Bỏ qua / Khôi phục lưu theo module, lặp lại không lỗi (FN-61)", async () => {
@@ -229,4 +285,39 @@ test("API: tạo màn từ gợi ý (Mock) thì gợi ý biến mất", async ()
   assert.equal(created.status, 200, JSON.stringify(created.data));
   const keys = (await sugg(m.id)).data.items.map((i) => i.key);
   assert.ok(!keys.includes(item.key), keys.join(", "));
+});
+
+test("API: màn còn thiếu do Claude đề xuất – tool use, tự sửa khi sourceRef sai, lưu provider claude", async () => {
+  const calls: any[] = [];
+  const fake = createServer(async (req, res) => {
+    let body = "";
+    for await (const c of req) body += c;
+    calls.push(JSON.parse(body));
+    const screens =
+      calls.length === 1
+        ? [{ sourceRef: "S9", name: "Ghost", reason: "x" }]
+        : [{ sourceRef: "S1", name: "Order History", reason: "No screen lists past orders." }];
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify({ content: [{ type: "tool_use", id: `tu_${calls.length}`, name: "submit_missing_screens", input: { screens } }], usage: { input_tokens: 10, output_tokens: 5 } }));
+  });
+  await new Promise<void>((r) => fake.listen(0, r));
+  process.env.ANTHROPIC_API_KEY = "sk-test";
+  process.env.ANTHROPIC_BASE_URL = `http://127.0.0.1:${(fake.address() as AddressInfo).port}`;
+  try {
+    const { m } = seedModule();
+    const r = await refresh(m.id);
+    assert.equal(r.status, 200, JSON.stringify(r.data));
+    assert.equal(calls.length, 2);
+    assert.deepEqual(calls[0].tool_choice, { type: "tool", name: "submit_missing_screens" });
+    const prompt: string = calls[0].messages[0].content;
+    assert.ok(prompt.includes("S1: Là khách hàng, tôi muốn xem lịch sử đơn hàng") && prompt.includes('"name":"Đăng nhập"'), prompt);
+    const story = r.data.items.find((i) => i.kind === "uncovered-story")!;
+    assert.equal(story.name, "Order History");
+    assert.equal(story.reason, "No screen lists past orders.");
+    assert.equal(r.data.ai.provider, "claude");
+  } finally {
+    delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.ANTHROPIC_BASE_URL;
+    fake.close();
+  }
 });

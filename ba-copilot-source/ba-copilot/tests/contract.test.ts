@@ -225,6 +225,7 @@ const CONTRACT: [string, string][] = [
   ["GET", "/api/artifacts/screen/x/tasks"],
   ["GET", "/api/modules/x/qus"],
   ["GET", "/api/modules/x/suggestions"],
+  ["POST", "/api/modules/x/suggestions/refresh"],
   ["POST", "/api/modules/x/suggestions/fr%3AFR-04/dismiss"],
   ["DELETE", "/api/modules/x/suggestions/fr%3AFR-04/dismiss"],
   // Đợt 5 (docs/api.md mục "Đợt 5")
