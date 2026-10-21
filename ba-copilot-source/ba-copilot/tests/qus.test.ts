@@ -412,6 +412,7 @@ async function api(method: string, path: string, body?: unknown) {
 }
 before(async () => {
   delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.ANTHROPIC_AUTH_TOKEN;
   openDb(":memory:");
   server = createApp({ publicDir: process.cwd() + "/public" });
   await new Promise<void>((r) => server.listen(0, r));

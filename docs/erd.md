@@ -1,5 +1,7 @@
 # ERD – BA Copilot v2
 
+> **Bản ERD đầy đủ, luôn khớp DB hiện tại:** `ba-copilot-source/ba-copilot/database/ERD.md` (ảnh `ERD.png`, `ERD-day-du.png`), sinh tự động bằng `npm run erd` / `npm run export-db`. Tài liệu dưới đây là hợp đồng thiết kế theo từng đợt (lý do chọn `ON DELETE`, migration), sơ đồ ở mục 1 chưa có các cột thêm ở đợt 5 (xem mục 8).
+
 Người viết: **A2**. Trạng thái: **chờ A0 duyệt**. Sau khi duyệt, tài liệu này **bị khoá**: muốn đổi phải mở yêu cầu với A0 (`docs/agents/REQUESTS.md`).
 
 Nguồn sự thật là `ba-copilot-source/ba-copilot/server/db.ts` (`SCHEMA` + `COLUMNS`). `tests/contract.test.ts` kiểm tra bảng, cột, index, khoá ngoại và `ON DELETE` khớp với tài liệu này.

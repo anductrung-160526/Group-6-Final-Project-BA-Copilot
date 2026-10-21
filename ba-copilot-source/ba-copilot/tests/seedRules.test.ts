@@ -19,6 +19,7 @@ before(() => {
   const file = join(dir, "seed.db");
   const env = { ...process.env, DB_FILE: file, AI_MODE: "mock", SEED_AI: "", PORT: "0" };
   delete (env as Record<string, string | undefined>).ANTHROPIC_API_KEY;
+  delete (env as Record<string, string | undefined>).ANTHROPIC_AUTH_TOKEN;
   const r = spawnSync(process.execPath, ["--import", "tsx", join(root, "scripts", "seed.ts")], { cwd: root, env, encoding: "utf8", timeout: 120_000 });
   assert.equal(r.status, 0, `seed lỗi:\n${r.stdout}\n${r.stderr}`);
   d = new DatabaseSync(file);

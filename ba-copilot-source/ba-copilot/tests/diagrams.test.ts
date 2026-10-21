@@ -119,6 +119,7 @@ async function realParse(code: string): Promise<string | null> {
 
 before(async () => {
   delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.ANTHROPIC_AUTH_TOKEN;
   mermaid = (await import("mermaid")).default;
   openDb(":memory:");
   server = createApp({ publicDir: process.cwd() + "/public" });

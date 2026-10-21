@@ -29,6 +29,7 @@ before(async () => {
   tmpUploadDir = mkdtempSync(join(tmpdir(), "ba-test-api-uploads-"));
   process.env.UPLOAD_DIR = tmpUploadDir;
   delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.ANTHROPIC_AUTH_TOKEN;
   openDb(":memory:");
   server = createApp({ publicDir: process.cwd() + "/public" });
   await new Promise<void>((r) => server.listen(0, r));
@@ -265,7 +266,7 @@ test("đường gọi Claude thật: tool use, tự sửa khi kết quả sai sc
     let body = "";
     for await (const c of req) body += c;
     const parsed = JSON.parse(body);
-    claudeCalls.push({ headers: req.headers, body: parsed });
+    claudeCalls.push({ url: req.url, headers: req.headers, body: parsed });
     const good = claudeCalls.length > 1;
     const tree = good
       ? { id: "page", type: "Page", props: { title: "Từ Claude" }, children: [{ id: "h", type: "Heading", props: { text: "Xin chào" } }] }
@@ -294,6 +295,26 @@ test("đường gọi Claude thật: tool use, tự sửa khi kết quả sai sc
     assert.match(runs.data[0].error, /self-corrected/);
   } finally {
     delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.ANTHROPIC_AUTH_TOKEN;
+    delete process.env.ANTHROPIC_BASE_URL;
+  }
+});
+test("Claude qua cổng trung gian: ANTHROPIC_AUTH_TOKEN gửi Authorization: Bearer, base URL có dấu / cuối", async () => {
+  // Dùng lại máy chủ giả của test trên (đã qua lần trả sai nên từ đây luôn trả cây đúng)
+  process.env.ANTHROPIC_AUTH_TOKEN = "tok-test";
+  process.env.ANTHROPIC_BASE_URL = `http://127.0.0.1:${(fakeClaude.address() as AddressInfo).port}/`;
+  const before = claudeCalls.length;
+  try {
+    const p = await api("POST", "/api/projects", { name: "P3" });
+    const m = await api("POST", `/api/projects/${p.data.id}/modules`, { name: "M3" });
+    const s = await api("POST", `/api/modules/${m.data.id}/screens`, { prompt: "Trang chào", name: "" });
+    assert.equal(s.status, 200, JSON.stringify(s.data));
+    assert.equal(claudeCalls.length, before + 1);
+    assert.equal(claudeCalls[before].url, "/v1/messages");
+    assert.equal(claudeCalls[before].headers.authorization, "Bearer tok-test");
+    assert.equal(claudeCalls[before].headers["x-api-key"], undefined);
+  } finally {
+    delete process.env.ANTHROPIC_AUTH_TOKEN;
     delete process.env.ANTHROPIC_BASE_URL;
   }
 });

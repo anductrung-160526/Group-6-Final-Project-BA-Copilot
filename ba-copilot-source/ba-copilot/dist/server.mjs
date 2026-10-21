@@ -16,9 +16,9 @@ var __commonJS = (cb, mod) => function __require3() {
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    for (let key2 of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key2) && key2 !== except)
+        __defProp(to, key2, { get: () => from[key2], enumerable: !(desc = __getOwnPropDesc(from, key2)) || desc.enumerable });
   }
   return to;
 };
@@ -99,8 +99,8 @@ var require_safe_buffer2 = __commonJS({
     var buffer = __require("buffer");
     var Buffer2 = buffer.Buffer;
     function copyProps(src, dst) {
-      for (var key in src) {
-        dst[key] = src[key];
+      for (var key2 in src) {
+        dst[key2] = src[key2];
       }
     }
     if (Buffer2.from && Buffer2.alloc && Buffer2.allocUnsafe && Buffer2.allocUnsafeSlow) {
@@ -312,12 +312,12 @@ var require_BufferList = __commonJS({
         this.head = this.tail = null;
         this.length = 0;
       };
-      BufferList.prototype.join = function join4(s) {
+      BufferList.prototype.join = function join6(s2) {
         if (this.length === 0) return "";
         var p2 = this.head;
         var ret = "" + p2.data;
         while (p2 = p2.next) {
-          ret += s + p2.data;
+          ret += s2 + p2.data;
         }
         return ret;
       };
@@ -867,8 +867,8 @@ var require_stream_duplex = __commonJS({
     var pna = require_process_nextick_args();
     var objectKeys = Object.keys || function(obj) {
       var keys2 = [];
-      for (var key in obj) {
-        keys2.push(key);
+      for (var key2 in obj) {
+        keys2.push(key2);
       }
       return keys2;
     };
@@ -2259,7 +2259,7 @@ var require_lib2 = __commonJS({
     var immediate = require_lib();
     function INTERNAL() {
     }
-    var handlers = {};
+    var handlers2 = {};
     var REJECTED = ["REJECTED"];
     var FULFILLED = ["FULFILLED"];
     var PENDING = ["PENDING"];
@@ -2287,8 +2287,8 @@ var require_lib2 = __commonJS({
         return this;
       }
       var p2 = this.constructor;
-      return this.then(resolve5, reject2);
-      function resolve5(value) {
+      return this.then(resolve6, reject2);
+      function resolve6(value) {
         function yes() {
           return value;
         }
@@ -2334,13 +2334,13 @@ var require_lib2 = __commonJS({
       }
     }
     QueueItem.prototype.callFulfilled = function(value) {
-      handlers.resolve(this.promise, value);
+      handlers2.resolve(this.promise, value);
     };
     QueueItem.prototype.otherCallFulfilled = function(value) {
       unwrap(this.promise, this.onFulfilled, value);
     };
     QueueItem.prototype.callRejected = function(value) {
-      handlers.reject(this.promise, value);
+      handlers2.reject(this.promise, value);
     };
     QueueItem.prototype.otherCallRejected = function(value) {
       unwrap(this.promise, this.onRejected, value);
@@ -2351,21 +2351,21 @@ var require_lib2 = __commonJS({
         try {
           returnValue = func(value);
         } catch (e) {
-          return handlers.reject(promise, e);
+          return handlers2.reject(promise, e);
         }
         if (returnValue === promise) {
-          handlers.reject(promise, new TypeError("Cannot resolve promise with itself"));
+          handlers2.reject(promise, new TypeError("Cannot resolve promise with itself"));
         } else {
-          handlers.resolve(promise, returnValue);
+          handlers2.resolve(promise, returnValue);
         }
       });
     }
-    handlers.resolve = function(self2, value) {
-      var result = tryCatch(getThen, value);
-      if (result.status === "error") {
-        return handlers.reject(self2, result.value);
+    handlers2.resolve = function(self2, value) {
+      var result2 = tryCatch(getThen, value);
+      if (result2.status === "error") {
+        return handlers2.reject(self2, result2.value);
       }
-      var thenable = result.value;
+      var thenable = result2.value;
       if (thenable) {
         safelyResolveThenable(self2, thenable);
       } else {
@@ -2379,7 +2379,7 @@ var require_lib2 = __commonJS({
       }
       return self2;
     };
-    handlers.reject = function(self2, error) {
+    handlers2.reject = function(self2, error) {
       self2.state = REJECTED;
       self2.outcome = error;
       if (!process.browser) {
@@ -2413,21 +2413,21 @@ var require_lib2 = __commonJS({
           return;
         }
         called = true;
-        handlers.reject(self2, value);
+        handlers2.reject(self2, value);
       }
       function onSuccess(value) {
         if (called) {
           return;
         }
         called = true;
-        handlers.resolve(self2, value);
+        handlers2.resolve(self2, value);
       }
       function tryToUnwrap() {
         thenable(onSuccess, onError);
       }
-      var result = tryCatch(tryToUnwrap);
-      if (result.status === "error") {
-        onError(result.value);
+      var result2 = tryCatch(tryToUnwrap);
+      if (result2.status === "error") {
+        onError(result2.value);
       }
     }
     function tryCatch(func, value) {
@@ -2441,17 +2441,17 @@ var require_lib2 = __commonJS({
       }
       return out;
     }
-    Promise2.resolve = resolve4;
-    function resolve4(value) {
+    Promise2.resolve = resolve5;
+    function resolve5(value) {
       if (value instanceof this) {
         return value;
       }
-      return handlers.resolve(new this(INTERNAL), value);
+      return handlers2.resolve(new this(INTERNAL), value);
     }
     Promise2.reject = reject;
     function reject(reason) {
       var promise = new this(INTERNAL);
-      return handlers.reject(promise, reason);
+      return handlers2.reject(promise, reason);
     }
     Promise2.all = all;
     function all(iterable) {
@@ -2476,14 +2476,14 @@ var require_lib2 = __commonJS({
         self2.resolve(value).then(resolveFromAll, function(error) {
           if (!called) {
             called = true;
-            handlers.reject(promise, error);
+            handlers2.reject(promise, error);
           }
         });
         function resolveFromAll(outValue) {
           values[i2] = outValue;
           if (++resolved === len && !called) {
             called = true;
-            handlers.resolve(promise, values);
+            handlers2.resolve(promise, values);
           }
         }
       }
@@ -2509,12 +2509,12 @@ var require_lib2 = __commonJS({
         self2.resolve(value).then(function(response) {
           if (!called) {
             called = true;
-            handlers.resolve(promise, response);
+            handlers2.resolve(promise, response);
           }
         }, function(error) {
           if (!called) {
             called = true;
-            handlers.reject(promise, error);
+            handlers2.reject(promise, error);
           }
         });
       }
@@ -2567,7 +2567,7 @@ var require_setImmediate = __commonJS({
       function clearImmediate(handle) {
         delete tasksByHandle[handle];
       }
-      function run(task) {
+      function run2(task) {
         var callback = task.callback;
         var args = task.args;
         switch (args.length) {
@@ -2596,7 +2596,7 @@ var require_setImmediate = __commonJS({
           if (task) {
             currentlyRunningATask = true;
             try {
-              run(task);
+              run2(task);
             } finally {
               clearImmediate(handle);
               currentlyRunningATask = false;
@@ -2696,13 +2696,13 @@ var require_utils2 = __commonJS({
     var external = require_external();
     require_setImmediate();
     function string2binary(str2) {
-      var result = null;
+      var result2 = null;
       if (support.uint8array) {
-        result = new Uint8Array(str2.length);
+        result2 = new Uint8Array(str2.length);
       } else {
-        result = new Array(str2.length);
+        result2 = new Array(str2.length);
       }
-      return stringToArrayLike(str2, result);
+      return stringToArrayLike(str2, result2);
     }
     exports.newBlob = function(part, type) {
       exports.checkSupport("blob");
@@ -2741,19 +2741,19 @@ var require_utils2 = __commonJS({
        * @throws Error if the chunk is too big for the stack.
        */
       stringifyByChunk: function(array, type, chunk) {
-        var result = [], k = 0, len = array.length;
+        var result2 = [], k = 0, len = array.length;
         if (len <= chunk) {
           return String.fromCharCode.apply(null, array);
         }
         while (k < len) {
           if (type === "array" || type === "nodebuffer") {
-            result.push(String.fromCharCode.apply(null, array.slice(k, Math.min(k + chunk, len))));
+            result2.push(String.fromCharCode.apply(null, array.slice(k, Math.min(k + chunk, len))));
           } else {
-            result.push(String.fromCharCode.apply(null, array.subarray(k, Math.min(k + chunk, len))));
+            result2.push(String.fromCharCode.apply(null, array.subarray(k, Math.min(k + chunk, len))));
           }
           k += chunk;
         }
-        return result.join("");
+        return result2.join("");
       },
       /**
        * Call String.fromCharCode on every item in the array.
@@ -2896,23 +2896,23 @@ var require_utils2 = __commonJS({
       }
       exports.checkSupport(outputType);
       var inputType = exports.getTypeOf(input);
-      var result = transform[inputType][outputType](input);
-      return result;
+      var result2 = transform[inputType][outputType](input);
+      return result2;
     };
     exports.resolve = function(path) {
       var parts = path.split("/");
-      var result = [];
+      var result2 = [];
       for (var index = 0; index < parts.length; index++) {
         var part = parts[index];
         if (part === "." || part === "" && index !== 0 && index !== parts.length - 1) {
           continue;
         } else if (part === "..") {
-          result.pop();
+          result2.pop();
         } else {
-          result.push(part);
+          result2.push(part);
         }
       }
-      return result.join("/");
+      return result2.join("/");
     };
     exports.getTypeOf = function(input) {
       if (typeof input === "string") {
@@ -2960,27 +2960,27 @@ var require_utils2 = __commonJS({
       ctor.prototype = new Obj();
     };
     exports.extend = function() {
-      var result = {}, i, attr;
+      var result2 = {}, i, attr;
       for (i = 0; i < arguments.length; i++) {
         for (attr in arguments[i]) {
-          if (Object.prototype.hasOwnProperty.call(arguments[i], attr) && typeof result[attr] === "undefined") {
-            result[attr] = arguments[i][attr];
+          if (Object.prototype.hasOwnProperty.call(arguments[i], attr) && typeof result2[attr] === "undefined") {
+            result2[attr] = arguments[i][attr];
           }
         }
       }
-      return result;
+      return result2;
     };
-    exports.prepareContent = function(name, inputData, isBinary, isOptimizedBinaryString, isBase64) {
+    exports.prepareContent = function(name2, inputData, isBinary, isOptimizedBinaryString, isBase64) {
       var promise = external.Promise.resolve(inputData).then(function(data) {
         var isBlob = support.blob && (data instanceof Blob || ["[object File]", "[object Blob]"].indexOf(Object.prototype.toString.call(data)) !== -1);
         if (isBlob) {
           if (typeof Blob.prototype.arrayBuffer !== "undefined") {
             return data.arrayBuffer();
           } else if (typeof FileReader !== "undefined") {
-            return new external.Promise(function(resolve4, reject) {
+            return new external.Promise(function(resolve5, reject) {
               var reader = new FileReader();
               reader.onload = function(e) {
-                resolve4(e.target.result);
+                resolve5(e.target.result);
               };
               reader.onerror = function(e) {
                 reject(e.target.error);
@@ -2989,7 +2989,7 @@ var require_utils2 = __commonJS({
             });
           } else {
             return external.Promise.reject(
-              new Error(name + " is a Blob, but we have no way of reading it.")
+              new Error(name2 + " is a Blob, but we have no way of reading it.")
             );
           }
         }
@@ -2999,7 +2999,7 @@ var require_utils2 = __commonJS({
         var dataType = exports.getTypeOf(data);
         if (!dataType) {
           return external.Promise.reject(
-            new Error("Can't read the data of '" + name + "'. Is it in a supported JavaScript type (String, Blob, ArrayBuffer, etc) ?")
+            new Error("Can't read the data of '" + name2 + "'. Is it in a supported JavaScript type (String, Blob, ArrayBuffer, etc) ?")
           );
         }
         if (dataType === "arraybuffer") {
@@ -3023,8 +3023,8 @@ var require_utils2 = __commonJS({
 var require_GenericWorker = __commonJS({
   "node_modules/jszip/lib/stream/GenericWorker.js"(exports, module) {
     "use strict";
-    function GenericWorker(name) {
-      this.name = name || "default";
+    function GenericWorker(name2) {
+      this.name = name2 || "default";
       this.streamInfo = {};
       this.generatedError = null;
       this.extraStreamInfo = {};
@@ -3091,8 +3091,8 @@ var require_GenericWorker = __commonJS({
        * @param {Function} listener the function to call when the event is triggered
        * @return {GenericWorker} the current object for chainability
        */
-      on: function(name, listener) {
-        this._listeners[name].push(listener);
+      on: function(name2, listener) {
+        this._listeners[name2].push(listener);
         return this;
       },
       /**
@@ -3107,10 +3107,10 @@ var require_GenericWorker = __commonJS({
        * @param {String} name the name of the event (data, end, error)
        * @param {Object} arg the argument to call the callback with.
        */
-      emit: function(name, arg) {
-        if (this._listeners[name]) {
-          for (var i = 0; i < this._listeners[name].length; i++) {
-            this._listeners[name][i].call(this, arg);
+      emit: function(name2, arg) {
+        if (this._listeners[name2]) {
+          for (var i = 0; i < this._listeners[name2].length; i++) {
+            this._listeners[name2][i].call(this, arg);
           }
         }
       },
@@ -3200,8 +3200,8 @@ var require_GenericWorker = __commonJS({
        * @param {Object} value the associated value
        * @return {Worker} the current worker for chainability
        */
-      withStreamInfo: function(key, value) {
-        this.extraStreamInfo[key] = value;
+      withStreamInfo: function(key2, value) {
+        this.extraStreamInfo[key2] = value;
         this.mergeStreamInfo();
         return this;
       },
@@ -3209,11 +3209,11 @@ var require_GenericWorker = __commonJS({
        * Merge this worker's streamInfo into the chain's streamInfo.
        */
       mergeStreamInfo: function() {
-        for (var key in this.extraStreamInfo) {
-          if (!Object.prototype.hasOwnProperty.call(this.extraStreamInfo, key)) {
+        for (var key2 in this.extraStreamInfo) {
+          if (!Object.prototype.hasOwnProperty.call(this.extraStreamInfo, key2)) {
             continue;
           }
-          this.streamInfo[key] = this.extraStreamInfo[key];
+          this.streamInfo[key2] = this.extraStreamInfo[key2];
         }
       },
       /**
@@ -3539,7 +3539,7 @@ var require_StreamHelper = __commonJS({
       }
     }
     function accumulate(helper, updateCallback) {
-      return new external.Promise(function(resolve4, reject) {
+      return new external.Promise(function(resolve5, reject) {
         var dataArray = [];
         var chunkType = helper._internalType, resultType = helper._outputType, mimeType = helper._mimeType;
         helper.on("data", function(data, meta) {
@@ -3552,8 +3552,8 @@ var require_StreamHelper = __commonJS({
           reject(err);
         }).on("end", function() {
           try {
-            var result = transformZipOutput(resultType, concat(chunkType, dataArray), mimeType);
-            resolve4(result);
+            var result2 = transformZipOutput(resultType, concat(chunkType, dataArray), mimeType);
+            resolve5(result2);
           } catch (e) {
             reject(e);
           }
@@ -3897,8 +3897,8 @@ var require_zipObject = __commonJS({
     var utf8 = require_utf8();
     var CompressedObject = require_compressedObject();
     var GenericWorker = require_GenericWorker();
-    var ZipObject = function(name, data, options) {
-      this.name = name;
+    var ZipObject = function(name2, data, options) {
+      this.name = name2;
       this.dir = options.dir;
       this.date = options.date;
       this.comment = options.comment;
@@ -3918,7 +3918,7 @@ var require_zipObject = __commonJS({
        * @return StreamHelper the stream.
        */
       internalStream: function(type) {
-        var result = null, outputType = "string";
+        var result2 = null, outputType = "string";
         try {
           if (!type) {
             throw new Error("No output type specified.");
@@ -3928,19 +3928,19 @@ var require_zipObject = __commonJS({
           if (outputType === "binarystring" || outputType === "text") {
             outputType = "string";
           }
-          result = this._decompressWorker();
+          result2 = this._decompressWorker();
           var isUnicodeString = !this._dataBinary;
           if (isUnicodeString && !askUnicodeString) {
-            result = result.pipe(new utf8.Utf8EncodeWorker());
+            result2 = result2.pipe(new utf8.Utf8EncodeWorker());
           }
           if (!isUnicodeString && askUnicodeString) {
-            result = result.pipe(new utf8.Utf8DecodeWorker());
+            result2 = result2.pipe(new utf8.Utf8DecodeWorker());
           }
         } catch (e) {
-          result = new GenericWorker("error");
-          result.error(e);
+          result2 = new GenericWorker("error");
+          result2.error(e);
         }
-        return new StreamHelper(result, outputType, "");
+        return new StreamHelper(result2, outputType, "");
       },
       /**
        * Prepare the content in the asked type.
@@ -3971,11 +3971,11 @@ var require_zipObject = __commonJS({
         if (this._data instanceof CompressedObject && this._data.compression.magic === compression.magic) {
           return this._data.getCompressedWorker();
         } else {
-          var result = this._decompressWorker();
+          var result2 = this._decompressWorker();
           if (!this._dataBinary) {
-            result = result.pipe(new utf8.Utf8EncodeWorker());
+            result2 = result2.pipe(new utf8.Utf8EncodeWorker());
           }
-          return CompressedObject.createWorkerFrom(result, compression, compressionOptions);
+          return CompressedObject.createWorkerFrom(result2, compression, compressionOptions);
         }
       },
       /**
@@ -4010,8 +4010,8 @@ var require_common2 = __commonJS({
   "node_modules/pako/lib/utils/common.js"(exports) {
     "use strict";
     var TYPED_OK = typeof Uint8Array !== "undefined" && typeof Uint16Array !== "undefined" && typeof Int32Array !== "undefined";
-    function _has(obj, key) {
-      return Object.prototype.hasOwnProperty.call(obj, key);
+    function _has(obj, key2) {
+      return Object.prototype.hasOwnProperty.call(obj, key2);
     }
     exports.assign = function(obj) {
       var sources = Array.prototype.slice.call(arguments, 1);
@@ -4053,19 +4053,19 @@ var require_common2 = __commonJS({
       },
       // Join array of chunks to single array.
       flattenChunks: function(chunks) {
-        var i, l, len, pos, chunk, result;
+        var i, l, len, pos, chunk, result2;
         len = 0;
         for (i = 0, l = chunks.length; i < l; i++) {
           len += chunks[i].length;
         }
-        result = new Uint8Array(len);
+        result2 = new Uint8Array(len);
         pos = 0;
         for (i = 0, l = chunks.length; i < l; i++) {
           chunk = chunks[i];
-          result.set(chunk, pos);
+          result2.set(chunk, pos);
           pos += chunk.length;
         }
-        return result;
+        return result2;
       }
     };
     var fnUntyped = {
@@ -4079,8 +4079,8 @@ var require_common2 = __commonJS({
         return [].concat.apply([], chunks);
       }
     };
-    exports.setTyped = function(on) {
-      if (on) {
+    exports.setTyped = function(on2) {
+      if (on2) {
         exports.Buf8 = Uint8Array;
         exports.Buf16 = Uint16Array;
         exports.Buf32 = Int32Array;
@@ -4174,24 +4174,24 @@ var require_trees = __commonJS({
     function d_code(dist) {
       return dist < 256 ? _dist_code[dist] : _dist_code[256 + (dist >>> 7)];
     }
-    function put_short(s, w) {
-      s.pending_buf[s.pending++] = w & 255;
-      s.pending_buf[s.pending++] = w >>> 8 & 255;
+    function put_short(s2, w) {
+      s2.pending_buf[s2.pending++] = w & 255;
+      s2.pending_buf[s2.pending++] = w >>> 8 & 255;
     }
-    function send_bits(s, value, length) {
-      if (s.bi_valid > Buf_size - length) {
-        s.bi_buf |= value << s.bi_valid & 65535;
-        put_short(s, s.bi_buf);
-        s.bi_buf = value >> Buf_size - s.bi_valid;
-        s.bi_valid += length - Buf_size;
+    function send_bits(s2, value, length) {
+      if (s2.bi_valid > Buf_size - length) {
+        s2.bi_buf |= value << s2.bi_valid & 65535;
+        put_short(s2, s2.bi_buf);
+        s2.bi_buf = value >> Buf_size - s2.bi_valid;
+        s2.bi_valid += length - Buf_size;
       } else {
-        s.bi_buf |= value << s.bi_valid & 65535;
-        s.bi_valid += length;
+        s2.bi_buf |= value << s2.bi_valid & 65535;
+        s2.bi_valid += length;
       }
     }
-    function send_code(s, c, tree) {
+    function send_code(s2, c, tree) {
       send_bits(
-        s,
+        s2,
         tree[c * 2],
         tree[c * 2 + 1]
         /*.Len*/
@@ -4206,24 +4206,24 @@ var require_trees = __commonJS({
       } while (--len > 0);
       return res >>> 1;
     }
-    function bi_flush(s) {
-      if (s.bi_valid === 16) {
-        put_short(s, s.bi_buf);
-        s.bi_buf = 0;
-        s.bi_valid = 0;
-      } else if (s.bi_valid >= 8) {
-        s.pending_buf[s.pending++] = s.bi_buf & 255;
-        s.bi_buf >>= 8;
-        s.bi_valid -= 8;
+    function bi_flush(s2) {
+      if (s2.bi_valid === 16) {
+        put_short(s2, s2.bi_buf);
+        s2.bi_buf = 0;
+        s2.bi_valid = 0;
+      } else if (s2.bi_valid >= 8) {
+        s2.pending_buf[s2.pending++] = s2.bi_buf & 255;
+        s2.bi_buf >>= 8;
+        s2.bi_valid -= 8;
       }
     }
-    function gen_bitlen(s, desc) {
+    function gen_bitlen(s2, desc) {
       var tree = desc.dyn_tree;
       var max_code = desc.max_code;
       var stree = desc.stat_desc.static_tree;
       var has_stree = desc.stat_desc.has_stree;
       var extra = desc.stat_desc.extra_bits;
-      var base2 = desc.stat_desc.extra_base;
+      var base = desc.stat_desc.extra_base;
       var max_length = desc.stat_desc.max_length;
       var h2;
       var n, m;
@@ -4232,11 +4232,11 @@ var require_trees = __commonJS({
       var f;
       var overflow = 0;
       for (bits = 0; bits <= MAX_BITS; bits++) {
-        s.bl_count[bits] = 0;
+        s2.bl_count[bits] = 0;
       }
-      tree[s.heap[s.heap_max] * 2 + 1] = 0;
-      for (h2 = s.heap_max + 1; h2 < HEAP_SIZE; h2++) {
-        n = s.heap[h2];
+      tree[s2.heap[s2.heap_max] * 2 + 1] = 0;
+      for (h2 = s2.heap_max + 1; h2 < HEAP_SIZE; h2++) {
+        n = s2.heap[h2];
         bits = tree[tree[n * 2 + 1] * 2 + 1] + 1;
         if (bits > max_length) {
           bits = max_length;
@@ -4246,15 +4246,15 @@ var require_trees = __commonJS({
         if (n > max_code) {
           continue;
         }
-        s.bl_count[bits]++;
+        s2.bl_count[bits]++;
         xbits = 0;
-        if (n >= base2) {
-          xbits = extra[n - base2];
+        if (n >= base) {
+          xbits = extra[n - base];
         }
         f = tree[n * 2];
-        s.opt_len += f * (bits + xbits);
+        s2.opt_len += f * (bits + xbits);
         if (has_stree) {
-          s.static_len += f * (stree[n * 2 + 1] + xbits);
+          s2.static_len += f * (stree[n * 2 + 1] + xbits);
         }
       }
       if (overflow === 0) {
@@ -4262,23 +4262,23 @@ var require_trees = __commonJS({
       }
       do {
         bits = max_length - 1;
-        while (s.bl_count[bits] === 0) {
+        while (s2.bl_count[bits] === 0) {
           bits--;
         }
-        s.bl_count[bits]--;
-        s.bl_count[bits + 1] += 2;
-        s.bl_count[max_length]--;
+        s2.bl_count[bits]--;
+        s2.bl_count[bits + 1] += 2;
+        s2.bl_count[max_length]--;
         overflow -= 2;
       } while (overflow > 0);
       for (bits = max_length; bits !== 0; bits--) {
-        n = s.bl_count[bits];
+        n = s2.bl_count[bits];
         while (n !== 0) {
-          m = s.heap[--h2];
+          m = s2.heap[--h2];
           if (m > max_code) {
             continue;
           }
           if (tree[m * 2 + 1] !== bits) {
-            s.opt_len += (bits - tree[m * 2 + 1]) * tree[m * 2];
+            s2.opt_len += (bits - tree[m * 2 + 1]) * tree[m * 2];
             tree[m * 2 + 1] = bits;
           }
           n--;
@@ -4363,95 +4363,95 @@ var require_trees = __commonJS({
       static_d_desc = new StaticTreeDesc(static_dtree, extra_dbits, 0, D_CODES, MAX_BITS);
       static_bl_desc = new StaticTreeDesc(new Array(0), extra_blbits, 0, BL_CODES, MAX_BL_BITS);
     }
-    function init_block(s) {
+    function init_block(s2) {
       var n;
       for (n = 0; n < L_CODES; n++) {
-        s.dyn_ltree[n * 2] = 0;
+        s2.dyn_ltree[n * 2] = 0;
       }
       for (n = 0; n < D_CODES; n++) {
-        s.dyn_dtree[n * 2] = 0;
+        s2.dyn_dtree[n * 2] = 0;
       }
       for (n = 0; n < BL_CODES; n++) {
-        s.bl_tree[n * 2] = 0;
+        s2.bl_tree[n * 2] = 0;
       }
-      s.dyn_ltree[END_BLOCK * 2] = 1;
-      s.opt_len = s.static_len = 0;
-      s.last_lit = s.matches = 0;
+      s2.dyn_ltree[END_BLOCK * 2] = 1;
+      s2.opt_len = s2.static_len = 0;
+      s2.last_lit = s2.matches = 0;
     }
-    function bi_windup(s) {
-      if (s.bi_valid > 8) {
-        put_short(s, s.bi_buf);
-      } else if (s.bi_valid > 0) {
-        s.pending_buf[s.pending++] = s.bi_buf;
+    function bi_windup(s2) {
+      if (s2.bi_valid > 8) {
+        put_short(s2, s2.bi_buf);
+      } else if (s2.bi_valid > 0) {
+        s2.pending_buf[s2.pending++] = s2.bi_buf;
       }
-      s.bi_buf = 0;
-      s.bi_valid = 0;
+      s2.bi_buf = 0;
+      s2.bi_valid = 0;
     }
-    function copy_block(s, buf, len, header) {
-      bi_windup(s);
+    function copy_block(s2, buf, len, header) {
+      bi_windup(s2);
       if (header) {
-        put_short(s, len);
-        put_short(s, ~len);
+        put_short(s2, len);
+        put_short(s2, ~len);
       }
-      utils.arraySet(s.pending_buf, s.window, buf, len, s.pending);
-      s.pending += len;
+      utils.arraySet(s2.pending_buf, s2.window, buf, len, s2.pending);
+      s2.pending += len;
     }
-    function smaller(tree, n, m, depth) {
+    function smaller(tree, n, m, depth2) {
       var _n2 = n * 2;
       var _m2 = m * 2;
-      return tree[_n2] < tree[_m2] || tree[_n2] === tree[_m2] && depth[n] <= depth[m];
+      return tree[_n2] < tree[_m2] || tree[_n2] === tree[_m2] && depth2[n] <= depth2[m];
     }
-    function pqdownheap(s, tree, k) {
-      var v = s.heap[k];
+    function pqdownheap(s2, tree, k) {
+      var v = s2.heap[k];
       var j = k << 1;
-      while (j <= s.heap_len) {
-        if (j < s.heap_len && smaller(tree, s.heap[j + 1], s.heap[j], s.depth)) {
+      while (j <= s2.heap_len) {
+        if (j < s2.heap_len && smaller(tree, s2.heap[j + 1], s2.heap[j], s2.depth)) {
           j++;
         }
-        if (smaller(tree, v, s.heap[j], s.depth)) {
+        if (smaller(tree, v, s2.heap[j], s2.depth)) {
           break;
         }
-        s.heap[k] = s.heap[j];
+        s2.heap[k] = s2.heap[j];
         k = j;
         j <<= 1;
       }
-      s.heap[k] = v;
+      s2.heap[k] = v;
     }
-    function compress_block(s, ltree, dtree) {
+    function compress_block(s2, ltree, dtree) {
       var dist;
       var lc;
       var lx = 0;
       var code;
       var extra;
-      if (s.last_lit !== 0) {
+      if (s2.last_lit !== 0) {
         do {
-          dist = s.pending_buf[s.d_buf + lx * 2] << 8 | s.pending_buf[s.d_buf + lx * 2 + 1];
-          lc = s.pending_buf[s.l_buf + lx];
+          dist = s2.pending_buf[s2.d_buf + lx * 2] << 8 | s2.pending_buf[s2.d_buf + lx * 2 + 1];
+          lc = s2.pending_buf[s2.l_buf + lx];
           lx++;
           if (dist === 0) {
-            send_code(s, lc, ltree);
+            send_code(s2, lc, ltree);
           } else {
             code = _length_code[lc];
-            send_code(s, code + LITERALS + 1, ltree);
+            send_code(s2, code + LITERALS + 1, ltree);
             extra = extra_lbits[code];
             if (extra !== 0) {
               lc -= base_length[code];
-              send_bits(s, lc, extra);
+              send_bits(s2, lc, extra);
             }
             dist--;
             code = d_code(dist);
-            send_code(s, code, dtree);
+            send_code(s2, code, dtree);
             extra = extra_dbits[code];
             if (extra !== 0) {
               dist -= base_dist[code];
-              send_bits(s, dist, extra);
+              send_bits(s2, dist, extra);
             }
           }
-        } while (lx < s.last_lit);
+        } while (lx < s2.last_lit);
       }
-      send_code(s, END_BLOCK, ltree);
+      send_code(s2, END_BLOCK, ltree);
     }
-    function build_tree(s, desc) {
+    function build_tree(s2, desc) {
       var tree = desc.dyn_tree;
       var stree = desc.stat_desc.static_tree;
       var has_stree = desc.stat_desc.has_stree;
@@ -4459,73 +4459,73 @@ var require_trees = __commonJS({
       var n, m;
       var max_code = -1;
       var node;
-      s.heap_len = 0;
-      s.heap_max = HEAP_SIZE;
+      s2.heap_len = 0;
+      s2.heap_max = HEAP_SIZE;
       for (n = 0; n < elems; n++) {
         if (tree[n * 2] !== 0) {
-          s.heap[++s.heap_len] = max_code = n;
-          s.depth[n] = 0;
+          s2.heap[++s2.heap_len] = max_code = n;
+          s2.depth[n] = 0;
         } else {
           tree[n * 2 + 1] = 0;
         }
       }
-      while (s.heap_len < 2) {
-        node = s.heap[++s.heap_len] = max_code < 2 ? ++max_code : 0;
+      while (s2.heap_len < 2) {
+        node = s2.heap[++s2.heap_len] = max_code < 2 ? ++max_code : 0;
         tree[node * 2] = 1;
-        s.depth[node] = 0;
-        s.opt_len--;
+        s2.depth[node] = 0;
+        s2.opt_len--;
         if (has_stree) {
-          s.static_len -= stree[node * 2 + 1];
+          s2.static_len -= stree[node * 2 + 1];
         }
       }
       desc.max_code = max_code;
-      for (n = s.heap_len >> 1; n >= 1; n--) {
-        pqdownheap(s, tree, n);
+      for (n = s2.heap_len >> 1; n >= 1; n--) {
+        pqdownheap(s2, tree, n);
       }
       node = elems;
       do {
-        n = s.heap[
+        n = s2.heap[
           1
           /*SMALLEST*/
         ];
-        s.heap[
+        s2.heap[
           1
           /*SMALLEST*/
-        ] = s.heap[s.heap_len--];
+        ] = s2.heap[s2.heap_len--];
         pqdownheap(
-          s,
+          s2,
           tree,
           1
           /*SMALLEST*/
         );
-        m = s.heap[
+        m = s2.heap[
           1
           /*SMALLEST*/
         ];
-        s.heap[--s.heap_max] = n;
-        s.heap[--s.heap_max] = m;
+        s2.heap[--s2.heap_max] = n;
+        s2.heap[--s2.heap_max] = m;
         tree[node * 2] = tree[n * 2] + tree[m * 2];
-        s.depth[node] = (s.depth[n] >= s.depth[m] ? s.depth[n] : s.depth[m]) + 1;
+        s2.depth[node] = (s2.depth[n] >= s2.depth[m] ? s2.depth[n] : s2.depth[m]) + 1;
         tree[n * 2 + 1] = tree[m * 2 + 1] = node;
-        s.heap[
+        s2.heap[
           1
           /*SMALLEST*/
         ] = node++;
         pqdownheap(
-          s,
+          s2,
           tree,
           1
           /*SMALLEST*/
         );
-      } while (s.heap_len >= 2);
-      s.heap[--s.heap_max] = s.heap[
+      } while (s2.heap_len >= 2);
+      s2.heap[--s2.heap_max] = s2.heap[
         1
         /*SMALLEST*/
       ];
-      gen_bitlen(s, desc);
-      gen_codes(tree, max_code, s.bl_count);
+      gen_bitlen(s2, desc);
+      gen_codes(tree, max_code, s2.bl_count);
     }
-    function scan_tree(s, tree, max_code) {
+    function scan_tree(s2, tree, max_code) {
       var n;
       var prevlen = -1;
       var curlen;
@@ -4544,16 +4544,16 @@ var require_trees = __commonJS({
         if (++count < max_count && curlen === nextlen) {
           continue;
         } else if (count < min_count) {
-          s.bl_tree[curlen * 2] += count;
+          s2.bl_tree[curlen * 2] += count;
         } else if (curlen !== 0) {
           if (curlen !== prevlen) {
-            s.bl_tree[curlen * 2]++;
+            s2.bl_tree[curlen * 2]++;
           }
-          s.bl_tree[REP_3_6 * 2]++;
+          s2.bl_tree[REP_3_6 * 2]++;
         } else if (count <= 10) {
-          s.bl_tree[REPZ_3_10 * 2]++;
+          s2.bl_tree[REPZ_3_10 * 2]++;
         } else {
-          s.bl_tree[REPZ_11_138 * 2]++;
+          s2.bl_tree[REPZ_11_138 * 2]++;
         }
         count = 0;
         prevlen = curlen;
@@ -4569,7 +4569,7 @@ var require_trees = __commonJS({
         }
       }
     }
-    function send_tree(s, tree, max_code) {
+    function send_tree(s2, tree, max_code) {
       var n;
       var prevlen = -1;
       var curlen;
@@ -4588,21 +4588,21 @@ var require_trees = __commonJS({
           continue;
         } else if (count < min_count) {
           do {
-            send_code(s, curlen, s.bl_tree);
+            send_code(s2, curlen, s2.bl_tree);
           } while (--count !== 0);
         } else if (curlen !== 0) {
           if (curlen !== prevlen) {
-            send_code(s, curlen, s.bl_tree);
+            send_code(s2, curlen, s2.bl_tree);
             count--;
           }
-          send_code(s, REP_3_6, s.bl_tree);
-          send_bits(s, count - 3, 2);
+          send_code(s2, REP_3_6, s2.bl_tree);
+          send_bits(s2, count - 3, 2);
         } else if (count <= 10) {
-          send_code(s, REPZ_3_10, s.bl_tree);
-          send_bits(s, count - 3, 3);
+          send_code(s2, REPZ_3_10, s2.bl_tree);
+          send_bits(s2, count - 3, 3);
         } else {
-          send_code(s, REPZ_11_138, s.bl_tree);
-          send_bits(s, count - 11, 7);
+          send_code(s2, REPZ_11_138, s2.bl_tree);
+          send_bits(s2, count - 11, 7);
         }
         count = 0;
         prevlen = curlen;
@@ -4618,82 +4618,82 @@ var require_trees = __commonJS({
         }
       }
     }
-    function build_bl_tree(s) {
+    function build_bl_tree(s2) {
       var max_blindex;
-      scan_tree(s, s.dyn_ltree, s.l_desc.max_code);
-      scan_tree(s, s.dyn_dtree, s.d_desc.max_code);
-      build_tree(s, s.bl_desc);
+      scan_tree(s2, s2.dyn_ltree, s2.l_desc.max_code);
+      scan_tree(s2, s2.dyn_dtree, s2.d_desc.max_code);
+      build_tree(s2, s2.bl_desc);
       for (max_blindex = BL_CODES - 1; max_blindex >= 3; max_blindex--) {
-        if (s.bl_tree[bl_order[max_blindex] * 2 + 1] !== 0) {
+        if (s2.bl_tree[bl_order[max_blindex] * 2 + 1] !== 0) {
           break;
         }
       }
-      s.opt_len += 3 * (max_blindex + 1) + 5 + 5 + 4;
+      s2.opt_len += 3 * (max_blindex + 1) + 5 + 5 + 4;
       return max_blindex;
     }
-    function send_all_trees(s, lcodes, dcodes, blcodes) {
+    function send_all_trees(s2, lcodes, dcodes, blcodes) {
       var rank;
-      send_bits(s, lcodes - 257, 5);
-      send_bits(s, dcodes - 1, 5);
-      send_bits(s, blcodes - 4, 4);
+      send_bits(s2, lcodes - 257, 5);
+      send_bits(s2, dcodes - 1, 5);
+      send_bits(s2, blcodes - 4, 4);
       for (rank = 0; rank < blcodes; rank++) {
-        send_bits(s, s.bl_tree[bl_order[rank] * 2 + 1], 3);
+        send_bits(s2, s2.bl_tree[bl_order[rank] * 2 + 1], 3);
       }
-      send_tree(s, s.dyn_ltree, lcodes - 1);
-      send_tree(s, s.dyn_dtree, dcodes - 1);
+      send_tree(s2, s2.dyn_ltree, lcodes - 1);
+      send_tree(s2, s2.dyn_dtree, dcodes - 1);
     }
-    function detect_data_type(s) {
+    function detect_data_type(s2) {
       var black_mask = 4093624447;
       var n;
       for (n = 0; n <= 31; n++, black_mask >>>= 1) {
-        if (black_mask & 1 && s.dyn_ltree[n * 2] !== 0) {
+        if (black_mask & 1 && s2.dyn_ltree[n * 2] !== 0) {
           return Z_BINARY;
         }
       }
-      if (s.dyn_ltree[9 * 2] !== 0 || s.dyn_ltree[10 * 2] !== 0 || s.dyn_ltree[13 * 2] !== 0) {
+      if (s2.dyn_ltree[9 * 2] !== 0 || s2.dyn_ltree[10 * 2] !== 0 || s2.dyn_ltree[13 * 2] !== 0) {
         return Z_TEXT;
       }
       for (n = 32; n < LITERALS; n++) {
-        if (s.dyn_ltree[n * 2] !== 0) {
+        if (s2.dyn_ltree[n * 2] !== 0) {
           return Z_TEXT;
         }
       }
       return Z_BINARY;
     }
     var static_init_done = false;
-    function _tr_init(s) {
+    function _tr_init(s2) {
       if (!static_init_done) {
         tr_static_init();
         static_init_done = true;
       }
-      s.l_desc = new TreeDesc(s.dyn_ltree, static_l_desc);
-      s.d_desc = new TreeDesc(s.dyn_dtree, static_d_desc);
-      s.bl_desc = new TreeDesc(s.bl_tree, static_bl_desc);
-      s.bi_buf = 0;
-      s.bi_valid = 0;
-      init_block(s);
+      s2.l_desc = new TreeDesc(s2.dyn_ltree, static_l_desc);
+      s2.d_desc = new TreeDesc(s2.dyn_dtree, static_d_desc);
+      s2.bl_desc = new TreeDesc(s2.bl_tree, static_bl_desc);
+      s2.bi_buf = 0;
+      s2.bi_valid = 0;
+      init_block(s2);
     }
-    function _tr_stored_block(s, buf, stored_len, last) {
-      send_bits(s, (STORED_BLOCK << 1) + (last ? 1 : 0), 3);
-      copy_block(s, buf, stored_len, true);
+    function _tr_stored_block(s2, buf, stored_len, last) {
+      send_bits(s2, (STORED_BLOCK << 1) + (last ? 1 : 0), 3);
+      copy_block(s2, buf, stored_len, true);
     }
-    function _tr_align(s) {
-      send_bits(s, STATIC_TREES << 1, 3);
-      send_code(s, END_BLOCK, static_ltree);
-      bi_flush(s);
+    function _tr_align(s2) {
+      send_bits(s2, STATIC_TREES << 1, 3);
+      send_code(s2, END_BLOCK, static_ltree);
+      bi_flush(s2);
     }
-    function _tr_flush_block(s, buf, stored_len, last) {
+    function _tr_flush_block(s2, buf, stored_len, last) {
       var opt_lenb, static_lenb;
       var max_blindex = 0;
-      if (s.level > 0) {
-        if (s.strm.data_type === Z_UNKNOWN) {
-          s.strm.data_type = detect_data_type(s);
+      if (s2.level > 0) {
+        if (s2.strm.data_type === Z_UNKNOWN) {
+          s2.strm.data_type = detect_data_type(s2);
         }
-        build_tree(s, s.l_desc);
-        build_tree(s, s.d_desc);
-        max_blindex = build_bl_tree(s);
-        opt_lenb = s.opt_len + 3 + 7 >>> 3;
-        static_lenb = s.static_len + 3 + 7 >>> 3;
+        build_tree(s2, s2.l_desc);
+        build_tree(s2, s2.d_desc);
+        max_blindex = build_bl_tree(s2);
+        opt_lenb = s2.opt_len + 3 + 7 >>> 3;
+        static_lenb = s2.static_len + 3 + 7 >>> 3;
         if (static_lenb <= opt_lenb) {
           opt_lenb = static_lenb;
         }
@@ -4701,34 +4701,34 @@ var require_trees = __commonJS({
         opt_lenb = static_lenb = stored_len + 5;
       }
       if (stored_len + 4 <= opt_lenb && buf !== -1) {
-        _tr_stored_block(s, buf, stored_len, last);
-      } else if (s.strategy === Z_FIXED || static_lenb === opt_lenb) {
-        send_bits(s, (STATIC_TREES << 1) + (last ? 1 : 0), 3);
-        compress_block(s, static_ltree, static_dtree);
+        _tr_stored_block(s2, buf, stored_len, last);
+      } else if (s2.strategy === Z_FIXED || static_lenb === opt_lenb) {
+        send_bits(s2, (STATIC_TREES << 1) + (last ? 1 : 0), 3);
+        compress_block(s2, static_ltree, static_dtree);
       } else {
-        send_bits(s, (DYN_TREES << 1) + (last ? 1 : 0), 3);
-        send_all_trees(s, s.l_desc.max_code + 1, s.d_desc.max_code + 1, max_blindex + 1);
-        compress_block(s, s.dyn_ltree, s.dyn_dtree);
+        send_bits(s2, (DYN_TREES << 1) + (last ? 1 : 0), 3);
+        send_all_trees(s2, s2.l_desc.max_code + 1, s2.d_desc.max_code + 1, max_blindex + 1);
+        compress_block(s2, s2.dyn_ltree, s2.dyn_dtree);
       }
-      init_block(s);
+      init_block(s2);
       if (last) {
-        bi_windup(s);
+        bi_windup(s2);
       }
     }
-    function _tr_tally(s, dist, lc) {
-      s.pending_buf[s.d_buf + s.last_lit * 2] = dist >>> 8 & 255;
-      s.pending_buf[s.d_buf + s.last_lit * 2 + 1] = dist & 255;
-      s.pending_buf[s.l_buf + s.last_lit] = lc & 255;
-      s.last_lit++;
+    function _tr_tally(s2, dist, lc) {
+      s2.pending_buf[s2.d_buf + s2.last_lit * 2] = dist >>> 8 & 255;
+      s2.pending_buf[s2.d_buf + s2.last_lit * 2 + 1] = dist & 255;
+      s2.pending_buf[s2.l_buf + s2.last_lit] = lc & 255;
+      s2.last_lit++;
       if (dist === 0) {
-        s.dyn_ltree[lc * 2]++;
+        s2.dyn_ltree[lc * 2]++;
       } else {
-        s.matches++;
+        s2.matches++;
         dist--;
-        s.dyn_ltree[(_length_code[lc] + LITERALS + 1) * 2]++;
-        s.dyn_dtree[d_code(dist) * 2]++;
+        s2.dyn_ltree[(_length_code[lc] + LITERALS + 1) * 2]++;
+        s2.dyn_dtree[d_code(dist) * 2]++;
       }
-      return s.last_lit === s.lit_bufsize - 1;
+      return s2.last_lit === s2.lit_bufsize - 1;
     }
     exports._tr_init = _tr_init;
     exports._tr_stored_block = _tr_stored_block;
@@ -4882,35 +4882,35 @@ var require_deflate = __commonJS({
       }
     }
     function flush_pending(strm) {
-      var s = strm.state;
-      var len = s.pending;
+      var s2 = strm.state;
+      var len = s2.pending;
       if (len > strm.avail_out) {
         len = strm.avail_out;
       }
       if (len === 0) {
         return;
       }
-      utils.arraySet(strm.output, s.pending_buf, s.pending_out, len, strm.next_out);
+      utils.arraySet(strm.output, s2.pending_buf, s2.pending_out, len, strm.next_out);
       strm.next_out += len;
-      s.pending_out += len;
+      s2.pending_out += len;
       strm.total_out += len;
       strm.avail_out -= len;
-      s.pending -= len;
-      if (s.pending === 0) {
-        s.pending_out = 0;
+      s2.pending -= len;
+      if (s2.pending === 0) {
+        s2.pending_out = 0;
       }
     }
-    function flush_block_only(s, last) {
-      trees._tr_flush_block(s, s.block_start >= 0 ? s.block_start : -1, s.strstart - s.block_start, last);
-      s.block_start = s.strstart;
-      flush_pending(s.strm);
+    function flush_block_only(s2, last) {
+      trees._tr_flush_block(s2, s2.block_start >= 0 ? s2.block_start : -1, s2.strstart - s2.block_start, last);
+      s2.block_start = s2.strstart;
+      flush_pending(s2.strm);
     }
-    function put_byte(s, b) {
-      s.pending_buf[s.pending++] = b;
+    function put_byte(s2, b) {
+      s2.pending_buf[s2.pending++] = b;
     }
-    function putShortMSB(s, b) {
-      s.pending_buf[s.pending++] = b >>> 8 & 255;
-      s.pending_buf[s.pending++] = b & 255;
+    function putShortMSB(s2, b) {
+      s2.pending_buf[s2.pending++] = b >>> 8 & 255;
+      s2.pending_buf[s2.pending++] = b & 255;
     }
     function read_buf(strm, buf, start, size) {
       var len = strm.avail_in;
@@ -4931,25 +4931,25 @@ var require_deflate = __commonJS({
       strm.total_in += len;
       return len;
     }
-    function longest_match(s, cur_match) {
-      var chain_length = s.max_chain_length;
-      var scan = s.strstart;
+    function longest_match(s2, cur_match) {
+      var chain_length = s2.max_chain_length;
+      var scan = s2.strstart;
       var match;
       var len;
-      var best_len = s.prev_length;
-      var nice_match = s.nice_match;
-      var limit = s.strstart > s.w_size - MIN_LOOKAHEAD ? s.strstart - (s.w_size - MIN_LOOKAHEAD) : 0;
-      var _win = s.window;
-      var wmask = s.w_mask;
-      var prev = s.prev;
-      var strend = s.strstart + MAX_MATCH;
+      var best_len = s2.prev_length;
+      var nice_match = s2.nice_match;
+      var limit = s2.strstart > s2.w_size - MIN_LOOKAHEAD ? s2.strstart - (s2.w_size - MIN_LOOKAHEAD) : 0;
+      var _win = s2.window;
+      var wmask = s2.w_mask;
+      var prev = s2.prev;
+      var strend = s2.strstart + MAX_MATCH;
       var scan_end1 = _win[scan + best_len - 1];
       var scan_end = _win[scan + best_len];
-      if (s.prev_length >= s.good_match) {
+      if (s2.prev_length >= s2.good_match) {
         chain_length >>= 2;
       }
-      if (nice_match > s.lookahead) {
-        nice_match = s.lookahead;
+      if (nice_match > s2.lookahead) {
+        nice_match = s2.lookahead;
       }
       do {
         match = cur_match;
@@ -4963,7 +4963,7 @@ var require_deflate = __commonJS({
         len = MAX_MATCH - (strend - scan);
         scan = strend - MAX_MATCH;
         if (len > best_len) {
-          s.match_start = cur_match;
+          s2.match_start = cur_match;
           best_len = len;
           if (len >= nice_match) {
             break;
@@ -4972,356 +4972,356 @@ var require_deflate = __commonJS({
           scan_end = _win[scan + best_len];
         }
       } while ((cur_match = prev[cur_match & wmask]) > limit && --chain_length !== 0);
-      if (best_len <= s.lookahead) {
+      if (best_len <= s2.lookahead) {
         return best_len;
       }
-      return s.lookahead;
+      return s2.lookahead;
     }
-    function fill_window(s) {
-      var _w_size = s.w_size;
+    function fill_window(s2) {
+      var _w_size = s2.w_size;
       var p2, n, m, more, str2;
       do {
-        more = s.window_size - s.lookahead - s.strstart;
-        if (s.strstart >= _w_size + (_w_size - MIN_LOOKAHEAD)) {
-          utils.arraySet(s.window, s.window, _w_size, _w_size, 0);
-          s.match_start -= _w_size;
-          s.strstart -= _w_size;
-          s.block_start -= _w_size;
-          n = s.hash_size;
+        more = s2.window_size - s2.lookahead - s2.strstart;
+        if (s2.strstart >= _w_size + (_w_size - MIN_LOOKAHEAD)) {
+          utils.arraySet(s2.window, s2.window, _w_size, _w_size, 0);
+          s2.match_start -= _w_size;
+          s2.strstart -= _w_size;
+          s2.block_start -= _w_size;
+          n = s2.hash_size;
           p2 = n;
           do {
-            m = s.head[--p2];
-            s.head[p2] = m >= _w_size ? m - _w_size : 0;
+            m = s2.head[--p2];
+            s2.head[p2] = m >= _w_size ? m - _w_size : 0;
           } while (--n);
           n = _w_size;
           p2 = n;
           do {
-            m = s.prev[--p2];
-            s.prev[p2] = m >= _w_size ? m - _w_size : 0;
+            m = s2.prev[--p2];
+            s2.prev[p2] = m >= _w_size ? m - _w_size : 0;
           } while (--n);
           more += _w_size;
         }
-        if (s.strm.avail_in === 0) {
+        if (s2.strm.avail_in === 0) {
           break;
         }
-        n = read_buf(s.strm, s.window, s.strstart + s.lookahead, more);
-        s.lookahead += n;
-        if (s.lookahead + s.insert >= MIN_MATCH) {
-          str2 = s.strstart - s.insert;
-          s.ins_h = s.window[str2];
-          s.ins_h = (s.ins_h << s.hash_shift ^ s.window[str2 + 1]) & s.hash_mask;
-          while (s.insert) {
-            s.ins_h = (s.ins_h << s.hash_shift ^ s.window[str2 + MIN_MATCH - 1]) & s.hash_mask;
-            s.prev[str2 & s.w_mask] = s.head[s.ins_h];
-            s.head[s.ins_h] = str2;
+        n = read_buf(s2.strm, s2.window, s2.strstart + s2.lookahead, more);
+        s2.lookahead += n;
+        if (s2.lookahead + s2.insert >= MIN_MATCH) {
+          str2 = s2.strstart - s2.insert;
+          s2.ins_h = s2.window[str2];
+          s2.ins_h = (s2.ins_h << s2.hash_shift ^ s2.window[str2 + 1]) & s2.hash_mask;
+          while (s2.insert) {
+            s2.ins_h = (s2.ins_h << s2.hash_shift ^ s2.window[str2 + MIN_MATCH - 1]) & s2.hash_mask;
+            s2.prev[str2 & s2.w_mask] = s2.head[s2.ins_h];
+            s2.head[s2.ins_h] = str2;
             str2++;
-            s.insert--;
-            if (s.lookahead + s.insert < MIN_MATCH) {
+            s2.insert--;
+            if (s2.lookahead + s2.insert < MIN_MATCH) {
               break;
             }
           }
         }
-      } while (s.lookahead < MIN_LOOKAHEAD && s.strm.avail_in !== 0);
+      } while (s2.lookahead < MIN_LOOKAHEAD && s2.strm.avail_in !== 0);
     }
-    function deflate_stored(s, flush) {
+    function deflate_stored(s2, flush) {
       var max_block_size = 65535;
-      if (max_block_size > s.pending_buf_size - 5) {
-        max_block_size = s.pending_buf_size - 5;
+      if (max_block_size > s2.pending_buf_size - 5) {
+        max_block_size = s2.pending_buf_size - 5;
       }
       for (; ; ) {
-        if (s.lookahead <= 1) {
-          fill_window(s);
-          if (s.lookahead === 0 && flush === Z_NO_FLUSH) {
+        if (s2.lookahead <= 1) {
+          fill_window(s2);
+          if (s2.lookahead === 0 && flush === Z_NO_FLUSH) {
             return BS_NEED_MORE;
           }
-          if (s.lookahead === 0) {
+          if (s2.lookahead === 0) {
             break;
           }
         }
-        s.strstart += s.lookahead;
-        s.lookahead = 0;
-        var max_start = s.block_start + max_block_size;
-        if (s.strstart === 0 || s.strstart >= max_start) {
-          s.lookahead = s.strstart - max_start;
-          s.strstart = max_start;
-          flush_block_only(s, false);
-          if (s.strm.avail_out === 0) {
+        s2.strstart += s2.lookahead;
+        s2.lookahead = 0;
+        var max_start = s2.block_start + max_block_size;
+        if (s2.strstart === 0 || s2.strstart >= max_start) {
+          s2.lookahead = s2.strstart - max_start;
+          s2.strstart = max_start;
+          flush_block_only(s2, false);
+          if (s2.strm.avail_out === 0) {
             return BS_NEED_MORE;
           }
         }
-        if (s.strstart - s.block_start >= s.w_size - MIN_LOOKAHEAD) {
-          flush_block_only(s, false);
-          if (s.strm.avail_out === 0) {
+        if (s2.strstart - s2.block_start >= s2.w_size - MIN_LOOKAHEAD) {
+          flush_block_only(s2, false);
+          if (s2.strm.avail_out === 0) {
             return BS_NEED_MORE;
           }
         }
       }
-      s.insert = 0;
+      s2.insert = 0;
       if (flush === Z_FINISH) {
-        flush_block_only(s, true);
-        if (s.strm.avail_out === 0) {
+        flush_block_only(s2, true);
+        if (s2.strm.avail_out === 0) {
           return BS_FINISH_STARTED;
         }
         return BS_FINISH_DONE;
       }
-      if (s.strstart > s.block_start) {
-        flush_block_only(s, false);
-        if (s.strm.avail_out === 0) {
+      if (s2.strstart > s2.block_start) {
+        flush_block_only(s2, false);
+        if (s2.strm.avail_out === 0) {
           return BS_NEED_MORE;
         }
       }
       return BS_NEED_MORE;
     }
-    function deflate_fast(s, flush) {
+    function deflate_fast(s2, flush) {
       var hash_head;
       var bflush;
       for (; ; ) {
-        if (s.lookahead < MIN_LOOKAHEAD) {
-          fill_window(s);
-          if (s.lookahead < MIN_LOOKAHEAD && flush === Z_NO_FLUSH) {
+        if (s2.lookahead < MIN_LOOKAHEAD) {
+          fill_window(s2);
+          if (s2.lookahead < MIN_LOOKAHEAD && flush === Z_NO_FLUSH) {
             return BS_NEED_MORE;
           }
-          if (s.lookahead === 0) {
+          if (s2.lookahead === 0) {
             break;
           }
         }
         hash_head = 0;
-        if (s.lookahead >= MIN_MATCH) {
-          s.ins_h = (s.ins_h << s.hash_shift ^ s.window[s.strstart + MIN_MATCH - 1]) & s.hash_mask;
-          hash_head = s.prev[s.strstart & s.w_mask] = s.head[s.ins_h];
-          s.head[s.ins_h] = s.strstart;
+        if (s2.lookahead >= MIN_MATCH) {
+          s2.ins_h = (s2.ins_h << s2.hash_shift ^ s2.window[s2.strstart + MIN_MATCH - 1]) & s2.hash_mask;
+          hash_head = s2.prev[s2.strstart & s2.w_mask] = s2.head[s2.ins_h];
+          s2.head[s2.ins_h] = s2.strstart;
         }
-        if (hash_head !== 0 && s.strstart - hash_head <= s.w_size - MIN_LOOKAHEAD) {
-          s.match_length = longest_match(s, hash_head);
+        if (hash_head !== 0 && s2.strstart - hash_head <= s2.w_size - MIN_LOOKAHEAD) {
+          s2.match_length = longest_match(s2, hash_head);
         }
-        if (s.match_length >= MIN_MATCH) {
-          bflush = trees._tr_tally(s, s.strstart - s.match_start, s.match_length - MIN_MATCH);
-          s.lookahead -= s.match_length;
-          if (s.match_length <= s.max_lazy_match && s.lookahead >= MIN_MATCH) {
-            s.match_length--;
+        if (s2.match_length >= MIN_MATCH) {
+          bflush = trees._tr_tally(s2, s2.strstart - s2.match_start, s2.match_length - MIN_MATCH);
+          s2.lookahead -= s2.match_length;
+          if (s2.match_length <= s2.max_lazy_match && s2.lookahead >= MIN_MATCH) {
+            s2.match_length--;
             do {
-              s.strstart++;
-              s.ins_h = (s.ins_h << s.hash_shift ^ s.window[s.strstart + MIN_MATCH - 1]) & s.hash_mask;
-              hash_head = s.prev[s.strstart & s.w_mask] = s.head[s.ins_h];
-              s.head[s.ins_h] = s.strstart;
-            } while (--s.match_length !== 0);
-            s.strstart++;
+              s2.strstart++;
+              s2.ins_h = (s2.ins_h << s2.hash_shift ^ s2.window[s2.strstart + MIN_MATCH - 1]) & s2.hash_mask;
+              hash_head = s2.prev[s2.strstart & s2.w_mask] = s2.head[s2.ins_h];
+              s2.head[s2.ins_h] = s2.strstart;
+            } while (--s2.match_length !== 0);
+            s2.strstart++;
           } else {
-            s.strstart += s.match_length;
-            s.match_length = 0;
-            s.ins_h = s.window[s.strstart];
-            s.ins_h = (s.ins_h << s.hash_shift ^ s.window[s.strstart + 1]) & s.hash_mask;
+            s2.strstart += s2.match_length;
+            s2.match_length = 0;
+            s2.ins_h = s2.window[s2.strstart];
+            s2.ins_h = (s2.ins_h << s2.hash_shift ^ s2.window[s2.strstart + 1]) & s2.hash_mask;
           }
         } else {
-          bflush = trees._tr_tally(s, 0, s.window[s.strstart]);
-          s.lookahead--;
-          s.strstart++;
+          bflush = trees._tr_tally(s2, 0, s2.window[s2.strstart]);
+          s2.lookahead--;
+          s2.strstart++;
         }
         if (bflush) {
-          flush_block_only(s, false);
-          if (s.strm.avail_out === 0) {
+          flush_block_only(s2, false);
+          if (s2.strm.avail_out === 0) {
             return BS_NEED_MORE;
           }
         }
       }
-      s.insert = s.strstart < MIN_MATCH - 1 ? s.strstart : MIN_MATCH - 1;
+      s2.insert = s2.strstart < MIN_MATCH - 1 ? s2.strstart : MIN_MATCH - 1;
       if (flush === Z_FINISH) {
-        flush_block_only(s, true);
-        if (s.strm.avail_out === 0) {
+        flush_block_only(s2, true);
+        if (s2.strm.avail_out === 0) {
           return BS_FINISH_STARTED;
         }
         return BS_FINISH_DONE;
       }
-      if (s.last_lit) {
-        flush_block_only(s, false);
-        if (s.strm.avail_out === 0) {
+      if (s2.last_lit) {
+        flush_block_only(s2, false);
+        if (s2.strm.avail_out === 0) {
           return BS_NEED_MORE;
         }
       }
       return BS_BLOCK_DONE;
     }
-    function deflate_slow(s, flush) {
+    function deflate_slow(s2, flush) {
       var hash_head;
       var bflush;
       var max_insert;
       for (; ; ) {
-        if (s.lookahead < MIN_LOOKAHEAD) {
-          fill_window(s);
-          if (s.lookahead < MIN_LOOKAHEAD && flush === Z_NO_FLUSH) {
+        if (s2.lookahead < MIN_LOOKAHEAD) {
+          fill_window(s2);
+          if (s2.lookahead < MIN_LOOKAHEAD && flush === Z_NO_FLUSH) {
             return BS_NEED_MORE;
           }
-          if (s.lookahead === 0) {
+          if (s2.lookahead === 0) {
             break;
           }
         }
         hash_head = 0;
-        if (s.lookahead >= MIN_MATCH) {
-          s.ins_h = (s.ins_h << s.hash_shift ^ s.window[s.strstart + MIN_MATCH - 1]) & s.hash_mask;
-          hash_head = s.prev[s.strstart & s.w_mask] = s.head[s.ins_h];
-          s.head[s.ins_h] = s.strstart;
+        if (s2.lookahead >= MIN_MATCH) {
+          s2.ins_h = (s2.ins_h << s2.hash_shift ^ s2.window[s2.strstart + MIN_MATCH - 1]) & s2.hash_mask;
+          hash_head = s2.prev[s2.strstart & s2.w_mask] = s2.head[s2.ins_h];
+          s2.head[s2.ins_h] = s2.strstart;
         }
-        s.prev_length = s.match_length;
-        s.prev_match = s.match_start;
-        s.match_length = MIN_MATCH - 1;
-        if (hash_head !== 0 && s.prev_length < s.max_lazy_match && s.strstart - hash_head <= s.w_size - MIN_LOOKAHEAD) {
-          s.match_length = longest_match(s, hash_head);
-          if (s.match_length <= 5 && (s.strategy === Z_FILTERED || s.match_length === MIN_MATCH && s.strstart - s.match_start > 4096)) {
-            s.match_length = MIN_MATCH - 1;
+        s2.prev_length = s2.match_length;
+        s2.prev_match = s2.match_start;
+        s2.match_length = MIN_MATCH - 1;
+        if (hash_head !== 0 && s2.prev_length < s2.max_lazy_match && s2.strstart - hash_head <= s2.w_size - MIN_LOOKAHEAD) {
+          s2.match_length = longest_match(s2, hash_head);
+          if (s2.match_length <= 5 && (s2.strategy === Z_FILTERED || s2.match_length === MIN_MATCH && s2.strstart - s2.match_start > 4096)) {
+            s2.match_length = MIN_MATCH - 1;
           }
         }
-        if (s.prev_length >= MIN_MATCH && s.match_length <= s.prev_length) {
-          max_insert = s.strstart + s.lookahead - MIN_MATCH;
-          bflush = trees._tr_tally(s, s.strstart - 1 - s.prev_match, s.prev_length - MIN_MATCH);
-          s.lookahead -= s.prev_length - 1;
-          s.prev_length -= 2;
+        if (s2.prev_length >= MIN_MATCH && s2.match_length <= s2.prev_length) {
+          max_insert = s2.strstart + s2.lookahead - MIN_MATCH;
+          bflush = trees._tr_tally(s2, s2.strstart - 1 - s2.prev_match, s2.prev_length - MIN_MATCH);
+          s2.lookahead -= s2.prev_length - 1;
+          s2.prev_length -= 2;
           do {
-            if (++s.strstart <= max_insert) {
-              s.ins_h = (s.ins_h << s.hash_shift ^ s.window[s.strstart + MIN_MATCH - 1]) & s.hash_mask;
-              hash_head = s.prev[s.strstart & s.w_mask] = s.head[s.ins_h];
-              s.head[s.ins_h] = s.strstart;
+            if (++s2.strstart <= max_insert) {
+              s2.ins_h = (s2.ins_h << s2.hash_shift ^ s2.window[s2.strstart + MIN_MATCH - 1]) & s2.hash_mask;
+              hash_head = s2.prev[s2.strstart & s2.w_mask] = s2.head[s2.ins_h];
+              s2.head[s2.ins_h] = s2.strstart;
             }
-          } while (--s.prev_length !== 0);
-          s.match_available = 0;
-          s.match_length = MIN_MATCH - 1;
-          s.strstart++;
+          } while (--s2.prev_length !== 0);
+          s2.match_available = 0;
+          s2.match_length = MIN_MATCH - 1;
+          s2.strstart++;
           if (bflush) {
-            flush_block_only(s, false);
-            if (s.strm.avail_out === 0) {
+            flush_block_only(s2, false);
+            if (s2.strm.avail_out === 0) {
               return BS_NEED_MORE;
             }
           }
-        } else if (s.match_available) {
-          bflush = trees._tr_tally(s, 0, s.window[s.strstart - 1]);
+        } else if (s2.match_available) {
+          bflush = trees._tr_tally(s2, 0, s2.window[s2.strstart - 1]);
           if (bflush) {
-            flush_block_only(s, false);
+            flush_block_only(s2, false);
           }
-          s.strstart++;
-          s.lookahead--;
-          if (s.strm.avail_out === 0) {
+          s2.strstart++;
+          s2.lookahead--;
+          if (s2.strm.avail_out === 0) {
             return BS_NEED_MORE;
           }
         } else {
-          s.match_available = 1;
-          s.strstart++;
-          s.lookahead--;
+          s2.match_available = 1;
+          s2.strstart++;
+          s2.lookahead--;
         }
       }
-      if (s.match_available) {
-        bflush = trees._tr_tally(s, 0, s.window[s.strstart - 1]);
-        s.match_available = 0;
+      if (s2.match_available) {
+        bflush = trees._tr_tally(s2, 0, s2.window[s2.strstart - 1]);
+        s2.match_available = 0;
       }
-      s.insert = s.strstart < MIN_MATCH - 1 ? s.strstart : MIN_MATCH - 1;
+      s2.insert = s2.strstart < MIN_MATCH - 1 ? s2.strstart : MIN_MATCH - 1;
       if (flush === Z_FINISH) {
-        flush_block_only(s, true);
-        if (s.strm.avail_out === 0) {
+        flush_block_only(s2, true);
+        if (s2.strm.avail_out === 0) {
           return BS_FINISH_STARTED;
         }
         return BS_FINISH_DONE;
       }
-      if (s.last_lit) {
-        flush_block_only(s, false);
-        if (s.strm.avail_out === 0) {
+      if (s2.last_lit) {
+        flush_block_only(s2, false);
+        if (s2.strm.avail_out === 0) {
           return BS_NEED_MORE;
         }
       }
       return BS_BLOCK_DONE;
     }
-    function deflate_rle(s, flush) {
+    function deflate_rle(s2, flush) {
       var bflush;
       var prev;
       var scan, strend;
-      var _win = s.window;
+      var _win = s2.window;
       for (; ; ) {
-        if (s.lookahead <= MAX_MATCH) {
-          fill_window(s);
-          if (s.lookahead <= MAX_MATCH && flush === Z_NO_FLUSH) {
+        if (s2.lookahead <= MAX_MATCH) {
+          fill_window(s2);
+          if (s2.lookahead <= MAX_MATCH && flush === Z_NO_FLUSH) {
             return BS_NEED_MORE;
           }
-          if (s.lookahead === 0) {
+          if (s2.lookahead === 0) {
             break;
           }
         }
-        s.match_length = 0;
-        if (s.lookahead >= MIN_MATCH && s.strstart > 0) {
-          scan = s.strstart - 1;
+        s2.match_length = 0;
+        if (s2.lookahead >= MIN_MATCH && s2.strstart > 0) {
+          scan = s2.strstart - 1;
           prev = _win[scan];
           if (prev === _win[++scan] && prev === _win[++scan] && prev === _win[++scan]) {
-            strend = s.strstart + MAX_MATCH;
+            strend = s2.strstart + MAX_MATCH;
             do {
             } while (prev === _win[++scan] && prev === _win[++scan] && prev === _win[++scan] && prev === _win[++scan] && prev === _win[++scan] && prev === _win[++scan] && prev === _win[++scan] && prev === _win[++scan] && scan < strend);
-            s.match_length = MAX_MATCH - (strend - scan);
-            if (s.match_length > s.lookahead) {
-              s.match_length = s.lookahead;
+            s2.match_length = MAX_MATCH - (strend - scan);
+            if (s2.match_length > s2.lookahead) {
+              s2.match_length = s2.lookahead;
             }
           }
         }
-        if (s.match_length >= MIN_MATCH) {
-          bflush = trees._tr_tally(s, 1, s.match_length - MIN_MATCH);
-          s.lookahead -= s.match_length;
-          s.strstart += s.match_length;
-          s.match_length = 0;
+        if (s2.match_length >= MIN_MATCH) {
+          bflush = trees._tr_tally(s2, 1, s2.match_length - MIN_MATCH);
+          s2.lookahead -= s2.match_length;
+          s2.strstart += s2.match_length;
+          s2.match_length = 0;
         } else {
-          bflush = trees._tr_tally(s, 0, s.window[s.strstart]);
-          s.lookahead--;
-          s.strstart++;
+          bflush = trees._tr_tally(s2, 0, s2.window[s2.strstart]);
+          s2.lookahead--;
+          s2.strstart++;
         }
         if (bflush) {
-          flush_block_only(s, false);
-          if (s.strm.avail_out === 0) {
+          flush_block_only(s2, false);
+          if (s2.strm.avail_out === 0) {
             return BS_NEED_MORE;
           }
         }
       }
-      s.insert = 0;
+      s2.insert = 0;
       if (flush === Z_FINISH) {
-        flush_block_only(s, true);
-        if (s.strm.avail_out === 0) {
+        flush_block_only(s2, true);
+        if (s2.strm.avail_out === 0) {
           return BS_FINISH_STARTED;
         }
         return BS_FINISH_DONE;
       }
-      if (s.last_lit) {
-        flush_block_only(s, false);
-        if (s.strm.avail_out === 0) {
+      if (s2.last_lit) {
+        flush_block_only(s2, false);
+        if (s2.strm.avail_out === 0) {
           return BS_NEED_MORE;
         }
       }
       return BS_BLOCK_DONE;
     }
-    function deflate_huff(s, flush) {
+    function deflate_huff(s2, flush) {
       var bflush;
       for (; ; ) {
-        if (s.lookahead === 0) {
-          fill_window(s);
-          if (s.lookahead === 0) {
+        if (s2.lookahead === 0) {
+          fill_window(s2);
+          if (s2.lookahead === 0) {
             if (flush === Z_NO_FLUSH) {
               return BS_NEED_MORE;
             }
             break;
           }
         }
-        s.match_length = 0;
-        bflush = trees._tr_tally(s, 0, s.window[s.strstart]);
-        s.lookahead--;
-        s.strstart++;
+        s2.match_length = 0;
+        bflush = trees._tr_tally(s2, 0, s2.window[s2.strstart]);
+        s2.lookahead--;
+        s2.strstart++;
         if (bflush) {
-          flush_block_only(s, false);
-          if (s.strm.avail_out === 0) {
+          flush_block_only(s2, false);
+          if (s2.strm.avail_out === 0) {
             return BS_NEED_MORE;
           }
         }
       }
-      s.insert = 0;
+      s2.insert = 0;
       if (flush === Z_FINISH) {
-        flush_block_only(s, true);
-        if (s.strm.avail_out === 0) {
+        flush_block_only(s2, true);
+        if (s2.strm.avail_out === 0) {
           return BS_FINISH_STARTED;
         }
         return BS_FINISH_DONE;
       }
-      if (s.last_lit) {
-        flush_block_only(s, false);
-        if (s.strm.avail_out === 0) {
+      if (s2.last_lit) {
+        flush_block_only(s2, false);
+        if (s2.strm.avail_out === 0) {
           return BS_NEED_MORE;
         }
       }
@@ -5358,20 +5358,20 @@ var require_deflate = __commonJS({
       new Config(32, 258, 258, 4096, deflate_slow)
       /* 9 max compression */
     ];
-    function lm_init(s) {
-      s.window_size = 2 * s.w_size;
-      zero(s.head);
-      s.max_lazy_match = configuration_table[s.level].max_lazy;
-      s.good_match = configuration_table[s.level].good_length;
-      s.nice_match = configuration_table[s.level].nice_length;
-      s.max_chain_length = configuration_table[s.level].max_chain;
-      s.strstart = 0;
-      s.block_start = 0;
-      s.lookahead = 0;
-      s.insert = 0;
-      s.match_length = s.prev_length = MIN_MATCH - 1;
-      s.match_available = 0;
-      s.ins_h = 0;
+    function lm_init(s2) {
+      s2.window_size = 2 * s2.w_size;
+      zero(s2.head);
+      s2.max_lazy_match = configuration_table[s2.level].max_lazy;
+      s2.good_match = configuration_table[s2.level].good_length;
+      s2.nice_match = configuration_table[s2.level].nice_length;
+      s2.max_chain_length = configuration_table[s2.level].max_chain;
+      s2.strstart = 0;
+      s2.block_start = 0;
+      s2.lookahead = 0;
+      s2.insert = 0;
+      s2.match_length = s2.prev_length = MIN_MATCH - 1;
+      s2.match_available = 0;
+      s2.ins_h = 0;
     }
     function DeflateState() {
       this.strm = null;
@@ -5439,22 +5439,22 @@ var require_deflate = __commonJS({
       this.bi_valid = 0;
     }
     function deflateResetKeep(strm) {
-      var s;
+      var s2;
       if (!strm || !strm.state) {
         return err(strm, Z_STREAM_ERROR);
       }
       strm.total_in = strm.total_out = 0;
       strm.data_type = Z_UNKNOWN;
-      s = strm.state;
-      s.pending = 0;
-      s.pending_out = 0;
-      if (s.wrap < 0) {
-        s.wrap = -s.wrap;
+      s2 = strm.state;
+      s2.pending = 0;
+      s2.pending_out = 0;
+      if (s2.wrap < 0) {
+        s2.wrap = -s2.wrap;
       }
-      s.status = s.wrap ? INIT_STATE : BUSY_STATE;
-      strm.adler = s.wrap === 2 ? 0 : 1;
-      s.last_flush = Z_NO_FLUSH;
-      trees._tr_init(s);
+      s2.status = s2.wrap ? INIT_STATE : BUSY_STATE;
+      strm.adler = s2.wrap === 2 ? 0 : 1;
+      s2.last_flush = Z_NO_FLUSH;
+      trees._tr_init(s2);
       return Z_OK;
     }
     function deflateReset(strm) {
@@ -5495,257 +5495,257 @@ var require_deflate = __commonJS({
       if (windowBits === 8) {
         windowBits = 9;
       }
-      var s = new DeflateState();
-      strm.state = s;
-      s.strm = strm;
-      s.wrap = wrap;
-      s.gzhead = null;
-      s.w_bits = windowBits;
-      s.w_size = 1 << s.w_bits;
-      s.w_mask = s.w_size - 1;
-      s.hash_bits = memLevel + 7;
-      s.hash_size = 1 << s.hash_bits;
-      s.hash_mask = s.hash_size - 1;
-      s.hash_shift = ~~((s.hash_bits + MIN_MATCH - 1) / MIN_MATCH);
-      s.window = new utils.Buf8(s.w_size * 2);
-      s.head = new utils.Buf16(s.hash_size);
-      s.prev = new utils.Buf16(s.w_size);
-      s.lit_bufsize = 1 << memLevel + 6;
-      s.pending_buf_size = s.lit_bufsize * 4;
-      s.pending_buf = new utils.Buf8(s.pending_buf_size);
-      s.d_buf = 1 * s.lit_bufsize;
-      s.l_buf = (1 + 2) * s.lit_bufsize;
-      s.level = level;
-      s.strategy = strategy;
-      s.method = method;
+      var s2 = new DeflateState();
+      strm.state = s2;
+      s2.strm = strm;
+      s2.wrap = wrap;
+      s2.gzhead = null;
+      s2.w_bits = windowBits;
+      s2.w_size = 1 << s2.w_bits;
+      s2.w_mask = s2.w_size - 1;
+      s2.hash_bits = memLevel + 7;
+      s2.hash_size = 1 << s2.hash_bits;
+      s2.hash_mask = s2.hash_size - 1;
+      s2.hash_shift = ~~((s2.hash_bits + MIN_MATCH - 1) / MIN_MATCH);
+      s2.window = new utils.Buf8(s2.w_size * 2);
+      s2.head = new utils.Buf16(s2.hash_size);
+      s2.prev = new utils.Buf16(s2.w_size);
+      s2.lit_bufsize = 1 << memLevel + 6;
+      s2.pending_buf_size = s2.lit_bufsize * 4;
+      s2.pending_buf = new utils.Buf8(s2.pending_buf_size);
+      s2.d_buf = 1 * s2.lit_bufsize;
+      s2.l_buf = (1 + 2) * s2.lit_bufsize;
+      s2.level = level;
+      s2.strategy = strategy;
+      s2.method = method;
       return deflateReset(strm);
     }
     function deflateInit(strm, level) {
       return deflateInit2(strm, level, Z_DEFLATED, MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY);
     }
     function deflate(strm, flush) {
-      var old_flush, s;
+      var old_flush, s2;
       var beg, val;
       if (!strm || !strm.state || flush > Z_BLOCK || flush < 0) {
         return strm ? err(strm, Z_STREAM_ERROR) : Z_STREAM_ERROR;
       }
-      s = strm.state;
-      if (!strm.output || !strm.input && strm.avail_in !== 0 || s.status === FINISH_STATE && flush !== Z_FINISH) {
+      s2 = strm.state;
+      if (!strm.output || !strm.input && strm.avail_in !== 0 || s2.status === FINISH_STATE && flush !== Z_FINISH) {
         return err(strm, strm.avail_out === 0 ? Z_BUF_ERROR : Z_STREAM_ERROR);
       }
-      s.strm = strm;
-      old_flush = s.last_flush;
-      s.last_flush = flush;
-      if (s.status === INIT_STATE) {
-        if (s.wrap === 2) {
+      s2.strm = strm;
+      old_flush = s2.last_flush;
+      s2.last_flush = flush;
+      if (s2.status === INIT_STATE) {
+        if (s2.wrap === 2) {
           strm.adler = 0;
-          put_byte(s, 31);
-          put_byte(s, 139);
-          put_byte(s, 8);
-          if (!s.gzhead) {
-            put_byte(s, 0);
-            put_byte(s, 0);
-            put_byte(s, 0);
-            put_byte(s, 0);
-            put_byte(s, 0);
-            put_byte(s, s.level === 9 ? 2 : s.strategy >= Z_HUFFMAN_ONLY || s.level < 2 ? 4 : 0);
-            put_byte(s, OS_CODE);
-            s.status = BUSY_STATE;
+          put_byte(s2, 31);
+          put_byte(s2, 139);
+          put_byte(s2, 8);
+          if (!s2.gzhead) {
+            put_byte(s2, 0);
+            put_byte(s2, 0);
+            put_byte(s2, 0);
+            put_byte(s2, 0);
+            put_byte(s2, 0);
+            put_byte(s2, s2.level === 9 ? 2 : s2.strategy >= Z_HUFFMAN_ONLY || s2.level < 2 ? 4 : 0);
+            put_byte(s2, OS_CODE);
+            s2.status = BUSY_STATE;
           } else {
             put_byte(
-              s,
-              (s.gzhead.text ? 1 : 0) + (s.gzhead.hcrc ? 2 : 0) + (!s.gzhead.extra ? 0 : 4) + (!s.gzhead.name ? 0 : 8) + (!s.gzhead.comment ? 0 : 16)
+              s2,
+              (s2.gzhead.text ? 1 : 0) + (s2.gzhead.hcrc ? 2 : 0) + (!s2.gzhead.extra ? 0 : 4) + (!s2.gzhead.name ? 0 : 8) + (!s2.gzhead.comment ? 0 : 16)
             );
-            put_byte(s, s.gzhead.time & 255);
-            put_byte(s, s.gzhead.time >> 8 & 255);
-            put_byte(s, s.gzhead.time >> 16 & 255);
-            put_byte(s, s.gzhead.time >> 24 & 255);
-            put_byte(s, s.level === 9 ? 2 : s.strategy >= Z_HUFFMAN_ONLY || s.level < 2 ? 4 : 0);
-            put_byte(s, s.gzhead.os & 255);
-            if (s.gzhead.extra && s.gzhead.extra.length) {
-              put_byte(s, s.gzhead.extra.length & 255);
-              put_byte(s, s.gzhead.extra.length >> 8 & 255);
+            put_byte(s2, s2.gzhead.time & 255);
+            put_byte(s2, s2.gzhead.time >> 8 & 255);
+            put_byte(s2, s2.gzhead.time >> 16 & 255);
+            put_byte(s2, s2.gzhead.time >> 24 & 255);
+            put_byte(s2, s2.level === 9 ? 2 : s2.strategy >= Z_HUFFMAN_ONLY || s2.level < 2 ? 4 : 0);
+            put_byte(s2, s2.gzhead.os & 255);
+            if (s2.gzhead.extra && s2.gzhead.extra.length) {
+              put_byte(s2, s2.gzhead.extra.length & 255);
+              put_byte(s2, s2.gzhead.extra.length >> 8 & 255);
             }
-            if (s.gzhead.hcrc) {
-              strm.adler = crc32(strm.adler, s.pending_buf, s.pending, 0);
+            if (s2.gzhead.hcrc) {
+              strm.adler = crc32(strm.adler, s2.pending_buf, s2.pending, 0);
             }
-            s.gzindex = 0;
-            s.status = EXTRA_STATE;
+            s2.gzindex = 0;
+            s2.status = EXTRA_STATE;
           }
         } else {
-          var header = Z_DEFLATED + (s.w_bits - 8 << 4) << 8;
+          var header = Z_DEFLATED + (s2.w_bits - 8 << 4) << 8;
           var level_flags = -1;
-          if (s.strategy >= Z_HUFFMAN_ONLY || s.level < 2) {
+          if (s2.strategy >= Z_HUFFMAN_ONLY || s2.level < 2) {
             level_flags = 0;
-          } else if (s.level < 6) {
+          } else if (s2.level < 6) {
             level_flags = 1;
-          } else if (s.level === 6) {
+          } else if (s2.level === 6) {
             level_flags = 2;
           } else {
             level_flags = 3;
           }
           header |= level_flags << 6;
-          if (s.strstart !== 0) {
+          if (s2.strstart !== 0) {
             header |= PRESET_DICT;
           }
           header += 31 - header % 31;
-          s.status = BUSY_STATE;
-          putShortMSB(s, header);
-          if (s.strstart !== 0) {
-            putShortMSB(s, strm.adler >>> 16);
-            putShortMSB(s, strm.adler & 65535);
+          s2.status = BUSY_STATE;
+          putShortMSB(s2, header);
+          if (s2.strstart !== 0) {
+            putShortMSB(s2, strm.adler >>> 16);
+            putShortMSB(s2, strm.adler & 65535);
           }
           strm.adler = 1;
         }
       }
-      if (s.status === EXTRA_STATE) {
-        if (s.gzhead.extra) {
-          beg = s.pending;
-          while (s.gzindex < (s.gzhead.extra.length & 65535)) {
-            if (s.pending === s.pending_buf_size) {
-              if (s.gzhead.hcrc && s.pending > beg) {
-                strm.adler = crc32(strm.adler, s.pending_buf, s.pending - beg, beg);
+      if (s2.status === EXTRA_STATE) {
+        if (s2.gzhead.extra) {
+          beg = s2.pending;
+          while (s2.gzindex < (s2.gzhead.extra.length & 65535)) {
+            if (s2.pending === s2.pending_buf_size) {
+              if (s2.gzhead.hcrc && s2.pending > beg) {
+                strm.adler = crc32(strm.adler, s2.pending_buf, s2.pending - beg, beg);
               }
               flush_pending(strm);
-              beg = s.pending;
-              if (s.pending === s.pending_buf_size) {
+              beg = s2.pending;
+              if (s2.pending === s2.pending_buf_size) {
                 break;
               }
             }
-            put_byte(s, s.gzhead.extra[s.gzindex] & 255);
-            s.gzindex++;
+            put_byte(s2, s2.gzhead.extra[s2.gzindex] & 255);
+            s2.gzindex++;
           }
-          if (s.gzhead.hcrc && s.pending > beg) {
-            strm.adler = crc32(strm.adler, s.pending_buf, s.pending - beg, beg);
+          if (s2.gzhead.hcrc && s2.pending > beg) {
+            strm.adler = crc32(strm.adler, s2.pending_buf, s2.pending - beg, beg);
           }
-          if (s.gzindex === s.gzhead.extra.length) {
-            s.gzindex = 0;
-            s.status = NAME_STATE;
+          if (s2.gzindex === s2.gzhead.extra.length) {
+            s2.gzindex = 0;
+            s2.status = NAME_STATE;
           }
         } else {
-          s.status = NAME_STATE;
+          s2.status = NAME_STATE;
         }
       }
-      if (s.status === NAME_STATE) {
-        if (s.gzhead.name) {
-          beg = s.pending;
+      if (s2.status === NAME_STATE) {
+        if (s2.gzhead.name) {
+          beg = s2.pending;
           do {
-            if (s.pending === s.pending_buf_size) {
-              if (s.gzhead.hcrc && s.pending > beg) {
-                strm.adler = crc32(strm.adler, s.pending_buf, s.pending - beg, beg);
+            if (s2.pending === s2.pending_buf_size) {
+              if (s2.gzhead.hcrc && s2.pending > beg) {
+                strm.adler = crc32(strm.adler, s2.pending_buf, s2.pending - beg, beg);
               }
               flush_pending(strm);
-              beg = s.pending;
-              if (s.pending === s.pending_buf_size) {
+              beg = s2.pending;
+              if (s2.pending === s2.pending_buf_size) {
                 val = 1;
                 break;
               }
             }
-            if (s.gzindex < s.gzhead.name.length) {
-              val = s.gzhead.name.charCodeAt(s.gzindex++) & 255;
+            if (s2.gzindex < s2.gzhead.name.length) {
+              val = s2.gzhead.name.charCodeAt(s2.gzindex++) & 255;
             } else {
               val = 0;
             }
-            put_byte(s, val);
+            put_byte(s2, val);
           } while (val !== 0);
-          if (s.gzhead.hcrc && s.pending > beg) {
-            strm.adler = crc32(strm.adler, s.pending_buf, s.pending - beg, beg);
+          if (s2.gzhead.hcrc && s2.pending > beg) {
+            strm.adler = crc32(strm.adler, s2.pending_buf, s2.pending - beg, beg);
           }
           if (val === 0) {
-            s.gzindex = 0;
-            s.status = COMMENT_STATE;
+            s2.gzindex = 0;
+            s2.status = COMMENT_STATE;
           }
         } else {
-          s.status = COMMENT_STATE;
+          s2.status = COMMENT_STATE;
         }
       }
-      if (s.status === COMMENT_STATE) {
-        if (s.gzhead.comment) {
-          beg = s.pending;
+      if (s2.status === COMMENT_STATE) {
+        if (s2.gzhead.comment) {
+          beg = s2.pending;
           do {
-            if (s.pending === s.pending_buf_size) {
-              if (s.gzhead.hcrc && s.pending > beg) {
-                strm.adler = crc32(strm.adler, s.pending_buf, s.pending - beg, beg);
+            if (s2.pending === s2.pending_buf_size) {
+              if (s2.gzhead.hcrc && s2.pending > beg) {
+                strm.adler = crc32(strm.adler, s2.pending_buf, s2.pending - beg, beg);
               }
               flush_pending(strm);
-              beg = s.pending;
-              if (s.pending === s.pending_buf_size) {
+              beg = s2.pending;
+              if (s2.pending === s2.pending_buf_size) {
                 val = 1;
                 break;
               }
             }
-            if (s.gzindex < s.gzhead.comment.length) {
-              val = s.gzhead.comment.charCodeAt(s.gzindex++) & 255;
+            if (s2.gzindex < s2.gzhead.comment.length) {
+              val = s2.gzhead.comment.charCodeAt(s2.gzindex++) & 255;
             } else {
               val = 0;
             }
-            put_byte(s, val);
+            put_byte(s2, val);
           } while (val !== 0);
-          if (s.gzhead.hcrc && s.pending > beg) {
-            strm.adler = crc32(strm.adler, s.pending_buf, s.pending - beg, beg);
+          if (s2.gzhead.hcrc && s2.pending > beg) {
+            strm.adler = crc32(strm.adler, s2.pending_buf, s2.pending - beg, beg);
           }
           if (val === 0) {
-            s.status = HCRC_STATE;
+            s2.status = HCRC_STATE;
           }
         } else {
-          s.status = HCRC_STATE;
+          s2.status = HCRC_STATE;
         }
       }
-      if (s.status === HCRC_STATE) {
-        if (s.gzhead.hcrc) {
-          if (s.pending + 2 > s.pending_buf_size) {
+      if (s2.status === HCRC_STATE) {
+        if (s2.gzhead.hcrc) {
+          if (s2.pending + 2 > s2.pending_buf_size) {
             flush_pending(strm);
           }
-          if (s.pending + 2 <= s.pending_buf_size) {
-            put_byte(s, strm.adler & 255);
-            put_byte(s, strm.adler >> 8 & 255);
+          if (s2.pending + 2 <= s2.pending_buf_size) {
+            put_byte(s2, strm.adler & 255);
+            put_byte(s2, strm.adler >> 8 & 255);
             strm.adler = 0;
-            s.status = BUSY_STATE;
+            s2.status = BUSY_STATE;
           }
         } else {
-          s.status = BUSY_STATE;
+          s2.status = BUSY_STATE;
         }
       }
-      if (s.pending !== 0) {
+      if (s2.pending !== 0) {
         flush_pending(strm);
         if (strm.avail_out === 0) {
-          s.last_flush = -1;
+          s2.last_flush = -1;
           return Z_OK;
         }
       } else if (strm.avail_in === 0 && rank(flush) <= rank(old_flush) && flush !== Z_FINISH) {
         return err(strm, Z_BUF_ERROR);
       }
-      if (s.status === FINISH_STATE && strm.avail_in !== 0) {
+      if (s2.status === FINISH_STATE && strm.avail_in !== 0) {
         return err(strm, Z_BUF_ERROR);
       }
-      if (strm.avail_in !== 0 || s.lookahead !== 0 || flush !== Z_NO_FLUSH && s.status !== FINISH_STATE) {
-        var bstate = s.strategy === Z_HUFFMAN_ONLY ? deflate_huff(s, flush) : s.strategy === Z_RLE ? deflate_rle(s, flush) : configuration_table[s.level].func(s, flush);
+      if (strm.avail_in !== 0 || s2.lookahead !== 0 || flush !== Z_NO_FLUSH && s2.status !== FINISH_STATE) {
+        var bstate = s2.strategy === Z_HUFFMAN_ONLY ? deflate_huff(s2, flush) : s2.strategy === Z_RLE ? deflate_rle(s2, flush) : configuration_table[s2.level].func(s2, flush);
         if (bstate === BS_FINISH_STARTED || bstate === BS_FINISH_DONE) {
-          s.status = FINISH_STATE;
+          s2.status = FINISH_STATE;
         }
         if (bstate === BS_NEED_MORE || bstate === BS_FINISH_STARTED) {
           if (strm.avail_out === 0) {
-            s.last_flush = -1;
+            s2.last_flush = -1;
           }
           return Z_OK;
         }
         if (bstate === BS_BLOCK_DONE) {
           if (flush === Z_PARTIAL_FLUSH) {
-            trees._tr_align(s);
+            trees._tr_align(s2);
           } else if (flush !== Z_BLOCK) {
-            trees._tr_stored_block(s, 0, 0, false);
+            trees._tr_stored_block(s2, 0, 0, false);
             if (flush === Z_FULL_FLUSH) {
-              zero(s.head);
-              if (s.lookahead === 0) {
-                s.strstart = 0;
-                s.block_start = 0;
-                s.insert = 0;
+              zero(s2.head);
+              if (s2.lookahead === 0) {
+                s2.strstart = 0;
+                s2.block_start = 0;
+                s2.insert = 0;
               }
             }
           }
           flush_pending(strm);
           if (strm.avail_out === 0) {
-            s.last_flush = -1;
+            s2.last_flush = -1;
             return Z_OK;
           }
         }
@@ -5753,43 +5753,43 @@ var require_deflate = __commonJS({
       if (flush !== Z_FINISH) {
         return Z_OK;
       }
-      if (s.wrap <= 0) {
+      if (s2.wrap <= 0) {
         return Z_STREAM_END;
       }
-      if (s.wrap === 2) {
-        put_byte(s, strm.adler & 255);
-        put_byte(s, strm.adler >> 8 & 255);
-        put_byte(s, strm.adler >> 16 & 255);
-        put_byte(s, strm.adler >> 24 & 255);
-        put_byte(s, strm.total_in & 255);
-        put_byte(s, strm.total_in >> 8 & 255);
-        put_byte(s, strm.total_in >> 16 & 255);
-        put_byte(s, strm.total_in >> 24 & 255);
+      if (s2.wrap === 2) {
+        put_byte(s2, strm.adler & 255);
+        put_byte(s2, strm.adler >> 8 & 255);
+        put_byte(s2, strm.adler >> 16 & 255);
+        put_byte(s2, strm.adler >> 24 & 255);
+        put_byte(s2, strm.total_in & 255);
+        put_byte(s2, strm.total_in >> 8 & 255);
+        put_byte(s2, strm.total_in >> 16 & 255);
+        put_byte(s2, strm.total_in >> 24 & 255);
       } else {
-        putShortMSB(s, strm.adler >>> 16);
-        putShortMSB(s, strm.adler & 65535);
+        putShortMSB(s2, strm.adler >>> 16);
+        putShortMSB(s2, strm.adler & 65535);
       }
       flush_pending(strm);
-      if (s.wrap > 0) {
-        s.wrap = -s.wrap;
+      if (s2.wrap > 0) {
+        s2.wrap = -s2.wrap;
       }
-      return s.pending !== 0 ? Z_OK : Z_STREAM_END;
+      return s2.pending !== 0 ? Z_OK : Z_STREAM_END;
     }
     function deflateEnd(strm) {
-      var status;
+      var status2;
       if (!strm || !strm.state) {
         return Z_STREAM_ERROR;
       }
-      status = strm.state.status;
-      if (status !== INIT_STATE && status !== EXTRA_STATE && status !== NAME_STATE && status !== COMMENT_STATE && status !== HCRC_STATE && status !== BUSY_STATE && status !== FINISH_STATE) {
+      status2 = strm.state.status;
+      if (status2 !== INIT_STATE && status2 !== EXTRA_STATE && status2 !== NAME_STATE && status2 !== COMMENT_STATE && status2 !== HCRC_STATE && status2 !== BUSY_STATE && status2 !== FINISH_STATE) {
         return err(strm, Z_STREAM_ERROR);
       }
       strm.state = null;
-      return status === BUSY_STATE ? err(strm, Z_DATA_ERROR) : Z_OK;
+      return status2 === BUSY_STATE ? err(strm, Z_DATA_ERROR) : Z_OK;
     }
     function deflateSetDictionary(strm, dictionary) {
       var dictLength = dictionary.length;
-      var s;
+      var s2;
       var str2, n;
       var wrap;
       var avail;
@@ -5799,26 +5799,26 @@ var require_deflate = __commonJS({
       if (!strm || !strm.state) {
         return Z_STREAM_ERROR;
       }
-      s = strm.state;
-      wrap = s.wrap;
-      if (wrap === 2 || wrap === 1 && s.status !== INIT_STATE || s.lookahead) {
+      s2 = strm.state;
+      wrap = s2.wrap;
+      if (wrap === 2 || wrap === 1 && s2.status !== INIT_STATE || s2.lookahead) {
         return Z_STREAM_ERROR;
       }
       if (wrap === 1) {
         strm.adler = adler32(strm.adler, dictionary, dictLength, 0);
       }
-      s.wrap = 0;
-      if (dictLength >= s.w_size) {
+      s2.wrap = 0;
+      if (dictLength >= s2.w_size) {
         if (wrap === 0) {
-          zero(s.head);
-          s.strstart = 0;
-          s.block_start = 0;
-          s.insert = 0;
+          zero(s2.head);
+          s2.strstart = 0;
+          s2.block_start = 0;
+          s2.insert = 0;
         }
-        tmpDict = new utils.Buf8(s.w_size);
-        utils.arraySet(tmpDict, dictionary, dictLength - s.w_size, s.w_size, 0);
+        tmpDict = new utils.Buf8(s2.w_size);
+        utils.arraySet(tmpDict, dictionary, dictLength - s2.w_size, s2.w_size, 0);
         dictionary = tmpDict;
-        dictLength = s.w_size;
+        dictLength = s2.w_size;
       }
       avail = strm.avail_in;
       next = strm.next_in;
@@ -5826,30 +5826,30 @@ var require_deflate = __commonJS({
       strm.avail_in = dictLength;
       strm.next_in = 0;
       strm.input = dictionary;
-      fill_window(s);
-      while (s.lookahead >= MIN_MATCH) {
-        str2 = s.strstart;
-        n = s.lookahead - (MIN_MATCH - 1);
+      fill_window(s2);
+      while (s2.lookahead >= MIN_MATCH) {
+        str2 = s2.strstart;
+        n = s2.lookahead - (MIN_MATCH - 1);
         do {
-          s.ins_h = (s.ins_h << s.hash_shift ^ s.window[str2 + MIN_MATCH - 1]) & s.hash_mask;
-          s.prev[str2 & s.w_mask] = s.head[s.ins_h];
-          s.head[s.ins_h] = str2;
+          s2.ins_h = (s2.ins_h << s2.hash_shift ^ s2.window[str2 + MIN_MATCH - 1]) & s2.hash_mask;
+          s2.prev[str2 & s2.w_mask] = s2.head[s2.ins_h];
+          s2.head[s2.ins_h] = str2;
           str2++;
         } while (--n);
-        s.strstart = str2;
-        s.lookahead = MIN_MATCH - 1;
-        fill_window(s);
+        s2.strstart = str2;
+        s2.lookahead = MIN_MATCH - 1;
+        fill_window(s2);
       }
-      s.strstart += s.lookahead;
-      s.block_start = s.strstart;
-      s.insert = s.lookahead;
-      s.lookahead = 0;
-      s.match_length = s.prev_length = MIN_MATCH - 1;
-      s.match_available = 0;
+      s2.strstart += s2.lookahead;
+      s2.block_start = s2.strstart;
+      s2.insert = s2.lookahead;
+      s2.lookahead = 0;
+      s2.match_length = s2.prev_length = MIN_MATCH - 1;
+      s2.match_available = 0;
       strm.next_in = next;
       strm.input = input;
       strm.avail_in = avail;
-      s.wrap = wrap;
+      s2.wrap = wrap;
       return Z_OK;
     }
     exports.deflateInit = deflateInit;
@@ -5934,11 +5934,11 @@ var require_strings = __commonJS({
           return String.fromCharCode.apply(null, utils.shrinkBuf(buf, len));
         }
       }
-      var result = "";
+      var result2 = "";
       for (var i = 0; i < len; i++) {
-        result += String.fromCharCode(buf[i]);
+        result2 += String.fromCharCode(buf[i]);
       }
-      return result;
+      return result2;
     }
     exports.buf2binstring = function(buf) {
       return buf2binstring(buf, buf.length);
@@ -6057,11 +6057,11 @@ var require_deflate2 = __commonJS({
         strategy: Z_DEFAULT_STRATEGY,
         to: ""
       }, options || {});
-      var opt = this.options;
-      if (opt.raw && opt.windowBits > 0) {
-        opt.windowBits = -opt.windowBits;
-      } else if (opt.gzip && opt.windowBits > 0 && opt.windowBits < 16) {
-        opt.windowBits += 16;
+      var opt2 = this.options;
+      if (opt2.raw && opt2.windowBits > 0) {
+        opt2.windowBits = -opt2.windowBits;
+      } else if (opt2.gzip && opt2.windowBits > 0 && opt2.windowBits < 16) {
+        opt2.windowBits += 16;
       }
       this.err = 0;
       this.msg = "";
@@ -6069,32 +6069,32 @@ var require_deflate2 = __commonJS({
       this.chunks = [];
       this.strm = new ZStream();
       this.strm.avail_out = 0;
-      var status = zlib_deflate.deflateInit2(
+      var status2 = zlib_deflate.deflateInit2(
         this.strm,
-        opt.level,
-        opt.method,
-        opt.windowBits,
-        opt.memLevel,
-        opt.strategy
+        opt2.level,
+        opt2.method,
+        opt2.windowBits,
+        opt2.memLevel,
+        opt2.strategy
       );
-      if (status !== Z_OK) {
-        throw new Error(msg[status]);
+      if (status2 !== Z_OK) {
+        throw new Error(msg[status2]);
       }
-      if (opt.header) {
-        zlib_deflate.deflateSetHeader(this.strm, opt.header);
+      if (opt2.header) {
+        zlib_deflate.deflateSetHeader(this.strm, opt2.header);
       }
-      if (opt.dictionary) {
+      if (opt2.dictionary) {
         var dict;
-        if (typeof opt.dictionary === "string") {
-          dict = strings.string2buf(opt.dictionary);
-        } else if (toString.call(opt.dictionary) === "[object ArrayBuffer]") {
-          dict = new Uint8Array(opt.dictionary);
+        if (typeof opt2.dictionary === "string") {
+          dict = strings.string2buf(opt2.dictionary);
+        } else if (toString.call(opt2.dictionary) === "[object ArrayBuffer]") {
+          dict = new Uint8Array(opt2.dictionary);
         } else {
-          dict = opt.dictionary;
+          dict = opt2.dictionary;
         }
-        status = zlib_deflate.deflateSetDictionary(this.strm, dict);
-        if (status !== Z_OK) {
-          throw new Error(msg[status]);
+        status2 = zlib_deflate.deflateSetDictionary(this.strm, dict);
+        if (status2 !== Z_OK) {
+          throw new Error(msg[status2]);
         }
         this._dict_set = true;
       }
@@ -6102,7 +6102,7 @@ var require_deflate2 = __commonJS({
     Deflate.prototype.push = function(data, mode) {
       var strm = this.strm;
       var chunkSize = this.options.chunkSize;
-      var status, _mode;
+      var status2, _mode;
       if (this.ended) {
         return false;
       }
@@ -6122,9 +6122,9 @@ var require_deflate2 = __commonJS({
           strm.next_out = 0;
           strm.avail_out = chunkSize;
         }
-        status = zlib_deflate.deflate(strm, _mode);
-        if (status !== Z_STREAM_END && status !== Z_OK) {
-          this.onEnd(status);
+        status2 = zlib_deflate.deflate(strm, _mode);
+        if (status2 !== Z_STREAM_END && status2 !== Z_OK) {
+          this.onEnd(status2);
           this.ended = true;
           return false;
         }
@@ -6135,12 +6135,12 @@ var require_deflate2 = __commonJS({
             this.onData(utils.shrinkBuf(strm.output, strm.next_out));
           }
         }
-      } while ((strm.avail_in > 0 || strm.avail_out === 0) && status !== Z_STREAM_END);
+      } while ((strm.avail_in > 0 || strm.avail_out === 0) && status2 !== Z_STREAM_END);
       if (_mode === Z_FINISH) {
-        status = zlib_deflate.deflateEnd(this.strm);
-        this.onEnd(status);
+        status2 = zlib_deflate.deflateEnd(this.strm);
+        this.onEnd(status2);
         this.ended = true;
-        return status === Z_OK;
+        return status2 === Z_OK;
       }
       if (_mode === Z_SYNC_FLUSH) {
         this.onEnd(Z_OK);
@@ -6152,8 +6152,8 @@ var require_deflate2 = __commonJS({
     Deflate.prototype.onData = function(chunk) {
       this.chunks.push(chunk);
     };
-    Deflate.prototype.onEnd = function(status) {
-      if (status === Z_OK) {
+    Deflate.prototype.onEnd = function(status2) {
+      if (status2 === Z_OK) {
         if (this.options.to === "string") {
           this.result = this.chunks.join("");
         } else {
@@ -6161,7 +6161,7 @@ var require_deflate2 = __commonJS({
         }
       }
       this.chunks = [];
-      this.err = status;
+      this.err = status2;
       this.msg = this.strm.msg;
     };
     function deflate(input, options) {
@@ -6580,14 +6580,14 @@ var require_inftrees = __commonJS({
       var huff = 0;
       var incr;
       var fill;
-      var low;
+      var low2;
       var mask;
       var next;
-      var base2 = null;
+      var base = null;
       var base_index = 0;
       var end;
       var count = new utils.Buf16(MAXBITS + 1);
-      var offs = new utils.Buf16(MAXBITS + 1);
+      var offs2 = new utils.Buf16(MAXBITS + 1);
       var extra = null;
       var extra_index = 0;
       var here_bits, here_op, here_val;
@@ -6631,26 +6631,26 @@ var require_inftrees = __commonJS({
       if (left > 0 && (type === CODES || max !== 1)) {
         return -1;
       }
-      offs[1] = 0;
+      offs2[1] = 0;
       for (len = 1; len < MAXBITS; len++) {
-        offs[len + 1] = offs[len] + count[len];
+        offs2[len + 1] = offs2[len] + count[len];
       }
       for (sym = 0; sym < codes; sym++) {
         if (lens[lens_index + sym] !== 0) {
-          work[offs[lens[lens_index + sym]]++] = sym;
+          work[offs2[lens[lens_index + sym]]++] = sym;
         }
       }
       if (type === CODES) {
-        base2 = extra = work;
+        base = extra = work;
         end = 19;
       } else if (type === LENS) {
-        base2 = lbase;
+        base = lbase;
         base_index -= 257;
         extra = lext;
         extra_index -= 257;
         end = 256;
       } else {
-        base2 = dbase;
+        base = dbase;
         extra = dext;
         end = -1;
       }
@@ -6660,7 +6660,7 @@ var require_inftrees = __commonJS({
       next = table_index;
       curr = root3;
       drop = 0;
-      low = -1;
+      low2 = -1;
       used = 1 << root3;
       mask = used - 1;
       if (type === LENS && used > ENOUGH_LENS || type === DISTS && used > ENOUGH_DISTS) {
@@ -6673,7 +6673,7 @@ var require_inftrees = __commonJS({
           here_val = work[sym];
         } else if (work[sym] > end) {
           here_op = extra[extra_index + work[sym]];
-          here_val = base2[base_index + work[sym]];
+          here_val = base[base_index + work[sym]];
         } else {
           here_op = 32 + 64;
           here_val = 0;
@@ -6702,7 +6702,7 @@ var require_inftrees = __commonJS({
           }
           len = lens[lens_index + work[sym]];
         }
-        if (len > root3 && (huff & mask) !== low) {
+        if (len > root3 && (huff & mask) !== low2) {
           if (drop === 0) {
             drop = root3;
           }
@@ -6721,8 +6721,8 @@ var require_inftrees = __commonJS({
           if (type === LENS && used > ENOUGH_LENS || type === DISTS && used > ENOUGH_DISTS) {
             return 1;
           }
-          low = huff & mask;
-          table2[low] = root3 << 24 | curr << 16 | next - table_index | 0;
+          low2 = huff & mask;
+          table2[low2] = root3 << 24 | curr << 16 | next - table_index | 0;
         }
       }
       if (huff !== 0) {
@@ -8059,19 +8059,19 @@ var require_inflate2 = __commonJS({
         windowBits: 0,
         to: ""
       }, options || {});
-      var opt = this.options;
-      if (opt.raw && opt.windowBits >= 0 && opt.windowBits < 16) {
-        opt.windowBits = -opt.windowBits;
-        if (opt.windowBits === 0) {
-          opt.windowBits = -15;
+      var opt2 = this.options;
+      if (opt2.raw && opt2.windowBits >= 0 && opt2.windowBits < 16) {
+        opt2.windowBits = -opt2.windowBits;
+        if (opt2.windowBits === 0) {
+          opt2.windowBits = -15;
         }
       }
-      if (opt.windowBits >= 0 && opt.windowBits < 16 && !(options && options.windowBits)) {
-        opt.windowBits += 32;
+      if (opt2.windowBits >= 0 && opt2.windowBits < 16 && !(options && options.windowBits)) {
+        opt2.windowBits += 32;
       }
-      if (opt.windowBits > 15 && opt.windowBits < 48) {
-        if ((opt.windowBits & 15) === 0) {
-          opt.windowBits |= 15;
+      if (opt2.windowBits > 15 && opt2.windowBits < 48) {
+        if ((opt2.windowBits & 15) === 0) {
+          opt2.windowBits |= 15;
         }
       }
       this.err = 0;
@@ -8080,25 +8080,25 @@ var require_inflate2 = __commonJS({
       this.chunks = [];
       this.strm = new ZStream();
       this.strm.avail_out = 0;
-      var status = zlib_inflate.inflateInit2(
+      var status2 = zlib_inflate.inflateInit2(
         this.strm,
-        opt.windowBits
+        opt2.windowBits
       );
-      if (status !== c.Z_OK) {
-        throw new Error(msg[status]);
+      if (status2 !== c.Z_OK) {
+        throw new Error(msg[status2]);
       }
       this.header = new GZheader();
       zlib_inflate.inflateGetHeader(this.strm, this.header);
-      if (opt.dictionary) {
-        if (typeof opt.dictionary === "string") {
-          opt.dictionary = strings.string2buf(opt.dictionary);
-        } else if (toString.call(opt.dictionary) === "[object ArrayBuffer]") {
-          opt.dictionary = new Uint8Array(opt.dictionary);
+      if (opt2.dictionary) {
+        if (typeof opt2.dictionary === "string") {
+          opt2.dictionary = strings.string2buf(opt2.dictionary);
+        } else if (toString.call(opt2.dictionary) === "[object ArrayBuffer]") {
+          opt2.dictionary = new Uint8Array(opt2.dictionary);
         }
-        if (opt.raw) {
-          status = zlib_inflate.inflateSetDictionary(this.strm, opt.dictionary);
-          if (status !== c.Z_OK) {
-            throw new Error(msg[status]);
+        if (opt2.raw) {
+          status2 = zlib_inflate.inflateSetDictionary(this.strm, opt2.dictionary);
+          if (status2 !== c.Z_OK) {
+            throw new Error(msg[status2]);
           }
         }
       }
@@ -8107,7 +8107,7 @@ var require_inflate2 = __commonJS({
       var strm = this.strm;
       var chunkSize = this.options.chunkSize;
       var dictionary = this.options.dictionary;
-      var status, _mode;
+      var status2, _mode;
       var next_out_utf8, tail, utf8str;
       var allowBufError = false;
       if (this.ended) {
@@ -8129,21 +8129,21 @@ var require_inflate2 = __commonJS({
           strm.next_out = 0;
           strm.avail_out = chunkSize;
         }
-        status = zlib_inflate.inflate(strm, c.Z_NO_FLUSH);
-        if (status === c.Z_NEED_DICT && dictionary) {
-          status = zlib_inflate.inflateSetDictionary(this.strm, dictionary);
+        status2 = zlib_inflate.inflate(strm, c.Z_NO_FLUSH);
+        if (status2 === c.Z_NEED_DICT && dictionary) {
+          status2 = zlib_inflate.inflateSetDictionary(this.strm, dictionary);
         }
-        if (status === c.Z_BUF_ERROR && allowBufError === true) {
-          status = c.Z_OK;
+        if (status2 === c.Z_BUF_ERROR && allowBufError === true) {
+          status2 = c.Z_OK;
           allowBufError = false;
         }
-        if (status !== c.Z_STREAM_END && status !== c.Z_OK) {
-          this.onEnd(status);
+        if (status2 !== c.Z_STREAM_END && status2 !== c.Z_OK) {
+          this.onEnd(status2);
           this.ended = true;
           return false;
         }
         if (strm.next_out) {
-          if (strm.avail_out === 0 || status === c.Z_STREAM_END || strm.avail_in === 0 && (_mode === c.Z_FINISH || _mode === c.Z_SYNC_FLUSH)) {
+          if (strm.avail_out === 0 || status2 === c.Z_STREAM_END || strm.avail_in === 0 && (_mode === c.Z_FINISH || _mode === c.Z_SYNC_FLUSH)) {
             if (this.options.to === "string") {
               next_out_utf8 = strings.utf8border(strm.output, strm.next_out);
               tail = strm.next_out - next_out_utf8;
@@ -8162,15 +8162,15 @@ var require_inflate2 = __commonJS({
         if (strm.avail_in === 0 && strm.avail_out === 0) {
           allowBufError = true;
         }
-      } while ((strm.avail_in > 0 || strm.avail_out === 0) && status !== c.Z_STREAM_END);
-      if (status === c.Z_STREAM_END) {
+      } while ((strm.avail_in > 0 || strm.avail_out === 0) && status2 !== c.Z_STREAM_END);
+      if (status2 === c.Z_STREAM_END) {
         _mode = c.Z_FINISH;
       }
       if (_mode === c.Z_FINISH) {
-        status = zlib_inflate.inflateEnd(this.strm);
-        this.onEnd(status);
+        status2 = zlib_inflate.inflateEnd(this.strm);
+        this.onEnd(status2);
         this.ended = true;
-        return status === c.Z_OK;
+        return status2 === c.Z_OK;
       }
       if (_mode === c.Z_SYNC_FLUSH) {
         this.onEnd(c.Z_OK);
@@ -8182,8 +8182,8 @@ var require_inflate2 = __commonJS({
     Inflate.prototype.onData = function(chunk) {
       this.chunks.push(chunk);
     };
-    Inflate.prototype.onEnd = function(status) {
-      if (status === c.Z_OK) {
+    Inflate.prototype.onEnd = function(status2) {
+      if (status2 === c.Z_OK) {
         if (this.options.to === "string") {
           this.result = this.chunks.join("");
         } else {
@@ -8191,7 +8191,7 @@ var require_inflate2 = __commonJS({
         }
       }
       this.chunks = [];
-      this.err = status;
+      this.err = status2;
       this.msg = this.strm.msg;
     };
     function inflate(input, options) {
@@ -8336,11 +8336,11 @@ var require_ZipFileWorker = __commonJS({
       return hex;
     };
     var generateUnixExternalFileAttr = function(unixPermissions, isDir) {
-      var result = unixPermissions;
+      var result2 = unixPermissions;
       if (!unixPermissions) {
-        result = isDir ? 16893 : 33204;
+        result2 = isDir ? 16893 : 33204;
       }
-      return (result & 65535) << 16;
+      return (result2 & 65535) << 16;
     };
     var generateDosExternalFileAttr = function(dosPermissions) {
       return (dosPermissions || 0) & 63;
@@ -8716,7 +8716,7 @@ var require_object = __commonJS({
     var generate = require_generate();
     var nodejsUtils = require_nodejsUtils();
     var NodejsStreamInputAdapter = require_NodejsStreamInputAdapter();
-    var fileAdd = function(name, data, originalOptions) {
+    var fileAdd = function(name2, data, originalOptions) {
       var dataType = utils.getTypeOf(data), parent;
       var o = utils.extend(originalOptions || {}, defaults);
       o.date = o.date || /* @__PURE__ */ new Date();
@@ -8733,9 +8733,9 @@ var require_object = __commonJS({
         o.dir = true;
       }
       if (o.dir) {
-        name = forceTrailingSlash(name);
+        name2 = forceTrailingSlash(name2);
       }
-      if (o.createFolders && (parent = parentFolder(name))) {
+      if (o.createFolders && (parent = parentFolder(name2))) {
         folderAdd.call(this, parent, true);
       }
       var isUnicodeString = dataType === "string" && o.binary === false && o.base64 === false;
@@ -8754,12 +8754,12 @@ var require_object = __commonJS({
       if (data instanceof CompressedObject || data instanceof GenericWorker) {
         zipObjectContent = data;
       } else if (nodejsUtils.isNode && nodejsUtils.isStream(data)) {
-        zipObjectContent = new NodejsStreamInputAdapter(name, data);
+        zipObjectContent = new NodejsStreamInputAdapter(name2, data);
       } else {
-        zipObjectContent = utils.prepareContent(name, data, o.binary, o.optimizedBinaryString, o.base64);
+        zipObjectContent = utils.prepareContent(name2, data, o.binary, o.optimizedBinaryString, o.base64);
       }
-      var object = new ZipObject(name, zipObjectContent, o);
-      this.files[name] = object;
+      var object = new ZipObject(name2, zipObjectContent, o);
+      this.files[name2] = object;
     };
     var parentFolder = function(path) {
       if (path.slice(-1) === "/") {
@@ -8774,16 +8774,16 @@ var require_object = __commonJS({
       }
       return path;
     };
-    var folderAdd = function(name, createFolders) {
+    var folderAdd = function(name2, createFolders) {
       createFolders = typeof createFolders !== "undefined" ? createFolders : defaults.createFolders;
-      name = forceTrailingSlash(name);
-      if (!this.files[name]) {
-        fileAdd.call(this, name, null, {
+      name2 = forceTrailingSlash(name2);
+      if (!this.files[name2]) {
+        fileAdd.call(this, name2, null, {
           dir: true,
           createFolders
         });
       }
-      return this.files[name];
+      return this.files[name2];
     };
     function isRegExp(object) {
       return Object.prototype.toString.call(object) === "[object RegExp]";
@@ -8819,13 +8819,13 @@ var require_object = __commonJS({
        * @return {Array} An array of matching elements.
        */
       filter: function(search) {
-        var result = [];
+        var result2 = [];
         this.forEach(function(relativePath, entry) {
           if (search(relativePath, entry)) {
-            result.push(entry);
+            result2.push(entry);
           }
         });
-        return result;
+        return result2;
       },
       /**
        * Add a file to the zip file, or search a file.
@@ -8836,15 +8836,15 @@ var require_object = __commonJS({
        * @return  {JSZip|Object|Array} this JSZip object (when adding a file),
        * a file (when searching by string) or an array of files (when searching by regex).
        */
-      file: function(name, data, o) {
+      file: function(name2, data, o) {
         if (arguments.length === 1) {
-          if (isRegExp(name)) {
-            var regexp = name;
+          if (isRegExp(name2)) {
+            var regexp = name2;
             return this.filter(function(relativePath, file) {
               return !file.dir && regexp.test(relativePath);
             });
           } else {
-            var obj = this.files[this.root + name];
+            var obj = this.files[this.root + name2];
             if (obj && !obj.dir) {
               return obj;
             } else {
@@ -8852,8 +8852,8 @@ var require_object = __commonJS({
             }
           }
         } else {
-          name = this.root + name;
-          fileAdd.call(this, name, data, o);
+          name2 = this.root + name2;
+          fileAdd.call(this, name2, data, o);
         }
         return this;
       },
@@ -8871,8 +8871,8 @@ var require_object = __commonJS({
             return file.dir && arg.test(relativePath);
           });
         }
-        var name = this.root + arg;
-        var newFolder = folderAdd.call(this, name);
+        var name2 = this.root + arg;
+        var newFolder = folderAdd.call(this, name2);
         var ret = this.clone();
         ret.root = newFolder.name;
         return ret;
@@ -8882,20 +8882,20 @@ var require_object = __commonJS({
        * @param {string} name the name of the file to delete
        * @return {JSZip} this JSZip object
        */
-      remove: function(name) {
-        name = this.root + name;
-        var file = this.files[name];
+      remove: function(name2) {
+        name2 = this.root + name2;
+        var file = this.files[name2];
         if (!file) {
-          if (name.slice(-1) !== "/") {
-            name += "/";
+          if (name2.slice(-1) !== "/") {
+            name2 += "/";
           }
-          file = this.files[name];
+          file = this.files[name2];
         }
         if (file && !file.dir) {
-          delete this.files[name];
+          delete this.files[name2];
         } else {
           var kids = this.filter(function(relativePath, file2) {
-            return file2.name.slice(0, name.length) === name;
+            return file2.name.slice(0, name2.length) === name2;
           });
           for (var i = 0; i < kids.length; i++) {
             delete this.files[kids[i].name];
@@ -9035,13 +9035,13 @@ var require_DataReader = __commonJS({
        * @return {number} the corresponding number.
        */
       readInt: function(size) {
-        var result = 0, i;
+        var result2 = 0, i;
         this.checkOffset(size);
         for (i = this.index + size - 1; i >= this.index; i--) {
-          result = (result << 8) + this.byteAt(i);
+          result2 = (result2 << 8) + this.byteAt(i);
         }
         this.index += size;
-        return result;
+        return result2;
       },
       /**
        * Get the next string with a given byte size.
@@ -9131,9 +9131,9 @@ var require_ArrayReader = __commonJS({
       if (size === 0) {
         return [];
       }
-      var result = this.data.slice(this.zero + this.index, this.zero + this.index + size);
+      var result2 = this.data.slice(this.zero + this.index, this.zero + this.index + size);
       this.index += size;
-      return result;
+      return result2;
     };
     module.exports = ArrayReader;
   }
@@ -9161,9 +9161,9 @@ var require_StringReader = __commonJS({
     };
     StringReader.prototype.readData = function(size) {
       this.checkOffset(size);
-      var result = this.data.slice(this.zero + this.index, this.zero + this.index + size);
+      var result2 = this.data.slice(this.zero + this.index, this.zero + this.index + size);
       this.index += size;
-      return result;
+      return result2;
     };
     module.exports = StringReader;
   }
@@ -9184,9 +9184,9 @@ var require_Uint8ArrayReader = __commonJS({
       if (size === 0) {
         return new Uint8Array(0);
       }
-      var result = this.data.subarray(this.zero + this.index, this.zero + this.index + size);
+      var result2 = this.data.subarray(this.zero + this.index, this.zero + this.index + size);
       this.index += size;
-      return result;
+      return result2;
     };
     module.exports = Uint8ArrayReader;
   }
@@ -9204,9 +9204,9 @@ var require_NodeBufferReader = __commonJS({
     utils.inherits(NodeBufferReader, Uint8ArrayReader);
     NodeBufferReader.prototype.readData = function(size) {
       this.checkOffset(size);
-      var result = this.data.slice(this.zero + this.index, this.zero + this.index + size);
+      var result2 = this.data.slice(this.zero + this.index, this.zero + this.index + size);
       this.index += size;
-      return result;
+      return result2;
     };
     module.exports = NodeBufferReader;
   }
@@ -9493,9 +9493,9 @@ var require_zipEntries = __commonJS({
         var currentIndex = this.reader.index;
         this.reader.setIndex(askedIndex);
         var signature = this.reader.readString(4);
-        var result = signature === expectedSignature;
+        var result2 = signature === expectedSignature;
         this.reader.setIndex(currentIndex);
-        return result;
+        return result2;
       },
       /**
        * Read the end of the central directory.
@@ -9666,7 +9666,7 @@ var require_load = __commonJS({
     var Crc32Probe = require_Crc32Probe();
     var nodejsUtils = require_nodejsUtils();
     function checkEntryCRC32(zipEntry) {
-      return new external.Promise(function(resolve4, reject) {
+      return new external.Promise(function(resolve5, reject) {
         var worker = zipEntry.decompressed.getContentWorker().pipe(new Crc32Probe());
         worker.on("error", function(e) {
           reject(e);
@@ -9674,7 +9674,7 @@ var require_load = __commonJS({
           if (worker.streamInfo.crc32 !== zipEntry.decompressed.crc32) {
             reject(new Error("Corrupted zip : CRC32 mismatch"));
           } else {
-            resolve4();
+            resolve5();
           }
         }).resume();
       });
@@ -9772,15 +9772,943 @@ var require_lib3 = __commonJS({
 });
 
 // server/index.ts
-import { existsSync as existsSync2, readFileSync as readFileSync2 } from "node:fs";
-import { dirname as dirname3, join as join3, resolve as resolve3 } from "node:path";
-import { fileURLToPath as fileURLToPath2 } from "node:url";
+import { existsSync as existsSync3, readFileSync as readFileSync4 } from "node:fs";
+import { dirname as dirname5, join as join5, resolve as resolve4 } from "node:path";
+import { fileURLToPath as fileURLToPath3 } from "node:url";
 
 // server/db.ts
 import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
+import { randomUUID } from "node:crypto";
+
+// shared/qus.ts
+var BASE_SCORE = 100;
+var PENALTY_ERROR = 30;
+var PENALTY_WARN = 15;
+var PENALTY_INFO = 5;
+var DUPLICATE_THRESHOLD = 0.8;
+var AMBIGUOUS_WORDS = [
+  "user-friendly",
+  "user friendly",
+  "th\xE2n thi\u1EC7n",
+  "linh ho\u1EA1t",
+  "hi\u1EC7u qu\u1EA3",
+  "d\u1EC5 d\xE0ng",
+  "d\u1EC5 d\xF9ng",
+  "d\u1EC5 s\u1EED d\u1EE5ng",
+  "t\u1ED1i \u01B0u",
+  "nhanh",
+  "t\u1ED1t",
+  "etc",
+  "v.v",
+  "fast",
+  "easy",
+  "easily",
+  "quick",
+  "quickly",
+  "flexible",
+  "efficient",
+  "intuitive",
+  "optimal",
+  "simple",
+  "and so on"
+];
+var ACTION_VERBS = [
+  // Vietnamese action verbs
+  "xem",
+  "tra c\u1EE9u",
+  "t\xECm ki\u1EBFm",
+  "t\xECm",
+  "l\u1ECDc",
+  "hi\u1EC3n th\u1ECB",
+  "theo d\xF5i",
+  "th\u1ED1ng k\xEA",
+  "b\xE1o c\xE1o",
+  "th\xEAm",
+  "t\u1EA1o m\u1EDBi",
+  "t\u1EA1o",
+  "nh\u1EADp",
+  "ghi",
+  "l\u01B0u tr\u1EEF",
+  "l\u01B0u",
+  "ch\u1EC9nh s\u1EEDa",
+  "c\u1EADp nh\u1EADt",
+  "thay \u0111\u1ED5i",
+  "s\u1EEDa",
+  "\u0111\u1ED5i",
+  "ch\u1EC9nh",
+  "x\xF3a",
+  "h\u1EE7y b\u1ECF",
+  "h\u1EE7y",
+  "g\u1EE1 b\u1ECF",
+  "g\u1EE1",
+  "lo\u1EA1i b\u1ECF",
+  "qu\u1EA3n l\xFD",
+  "ph\xE2n quy\u1EC1n",
+  "thi\u1EBFt l\u1EADp",
+  "c\xE0i \u0111\u1EB7t",
+  "c\u1EA5u h\xECnh",
+  "g\u1EEDi",
+  "nh\u1EADn",
+  "chuy\u1EC3n",
+  "chia s\u1EBB",
+  "t\u1EA3i l\xEAn",
+  "t\u1EA3i xu\u1ED1ng",
+  "t\u1EA3i",
+  "xu\u1EA5t",
+  "ch\u1ECDn",
+  "\u0111\u1EB7t h\xE0ng",
+  "\u0111\u1EB7t",
+  "mua h\xE0ng",
+  "mua",
+  "thanh to\xE1n",
+  "ho\xE0n ti\u1EC1n",
+  "ph\xEA duy\u1EC7t",
+  "duy\u1EC7t",
+  "t\u1EEB ch\u1ED1i",
+  "x\xE1c nh\u1EADn",
+  "k\xEDch ho\u1EA1t",
+  "m\u1EDF kh\xF3a",
+  "kh\xF3a",
+  "\u0111\u0103ng nh\u1EADp",
+  "\u0111\u0103ng xu\u1EA5t",
+  "\u0111\u0103ng k\xFD",
+  "in",
+  // English action verbs
+  "create",
+  "read",
+  "update",
+  "delete",
+  "edit",
+  "add",
+  "remove",
+  "view",
+  "show",
+  "search",
+  "filter",
+  "find",
+  "track",
+  "login",
+  "logout",
+  "register",
+  "manage",
+  "configure",
+  "set",
+  "send",
+  "receive",
+  "share",
+  "export",
+  "import",
+  "download",
+  "upload",
+  "select",
+  "order",
+  "buy",
+  "pay",
+  "checkout",
+  "approve",
+  "reject",
+  "confirm",
+  "print",
+  "generate",
+  "modify",
+  "change",
+  "save",
+  "store",
+  "enter",
+  "input",
+  "cancel",
+  "submit",
+  "assign",
+  "transfer",
+  "refund",
+  "activate",
+  "lock",
+  "unlock",
+  "sign in",
+  "sign up",
+  "sign out",
+  "log in",
+  "log out",
+  "list",
+  "browse"
+];
+function findAmbiguous(text2) {
+  const norm3 = text2.normalize("NFC").toLowerCase();
+  const matched = [];
+  for (const w of AMBIGUOUS_WORDS) {
+    const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const re = new RegExp(`(?<=^|[^\\p{L}\\p{N}_])${escaped}(?=[^\\p{L}\\p{N}_]|$)`, "u");
+    if (re.test(norm3)) {
+      matched.push(w);
+    }
+  }
+  return matched;
+}
+function splitStories(text2) {
+  if (!text2 || !text2.trim()) return [];
+  const lines = text2.split(/\r?\n/);
+  const stories = [];
+  let current = [];
+  const isMarkerLine = (line) => /^\s*(?:[-*•]|\d+[\.\)])\s+/.test(line);
+  const hasMarkerLines = lines.some(isMarkerLine);
+  if (hasMarkerLines) {
+    for (const line of lines) {
+      if (isMarkerLine(line)) {
+        if (current.length > 0) {
+          const s2 = current.join(" ").trim();
+          if (s2) stories.push(s2);
+          current = [];
+        }
+        const stripped = line.replace(/^\s*(?:[-*•]|\d+[\.\)])\s+/, "").trim();
+        if (stripped) current.push(stripped);
+      } else if (line.trim() === "") {
+        if (current.length > 0) {
+          const s2 = current.join(" ").trim();
+          if (s2) stories.push(s2);
+          current = [];
+        }
+      } else {
+        current.push(line.trim());
+      }
+    }
+    if (current.length > 0) {
+      const s2 = current.join(" ").trim();
+      if (s2) stories.push(s2);
+    }
+  } else {
+    const paras = text2.split(/\r?\n\s*\r?\n/);
+    for (const p2 of paras) {
+      const subLines = p2.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      if (subLines.length > 1) {
+        const allLookLikeStories = subLines.every(
+          (l) => /^(?:as\s+an?|với\s+tư\s+cách(?:\s+là)?|là(?:\s+một)?|cho\s+phép)\b/i.test(l.normalize("NFC")) || // vi-keep: nhận diện story tiếng Việt cũ
+          l.split(/\s+/).length >= 4
+        );
+        if (allLookLikeStories) {
+          for (const sl of subLines) {
+            stories.push(sl);
+          }
+          continue;
+        }
+      }
+      const s2 = p2.replace(/\s+/g, " ").trim();
+      if (s2) stories.push(s2);
+    }
+  }
+  return stories.flatMap(splitSentences).filter((s2) => s2.length > 0);
+}
+var SENTENCE_STORY_START = /(?<=[.!?])\s+(?=(?:As\s+an?|Là|Với\s+tư\s+cách)\s)/u;
+function splitSentences(story) {
+  return story.normalize("NFC").split(SENTENCE_STORY_START).map((s2) => s2.trim());
+}
+function parseStory(rawText) {
+  const norm3 = rawText.normalize("NFC").toLowerCase();
+  const roleStarter = /^(?:as\s+an?|với\s+tư\s+cách(?:\s+là)?|là(?:\s+một)?)\s+/u;
+  const roleMatch = norm3.match(roleStarter);
+  if (!roleMatch) {
+    return { isTemplate: false, template: "free" };
+  }
+  const afterRolePrefix = norm3.slice(roleMatch[0].length);
+  const meansStarter = /[,;\s]+(?:i\s+want|tôi\s+muốn)\s+/u;
+  const meansMatch = afterRolePrefix.match(meansStarter);
+  if (!meansMatch || meansMatch.index === void 0) {
+    return { isTemplate: false, template: "free" };
+  }
+  const template = roleMatch[0].startsWith("as") ? "en" : "vi";
+  const role2 = afterRolePrefix.slice(0, meansMatch.index).trim();
+  const afterMeansPrefix = afterRolePrefix.slice(meansMatch.index + meansMatch[0].length);
+  const endStarter = /(?:^|[,;\s]+)(?:so\s+that|để)\s+/u;
+  const endMatch = afterMeansPrefix.match(endStarter);
+  let means = "";
+  let end = void 0;
+  if (endMatch && endMatch.index !== void 0) {
+    means = afterMeansPrefix.slice(0, endMatch.index).trim();
+    end = afterMeansPrefix.slice(endMatch.index + endMatch[0].length).trim();
+  } else {
+    means = afterMeansPrefix.trim();
+  }
+  if (!role2 || !means) {
+    return { role: role2, means, end, isTemplate: false, template: "free" };
+  }
+  return { role: role2, means, end, isTemplate: true, template };
+}
+function checkAtomic(means) {
+  if (!means) return null;
+  if (means.includes(";")) return ";";
+  const verbsPattern = ACTION_VERBS.join("|");
+  const re = new RegExp(`(?:v\xE0|and)\\s+(?:c\xF3\\s+th\u1EC3\\s+|can\\s+|also\\s+)?(?:${verbsPattern})(?=[^\\p{L}\\p{N}_]|$)`, "u");
+  const m = means.match(re);
+  if (m) return m[0];
+  const reDongThoi = new RegExp(`(?:\u0111\u1ED3ng\\s+th\u1EDDi|c\u0169ng\\s+nh\u01B0|as\\s+well\\s+as)\\s+(?:${verbsPattern})(?=[^\\p{L}\\p{N}_]|$)`, "u");
+  const m2 = means.match(reDongThoi);
+  if (m2) return m2[0];
+  return null;
+}
+function checkMinimal(text2) {
+  const norm3 = text2.normalize("NFC").toLowerCase();
+  const note = norm3.match(/(?:ví\s+dụ|lưu\s+ý|e\.g\.|note:|for\s+example|for\s+instance)/u);
+  if (note) return note[0];
+  const parenMatches = norm3.match(/\(([^)]+)\)/g);
+  if (parenMatches) {
+    for (const pm of parenMatches) {
+      const inner = pm.slice(1, -1).trim();
+      if (inner.length >= 15 || inner.split(/\s+/).length >= 4) {
+        return pm;
+      }
+    }
+  }
+  return null;
+}
+var TEMPLATE_WORDS = /* @__PURE__ */ new Set(["as", "a", "an", "i", "want", "to", "so", "that", "l\xE0", "m\u1ED9t", "t\xF4i", "mu\u1ED1n", "\u0111\u1EC3", "v\u1EDBi", "t\u01B0", "c\xE1ch"]);
+function extractWords(text2) {
+  const norm3 = text2.normalize("NFC").toLowerCase();
+  const cleaned = norm3.replace(/[^\p{L}\p{N}_\s]/gu, " ");
+  const tokens = cleaned.split(/\s+/).filter((t) => t.length > 0 && !TEMPLATE_WORDS.has(t));
+  return new Set(tokens);
+}
+function jaccardSimilarity(a, b) {
+  if (a.size === 0 && b.size === 0) return 1;
+  if (a.size === 0 || b.size === 0) return 0;
+  let intersectionSize = 0;
+  for (const item of a) {
+    if (b.has(item)) intersectionSize++;
+  }
+  const unionSize = a.size + b.size - intersectionSize;
+  return unionSize === 0 ? 0 : intersectionSize / unionSize;
+}
+function penaltyOf(issues) {
+  let penalty = 0;
+  for (const issue of issues) {
+    if (issue.severity === "error") penalty += PENALTY_ERROR;
+    else if (issue.severity === "warn") penalty += PENALTY_WARN;
+    else penalty += PENALTY_INFO;
+  }
+  return penalty;
+}
+function storyScore(issues) {
+  return Math.max(0, BASE_SCORE - penaltyOf(issues));
+}
+var TEMPLATE_LABEL = {
+  en: '"As a\u2026 I want\u2026 so that\u2026"',
+  vi: 'Vietnamese "L\xE0\u2026 t\xF4i mu\u1ED1n\u2026 \u0111\u1EC3\u2026"',
+  // vi-keep: tên khuôn mẫu story tiếng Việt (chỉ hiện khi story cũ viết tiếng Việt)
+  free: "free-form text"
+};
+function majorityTemplate(parsed) {
+  const std = parsed.filter((p2) => p2.template !== "free");
+  if (std.length === 0) return null;
+  const en = std.filter((p2) => p2.template === "en").length;
+  const vi = std.length - en;
+  return en === vi ? std[0].template : en > vi ? "en" : "vi";
+}
+function scoreTexts(rawStories, options = {}, ex = {}) {
+  if (rawStories.length === 0) {
+    return { stories: [], total: 0 };
+  }
+  const label3 = (i) => ex.labels?.[i] ?? `#${i + 1}`;
+  const parsedList = rawStories.map(parseStory);
+  const issuesList = rawStories.map((raw, idx) => {
+    const issues = [];
+    const words2 = raw.trim().split(/\s+/).filter(Boolean);
+    const parsed = parsedList[idx];
+    if (words2.length < 4) {
+      issues.push({
+        code: "FULL_SENTENCE",
+        severity: "warn",
+        message: `Story is too short (${words2.length} words); a well-formed story needs at least 4 words.`,
+        suggestion: "Add the user role, the action and the goal so the sentence has at least 4 words."
+      });
+    }
+    if (!parsed.isTemplate) {
+      issues.push({
+        code: "WELL_FORMED",
+        severity: "error",
+        message: "Story is missing the role or the action (means) of the standard template.",
+        suggestion: "Use the template: 'As a <role>, I want <action> so that <benefit>'."
+      });
+    } else {
+      if (!parsed.end || parsed.end.trim().length === 0) {
+        issues.push({
+          code: "NO_END",
+          severity: "warn",
+          message: "Story is missing the goal or business value (end).",
+          suggestion: "Add 'so that <benefit>' to make the delivered value explicit."
+        });
+      }
+      const atomic = parsed.means ? checkAtomic(parsed.means) : null;
+      if (atomic) {
+        issues.push({
+          code: "ATOMIC",
+          severity: "warn",
+          message: `The action part (means) contains more than one action, joined by "${atomic}".`,
+          suggestion: "Split it into separate user stories, one per action, so each story is atomic.",
+          excerpt: atomic
+        });
+      }
+    }
+    const minimal = checkMinimal(raw);
+    if (minimal) {
+      issues.push({
+        code: "MINIMAL",
+        severity: "info",
+        message: `Story contains notes, examples or extra detail: "${minimal}".`,
+        suggestion: "Move detailed notes and examples into the Acceptance Criteria.",
+        excerpt: minimal
+      });
+    }
+    const ambiguous = findAmbiguous(raw);
+    if (ambiguous.length > 0) {
+      const wordsStr = ambiguous.join(", ");
+      issues.push({
+        code: "AMBIGUOUS",
+        severity: "warn",
+        message: `Story contains ambiguous terms: "${wordsStr}".`,
+        suggestion: `Replace "${wordsStr}" with a measurable criterion, e.g. "\u2264 2 seconds" or "at most 3 steps".`,
+        excerpt: wordsStr
+      });
+    }
+    return issues;
+  });
+  const wordSets = rawStories.map(extractWords);
+  const others = (options.others ?? []).flatMap(
+    (o) => (o.stories ?? splitStories(o.text ?? "")).map((t) => ({ moduleName: o.moduleName, words: extractWords(t) }))
+  );
+  for (let j = 0; j < rawStories.length; j++) {
+    let dupMessage = null;
+    let dupSuggestion = "";
+    for (let i = 0; i < j && !dupMessage; i++) {
+      const sim = jaccardSimilarity(wordSets[i], wordSets[j]);
+      if (sim >= DUPLICATE_THRESHOLD) {
+        dupMessage = `Duplicates story ${label3(i)} in this module (similarity ${Math.round(sim * 100)}%).`;
+        dupSuggestion = `Merge stories ${label3(i)} and ${label3(j)}, or remove one of them.`;
+      }
+    }
+    for (const o of others) {
+      if (dupMessage) break;
+      const sim = jaccardSimilarity(o.words, wordSets[j]);
+      if (sim >= DUPLICATE_THRESHOLD) {
+        dupMessage = `Duplicates a story in module "${o.moduleName}" (similarity ${Math.round(sim * 100)}%).`;
+        dupSuggestion = `Review the scope: should this story belong to the current module or to module "${o.moduleName}"?`;
+      }
+    }
+    if (dupMessage) issuesList[j].push({ code: "DUPLICATE", severity: "warn", message: dupMessage, suggestion: dupSuggestion });
+  }
+  const majority = rawStories.length > 1 ? majorityTemplate(parsedList) : null;
+  if (majority) {
+    parsedList.forEach((p2, idx) => {
+      if (p2.template !== majority) {
+        issuesList[idx].push({
+          code: "NOT_UNIFORM",
+          severity: "info",
+          message: `Story uses the ${TEMPLATE_LABEL[p2.template]} template, unlike most stories in this module (${TEMPLATE_LABEL[majority]}).`,
+          suggestion: `Rewrite it using the ${TEMPLATE_LABEL[majority]} template so the whole module is uniform.`
+        });
+      }
+    });
+  }
+  ex.extra?.forEach((list, idx) => issuesList[idx]?.push(...list));
+  const stories = rawStories.map((raw, idx) => ({
+    index: idx + 1,
+    ...ex.ids?.[idx] ? { id: ex.ids[idx] } : {},
+    ...ex.codes?.[idx] ? { code: ex.codes[idx] } : {},
+    text: raw,
+    score: storyScore(issuesList[idx]),
+    issues: issuesList[idx]
+  }));
+  const total = Math.round(stories.reduce((acc, s2) => acc + s2.score, 0) / stories.length);
+  return { stories, total };
+}
+var ROLE_PREFIX = /^(?:as\s+an?|với\s+tư\s+cách(?:\s+là)?|là(?:\s+một)?)\s+/iu;
+var MEANS_PREFIX = /^(?:i\s+want|tôi\s+muốn)\s+/iu;
+var END_PREFIX = /^(?:so\s+that|để)\s+/iu;
+var cleanPart = (v, prefix) => (v ?? "").normalize("NFC").trim().replace(prefix, "").replace(/[\s,;.]+$/u, "").trim();
+var isBlankStructured = (s2) => !cleanPart(s2.asA, ROLE_PREFIX) && !cleanPart(s2.iWant, MEANS_PREFIX) && !cleanPart(s2.soThat, END_PREFIX);
+function storySentence(s2) {
+  const role2 = cleanPart(s2.asA, ROLE_PREFIX);
+  const means = cleanPart(s2.iWant, MEANS_PREFIX);
+  const end = cleanPart(s2.soThat, END_PREFIX);
+  const parts = [role2 && `As a ${role2}`, means && `I want ${means}`, end && `so that ${end}`].filter(Boolean);
+  return parts.length ? parts.join(", ") + "." : "";
+}
+function criteriaIssues(criteria) {
+  const list = criteria.map((c) => c.trim()).filter(Boolean);
+  if (!list.length) {
+    return [
+      {
+        code: "NO_CRITERIA",
+        severity: "info",
+        message: "Story has no acceptance criteria.",
+        suggestion: 'Add at least one verifiable criterion, e.g. "Shows at most 20 orders, newest first".'
+      }
+    ];
+  }
+  const hits = list.flatMap((c, i) => findAmbiguous(c).map((w) => ({ w, i })));
+  if (!hits.length) return [];
+  const words2 = [...new Set(hits.map((h2) => h2.w))].join(", ");
+  const rows = [...new Set(hits.map((h2) => h2.i + 1))].join(", ");
+  return [
+    {
+      code: "AMBIGUOUS",
+      severity: "warn",
+      message: `Acceptance criteria (line ${rows}) contain ambiguous terms: "${words2}".`,
+      suggestion: `Replace "${words2}" with a measurable, testable condition, e.g. "\u2264 2 seconds".`,
+      excerpt: words2
+    }
+  ];
+}
+function scoreStructured(stories, options = {}) {
+  const list = stories.filter((s2) => !isBlankStructured(s2));
+  return scoreTexts(list.map(storySentence), options, {
+    extra: list.map((s2) => criteriaIssues(s2.acceptanceCriteria ?? [])),
+    labels: list.map((s2, i) => s2.code ?? `#${i + 1}`),
+    ids: list.map((s2) => s2.id),
+    codes: list.map((s2) => s2.code)
+  });
+}
+
+// shared/types.ts
+var DOC_KINDS = ["BRD", "UC_SPEC", "SRS", "FRD_NFR", "API_SPEC"];
+var DOC_KIND_LABEL = {
+  BRD: "BRD",
+  UC_SPEC: "UC Specification",
+  SRS: "SRS",
+  FRD_NFR: "FRD-NFR",
+  API_SPEC: "API Spec"
+};
+var DIAGRAM_KINDS = ["CONTEXT", "UC", "SEQUENCE", "BPMN", "ERD"];
+var DIAGRAM_KIND_LABEL = {
+  CONTEXT: "Context",
+  UC: "Use Case",
+  SEQUENCE: "Sequence",
+  BPMN: "BPMN",
+  ERD: "ERD"
+};
+var ARTIFACT_KINDS_V5 = ["screen", "doc", "diagram", "tests"];
+var TASK_STATUSES_V5 = ["todo", "doing", "done", "approved"];
+
+// shared/diagrams.ts
+var DIAGRAM_SOURCES = {
+  CONTEXT: ["BRD"],
+  UC: ["UC_SPEC"],
+  SEQUENCE: ["UC_SPEC"],
+  BPMN: ["BRD", "UC_SPEC"],
+  ERD: ["SRS", "FRD_NFR"]
+};
+var STATUS_LABEL = { none: "Not started", draft: "Draft", done: "Done", approved: "Approved", outdated: "Outdated" };
+function diagramBlockReason(kind, statusOf) {
+  const missing = DIAGRAM_SOURCES[kind].filter((k) => {
+    const s2 = statusOf(k);
+    return s2 !== "done" && s2 !== "approved";
+  });
+  if (!missing.length) return null;
+  const list = missing.map((k) => `${DOC_KIND_LABEL[k]} (current: ${STATUS_LABEL[statusOf(k) ?? "none"]})`).join(", ");
+  return `Source document ${list} must be Done before generating the ${DIAGRAM_KIND_LABEL[kind]} diagram`;
+}
+var DIAGRAM_SYNTAX = {
+  CONTEXT: "flowchart",
+  UC: "flowchart",
+  SEQUENCE: "sequence",
+  BPMN: "flowchart",
+  ERD: "er"
+};
+var SYNTAX_HEAD = { flowchart: '"flowchart LR" (or TB/TD/RL/BT)', sequence: '"sequenceDiagram"', er: '"erDiagram"' };
+var BPMN_NOTE = "BPMN simulated with Mermaid";
+var DIAGRAM_FILE = {
+  CONTEXT: "context.md",
+  UC: "use-case.md",
+  SEQUENCE: "sequence.md",
+  BPMN: "bpmn.md",
+  ERD: "erd.md"
+};
+var MAX_DIAGRAM_CODE = 1e5;
+var MAX_DIAGRAM_PARTS = 100;
+function mmLabel(s2, max = 80) {
+  const t = String(s2 ?? "").replace(/["`]/g, "'").replace(/[<>#;]/g, " ").replace(/[\r\n\t]+/g, " ").replace(/\s+/g, " ").trim();
+  return t.length > max ? t.slice(0, max - 1).trimEnd() + "\u2026" : t;
+}
+function seqText(s2, max = 90) {
+  return mmLabel(s2, max).replace(/:/g, " ").replace(/\s+/g, " ").trim();
+}
+function stripAccents(s2) {
+  return String(s2 ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D");
+}
+function asciiId(s2, fallback = "X", upper = true) {
+  const t = stripAccents(s2).replace(/[^A-Za-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 40);
+  const out = upper ? t.toUpperCase() : t.toLowerCase();
+  if (!out) return fallback;
+  return /^[0-9]/.test(out) ? `${upper ? "E" : "f"}_${out}` : out;
+}
+function idAllocator() {
+  const used = /* @__PURE__ */ new Set();
+  return (base) => {
+    let id = base;
+    for (let i = 2; used.has(id); i++) id = `${base}_${i}`;
+    used.add(id);
+    return id;
+  };
+}
+var norm = (s2) => mmLabel(s2, 200).toLowerCase();
+var CONTEXT_SYSTEM = "SYSTEM";
+function buildContextMermaid(input) {
+  const lines = ["flowchart LR", "  %% diagram: CONTEXT \u2013 system in the centre, actors (rounded rectangles), external systems (double boxes)"];
+  lines.push(`  SYS(("${mmLabel(input.system || "System", 60)}"))`);
+  const ids = /* @__PURE__ */ new Map();
+  const seen = /* @__PURE__ */ new Set();
+  let a = 0;
+  let s2 = 0;
+  for (const e of input.externals ?? []) {
+    const name2 = mmLabel(e?.name, 50);
+    if (!name2 || seen.has(name2.toLowerCase())) continue;
+    seen.add(name2.toLowerCase());
+    const id = e.kind === "system" ? `EXT${++s2}` : `ACT${++a}`;
+    ids.set(name2.toLowerCase(), id);
+    lines.push(e.kind === "system" ? `  ${id}[["${name2}"]]` : `  ${id}("${name2}")`);
+  }
+  const ref2 = (x) => {
+    const k = mmLabel(x, 50).toLowerCase();
+    if (!k || k === CONTEXT_SYSTEM.toLowerCase() || k === norm(input.system)) return "SYS";
+    return ids.get(k);
+  };
+  for (const f of input.flows ?? []) {
+    const from = ref2(f.from);
+    const to = ref2(f.to);
+    if (!from || !to || from === to) continue;
+    const label3 = mmLabel(f.label, 50);
+    lines.push(label3 ? `  ${from} -->|"${label3}"| ${to}` : `  ${from} --> ${to}`);
+  }
+  return lines.join("\n");
+}
+function buildBpmnMermaid(input) {
+  const lines = ["flowchart LR", `  %% ${BPMN_NOTE}: lane = subgraph, event = circle, task = rounded rectangle, gateway = diamond`];
+  const lanes = [];
+  const laneKey = (l) => mmLabel(l, 50) || "Process";
+  for (const l of [...input.lanes ?? [], ...(input.nodes ?? []).map((n) => n.lane)]) {
+    const k = laneKey(l);
+    if (!lanes.some((x) => x.toLowerCase() === k.toLowerCase())) lanes.push(k);
+  }
+  const nodeId = /* @__PURE__ */ new Map();
+  (input.nodes ?? []).forEach((n, i) => {
+    if (n && n.id && !nodeId.has(String(n.id))) nodeId.set(String(n.id), `N${i + 1}`);
+  });
+  const shape = (n) => {
+    const label3 = mmLabel(n.label, 60) || (n.type === "start" ? "Start" : n.type === "end" ? "End" : "Task");
+    switch (n.type) {
+      case "start":
+        return `(("${label3}"))`;
+      case "end":
+        return `((("${label3}")))`;
+      case "gateway":
+        return `{"${label3}"}`;
+      default:
+        return `("${label3}")`;
+    }
+  };
+  lanes.forEach((lane, i) => {
+    const nodes = (input.nodes ?? []).filter((n) => n && nodeId.get(String(n.id)) && laneKey(n.lane).toLowerCase() === lane.toLowerCase());
+    lines.push(`  subgraph L${i + 1}["${lane}"]`, "    direction LR");
+    if (!nodes.length) lines.push(`    L${i + 1}_EMPTY[" "]`);
+    const emitted = /* @__PURE__ */ new Set();
+    for (const n of nodes) {
+      const id = nodeId.get(String(n.id));
+      if (emitted.has(id)) continue;
+      emitted.add(id);
+      lines.push(`    ${id}${shape(n)}`);
+    }
+    lines.push("  end");
+  });
+  for (const e of input.edges ?? []) {
+    const from = nodeId.get(String(e?.from));
+    const to = nodeId.get(String(e?.to));
+    if (!from || !to) continue;
+    const label3 = mmLabel(e.label, 40);
+    lines.push(label3 ? `  ${from} -->|"${label3}"| ${to}` : `  ${from} --> ${to}`);
+  }
+  return lines.join("\n");
+}
+var CARD = { "1-1": "||--||", "1-n": "||--o{", "n-n": "}o--o{", "1-0..1": "||--o|" };
+var ATTR_TYPES = /* @__PURE__ */ new Set(["string", "text", "int", "bigint", "decimal", "float", "boolean", "date", "datetime", "timestamp", "uuid", "json"]);
+function buildErdMermaid(input) {
+  const lines = ["erDiagram", "  %% diagram: ERD \u2013 entities, key attributes, relationships"];
+  const alloc = idAllocator();
+  const ids = /* @__PURE__ */ new Map();
+  for (const e of input.entities ?? []) {
+    if (!e?.name) continue;
+    const key2 = norm(e.name);
+    if (ids.has(key2)) continue;
+    const id = alloc(asciiId(e.name, "ENTITY"));
+    ids.set(key2, id);
+    if (e.label) ids.set(norm(e.label), id);
+    const label3 = mmLabel(e.label || e.name, 50);
+    const attrs = [];
+    const attrAlloc = idAllocator();
+    for (const a of e.attributes ?? []) {
+      if (!a?.name) continue;
+      const type = ATTR_TYPES.has(String(a.type ?? "").toLowerCase()) ? String(a.type).toLowerCase() : "string";
+      const name2 = attrAlloc(asciiId(a.name, "field", false));
+      const key3 = a.key === "PK" || a.key === "FK" || a.key === "UK" ? ` ${a.key}` : "";
+      const comment = mmLabel(a.comment, 50);
+      attrs.push(`    ${type} ${name2}${key3}${comment ? ` "${comment}"` : ""}`);
+    }
+    if (attrs.length) lines.push(`  ${id}["${label3}"] {`, ...attrs, "  }");
+    else lines.push(`  ${id}["${label3}"]`);
+  }
+  const seen = /* @__PURE__ */ new Set();
+  for (const r of input.relations ?? []) {
+    const from = ids.get(norm(r?.from ?? ""));
+    const to = ids.get(norm(r?.to ?? ""));
+    if (!from || !to) continue;
+    const k = `${from}|${to}`;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    lines.push(`  ${from} ${CARD[r.cardinality] ?? CARD["1-n"]} ${to} : "${mmLabel(r.label, 40) || "has"}"`);
+  }
+  return lines.join("\n");
+}
+function buildSequenceMermaid(input) {
+  const lines = ["sequenceDiagram", "  autonumber"];
+  const alloc = idAllocator();
+  const ids = /* @__PURE__ */ new Map();
+  const declare = (p2) => {
+    const key2 = String(p2.id ?? "").trim().toLowerCase();
+    if (!key2 || ids.has(key2)) return;
+    const id = alloc(asciiId(p2.id, "P"));
+    ids.set(key2, id);
+    const label3 = seqText(p2.label || p2.id, 50) || id;
+    lines.push(`  ${p2.actor ? "actor" : "participant"} ${id} as ${label3}`);
+  };
+  (input.participants ?? []).forEach(declare);
+  const all = [...input.messages ?? [], ...(input.alts ?? []).flatMap((a) => a.messages ?? [])];
+  for (const m of all) for (const x of [m?.from, m?.to]) if (x) declare({ id: String(x), label: String(x) });
+  const msg = (m, indent) => {
+    const from = ids.get(String(m?.from ?? "").trim().toLowerCase());
+    const to = ids.get(String(m?.to ?? "").trim().toLowerCase());
+    if (!from || !to) return;
+    lines.push(`${indent}${from}${m.reply ? "-->>" : "->>"}${to}: ${seqText(m.text) || "\u2026"}`);
+  };
+  for (const m of input.messages ?? []) msg(m, "  ");
+  const alts = (input.alts ?? []).filter((a) => a && (a.messages ?? []).length);
+  alts.forEach((a, i) => {
+    lines.push(`  ${i === 0 ? "alt" : "else"} ${seqText(a.condition, 60) || "Exception"}`);
+    for (const m of a.messages) msg(m, "    ");
+  });
+  if (alts.length) lines.push("  end");
+  return lines.join("\n");
+}
+var HEADS = [
+  [/^(flowchart|graph)(\s+(LR|RL|TB|TD|BT))?\s*;?$/, "flowchart"],
+  [/^sequenceDiagram\s*$/, "sequence"],
+  [/^erDiagram\s*$/, "er"]
+];
+var isSkippable = (l) => !l || l.startsWith("%%");
+function stripQuoted(l) {
+  if ((l.match(/"/g) ?? []).length % 2) return null;
+  return l.replace(/"[^"]*"/g, '""');
+}
+function bracketIssue(l) {
+  const s2 = l.replace(/(\w)>(?=["\w])/g, "$1[");
+  const pairs = { ")": "(", "]": "[", "}": "{" };
+  const stack = [];
+  for (const ch of s2) {
+    if (ch === "(" || ch === "[" || ch === "{") stack.push(ch);
+    else if (ch in pairs) {
+      if (stack.pop() !== pairs[ch]) return `Unmatched bracket "${ch}"`;
+    }
+  }
+  return stack.length ? `Missing closing bracket for "${stack[stack.length - 1]}"` : null;
+}
+function checkFlowchart(rows, issues) {
+  let depth2 = 0;
+  for (const { n, l } of rows) {
+    if (/^subgraph\b/.test(l)) depth2++;
+    else if (l === "end") {
+      depth2--;
+      if (depth2 < 0) {
+        issues.push({ line: n, message: 'Extra "end" (no matching subgraph)' });
+        depth2 = 0;
+      }
+      continue;
+    }
+    const q = stripQuoted(l);
+    if (q === null) {
+      issues.push({ line: n, message: "Missing closing double quote" });
+      continue;
+    }
+    if (/^(classDef|class|style|linkStyle|click|direction)\b/.test(l)) continue;
+    const b = bracketIssue(q);
+    if (b) issues.push({ line: n, message: b });
+  }
+  if (depth2 > 0) issues.push({ line: rows[rows.length - 1]?.n ?? 0, message: 'Missing "end" for subgraph block' });
+}
+var SEQ_BLOCK = /^(alt|opt|loop|par|critical|break|rect|box)\b/;
+var SEQ_ARROW = /(-{1,2}(>>|>|x|\))[+-]?)/;
+var SEQ_MESSAGE = /^[^\s:][^:]*?\s*-{1,2}(>>|>|x|\))[+-]?\s*[^\s:][^:]*:.*$/;
+function checkSequence(rows, issues) {
+  let depth2 = 0;
+  for (const { n, l } of rows) {
+    if (SEQ_BLOCK.test(l)) {
+      depth2++;
+      continue;
+    }
+    if (l === "end") {
+      depth2--;
+      if (depth2 < 0) {
+        issues.push({ line: n, message: 'Extra "end" (no matching alt/opt/loop block)' });
+        depth2 = 0;
+      }
+      continue;
+    }
+    if (/^(else|and|option)\b/.test(l)) {
+      if (depth2 === 0) issues.push({ line: n, message: `"${l.split(/\s/)[0]}" is outside an alt/par block` });
+      continue;
+    }
+    if (/^(participant|actor|autonumber|title|note|activate|deactivate|create|destroy|links?|properties|details|accTitle|accDescr)\b/i.test(l)) continue;
+    if (SEQ_ARROW.test(l) && !SEQ_MESSAGE.test(l)) issues.push({ line: n, message: 'Invalid message syntax \u2013 expected "A->>B: text"' });
+  }
+  if (depth2 > 0) issues.push({ line: rows[rows.length - 1]?.n ?? 0, message: 'Missing "end" for alt/opt/loop block' });
+}
+var ER_ENTITY = String.raw`[A-Za-z_][\w-]*(\[("[^"]*"|[^\]"]*)\])?`;
+var ER_OPEN = new RegExp(`^${ER_ENTITY}\\s*\\{$`);
+var ER_ALONE = new RegExp(`^${ER_ENTITY}$`);
+var ER_REL = new RegExp(`^${ER_ENTITY}\\s+(\\|o|\\|\\||\\}o|\\}\\|)(--|\\.\\.)(o\\||\\|\\||o\\{|\\|\\{)\\s+${ER_ENTITY}\\s*:\\s*("[^"]*"|[\\w-]+)$`);
+var ER_ATTR = /^[A-Za-z_][\w()[\],-]*\s+\*?[A-Za-z_][\w-]*(\s+(PK|FK|UK)(\s*,\s*(PK|FK|UK))*)?(\s+"[^"]*")?$/;
+function checkEr(rows, issues) {
+  let inBlock = 0;
+  for (const { n, l } of rows) {
+    if (inBlock) {
+      if (l === "}") inBlock = 0;
+      else if (!ER_ATTR.test(l)) issues.push({ line: n, message: 'Invalid attribute syntax \u2013 expected "type field_name PK "comment""' });
+      continue;
+    }
+    if (ER_OPEN.test(l)) {
+      inBlock = n;
+      continue;
+    }
+    if (l === "}") {
+      issues.push({ line: n, message: 'Extra "}"' });
+      continue;
+    }
+    if (ER_REL.test(l) || ER_ALONE.test(l)) continue;
+    if (/^(title|direction|classDef|class|style|accTitle|accDescr)\b/.test(l)) continue;
+    issues.push({ line: n, message: 'Invalid line \u2013 expected an entity "NAME {", an attribute or a relationship "A ||--o{ B : label"' });
+  }
+  if (inBlock) issues.push({ line: inBlock, message: 'Missing "}" to close the entity block' });
+}
+function checkMermaid(code, expect) {
+  const all = String(code ?? "").split(/\r?\n/);
+  const rows = all.map((l, i) => ({ n: i + 1, l: l.trim() })).filter((r) => !isSkippable(r.l));
+  if (!rows.length) return [{ line: 0, message: "Diagram code is empty" }];
+  const head = rows[0];
+  const syntax = HEADS.find(([re]) => re.test(head.l))?.[1] ?? null;
+  if (!syntax) return [{ line: head.n, message: `The first line must be ${expect ? SYNTAX_HEAD[expect] : "a Mermaid diagram type (flowchart, sequenceDiagram, erDiagram)"}` }];
+  if (expect && syntax !== expect) return [{ line: head.n, message: `This diagram must start with ${SYNTAX_HEAD[expect]}` }];
+  const issues = [];
+  const body = rows.slice(1);
+  if (syntax === "flowchart") checkFlowchart(body, issues);
+  else if (syntax === "sequence") checkSequence(body, issues);
+  else checkEr(body, issues);
+  return issues;
+}
+var issueText = (i) => i.line ? `Line ${i.line}: ${i.message}` : i.message;
+function checkDiagram(kind, d) {
+  if (kind === "SEQUENCE") {
+    const parts = d.parts ?? [];
+    if (!parts.length) return ["A Sequence diagram needs at least one part (one part per use case)"];
+    const out = [];
+    const keys = /* @__PURE__ */ new Set();
+    parts.forEach((p2, i) => {
+      const name2 = p2.key || `Part ${i + 1}`;
+      if (!p2.key) out.push(`Part ${i + 1}: missing key`);
+      else if (keys.has(p2.key)) out.push(`${name2}: duplicate part key`);
+      keys.add(p2.key);
+      for (const e of checkMermaid(p2.code, "sequence")) out.push(`${name2} \u2013 ${issueText(e)}`);
+    });
+    return out;
+  }
+  return checkMermaid(d.code ?? "", DIAGRAM_SYNTAX[kind]).map(issueText);
+}
+function normalizeParts(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw.slice(0, MAX_DIAGRAM_PARTS).map((p2) => ({
+    key: String(p2?.key ?? "").trim().slice(0, 60),
+    title: String(p2?.title ?? p2?.key ?? "").trim().slice(0, 200),
+    code: String(p2?.code ?? "").slice(0, MAX_DIAGRAM_CODE)
+  }));
+}
+function diagramMarkdown(d, moduleName = "") {
+  const title = `# ${DIAGRAM_KIND_LABEL[d.kind]} Diagram${moduleName ? ` \u2013 ${moduleName}` : ""}`;
+  const out = [title, ""];
+  if (d.kind === "BPMN") out.push(`> ${BPMN_NOTE}: lane = actor, circle = start/end event, rounded rectangle = task, diamond = gateway.`, "");
+  const block = (code) => ["```mermaid", code.trim(), "```", ""];
+  if (d.kind === "SEQUENCE") {
+    for (const p2 of d.parts ?? []) out.push(`## ${p2.title || p2.key}`, "", ...block(p2.code));
+    if (!(d.parts ?? []).length) out.push("_No diagram yet._", "");
+  } else if (d.code.trim()) out.push(...block(d.code));
+  else out.push("_No diagram yet._", "");
+  return out.join("\n");
+}
+
+// shared/prereq.ts
+var PREREQ_STATUS_LABEL = { none: "Not started", draft: "Draft", done: "Done", approved: "Approved", outdated: "Outdated" };
+var isReady = (s2) => s2 === "done" || s2 === "approved";
+var label = (t) => {
+  if (t.kind === "doc") return DOC_KIND_LABEL[t.sub] ?? String(t.sub);
+  if (t.kind === "diagram") return `the ${DIAGRAM_KIND_LABEL[t.sub ?? "UC"] ?? t.sub} diagram`;
+  if (t.kind === "tests") return "the test suite";
+  return "the artifact";
+};
+var verb = (a, t) => a === "generate" ? `generating ${label(t)}` : a === "done" ? `marking ${label(t)} as done` : `approving ${label(t)}`;
+function prereqDocs(t) {
+  if (t.kind === "doc") {
+    const i = DOC_KINDS.indexOf(t.sub);
+    return i > 0 ? [DOC_KINDS[i - 1]] : [];
+  }
+  if (t.kind === "diagram") return DIAGRAM_SOURCES[t.sub ?? "UC"] ?? [];
+  if (t.kind === "tests") return ["FRD_NFR"];
+  return [];
+}
+function prereqBlockReason(t, f, action) {
+  const st = (k) => f.docStatus(k) ?? "none";
+  if (t.kind === "doc" && t.sub === "BRD") {
+    return f.storyCount === 0 ? `This module has no user stories yet. Add at least one user story under Business Requirements before ${verb(action, t)}.` : null;
+  }
+  if (t.kind === "doc") {
+    const [prev] = prereqDocs(t);
+    if (!prev || isReady(st(prev))) return null;
+    const head = action === "generate" ? `The previous step (${DOC_KIND_LABEL[prev]}) is not Done` : `The previous step (${DOC_KIND_LABEL[prev]}) is not Done (current: ${PREREQ_STATUS_LABEL[st(prev)]})`;
+    return `${head}. Complete ${DOC_KIND_LABEL[prev]} and mark it as done before ${verb(action, t)}.`;
+  }
+  if (t.kind === "diagram") {
+    const missing = prereqDocs(t).filter((k) => !isReady(st(k)));
+    if (!missing.length) return null;
+    return `Source document ${missing.map((k) => `${DOC_KIND_LABEL[k]} (current: ${PREREQ_STATUS_LABEL[st(k)]})`).join(", ")} must be Done before ${verb(action, t)}.`;
+  }
+  if (t.kind === "tests") {
+    const frd = st("FRD_NFR");
+    if (isReady(frd)) return null;
+    if (frd === "none" && f.legacyDocsApproved) return null;
+    return `${DOC_KIND_LABEL.FRD_NFR} must be Done before ${verb(action, t)} (current: ${PREREQ_STATUS_LABEL[frd]}).`;
+  }
+  return null;
+}
+
+// server/db.ts
 var db = null;
+function tasksDdl(name2) {
+  return `CREATE TABLE IF NOT EXISTS ${name2} (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  module_id TEXT REFERENCES modules(id) ON DELETE SET NULL,
+  title TEXT NOT NULL, description TEXT NOT NULL DEFAULT '',
+  assignee_id TEXT REFERENCES members(id) ON DELETE SET NULL,
+  due_date TEXT, priority TEXT NOT NULL DEFAULT 'Medium' CHECK(priority IN ('High','Medium','Low')),
+  status TEXT NOT NULL DEFAULT 'todo' CHECK(status IN ('todo','doing','done','approved','redo')),
+  revision_requested INTEGER NOT NULL DEFAULT 0,
+  artifact_type TEXT CHECK(artifact_type IN ('screen','doc','diagram','tests','docs')), artifact_id TEXT, artifact_sub TEXT,
+  created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+);`;
+}
 var SCHEMA = `
 CREATE TABLE IF NOT EXISTS projects (
   id TEXT PRIMARY KEY, name TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL
@@ -9844,21 +10772,182 @@ CREATE INDEX IF NOT EXISTS idx_screens_module ON screens(module_id);
 CREATE INDEX IF NOT EXISTS idx_versions_screen ON screen_versions(screen_id);
 CREATE INDEX IF NOT EXISTS idx_ann_screen ON annotations(screen_id);
 CREATE INDEX IF NOT EXISTS idx_runs_module ON prompt_runs(module_id);
+CREATE TABLE IF NOT EXISTS files (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  module_id TEXT REFERENCES modules(id) ON DELETE SET NULL,
+  name TEXT NOT NULL,
+  stored_name TEXT NOT NULL,
+  mime TEXT NOT NULL,
+  size INTEGER NOT NULL,
+  source TEXT NOT NULL DEFAULT 'upload',
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_files_project ON files(project_id);
+CREATE INDEX IF NOT EXISTS idx_files_module ON files(module_id);
+
+-- v2 (m\u1EE5c 5 t\xE0i li\u1EC7u v2) \u2013 s\u01A1 \u0111\u1ED3 quan h\u1EC7: docs/erd.md  -- vi-keep: ch\xFA th\xEDch SQL
+CREATE TABLE IF NOT EXISTS members (
+  id TEXT PRIMARY KEY, name TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'BA' CHECK(role IN ('BA','BA_LEAD')), created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS uc_diagrams (
+  module_id TEXT PRIMARY KEY REFERENCES modules(id) ON DELETE CASCADE, code TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','approved','stale')),
+  approved_at TEXT, updated_at TEXT NOT NULL
+);
+${tasksDdl("tasks")}
+CREATE INDEX IF NOT EXISTS idx_tasks_project ON tasks(project_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_artifact ON tasks(artifact_type, artifact_id);
+CREATE TABLE IF NOT EXISTS task_events (
+  id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+  from_status TEXT, to_status TEXT NOT NULL,
+  by_member_id TEXT REFERENCES members(id) ON DELETE SET NULL, by_system INTEGER NOT NULL DEFAULT 0,
+  reason TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_task_events_task ON task_events(task_id);
+CREATE TABLE IF NOT EXISTS suggestion_dismissals (
+  module_id TEXT NOT NULL REFERENCES modules(id) ON DELETE CASCADE, key TEXT NOT NULL, created_at TEXT NOT NULL,
+  PRIMARY KEY (module_id, key)
+);
+
+-- \u0110\u1EE3t 5 (C2) \u2013 docs/erd.md m\u1EE5c "\u0110\u1EE3t 5"  -- vi-keep: ch\xFA th\xEDch SQL
+CREATE TABLE IF NOT EXISTS app_meta (
+  key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS user_stories (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  module_id TEXT REFERENCES modules(id) ON DELETE SET NULL,
+  code TEXT NOT NULL,
+  as_a TEXT NOT NULL DEFAULT '', i_want TEXT NOT NULL DEFAULT '', so_that TEXT NOT NULL DEFAULT '',
+  acceptance_criteria TEXT NOT NULL DEFAULT '[]',
+  priority TEXT NOT NULL DEFAULT 'Medium' CHECK(priority IN ('High','Medium','Low')),
+  ord INTEGER NOT NULL DEFAULT 0,
+  rev INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL,
+  updated_by TEXT REFERENCES members(id) ON DELETE SET NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (project_id, code)
+);
+CREATE INDEX IF NOT EXISTS idx_stories_project ON user_stories(project_id, ord);
+CREATE INDEX IF NOT EXISTS idx_stories_module ON user_stories(module_id);
+CREATE TABLE IF NOT EXISTS module_docs (
+  module_id TEXT NOT NULL REFERENCES modules(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL CHECK(kind IN ('BRD','UC_SPEC','SRS','FRD_NFR','API_SPEC')),
+  content TEXT NOT NULL DEFAULT '',
+  data TEXT,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('none','draft','done','approved','outdated')),
+  revision_requested INTEGER NOT NULL DEFAULT 0,
+  rev INTEGER NOT NULL DEFAULT 1,
+  updated_by TEXT REFERENCES members(id) ON DELETE SET NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (module_id, kind)
+);
+CREATE TABLE IF NOT EXISTS module_diagrams (
+  module_id TEXT NOT NULL REFERENCES modules(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL CHECK(kind IN ('CONTEXT','UC','SEQUENCE','BPMN','ERD')),
+  code TEXT NOT NULL DEFAULT '',
+  parts TEXT NOT NULL DEFAULT '[]',
+  status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('none','draft','done','approved','outdated')),
+  revision_requested INTEGER NOT NULL DEFAULT 0,
+  rev INTEGER NOT NULL DEFAULT 1,
+  updated_by TEXT REFERENCES members(id) ON DELETE SET NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (module_id, kind)
+);
+CREATE TABLE IF NOT EXISTS project_git (
+  project_id TEXT PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE,
+  repo TEXT NOT NULL DEFAULT '',
+  token TEXT NOT NULL DEFAULT '',
+  branch TEXT NOT NULL DEFAULT 'main',
+  updated_by TEXT REFERENCES members(id) ON DELETE SET NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS git_pushes (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  module_id TEXT REFERENCES modules(id) ON DELETE SET NULL,
+  artifact_kind TEXT NOT NULL CHECK(artifact_kind IN ('screen','doc','diagram','tests')),
+  artifact_id TEXT NOT NULL,
+  artifact_sub TEXT,
+  task_id TEXT REFERENCES tasks(id) ON DELETE SET NULL,
+  branch TEXT NOT NULL,
+  commit_sha TEXT NOT NULL,
+  commit_url TEXT NOT NULL DEFAULT '',
+  message TEXT NOT NULL DEFAULT '',
+  files TEXT NOT NULL DEFAULT '[]',
+  by_member_id TEXT REFERENCES members(id) ON DELETE SET NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_git_pushes_project ON git_pushes(project_id, created_at);
 `;
+var COLUMNS = [
+  { table: "modules", column: "qus_score", ddl: "qus_score INTEGER" },
+  { table: "modules", column: "qus_checked_at", ddl: "qus_checked_at TEXT" },
+  { table: "screen_versions", column: "author", ddl: "author TEXT NOT NULL DEFAULT ''" },
+  { table: "screen_versions", column: "author_id", ddl: "author_id TEXT REFERENCES members(id) ON DELETE SET NULL" },
+  { table: "annotations", column: "author_id", ddl: "author_id TEXT REFERENCES members(id) ON DELETE SET NULL" },
+  { table: "files", column: "sender", ddl: "sender TEXT NOT NULL DEFAULT ''" },
+  { table: "files", column: "received_at", ddl: "received_at TEXT" },
+  { table: "files", column: "note", ddl: "note TEXT NOT NULL DEFAULT ''" },
+  { table: "files", column: "uploaded_by", ddl: "uploaded_by TEXT REFERENCES members(id) ON DELETE SET NULL" },
+  // Đợt 5 (C2)
+  { table: "members", column: "password_hash", ddl: "password_hash TEXT" },
+  { table: "screens", column: "rev", ddl: "rev INTEGER NOT NULL DEFAULT 1" },
+  { table: "screens", column: "revision_requested", ddl: "revision_requested INTEGER NOT NULL DEFAULT 0" },
+  { table: "screens", column: "updated_by", ddl: "updated_by TEXT REFERENCES members(id) ON DELETE SET NULL" },
+  { table: "screens", column: "updated_at", ddl: "updated_at TEXT" },
+  { table: "modules", column: "tests_rev", ddl: "tests_rev INTEGER NOT NULL DEFAULT 0" },
+  { table: "modules", column: "tests_revision_requested", ddl: "tests_revision_requested INTEGER NOT NULL DEFAULT 0" },
+  { table: "modules", column: "tests_updated_by", ddl: "tests_updated_by TEXT REFERENCES members(id) ON DELETE SET NULL" },
+  { table: "modules", column: "tests_updated_at", ddl: "tests_updated_at TEXT" }
+];
+var tableExists = (d, table2) => !!d.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(table2);
+var nowIso = () => (/* @__PURE__ */ new Date()).toISOString();
+function migrate(d = getDb()) {
+  const added = [];
+  const cols = /* @__PURE__ */ new Map();
+  for (const c of COLUMNS) {
+    if (!cols.has(c.table)) cols.set(c.table, new Set(d.prepare(`PRAGMA table_info(${c.table})`).all().map((r) => r.name)));
+    const have = cols.get(c.table);
+    if (!have.size) continue;
+    if (have.has(c.column)) continue;
+    d.exec(`ALTER TABLE ${c.table} ADD COLUMN ${c.ddl}`);
+    have.add(c.column);
+    added.push(`${c.table}.${c.column}`);
+  }
+  migrateData(d);
+  return added;
+}
+function initSchema(d) {
+  d.exec(SCHEMA);
+  return migrate(d);
+}
 function openDb(file) {
   if (file !== ":memory:") mkdirSync(dirname(file), { recursive: true });
   db = new DatabaseSync(file);
   db.exec("PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;");
-  db.exec(SCHEMA);
+  initSchema(db);
   return db;
 }
 function getDb() {
-  if (!db) throw new Error("Database ch\u01B0a \u0111\u01B0\u1EE3c m\u1EDF");
+  if (!db) throw new Error("Database is not open");
   return db;
 }
+var depth = 0;
 function tx(fn) {
   const d = getDb();
+  if (depth > 0) {
+    depth++;
+    try {
+      return fn();
+    } finally {
+      depth--;
+    }
+  }
   d.exec("BEGIN");
+  depth = 1;
   try {
     const r = fn();
     d.exec("COMMIT");
@@ -9866,23 +10955,289 @@ function tx(fn) {
   } catch (e) {
     d.exec("ROLLBACK");
     throw e;
+  } finally {
+    depth = 0;
   }
+}
+function getMeta(key2, d = getDb()) {
+  const r = d.prepare("SELECT value FROM app_meta WHERE key = ?").get(key2);
+  return r?.value ?? null;
+}
+function setMeta(key2, value, d = getDb()) {
+  d.prepare("INSERT INTO app_meta (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at").run(
+    key2,
+    value,
+    nowIso()
+  );
+}
+function migrateData(d) {
+  const done = [];
+  if (tableExists(d, "tasks")) {
+    if (upgradeTasksTable(d)) done.push("tasks.rebuild");
+    const n = Number(d.prepare("UPDATE tasks SET status = 'doing', revision_requested = 1 WHERE status = 'redo'").run().changes);
+    if (n) done.push(`tasks.redo\u2192doing:${n}`);
+  }
+  if (!tableExists(d, "app_meta") || !tableExists(d, "modules")) return done;
+  const once = (name2, need, fn) => {
+    if (!need.every((t) => tableExists(d, t)) || getMeta(`migration:${name2}`, d)) return;
+    d.exec("BEGIN");
+    try {
+      fn();
+      setMeta(`migration:${name2}`, nowIso(), d);
+      d.exec("COMMIT");
+      done.push(name2);
+    } catch (e) {
+      d.exec("ROLLBACK");
+      throw e;
+    }
+  };
+  once("d5.docs", ["module_docs", "use_cases", "requirements", "srs"], () => migrateLegacyDocs(d));
+  once("d5.diagrams", ["module_diagrams", "sequences", "uc_diagrams"], () => migrateLegacyDiagrams(d));
+  once("d5.stories", ["user_stories", "projects"], () => migrateRequirementInput(d));
+  once("d6.prereq", ["module_docs", "module_diagrams", "tasks", "task_events"], () => normalizePrereqStates(d));
+  return done;
+}
+function normalizePrereqStates(d) {
+  const at = nowIso();
+  const docStatus = (m, k) => d.prepare("SELECT status FROM module_docs WHERE module_id = ? AND kind = ?").get(m, k)?.status ?? "none";
+  const reason = "Previous step is not Done \u2013 legacy data normalised, artifact set to Outdated";
+  const syncTasks = (where, args) => {
+    const rows = d.prepare(`SELECT id, status FROM tasks WHERE status IN ('done','approved') AND ${where}`).all(...args);
+    for (const t of rows) {
+      d.prepare("UPDATE tasks SET status = 'doing', updated_at = ? WHERE id = ?").run(at, t.id);
+      d.prepare("INSERT INTO task_events (id, task_id, from_status, to_status, by_member_id, by_system, reason, created_at) VALUES (?, ?, ?, 'doing', NULL, 1, ?, ?)").run(randomUUID(), t.id, t.status, reason, at);
+    }
+  };
+  const modules = d.prepare("SELECT id, docs_status FROM modules").all();
+  for (const m of modules) {
+    const facts = { docStatus: (k) => docStatus(m.id, k), legacyDocsApproved: m.docs_status === "approved" };
+    const bad = (t, st) => isReady(st) && !!prereqBlockReason(t, facts, "done");
+    for (const k of DOC_KINDS) {
+      if (!bad({ kind: "doc", sub: k }, docStatus(m.id, k))) continue;
+      d.prepare("UPDATE module_docs SET status = 'outdated' WHERE module_id = ? AND kind = ?").run(m.id, k);
+      syncTasks("artifact_type = 'doc' AND artifact_id = ? AND artifact_sub = ?", [m.id, k]);
+    }
+    for (const r of d.prepare("SELECT kind, status FROM module_diagrams WHERE module_id = ?").all(m.id)) {
+      if (!bad({ kind: "diagram", sub: r.kind }, r.status)) continue;
+      d.prepare("UPDATE module_diagrams SET status = 'outdated' WHERE module_id = ? AND kind = ?").run(m.id, r.kind);
+      syncTasks("artifact_type = 'diagram' AND artifact_id = ? AND COALESCE(artifact_sub, 'UC') = ?", [m.id, r.kind]);
+    }
+    const tests = d.prepare("SELECT tests_status AS s FROM modules WHERE id = ?").get(m.id);
+    if (tests && bad({ kind: "tests" }, tests.s)) {
+      d.prepare("UPDATE modules SET tests_status = 'outdated' WHERE id = ?").run(m.id);
+      syncTasks("artifact_type = 'tests' AND artifact_id = ?", [m.id]);
+    }
+  }
+}
+function upgradeTasksTable(d) {
+  const sql = d.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'tasks'").get().sql;
+  if (sql.includes("'approved'") && sql.includes("artifact_sub")) return false;
+  const fkOn = Number(d.prepare("PRAGMA foreign_keys").get().foreign_keys) === 1;
+  if (fkOn) d.exec("PRAGMA foreign_keys = OFF");
+  try {
+    const old = new Set(d.prepare("PRAGMA table_info(tasks)").all().map((r) => r.name));
+    const col = (c, fallback) => old.has(c) ? c : fallback;
+    d.exec("BEGIN");
+    try {
+      d.exec("DROP TABLE IF EXISTS tasks__d5");
+      d.exec(tasksDdl("tasks__d5"));
+      d.exec(`INSERT INTO tasks__d5 (id, project_id, module_id, title, description, assignee_id, due_date, priority, status, revision_requested,
+                artifact_type, artifact_id, artifact_sub, created_at, updated_at)
+              SELECT id, project_id, module_id, title, ${col("description", "''")}, ${col("assignee_id", "NULL")}, ${col("due_date", "NULL")},
+                ${col("priority", "'Medium'")},
+                CASE status WHEN 'redo' THEN 'doing' ELSE status END,
+                CASE status WHEN 'redo' THEN 1 ELSE ${col("revision_requested", "0")} END,
+                ${col("artifact_type", "NULL")}, ${col("artifact_id", "NULL")}, ${col("artifact_sub", "NULL")}, created_at, updated_at
+              FROM tasks`);
+      d.exec("DROP TABLE tasks");
+      d.exec("ALTER TABLE tasks__d5 RENAME TO tasks");
+      d.exec("CREATE INDEX IF NOT EXISTS idx_tasks_project ON tasks(project_id)");
+      d.exec("CREATE INDEX IF NOT EXISTS idx_tasks_artifact ON tasks(artifact_type, artifact_id)");
+      const broken = d.prepare("PRAGMA foreign_key_check").all();
+      if (broken.length && fkOn) throw new Error(`Upgrading the tasks table broke foreign keys (${broken.length} rows)`);
+      d.exec("COMMIT");
+    } catch (e) {
+      d.exec("ROLLBACK");
+      throw e;
+    }
+  } finally {
+    if (fkOn) d.exec("PRAGMA foreign_keys = ON");
+  }
+  return true;
+}
+var parseJson = (s2, fallback) => {
+  if (!s2) return fallback;
+  try {
+    return JSON.parse(s2);
+  } catch {
+    return fallback;
+  }
+};
+var legacyStatus = (s2) => s2 === "approved" || s2 === "outdated" || s2 === "done" ? s2 : s2 === "stale" ? "outdated" : "draft";
+function migrateLegacyDocs(d) {
+  const modules = d.prepare("SELECT id, docs_status FROM modules").all();
+  const ins = d.prepare("INSERT OR IGNORE INTO module_docs (module_id, kind, content, data, status, rev, updated_at) VALUES (?, ?, ?, ?, ?, 1, ?)");
+  const at = nowIso();
+  for (const m of modules) {
+    const status2 = legacyStatus(m.docs_status);
+    const ucs = d.prepare("SELECT data FROM use_cases WHERE module_id = ? ORDER BY ord").all(m.id).map((r) => parseJson(r.data, null)).filter((x) => !!x);
+    if (ucs.length) ins.run(m.id, "UC_SPEC", ucMarkdown(ucs), JSON.stringify({ useCases: ucs }), status2, at);
+    const reqs = d.prepare("SELECT data FROM requirements WHERE module_id = ? ORDER BY ord").all(m.id).map((r) => parseJson(r.data, null)).filter((x) => !!x);
+    if (reqs.length) ins.run(m.id, "FRD_NFR", reqMarkdown(reqs), JSON.stringify({ requirements: reqs }), status2, at);
+    const srsRow = d.prepare("SELECT data FROM srs WHERE module_id = ?").get(m.id);
+    const srs = parseJson(srsRow?.data, null);
+    if (srs?.sections?.length) ins.run(m.id, "SRS", srsMarkdown(srs), JSON.stringify({ srs }), status2, at);
+  }
+}
+function migrateLegacyDiagrams(d) {
+  const ins = d.prepare("INSERT OR IGNORE INTO module_diagrams (module_id, kind, code, parts, status, rev, updated_at) VALUES (?, ?, ?, ?, ?, 1, ?)");
+  const at = nowIso();
+  const modules = d.prepare("SELECT id, docs_status FROM modules").all();
+  for (const m of modules) {
+    const seqs = d.prepare("SELECT data FROM sequences WHERE module_id = ? ORDER BY ord").all(m.id).map((r) => parseJson(r.data, null)).filter((x) => !!x && typeof x.mermaid === "string");
+    if (seqs.length) {
+      const parts = seqs.map((s2) => ({ key: s2.useCaseCode, title: s2.title ?? s2.useCaseCode, code: s2.mermaid }));
+      ins.run(m.id, "SEQUENCE", "", JSON.stringify(parts), legacyStatus(m.docs_status), at);
+    }
+  }
+  for (const u of d.prepare("SELECT module_id, code, status, updated_at FROM uc_diagrams").all()) {
+    if (!u.code?.trim()) continue;
+    ins.run(u.module_id, "UC", u.code, "[]", legacyStatus(u.status), u.updated_at || at);
+  }
+}
+function parseStoryParts(text2) {
+  const s2 = text2.normalize("NFC").trim();
+  const role2 = s2.match(/^(?:as\s+an?|với\s+tư\s+cách(?:\s+là)?|là(?:\s+một)?)\s+/iu);
+  if (!role2) return null;
+  const rest = s2.slice(role2[0].length);
+  const means = rest.match(/[,;\s]+(?:i\s+want|tôi\s+muốn)\s+/iu);
+  if (!means || means.index === void 0) return null;
+  const asA = rest.slice(0, means.index).trim();
+  const after = rest.slice(means.index + means[0].length);
+  const end = after.match(/[,;\s]+(?:so\s+that|để)\s+/iu);
+  const clean = (x) => x.trim().replace(/[\s,;.]+$/u, "");
+  const iWant = clean(end && end.index !== void 0 ? after.slice(0, end.index) : after);
+  const soThat = end && end.index !== void 0 ? clean(after.slice(end.index + end[0].length)) : "";
+  if (!asA || !iWant) return null;
+  return { asA, iWant, soThat };
+}
+function migrateRequirementInput(d) {
+  const modules = d.prepare("SELECT id, project_id, requirement_input FROM modules WHERE TRIM(requirement_input) <> '' ORDER BY created_at, rowid").all();
+  const ins = d.prepare(
+    `INSERT INTO user_stories (id, project_id, module_id, code, as_a, i_want, so_that, acceptance_criteria, priority, ord, rev, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, '[]', 'Medium', ?, 1, ?, ?)`
+  );
+  const at = nowIso();
+  for (const m of modules) {
+    if (d.prepare("SELECT 1 FROM user_stories WHERE module_id = ?").get(m.id)) continue;
+    let next = nextStoryNumber(d, m.project_id);
+    let ord = Number(d.prepare("SELECT COALESCE(MAX(ord), 0) AS n FROM user_stories WHERE project_id = ?").get(m.project_id).n);
+    for (const raw of splitStories(m.requirement_input)) {
+      const p2 = parseStoryParts(raw) ?? { asA: "", iWant: raw.trim(), soThat: "" };
+      ins.run(randomUUID(), m.project_id, m.id, storyCode(next++), p2.asA, p2.iWant, p2.soThat, ++ord, at, at);
+    }
+  }
+}
+var storyCode = (n) => `US-${String(n).padStart(2, "0")}`;
+function nextStoryNumber(d, projectId) {
+  const codes = d.prepare("SELECT code FROM user_stories WHERE project_id = ?").all(projectId);
+  return codes.reduce((max, r) => Math.max(max, Number(r.code.match(/(\d+)$/)?.[1] ?? 0)), 0) + 1;
+}
+var cell = (s2) => String(s2 ?? "").replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+var bullets = (title, items) => items?.length ? [`**${title}:**`, ...items.map((x) => `- ${x}`), ""] : [];
+function ucMarkdown(ucs) {
+  const out = ["# UC Specification", ""];
+  for (const uc of ucs) {
+    out.push(`## ${uc.code} \u2013 ${uc.name}`, "");
+    if (uc.actors?.length) out.push(`**Actor:** ${uc.actors.join(", ")}`, "");
+    if (uc.description) out.push(`**Description:** ${uc.description}`, "");
+    if (uc.trigger) out.push(`**Trigger:** ${uc.trigger}`, "");
+    out.push(...bullets("Preconditions", uc.preconditions), ...bullets("Postconditions", uc.postconditions));
+    if (uc.mainFlow?.length) out.push("**Main flow:**", ...uc.mainFlow.map((s2, i) => `${s2.no ?? i + 1}. ${s2.actor ? `${s2.actor}: ` : ""}${s2.text}`), "");
+    for (const f of [...uc.altFlows ?? [], ...uc.exceptions ?? []]) {
+      out.push(`**${f.code} \u2013 ${f.name}** (branches from step ${f.branchFrom}):`, ...(f.steps ?? []).map((s2, i) => `${i + 1}. ${s2}`), "");
+    }
+    out.push(...bullets("Business rules", uc.businessRules), ...bullets("Assumptions", uc.assumptions));
+  }
+  return out.join("\n").trim() + "\n";
+}
+function reqMarkdown(reqs) {
+  const table2 = (type) => {
+    const rows = reqs.filter((r) => r.type === type);
+    if (!rows.length) return [];
+    return [
+      `## ${type === "FR" ? "Functional Requirements (FR)" : "Non-functional Requirements (NFR)"}`,
+      "",
+      "| ID | Statement | Priority | Use case |",
+      "|---|---|---|---|",
+      ...rows.map((r) => `| ${cell(r.code)} | ${cell(r.statement)}${r.isAssumption ? " _(assumption)_" : ""} | ${cell(r.priority)} | ${cell((r.useCaseCodes ?? []).join(", "))} |`),
+      ""
+    ];
+  };
+  return ["# FRD-NFR", "", ...table2("FR"), ...table2("NFR")].join("\n").trim() + "\n";
+}
+function srsMarkdown(srs) {
+  return ["# SRS", "", ...srs.sections.flatMap((s2) => [`## ${s2.title}`, "", s2.content ?? "", ""])].join("\n").trim() + "\n";
+}
+function stateTarget(ref2) {
+  switch (ref2.kind) {
+    case "screen":
+      return { table: "screens", where: "id = ?", args: [ref2.id], status: "status", rr: "revision_requested", rev: "rev", by: "updated_by", at: "updated_at" };
+    case "doc":
+      if (!ref2.sub) throw new Error("ArtifactRef doc requires sub (DocKind)");
+      return { table: "module_docs", where: "module_id = ? AND kind = ?", args: [ref2.id, ref2.sub], status: "status", rr: "revision_requested", rev: "rev", by: "updated_by", at: "updated_at" };
+    case "diagram":
+      return { table: "module_diagrams", where: "module_id = ? AND kind = ?", args: [ref2.id, ref2.sub ?? "UC"], status: "status", rr: "revision_requested", rev: "rev", by: "updated_by", at: "updated_at" };
+    case "tests":
+      return { table: "modules", where: "id = ?", args: [ref2.id], status: "tests_status", rr: "tests_revision_requested", rev: "tests_rev", by: "tests_updated_by", at: "tests_updated_at" };
+    case "docs":
+      return { table: "modules", where: "id = ?", args: [ref2.id], status: "docs_status", rr: null, rev: null, by: null, at: null };
+  }
+}
+function getArtifactState(ref2, d = getDb()) {
+  const t = stateTarget(ref2);
+  const sel = [`${t.status} AS status`, `${t.rr ?? 0} AS rr`, `${t.rev ?? 0} AS rev`, `${t.by ?? "NULL"} AS by_id`, `${t.at ?? "NULL"} AS at`].join(", ");
+  const r = d.prepare(`SELECT ${sel} FROM ${t.table} WHERE ${t.where}`).get(...t.args);
+  const norm3 = ref2.kind === "diagram" ? { ...ref2, sub: ref2.sub ?? "UC" } : ref2;
+  if (!r) {
+    if (ref2.kind !== "doc" && ref2.kind !== "diagram") return null;
+    if (!d.prepare("SELECT 1 FROM modules WHERE id = ?").get(ref2.id)) return null;
+    return { ref: norm3, status: "none", revisionRequested: false, rev: 0, updatedBy: null, updatedAt: null };
+  }
+  return { ref: norm3, status: r.status, revisionRequested: !!r.rr, rev: Number(r.rev), updatedBy: r.by_id ?? null, updatedAt: r.at ?? null };
+}
+function setArtifactState(ref2, patch, d = getDb()) {
+  const t = stateTarget(ref2);
+  const sets = [];
+  const vals = [];
+  if (patch.status !== void 0) sets.push(`${t.status} = ?`), vals.push(patch.status);
+  if (patch.revisionRequested !== void 0 && t.rr) sets.push(`${t.rr} = ?`), vals.push(patch.revisionRequested ? 1 : 0);
+  if (sets.length) d.prepare(`UPDATE ${t.table} SET ${sets.join(", ")} WHERE ${t.where}`).run(...vals, ...t.args);
+  const s2 = getArtifactState(ref2, d);
+  return s2 && s2.rev === 0 && (ref2.kind === "doc" || ref2.kind === "diagram") ? null : s2;
+}
+function bumpRev(ref2, by, d = getDb()) {
+  const t = stateTarget(ref2);
+  if (!t.rev || !t.by || !t.at) return 0;
+  const byId = by && d.prepare("SELECT 1 FROM members WHERE id = ?").get(by) ? by : null;
+  d.prepare(`UPDATE ${t.table} SET ${t.rev} = ${t.rev} + 1, ${t.by} = ?, ${t.at} = ? WHERE ${t.where}`).run(byId, nowIso(), ...t.args);
+  return getArtifactState(ref2, d)?.rev ?? 0;
 }
 
 // server/app.ts
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
-import { join as join2, extname, resolve as resolve2 } from "node:path";
+import { join as join4, extname as extname2, resolve as resolve3 } from "node:path";
 import { createRequire } from "node:module";
 
 // server/repo.ts
-import { randomUUID } from "node:crypto";
+import { randomUUID as randomUUID2 } from "node:crypto";
 var now = () => (/* @__PURE__ */ new Date()).toISOString();
-var uid = () => randomUUID();
-var J = (s, fallback = null) => {
-  if (s === null || s === void 0) return fallback;
+var uid = () => randomUUID2();
+var J = (s2, fallback = null) => {
+  if (s2 === null || s2 === void 0) return fallback;
   try {
-    return JSON.parse(s);
+    return JSON.parse(s2);
   } catch {
     return fallback;
   }
@@ -9891,8 +11246,8 @@ var toProject = (r) => ({ id: r.id, name: r.name, description: r.description, cr
 function listProjects() {
   return getDb().prepare(`SELECT p.*, (SELECT COUNT(*) FROM modules m WHERE m.project_id = p.id) AS module_count FROM projects p ORDER BY created_at DESC`).all().map((r) => ({ ...toProject(r), moduleCount: Number(r.module_count) }));
 }
-function createProject(name, description = "") {
-  const p2 = { id: uid(), name, description, createdAt: now() };
+function createProject(name2, description = "") {
+  const p2 = { id: uid(), name: name2, description, createdAt: now() };
   getDb().prepare("INSERT INTO projects (id, name, description, created_at) VALUES (?, ?, ?, ?)").run(p2.id, p2.name, p2.description, p2.createdAt);
   return p2;
 }
@@ -9910,13 +11265,18 @@ var toModule = (r) => ({
   requirementInput: r.requirement_input,
   docsStatus: r.docs_status,
   testsStatus: r.tests_status,
-  createdAt: r.created_at
+  qusScore: r.qus_score ?? null,
+  qusCheckedAt: r.qus_checked_at ?? null,
+  createdAt: r.created_at,
+  // Đợt 5 (R-033): chặn đè + cờ Yêu cầu sửa của bộ test case
+  testsRev: Number(r.tests_rev ?? 0),
+  testsRevisionRequested: !!r.tests_revision_requested
 });
 function listModules(projectId) {
   return getDb().prepare(`SELECT m.*, (SELECT COUNT(*) FROM screens s WHERE s.module_id = m.id) AS screen_count FROM modules m WHERE project_id = ? ORDER BY created_at`).all(projectId).map((r) => ({ ...toModule(r), screenCount: Number(r.screen_count) }));
 }
-function createModule(projectId, name, requirementInput = "") {
-  const m = { id: uid(), projectId, name, requirementInput, docsStatus: "none", testsStatus: "none", createdAt: now() };
+function createModule(projectId, name2, requirementInput = "") {
+  const m = { id: uid(), projectId, name: name2, requirementInput, docsStatus: "none", testsStatus: "none", createdAt: now() };
   getDb().prepare("INSERT INTO modules (id, project_id, name, requirement_input, docs_status, tests_status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)").run(m.id, m.projectId, m.name, m.requirementInput, m.docsStatus, m.testsStatus, m.createdAt);
   return m;
 }
@@ -9951,7 +11311,12 @@ var toScreen = (r) => ({
   name: r.name,
   status: r.status,
   currentVersionId: r.current_version_id,
-  createdAt: r.created_at
+  createdAt: r.created_at,
+  // Đợt 5 (R-033): số bản, cờ Yêu cầu sửa, người/lúc ghi cuối
+  rev: Number(r.rev ?? 1),
+  revisionRequested: !!r.revision_requested,
+  updatedBy: r.updated_by ?? null,
+  updatedAt: r.updated_at ?? null
 });
 var toVersion = (r) => ({
   id: r.id,
@@ -9964,6 +11329,8 @@ var toVersion = (r) => ({
   changedIds: J(r.changed_ids, []),
   rejected: J(r.rejected, []),
   tree: J(r.tree),
+  author: r.author ?? "",
+  authorId: r.author_id ?? null,
   createdAt: r.created_at
 });
 function getScreen(id) {
@@ -9977,10 +11344,11 @@ function listScreens(moduleId) {
   ).all(moduleId);
   return rows.map((r) => ({ ...toScreen(r), tree: J(r.tree), versionNumber: Number(r.vnum ?? 0) }));
 }
-function createScreen(moduleId, name) {
-  const s = { id: uid(), moduleId, name, status: "draft", currentVersionId: null, createdAt: now() };
-  getDb().prepare("INSERT INTO screens (id, module_id, name, status, created_at) VALUES (?, ?, ?, ?, ?)").run(s.id, s.moduleId, s.name, s.status, s.createdAt);
-  return s;
+function createScreen(moduleId, name2, actorId) {
+  const s2 = { id: uid(), moduleId, name: name2, status: "draft", currentVersionId: null, createdAt: now() };
+  const by = actorId && getDb().prepare("SELECT 1 FROM members WHERE id = ?").get(actorId) ? actorId : null;
+  getDb().prepare("INSERT INTO screens (id, module_id, name, status, created_at, updated_by, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)").run(s2.id, s2.moduleId, s2.name, s2.status, s2.createdAt, by, s2.createdAt);
+  return getScreen(s2.id) ?? s2;
 }
 function updateScreen(id, patch) {
   const cols = [];
@@ -10032,6 +11400,7 @@ var toAnnotation = (r) => ({
   bbox: J(r.bbox),
   comment: r.comment,
   author: r.author,
+  authorId: r.author_id ?? null,
   status: r.status,
   createdAt: r.created_at
 });
@@ -10044,13 +11413,13 @@ function getAnnotations(ids) {
   return getDb().prepare(`SELECT * FROM annotations WHERE id IN (${q})`).all(...ids).map(toAnnotation);
 }
 function createAnnotation(a) {
-  const ann = { ...a, id: uid(), status: "open", createdAt: now() };
-  getDb().prepare("INSERT INTO annotations (id, screen_id, version_id, node_ids, bbox, comment, author, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(ann.id, ann.screenId, ann.versionId, JSON.stringify(ann.nodeIds), JSON.stringify(ann.bbox), ann.comment, ann.author, ann.status, ann.createdAt);
+  const ann = { ...a, authorId: a.authorId ?? null, id: uid(), status: "open", createdAt: now() };
+  getDb().prepare("INSERT INTO annotations (id, screen_id, version_id, node_ids, bbox, comment, author, author_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").run(ann.id, ann.screenId, ann.versionId, JSON.stringify(ann.nodeIds), JSON.stringify(ann.bbox), ann.comment, ann.author, ann.authorId ?? null, ann.status, ann.createdAt);
   return ann;
 }
-function setAnnotationStatus(ids, status) {
+function setAnnotationStatus(ids, status2) {
   const st = getDb().prepare("UPDATE annotations SET status = ? WHERE id = ?");
-  for (const id of ids) st.run(status, id);
+  for (const id of ids) st.run(status2, id);
 }
 function getAnnotation(id) {
   return getAnnotations([id])[0] ?? null;
@@ -10062,6 +11431,18 @@ function listData(table2, moduleId) {
   return getDb().prepare(`SELECT data FROM ${table2} WHERE module_id = ? ORDER BY ord`).all(moduleId).map((r) => J(r.data));
 }
 function getDocs(moduleId) {
+  const legacy = getLegacyDocs(moduleId);
+  const uc = getModuleDocRow(moduleId, "UC_SPEC");
+  const frd = getModuleDocRow(moduleId, "FRD_NFR");
+  const srs = getModuleDocRow(moduleId, "SRS");
+  return {
+    useCases: uc ? (uc.data?.useCases ?? []).map(normUseCase) : legacy.useCases,
+    requirements: frd ? (frd.data?.requirements ?? []).map(normRequirement) : legacy.requirements,
+    srs: srs ? srs.data?.srs ?? null : legacy.srs,
+    sequences: legacy.sequences
+  };
+}
+function getLegacyDocs(moduleId) {
   const srsRow = getDb().prepare("SELECT data FROM srs WHERE module_id = ?").get(moduleId);
   return {
     useCases: listData("use_cases", moduleId),
@@ -10106,7 +11487,7 @@ function saveSequences(moduleId, seqs) {
     const d = getDb();
     d.prepare("DELETE FROM sequences WHERE module_id = ?").run(moduleId);
     const st = d.prepare("INSERT INTO sequences (module_id, use_case_code, ord, data) VALUES (?, ?, ?, ?)");
-    seqs.forEach((s, i) => st.run(moduleId, s.useCaseCode, i, JSON.stringify(s)));
+    seqs.forEach((s2, i) => st.run(moduleId, s2.useCaseCode, i, JSON.stringify(s2)));
   });
 }
 function saveSequence(moduleId, seq) {
@@ -10129,6 +11510,60 @@ function saveTests(moduleId, tests) {
     tests.forEach((t, i) => st.run(moduleId, t.code, i, JSON.stringify(t)));
   });
 }
+function getModuleDocRow(moduleId, kind) {
+  const r = getDb().prepare("SELECT kind, content, data, status, rev FROM module_docs WHERE module_id = ? AND kind = ?").get(moduleId, kind);
+  if (!r) return null;
+  return { kind: r.kind, content: r.content ?? "", data: J(r.data), status: r.status, rev: Number(r.rev) };
+}
+function listModuleStories(moduleId) {
+  return getDb().prepare("SELECT * FROM user_stories WHERE module_id = ? ORDER BY ord, code").all(moduleId).map((r) => ({
+    id: r.id,
+    projectId: r.project_id,
+    moduleId: r.module_id ?? null,
+    code: r.code,
+    asA: r.as_a ?? "",
+    iWant: r.i_want ?? "",
+    soThat: r.so_that ?? "",
+    acceptanceCriteria: J(r.acceptance_criteria, []),
+    priority: r.priority,
+    order: Number(r.ord ?? 0),
+    rev: Number(r.rev ?? 1),
+    updatedBy: r.updated_by ?? null,
+    updatedAt: r.updated_at ?? null,
+    createdAt: r.created_at
+  }));
+}
+var arrOf = (v) => Array.isArray(v) ? v : [];
+function normUseCase(u) {
+  return {
+    ...u,
+    code: String(u?.code ?? ""),
+    name: String(u?.name ?? ""),
+    actors: arrOf(u?.actors).map(String),
+    description: String(u?.description ?? ""),
+    trigger: String(u?.trigger ?? ""),
+    preconditions: arrOf(u?.preconditions).map(String),
+    postconditions: arrOf(u?.postconditions).map(String),
+    mainFlow: arrOf(u?.mainFlow),
+    altFlows: arrOf(u?.altFlows).map((a) => ({ ...a, steps: arrOf(a?.steps).map(String) })),
+    exceptions: arrOf(u?.exceptions).map((a) => ({ ...a, steps: arrOf(a?.steps).map(String) })),
+    businessRules: arrOf(u?.businessRules).map(String),
+    screenIds: arrOf(u?.screenIds).map(String),
+    assumptions: arrOf(u?.assumptions).map(String)
+  };
+}
+function normRequirement(r) {
+  return {
+    ...r,
+    code: String(r?.code ?? ""),
+    type: r?.type === "NFR" ? "NFR" : "FR",
+    statement: String(r?.statement ?? ""),
+    priority: ["High", "Medium", "Low"].includes(r?.priority) ? r.priority : "Medium",
+    useCaseCodes: arrOf(r?.useCaseCodes).map(String),
+    source: String(r?.source ?? ""),
+    isAssumption: !!r?.isAssumption
+  };
+}
 function getModuleDetail(id) {
   const m = getModule(id);
   if (!m) return null;
@@ -10143,11 +11578,11 @@ function getModuleDetail(id) {
   };
 }
 function logRun(r) {
-  const run = { ...r, id: uid(), createdAt: now() };
+  const run2 = { ...r, id: uid(), createdAt: now() };
   getDb().prepare(
     "INSERT INTO prompt_runs (id, module_id, type, provider, model, input, output, ok, error, input_tokens, output_tokens, latency_ms, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-  ).run(run.id, run.moduleId, run.type, run.provider, run.model, run.input, run.output, run.ok ? 1 : 0, run.error, run.inputTokens, run.outputTokens, run.latencyMs, run.createdAt);
-  return run;
+  ).run(run2.id, run2.moduleId, run2.type, run2.provider, run2.model, run2.input, run2.output, run2.ok ? 1 : 0, run2.error, run2.inputTokens, run2.outputTokens, run2.latencyMs, run2.createdAt);
+  return run2;
 }
 function listRuns(moduleId) {
   return getDb().prepare("SELECT * FROM prompt_runs WHERE module_id = ? ORDER BY created_at DESC LIMIT 200").all(moduleId).map((r) => ({
@@ -10191,6 +11626,40 @@ function suggestionStats(moduleId) {
   }
   return { ...t, acceptanceRate: t.shown ? t.applied / t.shown : 0, byKind };
 }
+var toFileRecord = (r) => ({
+  id: r.id,
+  projectId: r.project_id,
+  moduleId: r.module_id ?? null,
+  name: r.name,
+  mime: r.mime,
+  size: Number(r.size),
+  source: r.source,
+  createdAt: r.created_at
+});
+function createFile(rec2) {
+  getDb().prepare("INSERT INTO files (id, project_id, module_id, name, stored_name, mime, size, source, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(rec2.id, rec2.projectId, rec2.moduleId, rec2.name, rec2.storedName, rec2.mime, rec2.size, rec2.source, rec2.createdAt);
+  return {
+    id: rec2.id,
+    projectId: rec2.projectId,
+    moduleId: rec2.moduleId,
+    name: rec2.name,
+    mime: rec2.mime,
+    size: rec2.size,
+    source: rec2.source,
+    createdAt: rec2.createdAt
+  };
+}
+function deleteFileRow(id) {
+  getDb().prepare("DELETE FROM files WHERE id = ?").run(id);
+}
+function findExportFile(projectId, moduleId, name2) {
+  const r = getDb().prepare("SELECT * FROM files WHERE project_id = ? AND module_id = ? AND name = ? AND source = 'export'").get(projectId, moduleId, name2);
+  if (!r) return null;
+  return {
+    ...toFileRecord(r),
+    storedName: r.stored_name
+  };
+}
 
 // shared/design.ts
 var CONTAINER_TYPES = [
@@ -10230,34 +11699,34 @@ function isContainer(type) {
   return CONTAINER_TYPES.includes(type);
 }
 var COMPONENT_CATALOG = {
-  Page: "G\u1ED1c m\xE0n h\xECnh. props: { title }",
-  Header: "Thanh \u0111\u1EA7u trang. props: { title? }",
-  Sidebar: "Thanh \u0111i\u1EC1u h\u01B0\u1EDBng b\xEAn. props: {}",
-  Section: "Nh\xF3m n\u1ED9i dung c\xF3 ti\xEAu \u0111\u1EC1. props: { title? }",
-  Card: "Khung th\u1EBB. props: { title? }",
-  Row: "X\u1EBFp con theo h\xE0ng ngang. props: { gap?: number, align?: 'start'|'center'|'end'|'between' }",
-  Column: "X\u1EBFp con theo c\u1ED9t d\u1ECDc. props: { gap?: number, width?: 'auto'|'1/3'|'1/2'|'2/3'|'full' }",
-  Form: "Bi\u1EC3u m\u1EABu. props: { title?, submitAction? }",
-  List: "Danh s\xE1ch l\u1EB7p. props: { title? }",
-  Modal: "H\u1ED9p tho\u1EA1i. props: { title, open?: boolean }",
-  Heading: "Ti\xEAu \u0111\u1EC1. props: { text, level?: 1|2|3 }",
-  Text: "\u0110o\u1EA1n v\u0103n. props: { text, tone?: 'default'|'muted' }",
-  Button: "N\xFAt. props: { label, variant?: 'primary'|'secondary'|'danger'|'ghost', action?: string, navigateTo?: string }",
-  Link: "Li\xEAn k\u1EBFt. props: { text, navigateTo? }",
-  Input: "\xD4 nh\u1EADp. props: { label, name?, placeholder?, inputType?: 'text'|'email'|'password'|'number'|'tel', required?: boolean, minLength?, maxLength?, min?, max?, pattern? }",
-  Textarea: "\xD4 nh\u1EADp nhi\u1EC1u d\xF2ng. props: { label, name?, placeholder?, required?, maxLength? }",
-  Select: "H\u1ED9p ch\u1ECDn. props: { label, name?, options: string[], required? }",
-  Checkbox: "\xD4 t\xEDch. props: { label, name? }",
-  Radio: "Nh\xF3m l\u1EF1a ch\u1ECDn. props: { label, name?, options: string[], required? }",
-  DatePicker: "Ch\u1ECDn ng\xE0y. props: { label, name?, required? }",
-  Table: "B\u1EA3ng d\u1EEF li\u1EC7u. props: { columns: string[], rows?: string[][], rowActions?: string[] }",
-  Image: "\u1EA2nh minh h\u1ECDa. props: { alt, height?: number }",
-  Badge: "Nh\xE3n tr\u1EA1ng th\xE1i. props: { text, tone?: 'info'|'success'|'warning'|'danger' }",
-  Alert: "Th\xF4ng b\xE1o. props: { text, tone?: 'info'|'success'|'warning'|'danger' }",
-  Stat: "Ch\u1EC9 s\u1ED1. props: { label, value }",
-  Avatar: "\u1EA2nh \u0111\u1EA1i di\u1EC7n. props: { name }",
-  Divider: "\u0110\u01B0\u1EDDng k\u1EBB. props: {}",
-  Pagination: "Ph\xE2n trang. props: { pages?: number }"
+  Page: "Screen root. props: { title }",
+  Header: "Page header bar. props: { title? }",
+  Sidebar: "Side navigation bar. props: {}",
+  Section: "Titled content group. props: { title? }",
+  Card: "Card container. props: { title? }",
+  Row: "Lays out children horizontally. props: { gap?: number, align?: 'start'|'center'|'end'|'between' }",
+  Column: "Lays out children vertically. props: { gap?: number, width?: 'auto'|'1/3'|'1/2'|'2/3'|'full' }",
+  Form: "Form. props: { title?, submitAction? }",
+  List: "Repeating list. props: { title? }",
+  Modal: "Dialog. props: { title, open?: boolean }",
+  Heading: "Heading. props: { text, level?: 1|2|3 }",
+  Text: "Paragraph. props: { text, tone?: 'default'|'muted' }",
+  Button: "Button. props: { label, variant?: 'primary'|'secondary'|'danger'|'ghost', action?: string, navigateTo?: string }",
+  Link: "Link. props: { text, navigateTo? }",
+  Input: "Text input. props: { label, name?, placeholder?, inputType?: 'text'|'email'|'password'|'number'|'tel', required?: boolean, minLength?, maxLength?, min?, max?, pattern? }",
+  Textarea: "Multi-line text input. props: { label, name?, placeholder?, required?, maxLength? }",
+  Select: "Drop-down list. props: { label, name?, options: string[], required? }",
+  Checkbox: "Checkbox. props: { label, name? }",
+  Radio: "Radio button group. props: { label, name?, options: string[], required? }",
+  DatePicker: "Date picker. props: { label, name?, required? }",
+  Table: "Data table. props: { columns: string[], rows?: string[][], rowActions?: string[] }",
+  Image: "Illustration image. props: { alt, height?: number }",
+  Badge: "Status badge. props: { text, tone?: 'info'|'success'|'warning'|'danger' }",
+  Alert: "Alert message. props: { text, tone?: 'info'|'success'|'warning'|'danger' }",
+  Stat: "Metric. props: { label, value }",
+  Avatar: "Avatar. props: { name }",
+  Divider: "Divider line. props: {}",
+  Pagination: "Pagination. props: { pages?: number }"
 };
 var idCounter = 0;
 function newId(prefix = "n") {
@@ -10281,27 +11750,27 @@ function normalizeTree(input, seen = /* @__PURE__ */ new Set()) {
 function validateTree(root3) {
   const errors = [];
   const ids = /* @__PURE__ */ new Set();
-  if (root3.type !== "Page") errors.push(`Node g\u1ED1c ph\u1EA3i l\xE0 Page (\u0111ang l\xE0 ${root3.type})`);
+  if (root3.type !== "Page") errors.push(`The root node must be a Page (currently ${root3.type})`);
   walk(root3, (n, parent) => {
-    if (!n.id) errors.push("C\xF3 node thi\u1EBFu id");
-    if (ids.has(n.id)) errors.push(`Tr\xF9ng id: ${n.id}`);
+    if (!n.id) errors.push("A node is missing its id");
+    if (ids.has(n.id)) errors.push(`Duplicate id: ${n.id}`);
     ids.add(n.id);
-    if (!ALL_TYPES.includes(n.type)) errors.push(`Lo\u1EA1i component kh\xF4ng h\u1ED7 tr\u1EE3: ${n.type} (id ${n.id})`);
-    if (!isContainer(n.type) && n.children && n.children.length) errors.push(`${n.type} (id ${n.id}) kh\xF4ng \u0111\u01B0\u1EE3c c\xF3 children`);
-    if (n.type === "Page" && parent) errors.push(`Page ch\u1EC9 \u0111\u01B0\u1EE3c l\xE0 node g\u1ED1c (id ${n.id})`);
+    if (!ALL_TYPES.includes(n.type)) errors.push(`Unsupported component type: ${n.type} (id ${n.id})`);
+    if (!isContainer(n.type) && n.children && n.children.length) errors.push(`${n.type} (id ${n.id}) cannot have children`);
+    if (n.type === "Page" && parent) errors.push(`Page can only be the root node (id ${n.id})`);
     const p2 = n.props ?? {};
     const needText = ["Heading", "Text", "Badge", "Alert", "Link"];
-    if (needText.includes(n.type) && typeof p2.text !== "string") errors.push(`${n.type} (id ${n.id}) thi\u1EBFu props.text`);
+    if (needText.includes(n.type) && typeof p2.text !== "string") errors.push(`${n.type} (id ${n.id}) is missing props.text`);
     const needLabel = ["Button", "Input", "Textarea", "Select", "Checkbox", "Radio", "DatePicker", "Stat"];
-    if (needLabel.includes(n.type) && typeof p2.label !== "string") errors.push(`${n.type} (id ${n.id}) thi\u1EBFu props.label`);
-    if ((n.type === "Select" || n.type === "Radio") && !Array.isArray(p2.options)) errors.push(`${n.type} (id ${n.id}) thi\u1EBFu props.options`);
-    if (n.type === "Table" && !Array.isArray(p2.columns)) errors.push(`Table (id ${n.id}) thi\u1EBFu props.columns`);
+    if (needLabel.includes(n.type) && typeof p2.label !== "string") errors.push(`${n.type} (id ${n.id}) is missing props.label`);
+    if ((n.type === "Select" || n.type === "Radio") && !Array.isArray(p2.options)) errors.push(`${n.type} (id ${n.id}) is missing props.options`);
+    if (n.type === "Table" && !Array.isArray(p2.columns)) errors.push(`Table (id ${n.id}) is missing props.columns`);
   });
   return { ok: errors.length === 0, errors };
 }
-function walk(root3, fn, parent = null, depth = 0) {
-  fn(root3, parent, depth);
-  for (const c of root3.children ?? []) walk(c, fn, root3, depth + 1);
+function walk(root3, fn, parent = null, depth2 = 0) {
+  fn(root3, parent, depth2);
+  for (const c of root3.children ?? []) walk(c, fn, root3, depth2 + 1);
 }
 function findNode(root3, id) {
   let found = null;
@@ -10332,14 +11801,14 @@ function nodeLabel(n) {
 }
 function topMostIds(root3, ids) {
   const set = new Set(ids);
-  const result = [];
+  const result2 = [];
   const visit = (n, covered) => {
     const isSel = set.has(n.id);
-    if (isSel && !covered) result.push(n.id);
+    if (isSel && !covered) result2.push(n.id);
     for (const c of n.children ?? []) visit(c, covered || isSel);
   };
   visit(root3, false);
-  return result;
+  return result2;
 }
 function regionIds(root3, selected) {
   const allowed = /* @__PURE__ */ new Set();
@@ -10381,14 +11850,22 @@ function compactTree(n) {
 // server/ai/client.ts
 function aiConfig() {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim() ?? "";
+  const authToken = process.env.ANTHROPIC_AUTH_TOKEN?.trim() ?? "";
   const forced = process.env.AI_MODE?.trim().toLowerCase();
-  const provider = forced === "mock" || !apiKey ? "mock" : "claude";
+  const provider = forced === "mock" || !apiKey && !authToken ? "mock" : "claude";
   return {
     provider,
     model: process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-4-5",
     apiKey,
-    baseUrl: process.env.ANTHROPIC_BASE_URL?.trim() || "https://api.anthropic.com"
+    authToken,
+    baseUrl: (process.env.ANTHROPIC_BASE_URL?.trim() || "https://api.anthropic.com").replace(/\/+$/, "")
   };
+}
+function authHeaders(cfg) {
+  const h2 = {};
+  if (cfg.apiKey) h2["x-api-key"] = cfg.apiKey;
+  if (cfg.authToken) h2.authorization = `Bearer ${cfg.authToken}`;
+  return h2;
 }
 var AIError = class extends Error {
   constructor(message, details) {
@@ -10419,7 +11896,7 @@ async function runAI(opts) {
   }
   const limit = Number(process.env.MAX_AI_CALLS_PER_DAY ?? 0);
   if (limit > 0 && countClaudeRunsToday() >= limit) {
-    throw new AIError(`\u0110\xE3 \u0111\u1EA1t gi\u1EDBi h\u1EA1n ${limit} l\u01B0\u1EE3t g\u1ECDi AI trong ng\xE0y (MAX_AI_CALLS_PER_DAY). Th\u1EED l\u1EA1i v\xE0o ng\xE0y mai ho\u1EB7c t\u0103ng gi\u1EDBi h\u1EA1n.`);
+    throw new AIError(`The daily limit of ${limit} AI calls has been reached (MAX_AI_CALLS_PER_DAY). Try again tomorrow or raise the limit.`);
   }
   const messages = [{ role: "user", content: opts.prompt }];
   let inTok = 0;
@@ -10433,7 +11910,7 @@ async function runAI(opts) {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-api-key": cfg.apiKey,
+          ...authHeaders(cfg),
           "anthropic-version": "2023-06-01"
         },
         body: JSON.stringify({
@@ -10446,19 +11923,19 @@ async function runAI(opts) {
         })
       });
     } catch (e) {
-      return fail(`Kh\xF4ng k\u1EBFt n\u1ED1i \u0111\u01B0\u1EE3c Claude API: ${e.message}`);
+      return fail2(`Could not connect to the Claude API: ${e.message}`);
     }
     const body = await res.json().catch(() => ({}));
     if (!res.ok) {
-      return fail(`Claude API l\u1ED7i ${res.status}: ${body?.error?.message ?? JSON.stringify(body).slice(0, 300)}`);
+      return fail2(`Claude API error ${res.status}: ${body?.error?.message ?? JSON.stringify(body).slice(0, 300)}`);
     }
     inTok += body.usage?.input_tokens ?? 0;
     outTok += body.usage?.output_tokens ?? 0;
     const block = (body.content ?? []).find((c) => c.type === "tool_use");
     if (!block) {
-      lastErrors = ["Model kh\xF4ng g\u1ECDi tool"];
+      lastErrors = ["The model did not call the tool"];
       messages.push({ role: "assistant", content: body.content ?? [] });
-      messages.push({ role: "user", content: `H\xE3y g\u1ECDi tool ${opts.tool.name} \u0111\u1EC3 tr\u1EA3 k\u1EBFt qu\u1EA3.` });
+      messages.push({ role: "user", content: `Call the ${opts.tool.name} tool to return the result.` });
       continue;
     }
     lastRaw = block.input;
@@ -10477,14 +11954,14 @@ async function runAI(opts) {
         input: opts.prompt.slice(0, 2e4),
         output: JSON.stringify(block.input).slice(0, 5e4),
         ok: true,
-        error: attempt ? `t\u1EF1 s\u1EEDa sau l\u1ED7i: ${lastErrors.join("; ")}` : "",
+        error: attempt ? `self-corrected after errors: ${lastErrors.join("; ")}` : "",
         inputTokens: inTok,
         outputTokens: outTok,
         latencyMs: Date.now() - started
       });
       return parsed.value;
     }
-    lastErrors = parsed.errors ?? ["K\u1EBFt qu\u1EA3 kh\xF4ng h\u1EE3p l\u1EC7"];
+    lastErrors = parsed.errors ?? ["Invalid result"];
     messages.push({ role: "assistant", content: body.content });
     messages.push({
       role: "user",
@@ -10493,14 +11970,14 @@ async function runAI(opts) {
           type: "tool_result",
           tool_use_id: block.id,
           is_error: true,
-          content: `K\u1EBFt qu\u1EA3 ch\u01B0a h\u1EE3p l\u1EC7, h\xE3y g\u1ECDi l\u1EA1i tool v\u1EDBi b\u1EA3n \u0111\xE3 s\u1EEDa. L\u1ED7i:
+          content: `The result is invalid; call the tool again with a corrected version. Errors:
 - ${lastErrors.slice(0, 15).join("\n- ")}`
         }
       ]
     });
   }
-  return fail(`AI tr\u1EA3 k\u1EBFt qu\u1EA3 kh\xF4ng h\u1EE3p l\u1EC7 sau 2 l\u1EA7n: ${lastErrors.slice(0, 5).join("; ")}`);
-  function fail(msg) {
+  return fail2(`The AI returned an invalid result after 2 attempts: ${lastErrors.slice(0, 5).join("; ")}`);
+  function fail2(msg) {
     logRun({
       moduleId: opts.moduleId,
       type: opts.type,
@@ -10518,64 +11995,152 @@ async function runAI(opts) {
   }
 }
 
+// shared/ucDiagram.ts
+var SYSTEM_ACTOR = /^(?:hệ thống|system|the system)$/i;
+var UC_CODE = /\bUC-\d+\b/gi;
+function ucLabel(s2, max = 80) {
+  const t = String(s2 ?? "").replace(/["`]/g, "'").replace(/[<>]/g, " ").replace(/[\r\n\t]+/g, " ").replace(/\s+/g, " ").trim();
+  return t.length > max ? t.slice(0, max - 1).trimEnd() + "\u2026" : t;
+}
+function inferRelations(useCases) {
+  const byCode = new Map(useCases.map((u) => [u.code.toUpperCase(), u.code]));
+  const byName = new Map(useCases.map((u) => [ucLabel(u.name).toLowerCase(), u.code]));
+  const out = [];
+  const seen = /* @__PURE__ */ new Set();
+  const add2 = (from, to, type) => {
+    if (!from || !to || from === to) return;
+    const key2 = `${from}|${to}|${type}`;
+    if (seen.has(key2)) return;
+    seen.add(key2);
+    out.push({ from, to, type });
+  };
+  const codesIn = (text2) => [...String(text2 ?? "").matchAll(UC_CODE)].map((m) => byCode.get(m[0].toUpperCase()));
+  for (const u of useCases) {
+    for (const c of u.includes ?? []) add2(u.code, byCode.get(String(c).toUpperCase()), "include");
+    for (const c of u.extends ?? []) add2(u.code, byCode.get(String(c).toUpperCase()), "extend");
+    for (const s2 of u.mainFlow ?? []) for (const c of codesIn(s2.text)) add2(u.code, c, "include");
+    for (const f of [...u.altFlows ?? [], ...u.exceptions ?? []]) {
+      for (const c of codesIn([f.name, ...f.steps].join(" "))) add2(c, u.code, "extend");
+      add2(byName.get(ucLabel(f.name).toLowerCase()), u.code, "extend");
+    }
+  }
+  return out;
+}
+function ucSourceHash(useCases) {
+  const relations = inferRelations(useCases);
+  const src = JSON.stringify([
+    useCases.map((u) => [u.code, ucLabel(u.name), [...u.actors].map((a) => ucLabel(a)).sort()]),
+    relations.map((r) => `${r.from}>${r.to}:${r.type}`).sort()
+  ]);
+  let h2 = 2166136261;
+  for (let i = 0; i < src.length; i++) {
+    h2 ^= src.charCodeAt(i);
+    h2 = Math.imul(h2, 16777619);
+  }
+  return (h2 >>> 0).toString(16).padStart(8, "0");
+}
+var SOURCE_MARK = "%% nguon-uc:";
+function readSourceHash(code) {
+  const m = String(code ?? "").match(/^\s*%% nguon-uc:\s*([0-9a-f]{8})\s*$/m);
+  return m ? m[1] : null;
+}
+function buildUcMermaid(useCases, actors = [], relations) {
+  const ucs = useCases.filter((u) => u && u.code);
+  const rels = relations ?? inferRelations(ucs);
+  const actorNames = [];
+  const actorKey = /* @__PURE__ */ new Map();
+  for (const a of [...actors, ...ucs.flatMap((u) => u.actors ?? [])]) {
+    const name2 = ucLabel(a, 40);
+    if (!name2 || SYSTEM_ACTOR.test(name2) || actorKey.has(name2.toLowerCase())) continue;
+    actorKey.set(name2.toLowerCase(), `A${actorNames.length + 1}`);
+    actorNames.push(name2);
+  }
+  const ucId = new Map(ucs.map((u, i) => [u.code, `UC${i + 1}`]));
+  const lines = ["flowchart LR", `  ${SOURCE_MARK} ${ucSourceHash(ucs)}`];
+  actorNames.forEach((a, i) => lines.push(`  A${i + 1}(("${a}"))`));
+  lines.push(`  subgraph SYS["System"]`, "    direction TB");
+  if (!ucs.length) lines.push(`    EMPTY["No use cases yet"]`);
+  ucs.forEach((u) => lines.push(`    ${ucId.get(u.code)}(["${ucLabel(`${u.code}: ${u.name}`)}"])`));
+  lines.push("  end");
+  for (const u of ucs)
+    for (const a of u.actors ?? []) {
+      const id = actorKey.get(ucLabel(a, 40).toLowerCase());
+      if (id) lines.push(`  ${id} --- ${ucId.get(u.code)}`);
+    }
+  for (const r of rels) {
+    const from = ucId.get(r.from);
+    const to = ucId.get(r.to);
+    if (from && to) lines.push(`  ${from} -.->|"\xAB${r.type}\xBB"| ${to}`);
+  }
+  return lines.join("\n");
+}
+
 // server/ai/mock.ts
-var has = (s, re) => re.test(s.toLowerCase());
+var has = (s2, re) => re.test(s2.toLowerCase());
+var SYSTEM = "System";
+var isSys = (a) => /^(?:system|the system|hệ thống)$/i.test(String(a ?? "").trim());
+var sysStep = (s2) => /^(?:system|hệ thống)\b/i.test(s2);
 function entityFrom(prompt, fallback) {
-  const m = prompt.match(/(?:quản lý|danh sách|thêm|tạo|chỉnh sửa|form|màn hình)\s+([\p{L}\d ]{2,40}?)(?:[,.;:\n]|$| gồm| có| với| cho)/iu);
+  const m = prompt.match(/(?:quản lý|danh sách|thêm|tạo|chỉnh sửa|form|màn hình)\s+([\p{L}\d ]{2,40}?)(?:[,.;:\n]|$| gồm| có| với| cho)/iu) ?? prompt.match(/(?:manage|management of|list of|add(?: new)?|create|edit|new)\s+(?:an?\s+|the\s+)?([\p{L}\d ]{2,40}?)(?:[,.;:\n]|$| with| including| for| by)/iu) ?? prompt.match(/([\p{L}]+(?: [\p{L}]+)?)\s+(?:management|list)\b/iu);
   const e = (m?.[1] ?? fallback).trim();
   return e.charAt(0).toUpperCase() + e.slice(1);
 }
-function mockScreen(prompt, name, opts = {}) {
+function mockScreen(prompt, name2, opts = {}) {
   if (opts.mode !== "template") {
-    const built = mockFromPrompt(prompt, name);
+    const built = mockFromPrompt(prompt, name2);
     if (built) return built;
   }
-  return mockTemplate(prompt, name);
+  return mockTemplate(prompt, name2);
 }
 var ACTIONS = [
-  [/đăng nhập/, "login"],
-  [/đăng ký/, "register"],
-  [/lưu/, "save"],
-  [/hủy|huỷ/, "cancel"],
-  [/tìm/, "search"],
-  [/xóa|xoá/, "delete"],
-  [/thêm/, "create"],
-  [/cập nhật/, "update"],
-  [/gửi/, "submit"],
-  [/duyệt/, "approve"],
-  [/từ chối/, "reject"],
-  [/xuất/, "export"],
-  [/thanh toán|đặt hàng/, "checkout"],
-  [/quay lại/, "back"]
+  [/đăng nhập|\blog ?in\b|sign in/, "login"],
+  [/đăng ký|register|sign up/, "register"],
+  [/lưu|\bsave\b/, "save"],
+  [/hủy|huỷ|cancel/, "cancel"],
+  [/tìm|search/, "search"],
+  [/xóa|xoá|delete|remove/, "delete"],
+  [/thêm|\badd\b|\bnew\b|create/, "create"],
+  [/cập nhật|update/, "update"],
+  [/gửi|submit|\bsend\b/, "submit"],
+  [/duyệt|approve/, "approve"],
+  [/từ chối|reject/, "reject"],
+  [/xuất|export/, "export"],
+  [/thanh toán|đặt hàng|checkout|\bpay\b|place order/, "checkout"],
+  [/quay lại|\bback\b/, "back"]
 ];
-var actionOf = (label2) => ACTIONS.find(([re]) => re.test(label2.toLowerCase()))?.[1] ?? "click";
-var cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-var splitList = (s) => s.split(/\s*(?:,|;|\/)\s*|\s+(?:và|hoặc)\s+/).map((x) => x.replace(/["“”']/g, "").trim()).filter((x) => x && x.length <= 40);
-function mockFromPrompt(prompt, name) {
-  const text = prompt.trim();
-  const p2 = text.toLowerCase();
-  const fields = [];
+var SECONDARY_BTN = /hủy|huỷ|quay lại|từ chối|cancel|\bback\b|reject/i;
+var splitList = (s2) => s2.split(/\s*(?:,|;|\/)\s*|\s+(?:và|hoặc|and|or)\s+/).map((x) => x.replace(/["“”']/g, "").trim()).filter((x) => x && x.length <= 40);
+var actionOf = (label3) => ACTIONS.find(([re]) => re.test(label3.toLowerCase()))?.[1] ?? "click";
+var cap = (s2) => s2.charAt(0).toUpperCase() + s2.slice(1);
+var stripArticle = (s2) => s2.replace(/^(?:a|an|the|with)\s+/i, "").trim();
+function mockFromPrompt(prompt, name2) {
+  const text2 = prompt.trim();
+  const p2 = text2.toLowerCase();
+  const fields2 = [];
   const tools = [];
   const buttons = [];
   const links = [];
   const at = (re) => p2.search(re);
-  const blank = (s) => s.replace(/(cột|lọc theo|chỉ số)\s+[^.;\n]+?(?=$|[.;\n]|,\s*(?:thao tác|nút|phân trang|có|xuất|bảng|khoảng)\b)/giu, (m) => " ".repeat(m.length));
-  const pf = blank(p2);
+  const blank = (s2) => s2.replace(
+    /(cột|lọc theo|chỉ số|columns?|filter by|metrics|stats)\s+[^.;\n]+?(?=$|[.;\n]|,\s*(?:thao tác|nút|phân trang|có|xuất|bảng|khoảng|actions?|buttons?|pagination|with|export|table|date range)\b)/giu,
+    (m) => " ".repeat(m.length)
+  );
+  const pf = blank(p2).replace(/^[^:\n]{1,60}:/, (m) => " ".repeat(m.length)).replace(/search by\s+[^,.;\n]+/g, (m) => " ".repeat(m.length));
   const fieldRes = [];
   const field = (re, type, props) => {
     const i = pf.search(re);
     if (i < 0) return;
-    const base2 = { ...props, name: slugName(String(props.label)) };
-    if (type === "Input" || type === "Textarea") base2.placeholder ??= `Nh\u1EADp ${String(props.label).toLowerCase()}`;
-    const node = { type, props: base2 };
+    const base = { ...props, name: slugName(String(props.label)) };
+    if (type === "Input" || type === "Textarea") base.placeholder ??= `Enter ${String(props.label).toLowerCase()}`;
+    const node = { type, props: base };
     fieldRes.push({ re, node });
-    fields.push({ at: i, node });
+    fields2.push({ at: i, node });
   };
   const constrain = () => {
     for (const seg of p2.split(/[.;,()\n]/)) {
-      const req = /bắt buộc/.test(seg);
-      const max = seg.match(/tối đa\s+(\d+)\s*ký tự/)?.[1];
-      const min = seg.match(/tối thiểu\s+(\d+)\s*ký tự/)?.[1];
+      const req = /bắt buộc|required|mandatory/.test(seg);
+      const max = seg.match(/(?:tối đa|max(?:imum)?|at most|up to)\s+(\d+)\s*(?:ký tự|characters?|chars?)/)?.[1];
+      const min = seg.match(/(?:tối thiểu|min(?:imum)?|at least)\s+(\d+)\s*(?:ký tự|characters?|chars?)/)?.[1];
       if (!req && !max && !min) continue;
       const named = fieldRes.filter((f) => f.re.test(seg));
       const targets = named.length ? named : fieldRes.filter((f) => !(min && !max && !req) || f.node.props.inputType === "password");
@@ -10587,103 +12152,120 @@ function mockFromPrompt(prompt, name) {
     }
   };
   field(/email/, "Input", { label: "Email", inputType: "email" });
-  field(/xác nhận mật khẩu/, "Input", { label: "X\xE1c nh\u1EADn m\u1EADt kh\u1EA9u", inputType: "password" });
-  field(/mật khẩu (cũ|hiện tại)/, "Input", { label: "M\u1EADt kh\u1EA9u hi\u1EC7n t\u1EA1i", inputType: "password" });
-  field(/mật khẩu mới/, "Input", { label: "M\u1EADt kh\u1EA9u m\u1EDBi", inputType: "password" });
-  if (!/mật khẩu (cũ|hiện tại|mới)/.test(p2)) field(/(?<!quên |xác nhận )mật khẩu|password/, "Input", { label: "M\u1EADt kh\u1EA9u", inputType: "password" });
-  field(/họ (và )?tên|tên đầy đủ/, "Input", { label: "H\u1ECD v\xE0 t\xEAn" });
-  field(/số điện thoại|sđt/, "Input", { label: "S\u1ED1 \u0111i\u1EC7n tho\u1EA1i", inputType: "tel" });
-  field(/địa chỉ(?! email)/, "Input", { label: "\u0110\u1ECBa ch\u1EC9" });
-  field(/ngày sinh/, "DatePicker", { label: "Ng\xE0y sinh" });
-  field(/ngày hiệu lực/, "DatePicker", { label: "Ng\xE0y hi\u1EC7u l\u1EF1c" });
-  field(/giới tính/, "Radio", { label: "Gi\u1EDBi t\xEDnh", options: ["Nam", "N\u1EEF", "Kh\xE1c"] });
-  field(/giá( bán)?\b/, "Input", { label: "Gi\xE1 b\xE1n", inputType: "number" });
-  field(/số lượng|tồn kho/, "Input", { label: "S\u1ED1 l\u01B0\u1EE3ng", inputType: "number" });
-  field(new RegExp("(?<!\\p{L})m\xE3(?!\\p{L})(?! s\u1ED1)", "u"), "Input", { label: "M\xE3" });
-  field(/danh mục/, "Select", { label: "Danh m\u1EE5c", options: ["Lo\u1EA1i 1", "Lo\u1EA1i 2", "Lo\u1EA1i 3"] });
-  field(/người phụ trách/, "Select", { label: "Ng\u01B0\u1EDDi ph\u1EE5 tr\xE1ch", options: ["Ch\u01B0a ph\xE2n c\xF4ng"] });
-  field(/mô tả/, "Textarea", { label: "M\xF4 t\u1EA3" });
-  field(/ghi chú/, "Textarea", { label: "Ghi ch\xFA" });
-  field(/ghi nhớ đăng nhập/, "Checkbox", { label: "Ghi nh\u1EDB \u0111\u0103ng nh\u1EADp" });
-  field(/đồng ý|điều khoản/, "Checkbox", { label: "T\xF4i \u0111\u1ED3ng \xFD v\u1EDBi \u0111i\u1EC1u kho\u1EA3n s\u1EED d\u1EE5ng" });
-  const tenX = blank(text).match(/(?<![Hh]ọ )\btên\s+([\p{L}]+(?:\s[\p{L}]+)?)/u);
-  if (tenX && !/^(đăng|tài khoản)/i.test(tenX[1])) field(new RegExp(`t\xEAn\\s+${tenX[1].toLowerCase()}`), "Input", { label: `T\xEAn ${tenX[1].toLowerCase()}` });
+  field(/xác nhận mật khẩu|confirm(?:ation)? password/, "Input", { label: "Confirm password", inputType: "password" });
+  field(/mật khẩu (cũ|hiện tại)|(?:old|current) password/, "Input", { label: "Current password", inputType: "password" });
+  field(/mật khẩu mới|new password/, "Input", { label: "New password", inputType: "password" });
+  if (!/mật khẩu (cũ|hiện tại|mới)|(?:old|current|new) password/.test(p2)) field(/(?<!quên |xác nhận )mật khẩu|(?<!forgot |forgotten |confirm )password/, "Input", { label: "Password", inputType: "password" });
+  field(/họ (và )?tên|tên đầy đủ|full name/, "Input", { label: "Full name" });
+  field(/số điện thoại|sđt|phone(?: number)?/, "Input", { label: "Phone number", inputType: "tel" });
+  field(/địa chỉ(?! email)|(?<!email )\baddress\b/, "Input", { label: "Address" });
+  field(/ngày sinh|date of birth|birth ?date/, "DatePicker", { label: "Date of birth" });
+  field(/ngày hiệu lực|effective date/, "DatePicker", { label: "Effective date" });
+  field(/giới tính|gender/, "Radio", { label: "Gender", options: ["Male", "Female", "Other"] });
+  field(/giá( bán)?\b|\bprice\b/, "Input", { label: "Price", inputType: "number" });
+  field(/số lượng|quantity/, "Input", { label: "Quantity", inputType: "number" });
+  field(/tồn kho|\bstock\b/, "Input", { label: "Stock", inputType: "number" });
+  field(new RegExp("(?<!\\p{L})m\xE3(?!\\p{L})(?! s\u1ED1)|(?<!postal |zip |promo |discount )\\bcode\\b", "u"), "Input", { label: "Code" });
+  field(/(?<!mã )\bsku\b/, "Input", { label: "SKU" });
+  field(/danh mục|\bcategory\b/, "Select", { label: "Category", options: ["Type 1", "Type 2", "Type 3"] });
+  field(/người phụ trách|assignee/, "Select", { label: "Assignee", options: ["Unassigned"] });
+  field(/mô tả|description/, "Textarea", { label: "Description" });
+  field(/ghi chú|\bnotes?\b/, "Textarea", { label: "Notes" });
+  field(/ghi nhớ đăng nhập|remember me/, "Checkbox", { label: "Remember me" });
+  field(/đồng ý|điều khoản|\bagree\b|\bterms\b/, "Checkbox", { label: "I agree to the terms of use" });
+  const tenX = blank(text2).match(/(?<![Hh]ọ )\btên\s+([\p{L}]+(?:\s[\p{L}]+)?)/u);
+  if (tenX && !/^(đăng|tài khoản)/i.test(tenX[1])) field(new RegExp(`t\xEAn\\s+${tenX[1].toLowerCase()}`), "Input", { label: `${cap(tenX[1].toLowerCase())} name` });
+  const nameX = pf.match(/\b([a-z]+) name\b/);
+  if (nameX && !/^(full|user|first|last|file|by|the|a|an|your|my|display)$/.test(nameX[1])) field(new RegExp(`\\b${nameX[1]} name\\b`), "Input", { label: `${cap(nameX[1])} name` });
   constrain();
-  const isList = /\bbảng\b|danh sách/.test(p2) && !/^màn hình (đăng|quên)/.test(p2);
-  const iSearch = at(/tìm kiếm|tra cứu/);
-  if (iSearch >= 0 && (isList || !fields.length)) tools.push({ at: iSearch, node: { type: "Input", props: { label: "T\xECm ki\u1EBFm", name: "keyword", placeholder: "Nh\u1EADp t\u1EEB kh\xF3a..." } } });
-  for (const m of p2.matchAll(/lọc theo\s+([^,.;\n]+)/g)) for (const f of splitList(m[1]))
-    tools.push({ at: m.index, node: { type: "Select", props: { label: cap(f), name: slugName(f), options: ["T\u1EA5t c\u1EA3"] } } });
-  if (/khoảng thời gian|từ ngày/.test(p2)) {
-    const i = at(/khoảng thời gian|từ ngày/);
-    tools.push({ at: i, node: { type: "DatePicker", props: { label: "T\u1EEB ng\xE0y", name: "from_date" } } }, { at: i + 1, node: { type: "DatePicker", props: { label: "\u0110\u1EBFn ng\xE0y", name: "to_date" } } });
+  const isList = /\bbảng\b|danh sách|\btable\b|\blist\b/.test(p2) && !/^màn hình (đăng|quên)|^(?:the )?(?:login|log in|sign in|sign up|register|registration|forgot password) (?:screen|page|form)/.test(p2);
+  const iSearch = at(/tìm kiếm|tra cứu|\bsearch\b|look ?up/);
+  if (iSearch >= 0 && (isList || !fields2.length)) tools.push({ at: iSearch, node: { type: "Input", props: { label: "Search", name: "keyword", placeholder: "Enter keywords..." } } });
+  for (const m of p2.matchAll(/(?:lọc theo|filter by)\s+([^,.;\n]+)/g)) for (const f of splitList(m[1]))
+    tools.push({ at: m.index, node: { type: "Select", props: { label: cap(f), name: slugName(f), options: ["All"] } } });
+  if (/khoảng thời gian|từ ngày|date range|from date/.test(p2)) {
+    const i = at(/khoảng thời gian|từ ngày|date range|from date/);
+    tools.push({ at: i, node: { type: "DatePicker", props: { label: "From date", name: "from_date" } } }, { at: i + 1, node: { type: "DatePicker", props: { label: "To date", name: "to_date" } } });
   }
-  for (const m of text.matchAll(/nút\s+([^.;:\n]+?)(?=$|[.;:\n]|,\s*(?:có|bảng|phân trang|link|liên kết)\b)/giu))
-    for (const lb of splitList(m[1].replace(/\s+(vào|ở|bên|phía|cuối|dưới|trên).*$/i, ""))) buttons.push({ at: m.index, node: { type: "Button", props: { label: cap(lb) } } });
-  if (/xuất excel/.test(p2) && !buttons.some((b) => /xuất/i.test(String(b.node.props.label)))) buttons.push({ at: at(/xuất excel/), node: { type: "Button", props: { label: "Xu\u1EA5t Excel" } } });
-  if (/quên mật khẩu/.test(p2) && !/^màn hình quên|^quên/.test(p2)) links.push({ at: at(/quên mật khẩu/), node: { type: "Link", props: { text: "Qu\xEAn m\u1EADt kh\u1EA9u?", navigateTo: "Qu\xEAn m\u1EADt kh\u1EA9u" } } });
-  if (/(link|liên kết)\s+đăng ký|đăng ký tài khoản/.test(p2) && /đăng nhập/.test(p2)) links.push({ at: at(/đăng ký/), node: { type: "Link", props: { text: "\u0110\u0103ng k\xFD t\xE0i kho\u1EA3n", navigateTo: "\u0110\u0103ng k\xFD" } } });
+  const addButtons = (index, raw) => {
+    for (const lb of splitList(raw.replace(/\s+(vào|ở|bên|phía|cuối|dưới|trên|at|on|in|below|above)\s.*$/i, ""))) {
+      const label3 = cap(stripArticle(lb));
+      if (label3 && !buttons.some((b) => String(b.node.props.label).toLowerCase() === label3.toLowerCase())) buttons.push({ at: index, node: { type: "Button", props: { label: label3 } } });
+    }
+  };
+  for (const m of text2.matchAll(/nút\s+([^.;:\n]+?)(?=$|[.;:\n]|,\s*(?:có|bảng|phân trang|link|liên kết)\b)/giu)) addButtons(m.index, m[1]);
+  for (const m of text2.matchAll(/\bbuttons?\s*(?::\s*|(?=["“]))([^.;:\n]+?)(?=$|[.;:\n]|,\s*(?:with|table|pagination|link|has)\b)/gi)) addButtons(m.index, m[1]);
+  for (const m of text2.matchAll(/(?:^|[,.;:\n]|\bwith\b)\s*([^,.;:\n]+?)\s+buttons?\b/gi)) addButtons(m.index, m[1]);
+  if (/xuất excel|export (?:to )?excel/.test(p2) && !buttons.some((b) => /xuất|export/i.test(String(b.node.props.label)))) buttons.push({ at: at(/xuất excel|export (?:to )?excel/), node: { type: "Button", props: { label: "Export Excel" } } });
+  if (/quên mật khẩu|forgot(?:ten)? password/.test(p2) && !/^màn hình quên|^quên|^forgot/.test(p2)) links.push({ at: at(/quên mật khẩu|forgot(?:ten)? password/), node: { type: "Link", props: { text: "Forgot password?", navigateTo: "Forgot password" } } });
+  if (/(link|liên kết)\s+đăng ký|đăng ký tài khoản|sign ?up link|register link|create (?:an )?account/.test(p2) && /đăng nhập|log ?in|sign in/.test(p2)) links.push({ at: at(/đăng ký|sign ?up|register|create (?:an )?account/), node: { type: "Link", props: { text: "Create an account", navigateTo: "Sign up" } } });
   const hasTable = isList;
   if (isList) {
-    for (let i = fields.length - 1; i >= 0; i--) if (tools.some((t) => slugName(String(t.node.props.label)) === slugName(String(fields[i].node.props.label)))) fields.splice(i, 1);
+    for (let i = fields2.length - 1; i >= 0; i--) if (tools.some((t) => slugName(String(t.node.props.label)) === slugName(String(fields2[i].node.props.label)))) fields2.splice(i, 1);
   }
-  const stats = p2.match(/chỉ số\s+([^.;\n]+?)(?:\s+và\s+bảng|[.;\n]|$)/)?.[1];
-  const count = fields.length + tools.length + buttons.length + links.length + (hasTable ? 1 : 0) + (stats ? 1 : 0);
+  const stats = p2.match(/(?:chỉ số|metrics|stats)\s+([^.;\n]+?)(?:\s+(?:và|and)\s+(?:bảng|table)|[.;\n]|$)/)?.[1];
+  const count = fields2.length + tools.length + buttons.length + links.length + (hasTable ? 1 : 0) + (stats ? 1 : 0);
   if (count < 2) return null;
-  const intent = /đăng nhập/.test(p2) && fields.some((f) => /mật khẩu/i.test(String(f.node.props.label))) && !/đăng ký tài khoản:|xác nhận mật khẩu/.test(p2) ? "login" : /đăng ký/.test(p2) && fields.length ? "register" : "";
-  const title = name || cap(text.split(/[:,.]|\s+(?:có|gồm|với|bằng)\s+/)[0].replace(/^(màn hình|form|trang)\s+/i, "")).slice(0, 60);
+  const intent = /đăng nhập|\blog ?in\b|sign in/.test(p2) && fields2.some((f) => /password/i.test(String(f.node.props.label))) && !/đăng ký tài khoản:|xác nhận mật khẩu|confirm password|sign up:|register:/.test(p2) ? "login" : /đăng ký|register|sign up/.test(p2) && fields2.length ? "register" : "";
+  const title = name2 || cap(
+    text2.split(/[:,.]|\s+(?:có|gồm|với|bằng|with|has|including)\s+/)[0].replace(/^(màn hình|form|trang|screen|page)\s+/i, "").replace(/\s+(screen|page|form)$/i, "")
+  ).slice(0, 60);
   const byAt = (a, b) => a.at - b.at;
   const btn = (b) => {
     const lb = String(b.node.props.label);
     const action = actionOf(lb);
-    return { id: action === "click" ? void 0 : `btn_${action}`, type: "Button", props: { label: lb, variant: /hủy|huỷ|quay lại|từ chối/i.test(lb) ? "secondary" : "primary", action } };
+    return { id: action === "click" ? void 0 : `btn_${action}`, type: "Button", props: { label: lb, variant: SECONDARY_BTN.test(lb) ? "secondary" : "primary", action } };
   };
-  const formBtns = buttons.filter((b) => !(hasTable && /thêm|xuất/i.test(String(b.node.props.label))));
+  const formBtns = buttons.filter((b) => !(hasTable && /thêm|xuất|\badd\b|\bnew\b|export/i.test(String(b.node.props.label))));
   const toolBtns = buttons.filter((b) => !formBtns.includes(b));
   const children = [{ type: "Heading", props: { text: title, level: 1 } }];
   if (stats) children.push({ type: "Row", props: { gap: 12 }, children: splitList(stats).map((l) => ({ type: "Stat", props: { label: cap(l), value: "0" } })) });
   if (tools.length || toolBtns.length)
     children.push({ type: "Row", props: { gap: 8, align: "between" }, children: [...tools.sort(byAt).map((t) => t.node), ...toolBtns.map(btn)] });
-  if (fields.length) {
-    const formKids = [...fields.sort(byAt).map((f) => f.node), ...formBtns.length > 1 ? [{ type: "Row", props: { gap: 8, align: "end" }, children: formBtns.map(btn) }] : formBtns.map(btn)];
+  if (fields2.length) {
+    const formKids = [...fields2.sort(byAt).map((f) => f.node), ...formBtns.length > 1 ? [{ type: "Row", props: { gap: 8, align: "end" }, children: formBtns.map(btn) }] : formBtns.map(btn)];
     children.push({ id: intent ? `${intent}_form` : void 0, type: "Form", props: { submitAction: intent || "save" }, children: formKids });
   } else if (formBtns.length && !hasTable) children.push({ type: "Row", props: { gap: 8 }, children: formBtns.map(btn) });
   if (hasTable) {
-    const cols = text.match(/cột\s+([^.;\n]+?)(?=$|[.;\n]|,\s*(?:thao tác|nút|phân trang|có|xuất)\b)/i)?.[1];
-    const acts = p2.match(/(xem\/sửa\/xóa|sửa\/xóa|sửa và xóa)/)?.[1];
-    children.push({ type: "Table", props: { columns: [...cols ? splitList(cols).map(cap) : ["M\xE3", "T\xEAn", "Tr\u1EA1ng th\xE1i"], ...acts ? ["Thao t\xE1c"] : []], rows: [], ...acts ? { rowActions: splitList(acts).map(cap) } : {} } });
-    if (hasTable && formBtns.length && fields.length === 0) children.push({ type: "Row", props: { gap: 8 }, children: formBtns.map(btn) });
+    const cols = text2.match(/(?:cột|columns?)\s+([^.;\n]+?)(?=$|[.;\n]|,\s*(?:thao tác|nút|phân trang|có|xuất|actions?|buttons?|pagination|with|export)\b)/i)?.[1];
+    const acts = p2.match(/(xem\/sửa\/xóa|xem\/sửa\/xoá|sửa\/xóa|sửa\/xoá|sửa và xóa|view\/edit\/delete|edit\/delete|edit and delete)/)?.[1];
+    children.push({ type: "Table", props: { columns: [...cols ? splitList(cols).map(cap) : ["Code", "Name", "Status"], ...acts ? ["Actions"] : []], rows: [], ...acts ? { rowActions: splitList(acts).map(cap) } : {} } });
+    if (hasTable && formBtns.length && fields2.length === 0) children.push({ type: "Row", props: { gap: 8 }, children: formBtns.map(btn) });
   }
-  if (/phân trang/.test(p2)) children.push({ type: "Pagination", props: { pages: 5 } });
+  if (/phân trang|pagination|paging/.test(p2)) children.push({ type: "Pagination", props: { pages: 5 } });
   if (links.length) children.push({ type: "Row", props: { align: "between" }, children: links.sort(byAt).map((l) => l.node) });
   return normalizeTree({ id: "page", type: "Page", props: { title }, children });
 }
-function slugName(s) {
-  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "field";
+function slugName(s2) {
+  return s2.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "field";
 }
-function mockTemplate(prompt, name) {
+function mockTemplate(prompt, name2) {
   const p2 = prompt.toLowerCase();
   let tree;
-  if (has(p2, /đăng nhập|login|sign in/)) {
+  const isLogin = has(p2, /đăng nhập|login|log in|sign in/);
+  const isRegister = has(p2, /đăng ký|register|sign up/);
+  const isList = has(p2, /quản lý|danh sách|list|tra cứu|tìm kiếm|manage|management|search/);
+  const isForm = has(p2, /thêm|tạo|form|nhập|chỉnh sửa|cập nhật|\badd\b|create|edit|update|\bnew\b/);
+  if (isLogin) {
     tree = {
       id: "page",
       type: "Page",
-      props: { title: name || "\u0110\u0103ng nh\u1EADp" },
+      props: { title: name2 || "Sign in" },
       children: [
         {
           id: "login_card",
           type: "Card",
-          props: { title: "\u0110\u0103ng nh\u1EADp h\u1EC7 th\u1ED1ng" },
+          props: { title: "Sign in to the system" },
           children: [
             {
               id: "login_form",
               type: "Form",
               props: { submitAction: "login" },
               children: [
-                { id: "email", type: "Input", props: { label: "Email", name: "email", inputType: "email", placeholder: "ban@congty.vn", required: true, maxLength: 100 } },
-                { id: "password", type: "Input", props: { label: "M\u1EADt kh\u1EA9u", name: "password", inputType: "password", placeholder: "T\u1ED1i thi\u1EC3u 8 k\xFD t\u1EF1", required: true, minLength: 8, maxLength: 32 } },
-                { id: "remember", type: "Checkbox", props: { label: "Ghi nh\u1EDB \u0111\u0103ng nh\u1EADp", name: "remember" } },
-                { id: "btn_login", type: "Button", props: { label: "\u0110\u0103ng nh\u1EADp", variant: "primary", action: "login", navigateTo: "Trang ch\u1EE7" } }
+                { id: "email", type: "Input", props: { label: "Email", name: "email", inputType: "email", placeholder: "you@company.com", required: true, maxLength: 100 } },
+                { id: "password", type: "Input", props: { label: "Password", name: "password", inputType: "password", placeholder: "At least 8 characters", required: true, minLength: 8, maxLength: 32 } },
+                { id: "remember", type: "Checkbox", props: { label: "Remember me", name: "remember" } },
+                { id: "btn_login", type: "Button", props: { label: "Sign in", variant: "primary", action: "login", navigateTo: "Home" } }
               ]
             },
             {
@@ -10691,50 +12273,50 @@ function mockTemplate(prompt, name) {
               type: "Row",
               props: { align: "between" },
               children: [
-                { id: "link_forgot", type: "Link", props: { text: "Qu\xEAn m\u1EADt kh\u1EA9u?", navigateTo: "Qu\xEAn m\u1EADt kh\u1EA9u" } },
-                { id: "link_register", type: "Link", props: { text: "\u0110\u0103ng k\xFD t\xE0i kho\u1EA3n", navigateTo: "\u0110\u0103ng k\xFD" } }
+                { id: "link_forgot", type: "Link", props: { text: "Forgot password?", navigateTo: "Forgot password" } },
+                { id: "link_register", type: "Link", props: { text: "Create an account", navigateTo: "Sign up" } }
               ]
             }
           ]
         }
       ]
     };
-  } else if (has(p2, /đăng ký|register|sign up/)) {
+  } else if (isRegister) {
     tree = {
       id: "page",
       type: "Page",
-      props: { title: name || "\u0110\u0103ng k\xFD" },
+      props: { title: name2 || "Sign up" },
       children: [
         {
           id: "reg_card",
           type: "Card",
-          props: { title: "T\u1EA1o t\xE0i kho\u1EA3n" },
+          props: { title: "Create an account" },
           children: [
             {
               id: "reg_form",
               type: "Form",
               props: { submitAction: "register" },
               children: [
-                { id: "fullname", type: "Input", props: { label: "H\u1ECD v\xE0 t\xEAn", name: "full_name", required: true, maxLength: 50 } },
+                { id: "fullname", type: "Input", props: { label: "Full name", name: "full_name", required: true, maxLength: 50 } },
                 { id: "reg_email", type: "Input", props: { label: "Email", name: "email", inputType: "email", required: true } },
-                { id: "phone", type: "Input", props: { label: "S\u1ED1 \u0111i\u1EC7n tho\u1EA1i", name: "phone", inputType: "tel", pattern: "^0\\d{9}$" } },
-                { id: "reg_password", type: "Input", props: { label: "M\u1EADt kh\u1EA9u", name: "password", inputType: "password", required: true, minLength: 8 } },
-                { id: "agree", type: "Checkbox", props: { label: "T\xF4i \u0111\u1ED3ng \xFD v\u1EDBi \u0111i\u1EC1u kho\u1EA3n s\u1EED d\u1EE5ng", name: "agree" } },
-                { id: "btn_register", type: "Button", props: { label: "\u0110\u0103ng k\xFD", variant: "primary", action: "register", navigateTo: "\u0110\u0103ng nh\u1EADp" } }
+                { id: "phone", type: "Input", props: { label: "Phone number", name: "phone", inputType: "tel", pattern: "^0\\d{9}$" } },
+                { id: "reg_password", type: "Input", props: { label: "Password", name: "password", inputType: "password", required: true, minLength: 8 } },
+                { id: "agree", type: "Checkbox", props: { label: "I agree to the terms of use", name: "agree" } },
+                { id: "btn_register", type: "Button", props: { label: "Sign up", variant: "primary", action: "register", navigateTo: "Sign in" } }
               ]
             }
           ]
         }
       ]
     };
-  } else if (has(p2, /quản lý|danh sách|list|tra cứu|tìm kiếm/)) {
-    const ent = entityFrom(prompt, name || "d\u1EEF li\u1EC7u");
+  } else if (isList) {
+    const ent = entityFrom(prompt, name2 || "records");
     tree = {
       id: "page",
       type: "Page",
-      props: { title: name || `Qu\u1EA3n l\xFD ${ent}` },
+      props: { title: name2 || `${ent} management` },
       children: [
-        { id: "header", type: "Header", props: { title: `Qu\u1EA3n l\xFD ${ent}` } },
+        { id: "header", type: "Header", props: { title: `${ent} management` } },
         {
           id: "toolbar",
           type: "Row",
@@ -10745,52 +12327,52 @@ function mockTemplate(prompt, name) {
               type: "Row",
               props: { gap: 8 },
               children: [
-                { id: "search", type: "Input", props: { label: "T\xECm ki\u1EBFm", name: "keyword", placeholder: `T\xEAn ${ent.toLowerCase()}...`, maxLength: 100 } },
-                { id: "status_filter", type: "Select", props: { label: "Tr\u1EA1ng th\xE1i", name: "status", options: ["T\u1EA5t c\u1EA3", "Ho\u1EA1t \u0111\u1ED9ng", "Ng\u1EEBng ho\u1EA1t \u0111\u1ED9ng"] } }
+                { id: "search", type: "Input", props: { label: "Search", name: "keyword", placeholder: `${ent} name...`, maxLength: 100 } },
+                { id: "status_filter", type: "Select", props: { label: "Status", name: "status", options: ["All", "Active", "Inactive"] } }
               ]
             },
-            { id: "btn_add", type: "Button", props: { label: "Th\xEAm m\u1EDBi", variant: "primary", action: "create", navigateTo: `Th\xEAm ${ent.toLowerCase()}` } }
+            { id: "btn_add", type: "Button", props: { label: "Add new", variant: "primary", action: "create", navigateTo: `Add ${ent.toLowerCase()}` } }
           ]
         },
         {
           id: "table",
           type: "Table",
           props: {
-            columns: ["M\xE3", "T\xEAn", "Tr\u1EA1ng th\xE1i", "Ng\xE0y t\u1EA1o"],
+            columns: ["Code", "Name", "Status", "Created on"],
             rows: [
-              ["001", `${ent} A`, "Ho\u1EA1t \u0111\u1ED9ng", "01/10/2026"],
-              ["002", `${ent} B`, "Ng\u1EEBng ho\u1EA1t \u0111\u1ED9ng", "05/10/2026"]
+              ["001", `${ent} A`, "Active", "10/01/2026"],
+              ["002", `${ent} B`, "Inactive", "10/05/2026"]
             ],
-            rowActions: ["Xem", "S\u1EEDa", "X\xF3a"]
+            rowActions: ["View", "Edit", "Delete"]
           }
         },
         { id: "pagination", type: "Pagination", props: { pages: 5 } }
       ]
     };
-  } else if (has(p2, /thêm|tạo|form|nhập|chỉnh sửa|cập nhật/)) {
-    const ent = entityFrom(prompt, name || "b\u1EA3n ghi");
+  } else if (isForm) {
+    const ent = entityFrom(prompt, name2 || "record");
     tree = {
       id: "page",
       type: "Page",
-      props: { title: name || `Th\xEAm ${ent.toLowerCase()}` },
+      props: { title: name2 || `Add ${ent.toLowerCase()}` },
       children: [
-        { id: "header", type: "Header", props: { title: `Th\xEAm ${ent.toLowerCase()}` } },
+        { id: "header", type: "Header", props: { title: `Add ${ent.toLowerCase()}` } },
         {
           id: "main_form",
           type: "Form",
-          props: { title: `Th\xF4ng tin ${ent.toLowerCase()}`, submitAction: "save" },
+          props: { title: `${ent} details`, submitAction: "save" },
           children: [
-            { id: "f_name", type: "Input", props: { label: `T\xEAn ${ent.toLowerCase()}`, name: "name", required: true, maxLength: 100 } },
-            { id: "f_category", type: "Select", props: { label: "Danh m\u1EE5c", name: "category", options: ["Lo\u1EA1i 1", "Lo\u1EA1i 2", "Lo\u1EA1i 3"], required: true } },
-            { id: "f_date", type: "DatePicker", props: { label: "Ng\xE0y hi\u1EC7u l\u1EF1c", name: "effective_date" } },
-            { id: "f_desc", type: "Textarea", props: { label: "M\xF4 t\u1EA3", name: "description", maxLength: 500 } },
+            { id: "f_name", type: "Input", props: { label: `${ent} name`, name: "name", required: true, maxLength: 100 } },
+            { id: "f_category", type: "Select", props: { label: "Category", name: "category", options: ["Type 1", "Type 2", "Type 3"], required: true } },
+            { id: "f_date", type: "DatePicker", props: { label: "Effective date", name: "effective_date" } },
+            { id: "f_desc", type: "Textarea", props: { label: "Description", name: "description", maxLength: 500 } },
             {
               id: "form_actions",
               type: "Row",
               props: { gap: 8, align: "end" },
               children: [
-                { id: "btn_cancel", type: "Button", props: { label: "H\u1EE7y", variant: "secondary", action: "cancel", navigateTo: `Qu\u1EA3n l\xFD ${ent.toLowerCase()}` } },
-                { id: "btn_save", type: "Button", props: { label: "L\u01B0u", variant: "primary", action: "save", navigateTo: `Qu\u1EA3n l\xFD ${ent.toLowerCase()}` } }
+                { id: "btn_cancel", type: "Button", props: { label: "Cancel", variant: "secondary", action: "cancel", navigateTo: `${ent} management` } },
+                { id: "btn_save", type: "Button", props: { label: "Save", variant: "primary", action: "save", navigateTo: `${ent} management` } }
               ]
             }
           ]
@@ -10801,24 +12383,24 @@ function mockTemplate(prompt, name) {
     tree = {
       id: "page",
       type: "Page",
-      props: { title: name || "Trang ch\u1EE7" },
+      props: { title: name2 || "Home" },
       children: [
-        { id: "header", type: "Header", props: { title: name || "T\u1ED5ng quan" } },
+        { id: "header", type: "Header", props: { title: name2 || "Overview" } },
         {
           id: "stats",
           type: "Row",
           props: { gap: 12 },
           children: [
-            { id: "stat_1", type: "Stat", props: { label: "T\u1ED5ng s\u1ED1", value: "1.250" } },
-            { id: "stat_2", type: "Stat", props: { label: "\u0110ang x\u1EED l\xFD", value: "36" } },
-            { id: "stat_3", type: "Stat", props: { label: "Ho\xE0n th\xE0nh", value: "1.180" } }
+            { id: "stat_1", type: "Stat", props: { label: "Total", value: "1,250" } },
+            { id: "stat_2", type: "Stat", props: { label: "In progress", value: "36" } },
+            { id: "stat_3", type: "Stat", props: { label: "Completed", value: "1,180" } }
           ]
         },
         {
           id: "recent",
           type: "Section",
-          props: { title: "Ho\u1EA1t \u0111\u1ED9ng g\u1EA7n \u0111\xE2y" },
-          children: [{ id: "recent_table", type: "Table", props: { columns: ["Th\u1EDDi gian", "N\u1ED9i dung", "Ng\u01B0\u1EDDi th\u1EF1c hi\u1EC7n"], rows: [["08:30", "T\u1EA1o m\u1EDBi b\u1EA3n ghi", "BA"]] } }]
+          props: { title: "Recent activity" },
+          children: [{ id: "recent_table", type: "Table", props: { columns: ["Time", "Activity", "Performed by"], rows: [["08:30", "Created a record", "BA"]] } }]
         }
       ]
     };
@@ -10826,52 +12408,55 @@ function mockTemplate(prompt, name) {
   return normalizeTree(tree);
 }
 function mockEditOps(tree, selectedIds, instruction) {
-  const posRef = instruction.match(/,?\s*ngay (sau|trước)\s+[\p{L}]+\s+["“]([^"”]+)["”]/u);
-  const text = (posRef ? instruction.replace(posRef[0], "") : instruction).trim();
-  const low = text.toLowerCase();
+  const posRef = instruction.match(/,?\s*(?:ngay\s+|right\s+)?(sau|trước|after|before)\s+[\p{L}]+\s+["“]([^"”]+)["”]/u);
+  const after = posRef ? /^(sau|after)$/i.test(posRef[1]) : false;
+  const text2 = (posRef ? instruction.replace(posRef[0], "") : instruction).trim();
+  const low2 = text2.toLowerCase();
   const targets = selectedIds.length ? selectedIds : [tree.id];
   const ops = [];
-  const quoted = text.match(/["“”']([^"“”']+)["“”']/)?.[1];
-  const rename = /kiểu|inputType|navigateTo|bố cục/i.test(text) ? null : text.match(/(?:đổi|sửa|thay)[^\n]*?thành\s*["“]?([^"”\n]+?)["”]?\s*$/im);
-  const setType = text.match(/kiểu\s+(email|password|number|tel|text)\b/i)?.[1];
-  const minLen = text.match(/tối thiểu\s+(\d+)\s*ký tự/i)?.[1];
-  const addButton = text.match(/thêm\s+(?:nút|button)\s*["“]?([^"”\n,.]+)["”]?/i);
-  const addField = /\((?!Input\))[A-Z]\w+\)|ô (tích|chọn|nhập nhiều)/.test(text) ? null : text.match(/thêm\s+(?:ô|trường|field)(?:\s+nhập)?\s*["“]?([^"”\n,.(]+?)["”]?(?=\s*[(,.]|\s+vào|$)/i);
-  const addCols = text.match(/thêm\s+(?:các\s+)?cột\s+["“]?([^"”\n.]+?)["”]?(?=\s+vào|\s*[.]|$)/i)?.[1];
-  const addRowActs = text.match(/thêm\s+(?:các\s+)?thao tác\s+([^\n.]+?)(?=\s+vào|\s+cho|\s*[.]|$)/i)?.[1];
-  const addRange = /thêm[^.\n]*(khoảng thời gian|từ ngày)/i.test(text);
-  const addType = addButton || addField || addCols || addRowActs || addRange ? null : addTypeOf(text);
-  const isAdd = /^\s*(thêm|bổ sung)\b/i.test(text);
+  const quoted = text2.match(/["“”']([^"“”']+)["“”']/)?.[1];
+  const rename = /kiểu|inputType|navigateTo|bố cục|\btype\b|layout/i.test(text2) ? null : text2.match(/(?:đổi|sửa|thay)[^\n]*?thành\s*["“]?([^"”\n]+?)["”]?\s*$/im) ?? text2.match(/(?:change|rename|replace|set)[^\n]*?\bto\s*["“]?([^"”\n]+?)["”]?\s*$/im);
+  const setType = text2.match(/(?:kiểu|type)\s+(email|password|number|tel|text)\b/i)?.[1];
+  const minLen = text2.match(/(?:tối thiểu|at least|min(?:imum)?)\s+(\d+)\s*(?:ký tự|characters?|chars?)/i)?.[1];
+  const addButton = text2.match(/(?:thêm|add)\s+(?:an?\s+)?(?:nút|button)\s*["“]?([^"”\n,.]+)["”]?/i) ?? text2.match(/\badd\s+(?:an?\s+|the\s+)?["“]?([^"”\n,.]+?)["”]?\s+button\b/i);
+  const addField = /\((?!Input\))[A-Z]\w+\)|ô (tích|chọn|nhập nhiều)|checkbox|drop-?down|\bselect\b|text ?area|date picker/i.test(text2) ? null : text2.match(/thêm\s+(?:ô|trường|field)(?:\s+nhập)?\s*["“]?([^"”\n,.(]+?)["”]?(?=\s*[(,.]|\s+vào|$)/i) ?? text2.match(/\badd\s+(?:an?\s+)?(?:new\s+)?(?:field|input)\s*["“]?([^"”\n,.(]+?)["”]?(?=\s*[(,.]|\s+(?:to|into|in)\b|$)/i) ?? text2.match(/\badd\s+(?:an?\s+|the\s+)?["“]?([^"”\n,.(]+?)["”]?\s+(?:field|input)\b/i);
+  const addCols = text2.match(/(?:thêm|add)\s+(?:các\s+|the\s+)?(?:cột|columns?)\s+["“]?([^"”\n.]+?)["”]?(?=\s+(?:vào|to)\b|\s*[.]|$)/i)?.[1];
+  const addRowActs = text2.match(/(?:thêm|add)\s+(?:các\s+|the\s+)?(?:thao tác|(?:row\s+)?actions?)\s+([^\n.]+?)(?=\s+(?:vào|cho|to|for)\b|\s*[.]|$)/i)?.[1];
+  const addRange = /(?:thêm|add)[^.\n]*(khoảng thời gian|từ ngày|date range|from date)/i.test(text2);
+  const addType = addButton || addField || addCols || addRowActs || addRange ? null : addTypeOf(text2);
+  const isAdd = /^\s*(thêm|bổ sung|add|insert)\b/i.test(text2);
+  const isRequired = /bắt buộc|required|mandatory/.test(low2);
   for (const id of targets) {
     const n = findNode(tree, id);
     if (!n) continue;
     if (rename) {
       const leaf = firstTextNode(n);
       if (leaf) {
-        const key = leaf.props.label !== void 0 ? "label" : leaf.props.text !== void 0 ? "text" : "title";
-        ops.push({ op: "update", id: leaf.id, props: { [key]: rename[1].trim() } });
+        const key2 = leaf.props.label !== void 0 ? "label" : leaf.props.text !== void 0 ? "text" : "title";
+        ops.push({ op: "update", id: leaf.id, props: { [key2]: rename[1].trim() } });
       }
     }
     if (addButton) {
-      const variant = text.match(/variant\s+(primary|secondary|danger|ghost)/i)?.[1] ?? "secondary";
-      const label2 = cap((quoted ?? addButton[1]).replace(/\s+(vào|ở|bên|cho)\s.*$/i, "").trim());
-      const action = text.match(/action\s+([a-z_]+)/i)?.[1] ?? (actionOf(label2) !== "click" ? actionOf(label2) : void 0);
-      insertNear(n, { type: "Button", props: { label: label2, variant, ...action ? { action } : {} } });
+      const variant = text2.match(/variant\s+(primary|secondary|danger|ghost)/i)?.[1] ?? "secondary";
+      const label3 = cap(quoted ? quoted.trim() : addButton[1].replace(/\s+(vào|ở|bên|cho|to|into|in|on|at|for)\s.*$/i, "").trim());
+      const action = text2.match(/action\s+([a-z_]+)/i)?.[1] ?? (actionOf(label3) !== "click" ? actionOf(label3) : void 0);
+      insertNear(n, { type: "Button", props: { label: label3, variant, ...action ? { action } : {} } });
     }
     const table2 = n.type === "Table" ? n : (isContainer(n.type) ? (n.children ?? []).find((c) => c.type === "Table") : null) ?? (findParent(tree, n.id)?.children ?? []).find((c) => c.type === "Table");
     if ((addCols || addRowActs) && table2) {
       const cols = [...table2.props.columns ?? []];
       const acts = addRowActs ? splitList(addRowActs).map(cap) : [];
-      if (addCols) cols.splice(cols.includes("Thao t\xE1c") ? cols.indexOf("Thao t\xE1c") : cols.length, 0, ...splitList(addCols).map(cap));
-      if (acts.length && !cols.includes("Thao t\xE1c")) cols.push("Thao t\xE1c");
+      const actIdx = cols.findIndex((c) => /^(actions|thao tác)$/i.test(c));
+      if (addCols) cols.splice(actIdx >= 0 ? actIdx : cols.length, 0, ...splitList(addCols).map(cap));
+      if (acts.length && actIdx < 0) cols.push("Actions");
       ops.push({ op: "update", id: table2.id, props: { columns: cols, ...acts.length ? { rowActions: acts } : {} } });
     }
     if (addRange) {
-      insertNear(n, { type: "DatePicker", props: { label: "T\u1EEB ng\xE0y", name: "from_date" } });
-      insertNear(n, { type: "DatePicker", props: { label: "\u0110\u1EBFn ng\xE0y", name: "to_date" } });
+      insertNear(n, { type: "DatePicker", props: { label: "From date", name: "from_date" } });
+      insertNear(n, { type: "DatePicker", props: { label: "To date", name: "to_date" } });
     }
     if (addType) {
-      const node = defaultNode(addType, quoted ?? labelAfterAlias(text, addType));
+      const node = defaultNode(addType, quoted ?? labelAfterAlias(text2, addType));
       const table3 = addType === "Pagination" ? (isContainer(n.type) ? n.children ?? [] : []).find((c) => c.type === "Table") ?? (n.type === "Table" ? n : null) : null;
       if (table3) {
         const parent = findParent(tree, table3.id);
@@ -10879,47 +12464,47 @@ function mockEditOps(tree, selectedIds, instruction) {
       } else insertNear(n, node);
     }
     if (addField) {
-      const label2 = cap((quoted ?? addField[1]).replace(/\s+(vào|ở|bên|cho)\s.*$/i, "").trim());
-      const search = /tìm kiếm/i.test(label2);
-      insertNear(n, { type: "Input", props: { label: label2, name: search ? "keyword" : snake(label2), placeholder: search ? "Nh\u1EADp t\u1EEB kh\xF3a..." : `Nh\u1EADp ${label2.toLowerCase()}`, ...setType ? { inputType: setType } : {}, ...minLen ? { minLength: Number(minLen) } : {}, .../bắt buộc/.test(low) ? { required: true } : {} } });
+      const label3 = cap(quoted ? quoted.trim() : addField[1].replace(/\s+(vào|ở|bên|cho|to|into|in|on|at|for)\s.*$/i, "").trim());
+      const search = /tìm kiếm|search/i.test(label3);
+      insertNear(n, { type: "Input", props: { label: label3, name: search ? "keyword" : snake(label3), placeholder: search ? "Enter keywords..." : `Enter ${label3.toLowerCase()}`, ...setType ? { inputType: setType } : {}, ...minLen ? { minLength: Number(minLen) } : {}, ...isRequired ? { required: true } : {} } });
     }
-    if (!isAdd && /\b(xóa|xoá|bỏ|loại bỏ)\b/.test(low) && !addButton && !addField && !addType && !rename && n.id !== tree.id) ops.push({ op: "remove", id: n.id });
-    const placeholder = text.match(/placeholder\s+["“]([^"”]+)["”]/i)?.[1];
-    const maxLen = text.match(/tối đa\s+(\d+)\s*ký tự/i)?.[1];
+    if (!isAdd && /\b(xóa|xoá|bỏ|loại bỏ|remove|delete)\b/.test(low2) && !addButton && !addField && !addType && !rename && n.id !== tree.id) ops.push({ op: "remove", id: n.id });
+    const placeholder = text2.match(/placeholder\s+["“]([^"”]+)["”]/i)?.[1];
+    const maxLen = text2.match(/(?:tối đa|at most|max(?:imum)?|up to)\s+(\d+)\s*(?:ký tự|characters?|chars?)/i)?.[1];
     if ((placeholder || maxLen) && !addField) walk(n, (d) => {
       if (d.type === "Input" || d.type === "Textarea") ops.push({ op: "update", id: d.id, props: { ...placeholder ? { placeholder } : {}, ...maxLen ? { maxLength: Number(maxLen) } : {} } });
     });
     if ((setType || minLen) && !addField) walk(n, (d) => {
       if (d.type === "Input") ops.push({ op: "update", id: d.id, props: { ...setType ? { inputType: setType } : {}, ...minLen ? { minLength: Number(minLen) } : {} } });
     });
-    if (/bổ sung name/i.test(text)) walk(n, (d) => {
+    if (/bổ sung name|add (?:missing )?names?\b/i.test(text2)) walk(n, (d) => {
       if (["Input", "Textarea", "Select", "DatePicker", "Checkbox", "Radio"].includes(d.type) && !d.props.name) ops.push({ op: "update", id: d.id, props: { name: snake(String(d.props.label ?? d.id)) } });
     });
-    if (/bổ sung action/i.test(text)) walk(n, (d) => {
+    if (/bổ sung action|add (?:missing )?actions?\b/i.test(text2)) walk(n, (d) => {
       if (d.type === "Button" && !d.props.action && !d.props.navigateTo) ops.push({ op: "update", id: d.id, props: { action: snake(String(d.props.label ?? "click")) } });
     });
-    if (/bắt buộc/.test(low) && !addField) walk(n, (d) => {
+    if (isRequired && !addField) walk(n, (d) => {
       if (["Input", "Textarea", "Select", "DatePicker", "Radio"].includes(d.type)) ops.push({ op: "update", id: d.id, props: { required: true } });
     });
-    if (/màu đỏ|nguy hiểm|danger|cảnh báo/.test(low)) walk(n, (d) => {
+    if (/màu đỏ|nguy hiểm|danger|cảnh báo|\bred\b|warning/.test(low2)) walk(n, (d) => {
       if (d.type === "Button") ops.push({ op: "update", id: d.id, props: { variant: "danger" } });
       if (d.type === "Badge" || d.type === "Alert") ops.push({ op: "update", id: d.id, props: { tone: "danger" } });
     });
-    if (/nổi bật|primary|nút chính/.test(low)) walk(n, (d) => {
+    if (/nổi bật|primary|nút chính|highlight|main button/.test(low2)) walk(n, (d) => {
       if (d.type === "Button") ops.push({ op: "update", id: d.id, props: { variant: "primary" } });
     });
   }
   if (!ops.length) {
     const anchor = findNode(tree, targets[0]) ?? tree;
-    insertNear(anchor, { type: "Alert", props: { text: `Ghi ch\xFA BA: ${text.slice(0, 160)}`, tone: "info" } });
+    insertNear(anchor, { type: "Alert", props: { text: `BA note: ${text2.slice(0, 160)}`, tone: "info" } });
   }
-  return { ops, summary: `\xC1p d\u1EE5ng ${ops.length} thay \u0111\u1ED5i (ch\u1EBF \u0111\u1ED9 rule-based)` };
+  return { ops, summary: `Applied ${ops.length} change(s) (rule-based mode)` };
   function insertNear(n, node) {
     const full = { id: newId(), ...node };
     if (isContainer(n.type)) {
       const kids = n.children ?? [];
-      const ref = posRef ? kids.findIndex((c) => String(c.props.label ?? c.props.text ?? c.props.title ?? c.props.alt ?? c.props.name ?? "").slice(0, 40) === posRef[2]) : -1;
-      ops.push({ op: "insert", parentId: n.id, ...ref >= 0 ? { index: ref + (posRef[1] === "sau" ? 1 : 0) } : {}, node: full });
+      const ref2 = posRef ? kids.findIndex((c) => String(c.props.label ?? c.props.text ?? c.props.title ?? c.props.alt ?? c.props.name ?? "").slice(0, 40) === posRef[2]) : -1;
+      ops.push({ op: "insert", parentId: n.id, ...ref2 >= 0 ? { index: ref2 + (after ? 1 : 0) } : {}, node: full });
     } else {
       const parent = findParent(tree, n.id);
       if (!parent) return;
@@ -10929,74 +12514,74 @@ function mockEditOps(tree, selectedIds, instruction) {
   }
 }
 var TYPE_ALIASES = [
-  [/phân trang/i, "Pagination"],
-  [/bộ lọc|ô chọn(?! ngày)|dropdown|danh sách chọn/i, "Select"],
-  [/ô chọn ngày|chọn ngày|lịch/i, "DatePicker"],
-  [/ô nhập nhiều dòng|textarea/i, "Textarea"],
+  [/phân trang|pagination|paging/i, "Pagination"],
+  [/ô chọn ngày|chọn ngày|lịch|date picker|calendar/i, "DatePicker"],
+  [/bộ lọc|ô chọn(?! ngày)|dropdown|drop-down|danh sách chọn|\bfilter\b|\bselect\b/i, "Select"],
+  [/ô nhập nhiều dòng|textarea|text area|multi-line/i, "Textarea"],
   [/ô tích|checkbox/i, "Checkbox"],
-  [/tiêu đề/i, "Heading"],
-  [/đoạn mô tả|đoạn văn/i, "Text"],
+  [/tiêu đề|heading|\btitle\b/i, "Heading"],
+  [/đoạn mô tả|đoạn văn|paragraph|text block/i, "Text"],
   [/\blink\b|liên kết/i, "Link"],
-  [/chỉ số/i, "Stat"],
-  [/\bbảng\b/i, "Table"],
-  [/thông báo/i, "Alert"],
-  [/nhãn trạng thái|badge/i, "Badge"],
-  [/hình ảnh|ảnh/i, "Image"]
+  [/chỉ số|metric|\bstat\b/i, "Stat"],
+  [/\bbảng\b|\btable\b/i, "Table"],
+  [/thông báo|\balert\b|\bnotice\b|notification/i, "Alert"],
+  [/nhãn trạng thái|badge|status label/i, "Badge"],
+  [/hình ảnh|ảnh|image|picture|photo/i, "Image"]
 ];
-function addTypeOf(text) {
-  if (!/\bthêm\b/i.test(text)) return null;
-  const named = text.match(/\(([A-Z][A-Za-z]+)\)/)?.[1] ?? text.match(/thêm\s+(?:một\s+)?([A-Z][A-Za-z]+)\b/)?.[1];
+function addTypeOf(text2) {
+  if (!/\bthêm\b|\badd\b|\binsert\b/i.test(text2)) return null;
+  const named = text2.match(/\(([A-Z][A-Za-z]+)\)/)?.[1] ?? text2.match(/(?:thêm|add|insert)\s+(?:một\s+|an?\s+)?([A-Z][A-Za-z]+)\b/)?.[1];
   if (named && ALL_TYPES.includes(named) && named !== "Page") return named;
-  return TYPE_ALIASES.find(([re]) => re.test(text))?.[1] ?? null;
+  return TYPE_ALIASES.find(([re]) => re.test(text2))?.[1] ?? null;
 }
-function labelAfterAlias(text, type) {
+function labelAfterAlias(text2, type) {
   const re = TYPE_ALIASES.find(([, t]) => t === type)?.[0];
-  const m = re && text.match(new RegExp(`(?:${re.source})\\s+(?:theo\\s+)?([\\p{L}\\d ]+?)(?=\\s+(?:v\xE0o|\u1EDF|cho|b\xEAn|ph\xEDa|ngay)\\b|\\s*[(,.]|$)`, "iu"));
+  const m = re && text2.match(new RegExp(`(?:${re.source})\\s+(?:theo\\s+|by\\s+|for\\s+)?([\\p{L}\\d ]+?)(?=\\s+(?:v\xE0o|\u1EDF|cho|b\xEAn|ph\xEDa|ngay|to|into|in|on|at|right|next|below|above)\\b|\\s*[(,.]|$)`, "iu"));
   const lb = m?.[1]?.trim();
   return lb && lb.length <= 40 ? cap(lb) : void 0;
 }
-function defaultNode(type, label2) {
-  const lb = label2?.trim();
-  const name = lb ? snake(lb) : void 0;
+function defaultNode(type, label3) {
+  const lb = label3?.trim();
+  const name2 = lb ? snake(lb) : void 0;
   switch (type) {
     case "Select":
-      return { type, props: { label: lb ?? "Lo\u1EA1i", name: name ?? "loai", options: ["T\u1EA5t c\u1EA3"] } };
+      return { type, props: { label: lb ?? "Type", name: name2 ?? "type", options: ["All"] } };
     case "DatePicker":
-      return { type, props: { label: lb ?? "Ng\xE0y", name: name ?? "ngay" } };
+      return { type, props: { label: lb ?? "Date", name: name2 ?? "date" } };
     case "Textarea":
-      return { type, props: { label: lb ?? "M\xF4 t\u1EA3", name: name ?? "mo_ta", placeholder: `Nh\u1EADp ${(lb ?? "m\xF4 t\u1EA3").toLowerCase()}` } };
+      return { type, props: { label: lb ?? "Description", name: name2 ?? "description", placeholder: `Enter ${(lb ?? "description").toLowerCase()}` } };
     case "Input":
-      return { type, props: { label: lb ?? "Tr\u01B0\u1EDDng m\u1EDBi", name: name ?? "truong_moi", placeholder: `Nh\u1EADp ${(lb ?? "gi\xE1 tr\u1ECB").toLowerCase()}` } };
+      return { type, props: { label: lb ?? "New field", name: name2 ?? "new_field", placeholder: `Enter ${(lb ?? "a value").toLowerCase()}` } };
     case "Checkbox":
-      return { type, props: { label: lb ?? "L\u1EF1a ch\u1ECDn", name: name ?? "lua_chon" } };
+      return { type, props: { label: lb ?? "Option", name: name2 ?? "option" } };
     case "Radio":
-      return { type, props: { label: lb ?? "L\u1EF1a ch\u1ECDn", name: name ?? "lua_chon", options: ["C\xF3", "Kh\xF4ng"] } };
+      return { type, props: { label: lb ?? "Choice", name: name2 ?? "choice", options: ["Yes", "No"] } };
     case "Pagination":
       return { type, props: { pages: 5 } };
     case "Stat":
-      return { type, props: { label: lb ?? "Ch\u1EC9 s\u1ED1", value: "0" } };
+      return { type, props: { label: lb ?? "Metric", value: "0" } };
     case "Heading":
-      return { type, props: { text: lb ?? "Ti\xEAu \u0111\u1EC1", level: 2 } };
+      return { type, props: { text: lb ?? "Heading", level: 2 } };
     case "Text":
-      return { type, props: { text: lb ?? "M\xF4 t\u1EA3 ng\u1EAFn cho ng\u01B0\u1EDDi d\xF9ng." } };
+      return { type, props: { text: lb ?? "Short description for the user." } };
     case "Link":
-      return { type, props: { text: lb ?? "Xem th\xEAm" } };
+      return { type, props: { text: lb ?? "See more" } };
     case "Table":
-      return { type, props: { columns: ["M\xE3", "T\xEAn", "Tr\u1EA1ng th\xE1i"], rows: [] } };
+      return { type, props: { columns: ["Code", "Name", "Status"], rows: [] } };
     case "Alert":
-      return { type, props: { text: lb ?? "Th\xF4ng b\xE1o", tone: "info" } };
+      return { type, props: { text: lb ?? "Notice", tone: "info" } };
     case "Badge":
-      return { type, props: { text: lb ?? "M\u1EDBi" } };
+      return { type, props: { text: lb ?? "New" } };
     case "Image":
-      return { type, props: { alt: lb ?? "H\xECnh \u1EA3nh" } };
+      return { type, props: { alt: lb ?? "Image" } };
     case "Button":
-      return { type, props: { label: lb ?? "N\xFAt m\u1EDBi", variant: "secondary" } };
+      return { type, props: { label: lb ?? "New button", variant: "secondary" } };
     default:
       return { type, props: lb ? { title: lb } : {}, ...isContainer(type) ? { children: [] } : {} };
   }
 }
-function snake(s) {
-  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "field";
+function snake(s2) {
+  return s2.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "field";
 }
 function firstTextNode(n) {
   let found = null;
@@ -11005,15 +12590,21 @@ function firstTextNode(n) {
   });
   return found;
 }
-var SUBMIT_WORDS = /^(lưu|gửi|xác nhận|submit|cập nhật|hoàn tất|tiếp tục)$/i;
+var SUBMIT_WORDS = /^(lưu|gửi|xác nhận|submit|cập nhật|hoàn tất|tiếp tục|save|send|confirm|update|complete|continue)$/i;
+var ADD_NEW = /^(thêm mới|add new)$/i;
+var CANCEL_LABEL = /hủy|huỷ|quay lại|cancel|\bback\b/i;
+var AUTH_TEXT = /đăng nhập|đăng ký|login|log in|sign in|register|sign up/i;
+var REQUIRED_TEXT = /bắt buộc|required/i;
+var FORMAT_TEXT = /định dạng|format/i;
+var VALIDATE_TEXT = /kiểm tra|validat/i;
 function mockActors(requirementInput) {
   const actors = /* @__PURE__ */ new Set();
   for (const m of requirementInput.matchAll(/(?:as an?|là)\s+([\p{L} ]{2,30}?)(?:,|\s+i want|\s+tôi muốn|\s+muốn)/giu)) actors.add(cap(m[1].trim()));
-  if (/quản trị|admin/i.test(requirementInput)) actors.add("Qu\u1EA3n tr\u1ECB vi\xEAn");
-  if (!actors.size) actors.add("Ng\u01B0\u1EDDi d\xF9ng");
+  if (/quản trị|admin/i.test(requirementInput)) actors.add("Administrator");
+  if (!actors.size) actors.add("User");
   return [...actors];
 }
-function mockUseCases(model2, requirementInput) {
+function mockUseCases(model, requirementInput) {
   const actors = mockActors(requirementInput);
   const primary = actors[0];
   const useCases = [];
@@ -11022,134 +12613,134 @@ function mockUseCases(model2, requirementInput) {
   let fr = 0;
   const ucCode = () => `UC-${String(++uc).padStart(2, "0")}`;
   const frCode = () => `FR-${String(++fr).padStart(2, "0")}`;
-  for (const s of model2.screens) {
-    const mainActions = s.actions.filter((a) => a.variant !== "secondary" && a.variant !== "ghost" && !/hủy|quay lại|cancel/i.test(a.label));
+  for (const s2 of model.screens) {
+    const mainActions = s2.actions.filter((a) => a.variant !== "secondary" && a.variant !== "ghost" && !CANCEL_LABEL.test(a.label));
     for (const a of mainActions) {
-      const fields = a.formId ? s.fields.filter((f) => s.forms.find((fm) => fm.nodeId === a.formId)?.fieldIds.includes(f.nodeId)) : [];
-      const name = SUBMIT_WORDS.test(a.label) ? s.title : a.label === "Th\xEAm m\u1EDBi" ? `M\u1EDF m\xE0n h\xECnh th\xEAm m\u1EDBi (${s.title})` : a.label;
-      useCases.push(buildFormUC(ucCode(), name, primary, s, a.nodeId, a.label, a.navigateTo, fields));
+      const fields2 = a.formId ? s2.fields.filter((f) => s2.forms.find((fm) => fm.nodeId === a.formId)?.fieldIds.includes(f.nodeId)) : [];
+      const name2 = SUBMIT_WORDS.test(a.label) ? s2.title : ADD_NEW.test(a.label) ? `Open the add-new screen (${s2.title})` : a.label;
+      useCases.push(buildFormUC(ucCode(), name2, primary, s2, a.nodeId, a.label, a.navigateTo, fields2));
     }
-    for (const d of s.displays.filter((x) => x.kind === "Table")) {
+    for (const d of s2.displays.filter((x) => x.kind === "Table")) {
       const code = ucCode();
-      const searchFields = s.fields.filter((f) => !s.forms.some((fm) => fm.fieldIds.includes(f.nodeId)));
+      const searchFields = s2.fields.filter((f) => !s2.forms.some((fm) => fm.fieldIds.includes(f.nodeId)));
       const steps = [
-        { no: 1, actor: primary, text: `M\u1EDF m\xE0n h\xECnh "${s.title}"`, screenId: s.screenId },
-        { no: 2, actor: "H\u1EC7 th\u1ED1ng", text: `Hi\u1EC3n th\u1ECB b\u1EA3ng d\u1EEF li\u1EC7u g\u1ED3m c\xE1c c\u1ED9t: ${d.columns.join(", ")}`, screenId: s.screenId, nodeId: d.nodeId }
+        { no: 1, actor: primary, text: `Opens the "${s2.title}" screen`, screenId: s2.screenId },
+        { no: 2, actor: SYSTEM, text: `Displays a data table with the columns: ${d.columns.join(", ")}`, screenId: s2.screenId, nodeId: d.nodeId }
       ];
       if (searchFields.length)
-        steps.push({ no: 3, actor: primary, text: `Nh\u1EADp/ch\u1ECDn \u0111i\u1EC1u ki\u1EC7n l\u1ECDc: ${searchFields.map((f) => f.label).join(", ")}`, screenId: s.screenId, nodeId: searchFields[0].nodeId }, { no: 4, actor: "H\u1EC7 th\u1ED1ng", text: "L\u1ECDc v\xE0 hi\u1EC3n th\u1ECB k\u1EBFt qu\u1EA3 ph\xF9 h\u1EE3p", screenId: s.screenId, nodeId: d.nodeId });
+        steps.push({ no: 3, actor: primary, text: `Enters/selects the filter criteria: ${searchFields.map((f) => f.label).join(", ")}`, screenId: s2.screenId, nodeId: searchFields[0].nodeId }, { no: 4, actor: SYSTEM, text: "Filters and displays the matching results", screenId: s2.screenId, nodeId: d.nodeId });
       useCases.push({
         code,
-        name: `Xem danh s\xE1ch \u2013 ${s.title}`,
+        name: `View list \u2013 ${s2.title}`,
         actors: [primary],
-        description: `${primary} xem v\xE0 tra c\u1EE9u d\u1EEF li\u1EC7u tr\xEAn m\xE0n h\xECnh ${s.title}.`,
-        trigger: `${primary} truy c\u1EADp m\xE0n h\xECnh ${s.title}`,
-        preconditions: [`${primary} \u0111\xE3 \u0111\u0103ng nh\u1EADp h\u1EC7 th\u1ED1ng`],
-        postconditions: ["Danh s\xE1ch d\u1EEF li\u1EC7u \u0111\u01B0\u1EE3c hi\u1EC3n th\u1ECB theo \u0111i\u1EC1u ki\u1EC7n l\u1ECDc"],
+        description: `${primary} views and searches the data on the ${s2.title} screen.`,
+        trigger: `${primary} opens the ${s2.title} screen`,
+        preconditions: [`${primary} is signed in to the system`],
+        postconditions: ["The data list is displayed according to the filter criteria"],
         mainFlow: steps,
-        altFlows: d.rowActions.map((ra, i) => ({ code: `A${i + 1}`, name: `${ra} m\u1ED9t d\xF2ng d\u1EEF li\u1EC7u`, branchFrom: 2, steps: [`${primary} ch\u1ECDn "${ra}" t\u1EA1i m\u1ED9t d\xF2ng`, `H\u1EC7 th\u1ED1ng th\u1EF1c hi\u1EC7n ch\u1EE9c n\u0103ng ${ra.toLowerCase()}`] })),
-        exceptions: [{ code: "E1", name: "Kh\xF4ng c\xF3 d\u1EEF li\u1EC7u ph\xF9 h\u1EE3p", branchFrom: steps.length, steps: ['H\u1EC7 th\u1ED1ng hi\u1EC3n th\u1ECB th\xF4ng b\xE1o "Kh\xF4ng t\xECm th\u1EA5y d\u1EEF li\u1EC7u"'] }],
+        altFlows: d.rowActions.map((ra, i) => ({ code: `A${i + 1}`, name: `${ra} a data row`, branchFrom: 2, steps: [`${primary} selects "${ra}" on a row`, `System performs the ${ra.toLowerCase()} function`] })),
+        exceptions: [{ code: "E1", name: "No matching data", branchFrom: steps.length, steps: ['System displays the message "No data found"'] }],
         businessRules: [],
-        screenIds: [s.screenId],
-        assumptions: d.rowActions.length ? [`Ch\u01B0a c\xF3 thi\u1EBFt k\u1EBF chi ti\u1EBFt cho c\xE1c thao t\xE1c ${d.rowActions.join(", ")} \u2013 c\u1EA7n BA x\xE1c nh\u1EADn`] : []
+        screenIds: [s2.screenId],
+        assumptions: d.rowActions.length ? [`The ${d.rowActions.join(", ")} actions have no detailed design yet \u2013 to be confirmed by the BA`] : []
       });
     }
   }
   for (const u of useCases) {
-    requirements.push({ code: frCode(), type: "FR", statement: `H\u1EC7 th\u1ED1ng ph\u1EA3i cho ph\xE9p ${u.actors.join(", ")} th\u1EF1c hi\u1EC7n "${u.name}".`, priority: "High", useCaseCodes: [u.code], source: `M\xE0n h\xECnh ${u.screenIds.join(", ")}`, isAssumption: false });
-    for (const br of u.businessRules) requirements.push({ code: frCode(), type: "FR", statement: `H\u1EC7 th\u1ED1ng ph\u1EA3i ki\u1EC3m tra: ${br}.`, priority: "Medium", useCaseCodes: [u.code], source: "R\xE0ng bu\u1ED9c tr\u01B0\u1EDDng d\u1EEF li\u1EC7u tr\xEAn thi\u1EBFt k\u1EBF", isAssumption: false });
+    requirements.push({ code: frCode(), type: "FR", statement: `The system shall allow ${u.actors.join(", ")} to perform "${u.name}".`, priority: "High", useCaseCodes: [u.code], source: `Screen ${u.screenIds.join(", ")}`, isAssumption: false });
+    for (const br of u.businessRules) requirements.push({ code: frCode(), type: "FR", statement: `The system shall validate: ${br}.`, priority: "Medium", useCaseCodes: [u.code], source: "Field constraints in the design", isAssumption: false });
   }
   let nfr = 0;
   const nfrCode = () => `NFR-${String(++nfr).padStart(2, "0")}`;
-  requirements.push({ code: nfrCode(), type: "NFR", statement: "Th\u1EDDi gian ph\u1EA3n h\u1ED3i c\u1EE7a c\xE1c thao t\xE1c ch\xEDnh kh\xF4ng v\u01B0\u1EE3t qu\xE1 2 gi\xE2y v\u1EDBi 100 ng\u01B0\u1EDDi d\xF9ng \u0111\u1ED3ng th\u1EDDi.", priority: "Medium", useCaseCodes: useCases.map((u) => u.code), source: "G\u1EE3i \xFD m\u1EB7c \u0111\u1ECBnh", isAssumption: true });
-  if (model2.screens.some((s) => s.fields.some((f) => f.inputType === "password")))
-    requirements.push({ code: nfrCode(), type: "NFR", statement: "M\u1EADt kh\u1EA9u ph\u1EA3i \u0111\u01B0\u1EE3c l\u01B0u d\u01B0\u1EDBi d\u1EA1ng b\u0103m (bcrypt/argon2), kh\xF4ng l\u01B0u b\u1EA3n r\xF5.", priority: "High", useCaseCodes: useCases.filter((u) => model2.screens.some((s) => u.screenIds.includes(s.screenId) && s.fields.some((f) => f.inputType === "password"))).map((u) => u.code), source: "Suy ra t\u1EEB tr\u01B0\u1EDDng m\u1EADt kh\u1EA9u", isAssumption: true });
+  requirements.push({ code: nfrCode(), type: "NFR", statement: "The response time of the main operations shall not exceed 2 seconds with 100 concurrent users.", priority: "Medium", useCaseCodes: useCases.map((u) => u.code), source: "Default suggestion", isAssumption: true });
+  if (model.screens.some((s2) => s2.fields.some((f) => f.inputType === "password")))
+    requirements.push({ code: nfrCode(), type: "NFR", statement: "Passwords shall be stored as hashes (bcrypt/argon2), never in plain text.", priority: "High", useCaseCodes: useCases.filter((u) => model.screens.some((s2) => u.screenIds.includes(s2.screenId) && s2.fields.some((f) => f.inputType === "password"))).map((u) => u.code), source: "Derived from the password field", isAssumption: true });
   return { useCases, requirements };
-  function buildFormUC(code, name, actor, s, actionId, actionLabel, navigateTo, fields) {
-    const steps = [{ no: 1, actor, text: `M\u1EDF m\xE0n h\xECnh "${s.title}"`, screenId: s.screenId }];
-    if (fields.length) {
-      steps.push({ no: 2, actor: "H\u1EC7 th\u1ED1ng", text: `Hi\u1EC3n th\u1ECB bi\u1EC3u m\u1EABu g\u1ED3m: ${fields.map((f) => f.label).join(", ")}`, screenId: s.screenId });
-      steps.push({ no: 3, actor, text: `Nh\u1EADp th\xF4ng tin ${fields.map((f) => f.label).join(", ")}`, screenId: s.screenId, nodeId: fields[0].nodeId });
+  function buildFormUC(code, name2, actor2, s2, actionId, actionLabel, navigateTo, fields2) {
+    const steps = [{ no: 1, actor: actor2, text: `Opens the "${s2.title}" screen`, screenId: s2.screenId }];
+    if (fields2.length) {
+      steps.push({ no: 2, actor: SYSTEM, text: `Displays a form with: ${fields2.map((f) => f.label).join(", ")}`, screenId: s2.screenId });
+      steps.push({ no: 3, actor: actor2, text: `Enters ${fields2.map((f) => f.label).join(", ")}`, screenId: s2.screenId, nodeId: fields2[0].nodeId });
     }
-    steps.push({ no: steps.length + 1, actor, text: `Nh\u1EA5n n\xFAt "${actionLabel}"`, screenId: s.screenId, nodeId: actionId });
-    if (fields.length) steps.push({ no: steps.length + 1, actor: "H\u1EC7 th\u1ED1ng", text: "Ki\u1EC3m tra t\xEDnh h\u1EE3p l\u1EC7 c\u1EE7a d\u1EEF li\u1EC7u nh\u1EADp" });
-    steps.push({ no: steps.length + 1, actor: "H\u1EC7 th\u1ED1ng", text: navigateTo ? `X\u1EED l\xFD y\xEAu c\u1EA7u v\xE0 chuy\u1EC3n t\u1EDBi m\xE0n h\xECnh "${navigateTo}"` : "X\u1EED l\xFD y\xEAu c\u1EA7u v\xE0 hi\u1EC3n th\u1ECB th\xF4ng b\xE1o th\xE0nh c\xF4ng" });
-    const validateStep = steps.find((x) => x.text.startsWith("Ki\u1EC3m tra"))?.no ?? steps.length;
+    steps.push({ no: steps.length + 1, actor: actor2, text: `Clicks the "${actionLabel}" button`, screenId: s2.screenId, nodeId: actionId });
+    if (fields2.length) steps.push({ no: steps.length + 1, actor: SYSTEM, text: "Validates the entered data" });
+    steps.push({ no: steps.length + 1, actor: SYSTEM, text: navigateTo ? `Processes the request and navigates to the "${navigateTo}" screen` : "Processes the request and shows a success message" });
+    const validateStep = steps.find((x) => x.text.startsWith("Validates"))?.no ?? steps.length;
     const exceptions = [];
-    const req = fields.filter((f) => f.required);
-    if (req.length) exceptions.push({ code: `E${exceptions.length + 1}`, name: "B\u1ECF tr\u1ED1ng tr\u01B0\u1EDDng b\u1EAFt bu\u1ED9c", branchFrom: validateStep, steps: [`H\u1EC7 th\u1ED1ng b\xE1o l\u1ED7i t\u1EA1i c\xE1c tr\u01B0\u1EDDng b\u1EAFt bu\u1ED9c: ${req.map((f) => f.label).join(", ")}`, "Quay l\u1EA1i b\u01B0\u1EDBc nh\u1EADp th\xF4ng tin"] });
-    const constrained = fields.filter((f) => f.constraints.length);
-    if (constrained.length) exceptions.push({ code: `E${exceptions.length + 1}`, name: "D\u1EEF li\u1EC7u kh\xF4ng \u0111\xFAng \u0111\u1ECBnh d\u1EA1ng/gi\u1EDBi h\u1EA1n", branchFrom: validateStep, steps: [`H\u1EC7 th\u1ED1ng b\xE1o l\u1ED7i \u0111\u1ECBnh d\u1EA1ng t\u1EA1i: ${constrained.map((f) => f.label).join(", ")}`, "Quay l\u1EA1i b\u01B0\u1EDBc nh\u1EADp th\xF4ng tin"] });
-    exceptions.push({ code: `E${exceptions.length + 1}`, name: "L\u1ED7i h\u1EC7 th\u1ED1ng khi x\u1EED l\xFD", branchFrom: steps.length, steps: ["H\u1EC7 th\u1ED1ng hi\u1EC3n th\u1ECB th\xF4ng b\xE1o l\u1ED7i v\xE0 gi\u1EEF nguy\xEAn d\u1EEF li\u1EC7u \u0111\xE3 nh\u1EADp"] });
-    const altFlows = s.links.map((l, i) => ({ code: `A${i + 1}`, name: l.text, branchFrom: Math.min(3, steps.length), steps: [`${actor} ch\u1ECDn "${l.text}"`, l.navigateTo ? `H\u1EC7 th\u1ED1ng chuy\u1EC3n t\u1EDBi m\xE0n h\xECnh "${l.navigateTo}"` : "H\u1EC7 th\u1ED1ng x\u1EED l\xFD li\xEAn k\u1EBFt"] }));
-    const cancel = s.actions.find((a) => /hủy|cancel|quay lại/i.test(a.label));
-    if (cancel) altFlows.push({ code: `A${altFlows.length + 1}`, name: `Nh\u1EA5n "${cancel.label}"`, branchFrom: Math.min(3, steps.length), steps: [`${actor} nh\u1EA5n "${cancel.label}"`, `H\u1EC7 th\u1ED1ng h\u1EE7y thao t\xE1c${cancel.navigateTo ? ` v\xE0 quay v\u1EC1 "${cancel.navigateTo}"` : ""}`] });
-    const businessRules = fields.flatMap((f) => [...f.required ? [`${f.label} l\xE0 b\u1EAFt bu\u1ED9c`] : [], ...f.constraints.map((c) => `${f.label}: ${c}`)]);
+    const req = fields2.filter((f) => f.required);
+    if (req.length) exceptions.push({ code: `E${exceptions.length + 1}`, name: "Required field left empty", branchFrom: validateStep, steps: [`System shows an error on the required fields: ${req.map((f) => f.label).join(", ")}`, "Return to the data entry step"] });
+    const constrained = fields2.filter((f) => f.constraints.length);
+    if (constrained.length) exceptions.push({ code: `E${exceptions.length + 1}`, name: "Data has an invalid format or exceeds a limit", branchFrom: validateStep, steps: [`System shows a format error on: ${constrained.map((f) => f.label).join(", ")}`, "Return to the data entry step"] });
+    exceptions.push({ code: `E${exceptions.length + 1}`, name: "System error during processing", branchFrom: steps.length, steps: ["System shows an error message and keeps the entered data"] });
+    const altFlows = s2.links.map((l, i) => ({ code: `A${i + 1}`, name: l.text, branchFrom: Math.min(3, steps.length), steps: [`${actor2} selects "${l.text}"`, l.navigateTo ? `System navigates to the "${l.navigateTo}" screen` : "System handles the link"] }));
+    const cancel = s2.actions.find((a) => CANCEL_LABEL.test(a.label));
+    if (cancel) altFlows.push({ code: `A${altFlows.length + 1}`, name: `Clicks "${cancel.label}"`, branchFrom: Math.min(3, steps.length), steps: [`${actor2} clicks "${cancel.label}"`, `System cancels the operation${cancel.navigateTo ? ` and returns to "${cancel.navigateTo}"` : ""}`] });
+    const businessRules = fields2.flatMap((f) => [...f.required ? [`${f.label} is required`] : [], ...f.constraints.map((c) => `${f.label}: ${c}`)]);
     return {
       code,
-      name,
-      actors: [actor],
-      description: `${actor} th\u1EF1c hi\u1EC7n "${name}" tr\xEAn m\xE0n h\xECnh ${s.title}.`,
-      trigger: `${actor} nh\u1EA5n "${actionLabel}"`,
-      preconditions: [/đăng nhập|đăng ký|login|register/i.test(`${name} ${s.title} ${actionLabel} ${s.actions.find((x) => x.nodeId === actionId)?.action ?? ""}`) ? `${actor} ch\u01B0a \u0111\u0103ng nh\u1EADp` : `${actor} \u0111\xE3 \u0111\u0103ng nh\u1EADp h\u1EC7 th\u1ED1ng`],
-      postconditions: [navigateTo ? `H\u1EC7 th\u1ED1ng hi\u1EC3n th\u1ECB m\xE0n h\xECnh "${navigateTo}"` : "D\u1EEF li\u1EC7u \u0111\u01B0\u1EE3c l\u01B0u th\xE0nh c\xF4ng"],
+      name: name2,
+      actors: [actor2],
+      description: `${actor2} performs "${name2}" on the ${s2.title} screen.`,
+      trigger: `${actor2} clicks "${actionLabel}"`,
+      preconditions: [AUTH_TEXT.test(`${name2} ${s2.title} ${actionLabel} ${s2.actions.find((x) => x.nodeId === actionId)?.action ?? ""}`) ? `${actor2} is not signed in` : `${actor2} is signed in to the system`],
+      postconditions: [navigateTo ? `System displays the "${navigateTo}" screen` : "The data is saved successfully"],
       mainFlow: steps,
       altFlows,
       exceptions,
       businessRules,
-      screenIds: [s.screenId],
-      assumptions: [`Quy t\u1EAFc x\u1EED l\xFD ph\xEDa m\xE1y ch\u1EE7 cho "${actionLabel}" ch\u01B0a th\u1EC3 hi\u1EC7n tr\xEAn thi\u1EBFt k\u1EBF \u2013 c\u1EA7n BA x\xE1c nh\u1EADn`]
+      screenIds: [s2.screenId],
+      assumptions: [`Server-side processing rules for "${actionLabel}" are not visible in the design \u2013 to be confirmed by the BA`]
     };
   }
 }
-function mockSrs(moduleName, requirementInput, model2, ucs, reqs) {
+function mockSrs(moduleName, requirementInput, model, ucs, reqs) {
   const actors = [...new Set(ucs.flatMap((u) => u.actors))];
   const frs = reqs.filter((r) => r.type === "FR");
   const nfrs = reqs.filter((r) => r.type === "NFR");
-  const fields = model2.screens.flatMap((s) => s.fields.map((f) => ({ ...f, screen: s.title })));
+  const fields2 = model.screens.flatMap((s2) => s2.fields.map((f) => ({ ...f, screen: s2.title })));
   return {
     sections: [
-      { key: "intro", title: "1. Gi\u1EDBi thi\u1EC7u", content: `### 1.1 M\u1EE5c \u0111\xEDch
-T\xE0i li\u1EC7u \u0111\u1EB7c t\u1EA3 y\xEAu c\u1EA7u ph\u1EA7n m\u1EC1m (SRS) cho module **${moduleName}**, \u0111\u01B0\u1EE3c sinh t\u1EF1 \u0111\u1ED9ng t\u1EEB thi\u1EBFt k\u1EBF giao di\u1EC7n \u0111\xE3 duy\u1EC7t v\xE0 c\u1EA7n BA r\xE0 so\xE1t.
+      { key: "intro", title: "1. Introduction", content: `### 1.1 Purpose
+Software requirements specification (SRS) for module **${moduleName}**, generated automatically from the approved user interface design; to be reviewed by the BA.
 
-### 1.2 Ph\u1EA1m vi
-${requirementInput.trim() || "Ph\u1EA1m vi \u0111\u01B0\u1EE3c x\xE1c \u0111\u1ECBnh theo c\xE1c m\xE0n h\xECnh \u0111\xE3 thi\u1EBFt k\u1EBF."}
+### 1.2 Scope
+${requirementInput.trim() || "The scope is defined by the designed screens."}
 
-### 1.3 T\xE0i li\u1EC7u tham chi\u1EBFu
+### 1.3 References
 - ISO/IEC/IEEE 29148:2018 \u2013 Requirements engineering
-- \u0110\u1EB7c t\u1EA3 Use Case c\u1EE7a module` },
-      { key: "overview", title: "2. M\xF4 t\u1EA3 t\u1ED5ng quan", content: `### 2.1 T\xE1c nh\xE2n
+- Module use case specification` },
+      { key: "overview", title: "2. Overall Description", content: `### 2.1 Actors
 ${actors.map((a) => `- ${a}`).join("\n")}
 
-### 2.2 Danh s\xE1ch m\xE0n h\xECnh
-${model2.screens.map((s) => `- ${s.title}`).join("\n")}
+### 2.2 Screens
+${model.screens.map((s2) => `- ${s2.title}`).join("\n")}
 
-### 2.3 \u0110i\u1EC1u h\u01B0\u1EDBng
-${model2.navigation.length ? model2.navigation.map((n) => `- ${n.from} \u2192 ${n.to} (qua "${n.via}")`).join("\n") : "- Ch\u01B0a c\xF3 li\xEAn k\u1EBFt \u0111i\u1EC1u h\u01B0\u1EDBng"}` },
-      { key: "functional", title: "3. Y\xEAu c\u1EA7u ch\u1EE9c n\u0103ng", content: `| M\xE3 | Y\xEAu c\u1EA7u | \u01AFu ti\xEAn | Use Case |
+### 2.3 Navigation
+${model.navigation.length ? model.navigation.map((n) => `- ${n.from} \u2192 ${n.to} (via "${n.via}")`).join("\n") : "- No navigation links yet"}` },
+      { key: "functional", title: "3. Functional Requirements", content: `| ID | Requirement | Priority | Use Case |
 | --- | --- | --- | --- |
 ${frs.map((r) => `| ${r.code} | ${r.statement} | ${r.priority} | ${r.useCaseCodes.join(", ")} |`).join("\n")}` },
-      { key: "nonfunctional", title: "4. Y\xEAu c\u1EA7u phi ch\u1EE9c n\u0103ng", content: `${nfrs.map((r) => `- **${r.code}**: ${r.statement}${r.isAssumption ? " _(Gi\u1EA3 \u0111\u1ECBnh \u2013 c\u1EA7n x\xE1c nh\u1EADn)_" : ""}`).join("\n") || "- Ch\u01B0a x\xE1c \u0111\u1ECBnh"}` },
-      { key: "interfaces", title: "5. Giao di\u1EC7n ng\u01B0\u1EDDi d\xF9ng", content: model2.screens.map((s) => `### ${s.title}
-- Tr\u01B0\u1EDDng d\u1EEF li\u1EC7u: ${s.fields.map((f) => f.label).join(", ") || "kh\xF4ng c\xF3"}
-- Thao t\xE1c: ${s.actions.map((a) => a.label).join(", ") || "kh\xF4ng c\xF3"}`).join("\n\n") },
-      { key: "data", title: "6. T\u1EEB \u0111i\u1EC3n d\u1EEF li\u1EC7u", content: `| M\xE0n h\xECnh | Tr\u01B0\u1EDDng | Ki\u1EC3u | B\u1EAFt bu\u1ED9c | R\xE0ng bu\u1ED9c |
+      { key: "nonfunctional", title: "4. Non-functional Requirements", content: `${nfrs.map((r) => `- **${r.code}**: ${r.statement}${r.isAssumption ? " _(Assumption \u2013 to be confirmed)_" : ""}`).join("\n") || "- Not defined yet"}` },
+      { key: "interfaces", title: "5. User Interfaces", content: model.screens.map((s2) => `### ${s2.title}
+- Data fields: ${s2.fields.map((f) => f.label).join(", ") || "none"}
+- Actions: ${s2.actions.map((a) => a.label).join(", ") || "none"}`).join("\n\n") },
+      { key: "data", title: "6. Data Dictionary", content: `| Screen | Field | Type | Required | Constraints |
 | --- | --- | --- | --- | --- |
-${fields.map((f) => `| ${f.screen} | ${f.label} | ${f.inputType} | ${f.required ? "C\xF3" : "Kh\xF4ng"} | ${f.constraints.join("; ") || "-"} |`).join("\n")}` },
-      { key: "assumptions", title: "7. Gi\u1EA3 \u0111\u1ECBnh v\xE0 v\u1EA5n \u0111\u1EC1 m\u1EDF", content: [...new Set(ucs.flatMap((u) => u.assumptions))].map((a) => `- ${a}`).join("\n") || "- Kh\xF4ng c\xF3" }
+${fields2.map((f) => `| ${f.screen} | ${f.label} | ${f.inputType} | ${f.required ? "Yes" : "No"} | ${f.constraints.join("; ") || "-"} |`).join("\n")}` },
+      { key: "assumptions", title: "7. Assumptions and Open Issues", content: [...new Set(ucs.flatMap((u) => u.assumptions))].map((a) => `- ${a}`).join("\n") || "- None" }
     ]
   };
 }
 function mockSequence(uc, screenTitle) {
-  const actor = uc.actors[0] ?? "Ng\u01B0\u1EDDi d\xF9ng";
-  const ui = uc.screenIds[0] ? screenTitle(uc.screenIds[0]) : "Giao di\u1EC7n";
-  const lines = ["sequenceDiagram", "  autonumber", `  actor A as ${safe(actor)}`, `  participant UI as ${safe(ui)}`, "  participant API as M\xE1y ch\u1EE7 API", "  participant DB as C\u01A1 s\u1EDF d\u1EEF li\u1EC7u"];
-  for (const s of uc.mainFlow) {
-    if (s.actor === "H\u1EC7 th\u1ED1ng") {
-      if (/kiểm tra/i.test(s.text)) lines.push(`  UI->>API: G\u1EEDi y\xEAu c\u1EA7u`, `  API->>API: ${safe(s.text)}`);
-      else if (/xử lý|lưu|lọc/i.test(s.text)) lines.push(`  API->>DB: Truy v\u1EA5n/c\u1EADp nh\u1EADt d\u1EEF li\u1EC7u`, `  DB-->>API: K\u1EBFt qu\u1EA3`, `  API-->>UI: Ph\u1EA3n h\u1ED3i`, `  UI-->>A: ${safe(s.text)}`);
-      else lines.push(`  UI-->>A: ${safe(s.text)}`);
-    } else lines.push(`  A->>UI: ${safe(s.text)}`);
+  const actor2 = uc.actors[0] ?? "User";
+  const ui = uc.screenIds[0] ? screenTitle(uc.screenIds[0]) : "User interface";
+  const lines = ["sequenceDiagram", "  autonumber", `  actor A as ${safe(actor2)}`, `  participant UI as ${safe(ui)}`, "  participant API as API Server", "  participant DB as Database"];
+  for (const s2 of uc.mainFlow) {
+    if (isSys(s2.actor)) {
+      if (/kiểm tra|validat|check/i.test(s2.text)) lines.push(`  UI->>API: Send request`, `  API->>API: ${safe(s2.text)}`);
+      else if (/xử lý|lưu|lọc|process|save|filter/i.test(s2.text)) lines.push(`  API->>DB: Query/update data`, `  DB-->>API: Result`, `  API-->>UI: Response`, `  UI-->>A: ${safe(s2.text)}`);
+      else lines.push(`  UI-->>A: ${safe(s2.text)}`);
+    } else lines.push(`  A->>UI: ${safe(s2.text)}`);
   }
   if (uc.exceptions.length) {
     lines.push(`  alt ${safe(uc.exceptions[0].name)}`);
@@ -11158,26 +12749,29 @@ function mockSequence(uc, screenTitle) {
   }
   return { useCaseCode: uc.code, title: `${uc.code} \u2013 ${uc.name}`, mermaid: lines.join("\n") };
 }
-function safe(s) {
-  return s.replace(/[;#:]/g, " ").replace(/"/g, "'").replace(/\s+/g, " ").trim().slice(0, 90);
+function safe(s2) {
+  return s2.replace(/[;#:]/g, " ").replace(/"/g, "'").replace(/\s+/g, " ").trim().slice(0, 90);
 }
-function mockTests(ucs, reqs, model2) {
+function mockTests(ucs, reqs, model) {
   const tests = [];
   let n = 0;
   const code = () => `TC-${String(++n).padStart(3, "0")}`;
-  const fieldsById = new Map(model2.screens.flatMap((s) => s.fields.map((f) => [f.nodeId, f])));
+  const fieldsById = new Map(model.screens.flatMap((s2) => s2.fields.map((f) => [f.nodeId, f])));
   for (const u of ucs) {
     const ucReqs = reqs.filter((r) => r.type === "FR" && r.useCaseCodes.includes(u.code));
     const mainReq = ucReqs.slice(0, 1).map((r) => r.code);
     const pre = u.preconditions.join("; ");
-    const ucFields = model2.screens.filter((s) => u.screenIds.includes(s.screenId)).flatMap((s) => s.fields);
+    const ucText = foldVi([u.name, u.description, ...u.mainFlow.map((x) => x.text)].join(" "));
+    const ucScreens = u.screenIds.length ? model.screens.filter((s2) => u.screenIds.includes(s2.screenId)) : model.screens.filter((s2) => s2.title && ucText.includes(foldVi(s2.title)));
+    const ucFields = ucScreens.flatMap((s2) => s2.fields);
     const sample = ucFields.map((f) => `${f.label} = ${sampleValue(f)}`).join("; ");
-    tests.push({ code: code(), title: `${u.name} \u2013 lu\u1ED3ng ch\xEDnh th\xE0nh c\xF4ng`, type: "Positive", priority: "High", useCaseCode: u.code, flowRef: "main", requirementCodes: mainReq, preconditions: pre, testData: sample || "-", steps: u.mainFlow.filter((s) => s.actor !== "H\u1EC7 th\u1ED1ng").map((s) => s.text), expected: u.postconditions.join("; ") });
-    for (const a of u.altFlows) tests.push({ code: code(), title: `${u.name} \u2013 ${a.name}`, type: "Positive", priority: "Medium", useCaseCode: u.code, flowRef: a.code, requirementCodes: mainReq, preconditions: pre, testData: "-", steps: a.steps.filter((s) => !s.startsWith("H\u1EC7 th\u1ED1ng")), expected: a.steps.filter((s) => s.startsWith("H\u1EC7 th\u1ED1ng")).join("; ") || "H\u1EC7 th\u1ED1ng x\u1EED l\xFD \u0111\xFAng lu\u1ED3ng thay th\u1EBF" });
+    const userSteps = u.mainFlow.filter((s2) => !isSys(s2.actor)).map((s2) => s2.text);
+    tests.push({ code: code(), title: `${u.name} \u2013 main flow succeeds`, type: "Positive", priority: "High", useCaseCode: u.code, flowRef: "main", requirementCodes: mainReq, preconditions: pre, testData: sample || "-", steps: userSteps, expected: u.postconditions.join("; ") });
+    for (const a of u.altFlows) tests.push({ code: code(), title: `${u.name} \u2013 ${a.name}`, type: "Positive", priority: "Medium", useCaseCode: u.code, flowRef: a.code, requirementCodes: mainReq, preconditions: pre, testData: "-", steps: a.steps.filter((s2) => !sysStep(s2)), expected: a.steps.filter((s2) => sysStep(s2)).join("; ") || "System handles the alternative flow correctly" });
     for (const e of u.exceptions) {
-      const rules = ucReqs.filter((r) => r.statement.includes("ki\u1EC3m tra"));
-      const ruleReqs = (/bắt buộc/i.test(e.name) ? rules.filter((r) => r.statement.includes("b\u1EAFt bu\u1ED9c")) : /định dạng/i.test(e.name) ? rules.filter((r) => !r.statement.includes("b\u1EAFt bu\u1ED9c")) : []).map((r) => r.code);
-      tests.push({ code: code(), title: `${u.name} \u2013 ${e.name}`, type: "Negative", priority: "High", useCaseCode: u.code, flowRef: e.code, requirementCodes: ruleReqs.length ? ruleReqs : mainReq, preconditions: pre, testData: /bắt buộc/i.test(e.name) ? "\u0110\u1EC3 tr\u1ED1ng c\xE1c tr\u01B0\u1EDDng b\u1EAFt bu\u1ED9c" : /định dạng/i.test(e.name) ? "Nh\u1EADp d\u1EEF li\u1EC7u sai \u0111\u1ECBnh d\u1EA1ng/v\u01B0\u1EE3t gi\u1EDBi h\u1EA1n" : "Gi\u1EA3 l\u1EADp l\u1ED7i m\xE1y ch\u1EE7", steps: [...u.mainFlow.filter((s) => s.actor !== "H\u1EC7 th\u1ED1ng").map((s) => s.text)], expected: e.steps.join("; ") });
+      const rules = ucReqs.filter((r) => VALIDATE_TEXT.test(r.statement));
+      const ruleReqs = (REQUIRED_TEXT.test(e.name) ? rules.filter((r) => REQUIRED_TEXT.test(r.statement)) : FORMAT_TEXT.test(e.name) ? rules.filter((r) => !REQUIRED_TEXT.test(r.statement)) : []).map((r) => r.code);
+      tests.push({ code: code(), title: `${u.name} \u2013 ${e.name}`, type: "Negative", priority: "High", useCaseCode: u.code, flowRef: e.code, requirementCodes: ruleReqs.length ? ruleReqs : mainReq, preconditions: pre, testData: REQUIRED_TEXT.test(e.name) ? "Leave the required fields empty" : FORMAT_TEXT.test(e.name) ? "Enter data with an invalid format or beyond the limit" : "Simulate a server error", steps: [...userSteps], expected: e.steps.join("; ") });
     }
     for (const f of ucFields) {
       const field = fieldsById.get(f.nodeId) ?? f;
@@ -11185,42 +12779,65 @@ function mockTests(ucs, reqs, model2) {
       const max = num(field.constraints, "maxLength");
       const brCode = ucReqs.find((r) => r.statement.includes(field.label) && r.statement.includes("Length"))?.code;
       const refs = brCode ? [brCode] : mainReq;
+      const formatFlow = u.exceptions.find((e) => FORMAT_TEXT.test(e.name))?.code ?? "main";
       if (min !== null) {
-        tests.push({ code: code(), title: `${field.label} \u2013 \u0111\u1ED9 d\xE0i ${min - 1} k\xFD t\u1EF1 (d\u01B0\u1EDBi bi\xEAn)`, type: "Boundary", priority: "Medium", useCaseCode: u.code, flowRef: u.exceptions.find((e) => /định dạng/i.test(e.name))?.code ?? "main", requirementCodes: refs, preconditions: pre, testData: `${field.label} c\xF3 ${min - 1} k\xFD t\u1EF1`, steps: [`Nh\u1EADp ${field.label} c\xF3 ${min - 1} k\xFD t\u1EF1`, "G\u1EEDi bi\u1EC3u m\u1EABu"], expected: `H\u1EC7 th\u1ED1ng b\xE1o l\u1ED7i: ${field.label} t\u1ED1i thi\u1EC3u ${min} k\xFD t\u1EF1` });
-        tests.push({ code: code(), title: `${field.label} \u2013 \u0111\u1ED9 d\xE0i ${min} k\xFD t\u1EF1 (\u0111\xFAng bi\xEAn)`, type: "Boundary", priority: "Medium", useCaseCode: u.code, flowRef: "main", requirementCodes: refs, preconditions: pre, testData: `${field.label} c\xF3 ${min} k\xFD t\u1EF1`, steps: [`Nh\u1EADp ${field.label} c\xF3 ${min} k\xFD t\u1EF1`, "G\u1EEDi bi\u1EC3u m\u1EABu"], expected: "H\u1EC7 th\u1ED1ng ch\u1EA5p nh\u1EADn gi\xE1 tr\u1ECB" });
+        tests.push({ code: code(), title: `${field.label} \u2013 length ${min - 1} characters (below boundary)`, type: "Boundary", priority: "Medium", useCaseCode: u.code, flowRef: formatFlow, requirementCodes: refs, preconditions: pre, testData: `${field.label} with ${min - 1} characters`, steps: [`Enter ${field.label} with ${min - 1} characters`, "Submit the form"], expected: `System shows an error: ${field.label} must be at least ${min} characters` });
+        tests.push({ code: code(), title: `${field.label} \u2013 length ${min} characters (at boundary)`, type: "Boundary", priority: "Medium", useCaseCode: u.code, flowRef: "main", requirementCodes: refs, preconditions: pre, testData: `${field.label} with ${min} characters`, steps: [`Enter ${field.label} with ${min} characters`, "Submit the form"], expected: "System accepts the value" });
       }
       if (max !== null) {
-        tests.push({ code: code(), title: `${field.label} \u2013 \u0111\u1ED9 d\xE0i ${max + 1} k\xFD t\u1EF1 (v\u01B0\u1EE3t bi\xEAn)`, type: "Boundary", priority: "Medium", useCaseCode: u.code, flowRef: u.exceptions.find((e) => /định dạng/i.test(e.name))?.code ?? "main", requirementCodes: refs, preconditions: pre, testData: `${field.label} c\xF3 ${max + 1} k\xFD t\u1EF1`, steps: [`Nh\u1EADp ${field.label} c\xF3 ${max + 1} k\xFD t\u1EF1`, "G\u1EEDi bi\u1EC3u m\u1EABu"], expected: `H\u1EC7 th\u1ED1ng ch\u1EB7n/b\xE1o l\u1ED7i: ${field.label} t\u1ED1i \u0111a ${max} k\xFD t\u1EF1` });
+        tests.push({ code: code(), title: `${field.label} \u2013 length ${max + 1} characters (above boundary)`, type: "Boundary", priority: "Medium", useCaseCode: u.code, flowRef: formatFlow, requirementCodes: refs, preconditions: pre, testData: `${field.label} with ${max + 1} characters`, steps: [`Enter ${field.label} with ${max + 1} characters`, "Submit the form"], expected: `System blocks the input or shows an error: ${field.label} must be at most ${max} characters` });
       }
     }
   }
+  const covered = new Set(tests.flatMap((t) => t.requirementCodes));
+  for (const r of reqs.filter((x) => x.type === "FR" && !covered.has(x.code))) {
+    const uc = ucs.find((u) => r.useCaseCodes.includes(u.code));
+    tests.push({
+      code: code(),
+      title: `${r.code} \u2013 ${r.statement.length > 80 ? r.statement.slice(0, 77) + "\u2026" : r.statement}`,
+      type: "Positive",
+      priority: r.priority,
+      useCaseCode: uc?.code ?? "",
+      flowRef: "main",
+      requirementCodes: [r.code],
+      preconditions: uc?.preconditions.join("; ") ?? "",
+      testData: "-",
+      steps: ["Perform the operation described by requirement " + r.code, "Observe the result returned by the system"],
+      expected: r.statement
+    });
+  }
   return tests;
 }
-function num(constraints, key) {
-  const c = constraints.find((x) => x.startsWith(`${key}=`));
+var foldVi = (x) => x.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase();
+function num(constraints, key2) {
+  const c = constraints.find((x) => x.startsWith(`${key2}=`));
   return c ? Number(c.split("=")[1]) : null;
 }
 function sampleValue(f) {
-  if (f.inputType === "email") return "ba.test@congty.vn";
-  if (f.inputType === "password") return "MatKhau@123";
+  if (f.inputType === "email") return "ba.test@company.com";
+  if (f.inputType === "password") return "Passw0rd@123";
   if (f.inputType === "tel") return "0912345678";
   if (f.inputType === "number") return "10";
-  if (f.inputType === "date") return "15/10/2026";
+  if (f.inputType === "date") return "10/15/2026";
   if (f.options?.length) return f.options[0];
-  if (f.kind === "Checkbox") return "\u0110\xE3 t\xEDch";
-  return `${f.label} m\u1EABu`;
+  if (f.kind === "Checkbox") return "Checked";
+  return `Sample ${f.label.toLowerCase()}`;
+}
+function mockUcDiagram(useCases) {
+  const actors = [...new Set(useCases.flatMap((u) => u.actors))];
+  return { code: buildUcMermaid(useCases, actors) };
 }
 
 // server/ai/pipelines.ts
-var SYSTEM_BASE = `B\u1EA1n l\xE0 tr\u1EE3 l\xFD c\u1EE7a Business Analyst trong h\u1EC7 th\u1ED1ng BA Copilot.
-Nguy\xEAn t\u1EAFc:
-- Vi\u1EBFt to\xE0n b\u1ED9 n\u1ED9i dung b\u1EB1ng ti\u1EBFng Vi\u1EC7t, r\xF5 r\xE0ng, s\xFAc t\xEDch, \u0111\xFAng thu\u1EADt ng\u1EEF ph\xE2n t\xEDch nghi\u1EC7p v\u1EE5.
-- Ch\u1EC9 d\u1EF1a tr\xEAn d\u1EEF li\u1EC7u \u0111\u1EA7u v\xE0o. \u0110i\u1EC1u g\xEC ph\u1EA3i suy di\u1EC5n th\xEC ghi v\xE0o assumptions/isAssumption \u0111\u1EC3 BA x\xE1c nh\u1EADn, KH\xD4NG tr\xECnh b\xE0y nh\u01B0 s\u1EF1 th\u1EADt.
-- Lu\xF4n tr\u1EA3 k\u1EBFt qu\u1EA3 b\u1EB1ng c\xE1ch g\u1ECDi \u0111\xFAng tool \u0111\u01B0\u1EE3c y\xEAu c\u1EA7u.`;
+var SYSTEM_BASE = `You are a Business Analyst's assistant in the BA Copilot system.
+Principles:
+- Write ALL content in English: clear, concise, using standard business analysis terminology (BABOK, IEEE 830 / ISO/IEC/IEEE 29148).
+- Rely only on the input data. Anything you have to infer goes into assumptions/isAssumption for the BA to confirm \u2013 NEVER present it as fact.
+- Always return the result by calling exactly the requested tool.`;
 var catalogText = Object.entries(COMPONENT_CATALOG).map(([k, v]) => `- ${k}: ${v}`).join("\n");
 var NODE_SCHEMA = {
   type: "object",
-  description: "Node giao di\u1EC7n: { id, type, props, children? }. children ch\u1EC9 c\xF3 \u1EDF component d\u1EA1ng container.",
+  description: "UI node: { id, type, props, children? }. children only exists on container components.",
   properties: {
     id: { type: "string" },
     type: { type: "string" },
@@ -11230,45 +12847,46 @@ var NODE_SCHEMA = {
   required: ["id", "type", "props"]
 };
 async function generateScreen(args) {
-  const prompt = `Thi\u1EBFt k\u1EBF M\u1ED8T m\xE0n h\xECnh web theo y\xEAu c\u1EA7u c\u1EE7a BA.
+  const prompt = `Design ONE web screen according to the BA's request.
 
-## Y\xEAu c\u1EA7u c\u1EE7a BA
-${args.prompt}
+## BA request
+${args.prompt.trim() || `(No extra notes from the BA \u2013 design the "${args.name}" screen from the documents below)`}
 
-## B\u1ED1i c\u1EA3nh module (y\xEAu c\u1EA7u nghi\u1EC7p v\u1EE5 / user story)
-${args.requirementInput || "(kh\xF4ng c\xF3)"}
+## Module context (user stories, SRS, FRD-NFR)
+${args.context || args.requirementInput || "(no documents yet)"}
 
-## C\xE1c m\xE0n h\xECnh \u0111\xE3 c\xF3 trong module (d\xF9ng \u0111\xFAng t\xEAn n\xE0y cho navigateTo)
-${args.otherScreens.length ? args.otherScreens.map((s) => `- ${s}`).join("\n") : "(ch\u01B0a c\xF3)"}
+## Existing screens in the module (use exactly these names for navigateTo)
+${args.otherScreens.length ? args.otherScreens.map((s2) => `- ${s2}`).join("\n") : "(none yet)"}
 
-## Th\u01B0 vi\u1EC7n component \u0111\u01B0\u1EE3c ph\xE9p d\xF9ng
+## Allowed component library
 ${catalogText}
 
-## Quy t\u1EAFc
-- Node g\u1ED1c l\xE0 Page v\u1EDBi props.title.
-- M\u1ED7i node c\xF3 id ng\u1EAFn, duy nh\u1EA5t, d\u1EA1ng snake_case c\xF3 ngh\u0129a (vd: login_form, btn_submit).
-- Tr\u01B0\u1EDDng nh\u1EADp ph\u1EA3i c\xF3 label, name v\xE0 r\xE0ng bu\u1ED9c h\u1EE3p l\xFD (required, minLength, maxLength, inputType, pattern).
-- N\xFAt c\xF3 action (\u0111\u1ED9ng t\u1EEB ti\u1EBFng Anh ng\u1EAFn) v\xE0 navigateTo n\u1EBFu chuy\u1EC3n m\xE0n h\xECnh.
-- D\u1EEF li\u1EC7u m\u1EABu trong Table t\u1ED1i \u0111a 3 d\xF2ng, th\u1EF1c t\u1EBF, ti\u1EBFng Vi\u1EC7t.
-- B\u1ED1 c\u1EE5c g\u1ECDn g\xE0ng, chuy\xEAn nghi\u1EC7p; t\u1ED1i \u0111a kho\u1EA3ng 40 node.`;
+## Rules
+- The root node is a Page with props.title.
+- Every node has a short, unique, meaningful snake_case id (e.g. login_form, btn_submit).
+- Input fields must have a label, a name and sensible constraints (required, minLength, maxLength, inputType, pattern).
+- Buttons have an action (a short English verb) and navigateTo when they lead to another screen.
+- Sample data in a Table: at most 3 realistic rows, in English.
+- The screen must satisfy the functional requirements (FR) and user stories related to it; take fields and constraints from the SRS/FRD-NFR when available.
+- Clean, professional layout; about 40 nodes at most.`;
   return runAI({
     type: "generate_screen",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nB\u1EA1n \u0111\xF3ng vai Senior UI/UX designer.",
+    system: SYSTEM_BASE + "\nYou act as a Senior UI/UX designer.",
     prompt,
     tool: {
       name: "submit_screen",
-      description: "Tr\u1EA3 v\u1EC1 thi\u1EBFt k\u1EBF m\xE0n h\xECnh d\u1EA1ng component tree",
-      input_schema: { type: "object", properties: { name: { type: "string", description: "T\xEAn m\xE0n h\xECnh ng\u1EAFn g\u1ECDn" }, tree: NODE_SCHEMA }, required: ["name", "tree"] }
+      description: "Return the screen design as a component tree",
+      input_schema: { type: "object", properties: { name: { type: "string", description: "Short screen name" }, tree: NODE_SCHEMA }, required: ["name", "tree"] }
     },
     maxTokens: 12e3,
     parse: (raw) => {
       const tree = normalizeTree(raw?.tree);
       const v = validateTree(tree);
-      return v.ok ? { value: { name: String(raw?.name || args.name || tree.props.title || "M\xE0n h\xECnh"), tree } } : { errors: v.errors };
+      return v.ok ? { value: { name: String(raw?.name || args.name || tree.props.title || "Screen"), tree } } : { errors: v.errors };
     },
     mock: () => {
-      const tree = mockScreen(args.prompt, args.name);
+      const tree = mockScreen(args.mockPrompt || args.prompt, args.name);
       return { name: args.name || String(tree.props.title), tree };
     }
   });
@@ -11277,47 +12895,50 @@ async function editScreen(args) {
   const scoped = args.selectedIds.length > 0;
   const regionText = scoped ? args.selectedIds.map((id) => {
     const n = findNode(args.tree, id);
-    return n ? `### V\xF9ng ${id} \u2013 ${nodeLabel(n)}
+    return n ? `### Region ${id} \u2013 ${nodeLabel(n)}
 ${JSON.stringify(compactTree(n))}` : "";
-  }).join("\n\n") : "(Kh\xF4ng khoanh v\xF9ng \u2013 \u0111\u01B0\u1EE3c ph\xE9p s\u1EEDa to\xE0n m\xE0n h\xECnh)";
-  const commentText = args.comments.length ? args.comments.map((c, i) => `${i + 1}. [v\xF9ng: ${c.nodeIds.join(", ") || "to\xE0n m\xE0n h\xECnh"}] ${c.comment}`).join("\n") : "(kh\xF4ng c\xF3)";
+  }).join("\n\n") : "(No region selected \u2013 the whole screen may be edited)";
+  const commentText = args.comments.length ? args.comments.map((c, i) => `${i + 1}. [region: ${c.nodeIds.join(", ") || "whole screen"}] ${c.comment}`).join("\n") : "(none)";
   const fullInstruction = [args.instruction, ...args.comments.map((c) => c.comment)].filter(Boolean).join("\n");
-  const prompt = `S\u1EEDa thi\u1EBFt k\u1EBF m\xE0n h\xECnh theo y\xEAu c\u1EA7u c\u1EE7a BA b\u1EB1ng c\xE1c thao t\xE1c patch.
+  const prompt = `Edit the screen design according to the BA's request using patch operations.
 
-## To\xE0n b\u1ED9 m\xE0n h\xECnh hi\u1EC7n t\u1EA1i (\u0111\u1EC3 hi\u1EC3u b\u1ED1i c\u1EA3nh)
+## Whole current screen (for context)
 ${JSON.stringify(compactTree(args.tree))}
 
-## V\xF9ng \u0111\u01B0\u1EE3c khoanh (CH\u1EC8 \u0111\u01B0\u1EE3c s\u1EEDa trong c\xE1c v\xF9ng n\xE0y)
+## Selected regions (edit ONLY inside these regions)
 ${regionText}
 
-## B\xECnh lu\u1EADn g\u1EEDi k\xE8m
+## Attached comments
 ${commentText}
 
-## Y\xEAu c\u1EA7u s\u1EEDa
-${args.instruction || "(xem b\xECnh lu\u1EADn)"}
-
-## Th\u01B0 vi\u1EC7n component
+## Edit request
+${args.instruction || "(see comments)"}
+${args.context ? `
+## Module documents (for reference \u2013 must not be contradicted)
+${args.context}
+` : ""}
+## Component library
 ${catalogText}
 
-## C\xE1c thao t\xE1c h\u1EE3p l\u1EC7
-- {"op":"update","id":"<id>","props":{...}}  \u2013 g\u1ED9p props (gi\xE1 tr\u1ECB null \u0111\u1EC3 x\xF3a prop)
-- {"op":"replace","id":"<id>","node":{...}}   \u2013 thay c\u1EA3 node/c\xE2y con
-- {"op":"insert","parentId":"<id container>","index":<s\u1ED1>,"node":{...}} \u2013 ch\xE8n node m\u1EDBi (id m\u1EDBi, duy nh\u1EA5t)
+## Valid operations
+- {"op":"update","id":"<id>","props":{...}}  \u2013 merge props (null value removes a prop)
+- {"op":"replace","id":"<id>","node":{...}}   \u2013 replace the whole node/subtree
+- {"op":"insert","parentId":"<container id>","index":<number>,"node":{...}} \u2013 insert a new node (new, unique id)
 - {"op":"remove","id":"<id>"}
-${scoped ? "- CH\u1EC8 thao t\xE1c tr\xEAn node thu\u1ED9c v\xF9ng khoanh (k\u1EC3 c\u1EA3 con ch\xE1u) ho\u1EB7c ch\xE8n ph\u1EA7n t\u1EED anh em v\xE0o node cha tr\u1EF1c ti\u1EBFp c\u1EE7a v\xF9ng. Thao t\xE1c ngo\xE0i v\xF9ng s\u1EBD b\u1ECB h\u1EC7 th\u1ED1ng t\u1EEB ch\u1ED1i." : ""}
-- Gi\u1EEF nguy\xEAn id c\u1EE7a node kh\xF4ng b\u1ECB thay \u0111\u1ED5i. D\xF9ng s\u1ED1 thao t\xE1c t\u1ED1i thi\u1EC3u.`;
+${scoped ? "- Operate ONLY on nodes inside the selected regions (including descendants), or insert siblings into the region's direct parent. Operations outside the regions are rejected by the system." : ""}
+- Keep the ids of unchanged nodes. Use the minimum number of operations.`;
   return runAI({
     type: scoped ? "edit_screen_region" : "edit_screen_global",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nB\u1EA1n \u0111\xF3ng vai Senior UI/UX designer, s\u1EEDa thi\u1EBFt k\u1EBF ch\xEDnh x\xE1c v\xE0 t\u1ED1i thi\u1EC3u.",
+    system: SYSTEM_BASE + "\nYou act as a Senior UI/UX designer and make precise, minimal design edits.",
     prompt,
     tool: {
       name: "submit_patch",
-      description: "Tr\u1EA3 v\u1EC1 danh s\xE1ch thao t\xE1c s\u1EEDa thi\u1EBFt k\u1EBF",
+      description: "Return the list of design edit operations",
       input_schema: {
         type: "object",
         properties: {
-          summary: { type: "string", description: "T\xF3m t\u1EAFt 1 c\xE2u nh\u1EEFng g\xEC \u0111\xE3 s\u1EEDa" },
+          summary: { type: "string", description: "One-sentence summary of what was changed" },
           ops: {
             type: "array",
             items: {
@@ -11338,7 +12959,7 @@ ${scoped ? "- CH\u1EC8 thao t\xE1c tr\xEAn node thu\u1ED9c v\xF9ng khoanh (k\u1E
       }
     },
     parse: (raw) => {
-      if (!Array.isArray(raw?.ops)) return { errors: ["ops ph\u1EA3i l\xE0 m\u1EA3ng"] };
+      if (!Array.isArray(raw?.ops)) return { errors: ["ops must be an array"] };
       return { value: { ops: raw.ops, summary: String(raw.summary ?? "") } };
     },
     mock: () => mockEditOps(args.tree, args.selectedIds, fullInstruction)
@@ -11386,7 +13007,7 @@ var REQ_SCHEMA = {
 };
 function coerceUseCase(u, validScreenIds) {
   const arr2 = (x) => Array.isArray(x) ? x.map(String) : [];
-  const flows = (x) => Array.isArray(x) ? x.map((f) => ({ code: String(f.code ?? ""), name: String(f.name ?? ""), branchFrom: Number(f.branchFrom ?? 1), steps: arr2(f.steps) })) : [];
+  const flows2 = (x) => Array.isArray(x) ? x.map((f) => ({ code: String(f.code ?? ""), name: String(f.name ?? ""), branchFrom: Number(f.branchFrom ?? 1), steps: arr2(f.steps) })) : [];
   return {
     code: String(u.code),
     name: String(u.name ?? ""),
@@ -11395,15 +13016,15 @@ function coerceUseCase(u, validScreenIds) {
     trigger: String(u.trigger ?? ""),
     preconditions: arr2(u.preconditions),
     postconditions: arr2(u.postconditions),
-    mainFlow: (Array.isArray(u.mainFlow) ? u.mainFlow : []).map((s, i) => ({
-      no: Number(s.no ?? i + 1),
-      actor: String(s.actor ?? ""),
-      text: String(s.text ?? ""),
-      ...s.screenId && validScreenIds.has(String(s.screenId)) ? { screenId: String(s.screenId) } : {},
-      ...s.nodeId ? { nodeId: String(s.nodeId) } : {}
+    mainFlow: (Array.isArray(u.mainFlow) ? u.mainFlow : []).map((s2, i) => ({
+      no: Number(s2.no ?? i + 1),
+      actor: String(s2.actor ?? ""),
+      text: String(s2.text ?? ""),
+      ...s2.screenId && validScreenIds.has(String(s2.screenId)) ? { screenId: String(s2.screenId) } : {},
+      ...s2.nodeId ? { nodeId: String(s2.nodeId) } : {}
     })),
-    altFlows: flows(u.altFlows),
-    exceptions: flows(u.exceptions),
+    altFlows: flows2(u.altFlows),
+    exceptions: flows2(u.exceptions),
     businessRules: arr2(u.businessRules),
     screenIds: arr2(u.screenIds).filter((id) => validScreenIds.has(id)),
     assumptions: arr2(u.assumptions)
@@ -11420,36 +13041,36 @@ function coerceRequirement(r) {
     isAssumption: Boolean(r.isAssumption)
   };
 }
-function modelForPrompt(model2) {
-  return JSON.stringify(model2, null, 1);
+function modelForPrompt(model) {
+  return JSON.stringify(model, null, 1);
 }
 async function generateUseCases(args) {
-  const screenIds = new Set(args.model.screens.map((s) => s.screenId));
-  const prompt = `T\u1EEB m\xF4 h\xECnh thi\u1EBFt k\u1EBF (tr\xEDch t\u1EF1 \u0111\u1ED9ng t\u1EEB c\xE1c m\xE0n h\xECnh \u0111\xE3 duy\u1EC7t) v\xE0 y\xEAu c\u1EA7u nghi\u1EC7p v\u1EE5, h\xE3y l\u1EADp:
-1. Danh s\xE1ch Use Case v\xE0 \u0111\u1EB7c t\u1EA3 \u0111\u1EA7y \u0111\u1EE7 (main flow, alternate flows A1.., exceptions E1.., business rules).
-2. Danh s\xE1ch y\xEAu c\u1EA7u: FR (ch\u1EE9c n\u0103ng, m\u1ED7i UC \xEDt nh\u1EA5t 1 FR; m\u1ED7i r\xE0ng bu\u1ED9c d\u1EEF li\u1EC7u quan tr\u1ECDng th\xE0nh FR ki\u1EC3m tra) v\xE0 NFR (ch\u1EC9 g\u1EE3i \xFD, isAssumption = true).
+  const screenIds = new Set(args.model.screens.map((s2) => s2.screenId));
+  const prompt = `From the design model (extracted automatically from the approved screens) and the business requirements, produce:
+1. The list of use cases with full specifications (main flow, alternative flows A1.., exception flows E1.., business rules).
+2. The list of requirements: FR (functional; at least 1 FR per use case; every important data constraint becomes a validation FR) and NFR (suggestions only, isAssumption = true).
 
 ## Module: ${args.moduleName}
-## Y\xEAu c\u1EA7u nghi\u1EC7p v\u1EE5 / user story
-${args.requirementInput || "(kh\xF4ng c\xF3)"}
+## Business requirements / user stories
+${args.requirementInput || "(none)"}
 
-## M\xF4 h\xECnh thi\u1EBFt k\u1EBF (screens: fields, actions, displays, forms; navigation)
+## Design model (screens: fields, actions, displays, forms; navigation)
 ${modelForPrompt(args.model)}
 
-## Quy t\u1EAFc
-- M\xE3 UC: UC-01, UC-02...; m\xE3 y\xEAu c\u1EA7u: FR-01..., NFR-01...
-- M\u1ED7i b\u01B0\u1EDBc main flow ghi actor l\xE0 t\xEAn t\xE1c nh\xE2n ho\u1EB7c "H\u1EC7 th\u1ED1ng"; g\u1EAFn screenId (\u0111\xFAng id m\xE0n h\xECnh \u1EDF tr\xEAn) v\xE0 nodeId c\u1EE7a ph\u1EA7n t\u1EED li\xEAn quan n\u1EBFu c\xF3.
-- screenIds c\u1EE7a UC ph\u1EA3i l\xE0 id m\xE0n h\xECnh c\xF3 trong m\xF4 h\xECnh.
-- M\u1ED9t UC t\u01B0\u01A1ng \u1EE9ng m\u1ED9t m\u1EE5c ti\xEAu nghi\u1EC7p v\u1EE5 c\u1EE7a t\xE1c nh\xE2n (kh\xF4ng t\xE1ch theo t\u1EEBng n\xFAt l\u1EB7t v\u1EB7t nh\u01B0 "H\u1EE7y").
-- \u0110i\u1EC1u ch\u01B0a c\xF3 tr\xEAn thi\u1EBFt k\u1EBF (x\u1EED l\xFD ph\xEDa server, ph\xE2n quy\u1EC1n...) ghi v\xE0o assumptions.`;
+## Rules
+- Use case IDs: UC-01, UC-02...; requirement IDs: FR-01..., NFR-01...
+- Each main-flow step names its actor (an actor name or "System"); attach screenId (an exact screen id from above) and the nodeId of the related element when there is one.
+- A use case's screenIds must be screen ids present in the model.
+- One use case corresponds to one business goal of an actor (do not split per minor button such as "Cancel").
+- Anything not visible in the design (server-side processing, permissions...) goes into assumptions.`;
   return runAI({
     type: "generate_use_cases",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nB\u1EA1n \u0111\xF3ng vai Senior Business Analyst.",
+    system: SYSTEM_BASE + "\nYou act as a Senior Business Analyst.",
     prompt,
     tool: {
       name: "submit_use_cases",
-      description: "Tr\u1EA3 v\u1EC1 Use Case v\xE0 y\xEAu c\u1EA7u",
+      description: "Return the use cases and requirements",
       input_schema: {
         type: "object",
         properties: { useCases: { type: "array", items: UC_SCHEMA }, requirements: { type: "array", items: REQ_SCHEMA } },
@@ -11459,47 +13080,47 @@ ${modelForPrompt(args.model)}
     maxTokens: 16e3,
     parse: (raw) => {
       const errors = [];
-      if (!Array.isArray(raw?.useCases) || !raw.useCases.length) errors.push("useCases r\u1ED7ng");
-      if (!Array.isArray(raw?.requirements)) errors.push("requirements ph\u1EA3i l\xE0 m\u1EA3ng");
+      if (!Array.isArray(raw?.useCases) || !raw.useCases.length) errors.push("useCases is empty");
+      if (!Array.isArray(raw?.requirements)) errors.push("requirements must be an array");
       if (errors.length) return { errors };
       const useCases = raw.useCases.map((u) => coerceUseCase(u, screenIds));
       const requirements = raw.requirements.map(coerceRequirement);
       const ucCodes = new Set(useCases.map((u) => u.code));
-      for (const r of requirements) for (const c of r.useCaseCodes) if (!ucCodes.has(c)) errors.push(`${r.code} tham chi\u1EBFu UC kh\xF4ng t\u1ED3n t\u1EA1i: ${c}`);
-      if (new Set(useCases.map((u) => u.code)).size !== useCases.length) errors.push("Tr\xF9ng m\xE3 UC");
+      for (const r of requirements) for (const c of r.useCaseCodes) if (!ucCodes.has(c)) errors.push(`${r.code} references a use case that does not exist: ${c}`);
+      if (new Set(useCases.map((u) => u.code)).size !== useCases.length) errors.push("Duplicate use case ID");
       return errors.length ? { errors } : { value: { useCases, requirements } };
     },
     mock: () => mockUseCases(args.model, args.requirementInput)
   });
 }
 async function generateSrs(args) {
-  const prompt = `So\u1EA1n t\xE0i li\u1EC7u SRS theo c\u1EA5u tr\xFAc ISO/IEC/IEEE 29148 cho module "${args.moduleName}".
-C\xE1c m\u1EE5c b\u1EAFt bu\u1ED9c (key \u2013 ti\xEAu \u0111\u1EC1):
-- intro \u2013 1. Gi\u1EDBi thi\u1EC7u (m\u1EE5c \u0111\xEDch, ph\u1EA1m vi, thu\u1EADt ng\u1EEF, t\xE0i li\u1EC7u tham chi\u1EBFu)
-- overview \u2013 2. M\xF4 t\u1EA3 t\u1ED5ng quan (b\u1ED1i c\u1EA3nh s\u1EA3n ph\u1EA9m, t\xE1c nh\xE2n, m\xE0n h\xECnh, \u0111i\u1EC1u h\u01B0\u1EDBng, r\xE0ng bu\u1ED9c chung)
-- functional \u2013 3. Y\xEAu c\u1EA7u ch\u1EE9c n\u0103ng (b\u1EA3ng markdown | M\xE3 | Y\xEAu c\u1EA7u | \u01AFu ti\xEAn | Use Case | d\xF9ng \u0111\xFAng c\xE1c FR \u0111\xE3 cho)
-- nonfunctional \u2013 4. Y\xEAu c\u1EA7u phi ch\u1EE9c n\u0103ng (d\xF9ng NFR \u0111\xE3 cho; \u0111\u01B0\u1EE3c b\u1ED5 sung nh\u01B0ng ph\u1EA3i ghi "(Gi\u1EA3 \u0111\u1ECBnh \u2013 c\u1EA7n x\xE1c nh\u1EADn)")
-- interfaces \u2013 5. Giao di\u1EC7n ng\u01B0\u1EDDi d\xF9ng (t\u1EEBng m\xE0n h\xECnh: m\u1EE5c \u0111\xEDch, tr\u01B0\u1EDDng, thao t\xE1c)
-- data \u2013 6. T\u1EEB \u0111i\u1EC3n d\u1EEF li\u1EC7u (b\u1EA3ng markdown: M\xE0n h\xECnh | Tr\u01B0\u1EDDng | Ki\u1EC3u | B\u1EAFt bu\u1ED9c | R\xE0ng bu\u1ED9c)
-- assumptions \u2013 7. Gi\u1EA3 \u0111\u1ECBnh v\xE0 v\u1EA5n \u0111\u1EC1 m\u1EDF
-N\u1ED9i dung m\u1ED7i m\u1EE5c l\xE0 markdown (### ti\xEAu \u0111\u1EC1 con, g\u1EA1ch \u0111\u1EA7u d\xF2ng, b\u1EA3ng).
+  const prompt = `Write an SRS following the ISO/IEC/IEEE 29148 structure for module "${args.moduleName}".
+Required sections (key \u2013 title):
+- intro \u2013 1. Introduction (purpose, scope, definitions, references)
+- overview \u2013 2. Overall Description (product perspective, actors, screens, navigation, general constraints)
+- functional \u2013 3. Functional Requirements (markdown table | ID | Requirement | Priority | Use Case | using exactly the given FRs)
+- nonfunctional \u2013 4. Non-functional Requirements (use the given NFRs; additions allowed but must be marked "(Assumption \u2013 to be confirmed)")
+- interfaces \u2013 5. User Interfaces (per screen: purpose, fields, actions)
+- data \u2013 6. Data Dictionary (markdown table: Screen | Field | Type | Required | Constraints)
+- assumptions \u2013 7. Assumptions and Open Issues
+Each section's content is markdown (### sub-headings, bullet lists, tables).
 
-## Y\xEAu c\u1EA7u nghi\u1EC7p v\u1EE5
-${args.requirementInput || "(kh\xF4ng c\xF3)"}
-## M\xF4 h\xECnh thi\u1EBFt k\u1EBF
+## Business requirements
+${args.requirementInput || "(none)"}
+## Design model
 ${modelForPrompt(args.model)}
-## Use Case
+## Use cases
 ${JSON.stringify(args.useCases.map((u) => ({ code: u.code, name: u.name, actors: u.actors, assumptions: u.assumptions })))}
-## Y\xEAu c\u1EA7u
+## Requirements
 ${JSON.stringify(args.requirements)}`;
   return runAI({
     type: "generate_srs",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nB\u1EA1n \u0111\xF3ng vai Senior Business Analyst vi\u1EBFt t\xE0i li\u1EC7u SRS.",
+    system: SYSTEM_BASE + "\nYou act as a Senior Business Analyst writing an SRS.",
     prompt,
     tool: {
       name: "submit_srs",
-      description: "Tr\u1EA3 v\u1EC1 c\xE1c m\u1EE5c c\u1EE7a SRS",
+      description: "Return the SRS sections",
       input_schema: {
         type: "object",
         properties: { sections: { type: "array", items: { type: "object", properties: { key: { type: "string" }, title: { type: "string" }, content: { type: "string" } }, required: ["key", "title", "content"] } } },
@@ -11508,10 +13129,10 @@ ${JSON.stringify(args.requirements)}`;
     },
     maxTokens: 16e3,
     parse: (raw) => {
-      const sections = Array.isArray(raw?.sections) ? raw.sections.map((s) => ({ key: String(s.key), title: String(s.title), content: String(s.content) })) : [];
+      const sections = Array.isArray(raw?.sections) ? raw.sections.map((s2) => ({ key: String(s2.key), title: String(s2.title), content: String(s2.content) })) : [];
       const need = ["intro", "overview", "functional", "nonfunctional", "interfaces", "data", "assumptions"];
-      const missing = need.filter((k) => !sections.some((s) => s.key === k));
-      return missing.length ? { errors: [`Thi\u1EBFu m\u1EE5c: ${missing.join(", ")}`] } : { value: { sections } };
+      const missing = need.filter((k) => !sections.some((s2) => s2.key === k));
+      return missing.length ? { errors: [`Missing sections: ${missing.join(", ")}`] } : { value: { sections } };
     },
     mock: () => mockSrs(args.moduleName, args.requirementInput, args.model, args.useCases, args.requirements)
   });
@@ -11519,36 +13140,36 @@ ${JSON.stringify(args.requirements)}`;
 function validateMermaid(src) {
   const errs = [];
   const lines = src.split("\n").map((l) => l.trim()).filter(Boolean);
-  if (lines[0] !== "sequenceDiagram") errs.push('D\xF2ng \u0111\u1EA7u ph\u1EA3i l\xE0 "sequenceDiagram"');
-  let depth = 0;
+  if (lines[0] !== "sequenceDiagram") errs.push('The first line must be "sequenceDiagram"');
+  let depth2 = 0;
   for (const l of lines.slice(1)) {
-    if (/^(alt|opt|loop|par|critical|rect)\b/.test(l)) depth++;
-    if (l === "end") depth--;
-    if (depth < 0) errs.push('Th\u1EEBa "end"');
-    if (/^[^%].*->>?/.test(l) && !/^\s*[\wÀ-ỹ]+\s*-?-[>x)]{1,2}\+?-?\s*[\wÀ-ỹ]+\s*:/u.test(l)) errs.push(`M\u0169i t\xEAn sai c\xFA ph\xE1p: ${l}`);
+    if (/^(alt|opt|loop|par|critical|rect)\b/.test(l)) depth2++;
+    if (l === "end") depth2--;
+    if (depth2 < 0) errs.push('Extra "end"');
+    if (/^[^%].*->>?/.test(l) && !/^\s*[\wÀ-ỹ]+\s*-?-[>x)]{1,2}\+?-?\s*[\wÀ-ỹ]+\s*:/u.test(l)) errs.push(`Invalid arrow syntax: ${l}`);
   }
-  if (depth > 0) errs.push('Thi\u1EBFu "end" cho kh\u1ED1i alt/opt/loop');
+  if (depth2 > 0) errs.push('Missing "end" for alt/opt/loop block');
   return errs;
 }
 async function generateSequences(args) {
-  const titleOf = (id) => args.model.screens.find((s) => s.screenId === id)?.title ?? "Giao di\u1EC7n";
-  const prompt = `V\u1EBD sequence diagram (c\xFA ph\xE1p Mermaid) cho T\u1EEANG Use Case d\u01B0\u1EDBi \u0111\xE2y.
-Th\xE0nh ph\u1EA7n: actor (t\xE1c nh\xE2n) \u2192 UI (t\xEAn m\xE0n h\xECnh) \u2192 API (M\xE1y ch\u1EE7 API) \u2192 DB (C\u01A1 s\u1EDF d\u1EEF li\u1EC7u).
-- D\xF2ng \u0111\u1EA7u: sequenceDiagram; d\xF9ng "autonumber".
-- Khai b\xE1o: actor A as <t\xEAn>, participant UI as <t\xEAn m\xE0n h\xECnh>, participant API as M\xE1y ch\u1EE7 API, participant DB as C\u01A1 s\u1EDF d\u1EEF li\u1EC7u.
-- D\xF9ng alias A/UI/API/DB trong c\xE1c m\u0169i t\xEAn (->> g\u1ECDi, -->> ph\u1EA3n h\u1ED3i). Th\u1EC3 hi\u1EC7n lu\u1ED3ng ch\xEDnh, v\xE0 \xEDt nh\u1EA5t 1 kh\u1ED1i alt cho ngo\u1EA1i l\u1EC7 quan tr\u1ECDng.
-- Nh\xE3n kh\xF4ng ch\u1EE9a k\xFD t\u1EF1 ; # : ho\u1EB7c d\u1EA5u ngo\u1EB7c k\xE9p.
+  const titleOf = (id) => args.model.screens.find((s2) => s2.screenId === id)?.title ?? "User interface";
+  const prompt = `Draw a sequence diagram (Mermaid syntax) for EACH use case below.
+Participants: actor \u2192 UI (screen name) \u2192 API (API server) \u2192 DB (Database).
+- First line: sequenceDiagram; use "autonumber".
+- Declarations: actor A as <name>, participant UI as <screen name>, participant API as API Server, participant DB as Database.
+- Use the aliases A/UI/API/DB in the arrows (->> request, -->> response). Show the main flow and at least 1 alt block for an important exception.
+- Labels must not contain ; # : or double quotes.
 
-## Use Case
+## Use cases
 ${JSON.stringify(args.useCases.map((u) => ({ ...u, screens: u.screenIds.map(titleOf) })))}`;
   return runAI({
     type: "generate_sequences",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nB\u1EA1n \u0111\xF3ng vai Solution Architect.",
+    system: SYSTEM_BASE + "\nYou act as a Solution Architect.",
     prompt,
     tool: {
       name: "submit_sequences",
-      description: "Tr\u1EA3 v\u1EC1 sequence diagram cho t\u1EEBng UC",
+      description: "Return a sequence diagram for each use case",
       input_schema: {
         type: "object",
         properties: { sequences: { type: "array", items: { type: "object", properties: { useCaseCode: { type: "string" }, title: { type: "string" }, mermaid: { type: "string" } }, required: ["useCaseCode", "title", "mermaid"] } } },
@@ -11557,40 +13178,41 @@ ${JSON.stringify(args.useCases.map((u) => ({ ...u, screens: u.screenIds.map(titl
     },
     maxTokens: 16e3,
     parse: (raw) => {
-      const seqs = Array.isArray(raw?.sequences) ? raw.sequences.map((s) => ({ useCaseCode: String(s.useCaseCode), title: String(s.title), mermaid: String(s.mermaid).trim() })) : [];
-      const errors = seqs.flatMap((s) => validateMermaid(s.mermaid).map((e) => `${s.useCaseCode}: ${e}`));
-      const missing = args.useCases.filter((u) => !seqs.some((s) => s.useCaseCode === u.code)).map((u) => u.code);
-      if (missing.length) errors.push(`Thi\u1EBFu s\u01A1 \u0111\u1ED3 cho: ${missing.join(", ")}`);
+      const seqs = Array.isArray(raw?.sequences) ? raw.sequences.map((s2) => ({ useCaseCode: String(s2.useCaseCode), title: String(s2.title), mermaid: String(s2.mermaid).trim() })) : [];
+      const errors = seqs.flatMap((s2) => validateMermaid(s2.mermaid).map((e) => `${s2.useCaseCode}: ${e}`));
+      const missing = args.useCases.filter((u) => !seqs.some((s2) => s2.useCaseCode === u.code)).map((u) => u.code);
+      if (missing.length) errors.push(`Missing diagrams for: ${missing.join(", ")}`);
       return errors.length ? { errors } : { value: seqs };
     },
     mock: () => args.useCases.map((u) => mockSequence(u, titleOf))
   });
 }
 async function generateTests(args) {
-  const prompt = `Sinh b\u1ED9 test case th\u1EE7 c\xF4ng (manual) cho module d\u1EF1a tr\xEAn t\xE0i li\u1EC7u \u0111\xE3 duy\u1EC7t.
-K\u1EF9 thu\u1EADt b\u1EAFt bu\u1ED9c:
-- K\u1ECBch b\u1EA3n: m\u1ED7i lu\u1ED3ng (main, t\u1EEBng A*, t\u1EEBng E*) c\u1EE7a m\u1ED7i UC c\xF3 \xEDt nh\u1EA5t 1 test; flowRef = "main" ho\u1EB7c m\xE3 lu\u1ED3ng.
-- Ph\xE2n v\xF9ng t\u01B0\u01A1ng \u0111\u01B0\u01A1ng & gi\xE1 tr\u1ECB bi\xEAn: m\u1ED7i tr\u01B0\u1EDDng c\xF3 minLength/maxLength/min/max \u2192 test Boundary (d\u01B0\u1EDBi bi\xEAn, \u0111\xFAng bi\xEAn, v\u01B0\u1EE3t bi\xEAn).
-- M\u1ED7i test tham chi\u1EBFu \xEDt nh\u1EA5t 1 m\xE3 y\xEAu c\u1EA7u (requirementCodes) c\xF3 trong danh s\xE1ch.
-- M\xE3 test: TC-001, TC-002...; type: Positive | Negative | Boundary; priority: High | Medium | Low.
-- steps l\xE0 c\xE1c b\u01B0\u1EDBc thao t\xE1c c\u1EE5 th\u1EC3; testData l\xE0 d\u1EEF li\u1EC7u c\u1EE5 th\u1EC3; expected l\xE0 k\u1EBFt qu\u1EA3 ki\u1EC3m ch\u1EE9ng \u0111\u01B0\u1EE3c.
+  const prompt = `Generate a manual test suite for the module based on the UC Specification and the FRD-NFR (both Done).
+Required techniques:
+- Scenario testing: every flow (main, each A*, each E*) of every use case has at least 1 test; flowRef = "main" or the flow ID.
+- Equivalence partitioning & boundary value analysis: every field with minLength/maxLength/min/max \u2192 Boundary tests (below, at and above the boundary).
+- Every test references at least 1 requirement ID (requirementCodes) from the list.
+- Every functional requirement (FR) has at least 1 test. If there are no use cases, leave useCaseCode empty ("").
+- Test IDs: TC-001, TC-002...; type: Positive | Negative | Boundary; priority: High | Medium | Low.
+- steps are concrete test steps; testData is concrete test data; expected is a verifiable expected result.
 
-## Use Case
+## Use cases
 ${JSON.stringify(args.useCases)}
-## Y\xEAu c\u1EA7u
+## Requirements
 ${JSON.stringify(args.requirements)}
-## Tr\u01B0\u1EDDng d\u1EEF li\u1EC7u v\xE0 r\xE0ng bu\u1ED9c
-${JSON.stringify(args.model.screens.map((s) => ({ screen: s.title, fields: s.fields })))}`;
+## Data fields and constraints
+${JSON.stringify(args.model.screens.map((s2) => ({ screen: s2.title, fields: s2.fields })))}`;
   const reqCodes = new Set(args.requirements.map((r) => r.code));
   const ucCodes = new Set(args.useCases.map((u) => u.code));
   return runAI({
     type: "generate_tests",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nB\u1EA1n \u0111\xF3ng vai Senior QA Engineer.",
+    system: SYSTEM_BASE + "\nYou act as a Senior QA Engineer.",
     prompt,
     tool: {
       name: "submit_test_cases",
-      description: "Tr\u1EA3 v\u1EC1 danh s\xE1ch test case",
+      description: "Return the list of test cases",
       input_schema: {
         type: "object",
         properties: {
@@ -11634,10 +13256,10 @@ ${JSON.stringify(args.model.screens.map((s) => ({ screen: s.title, fields: s.fie
         expected: String(t.expected ?? "")
       })) : [];
       const errors = [];
-      if (!tcs.length) errors.push("Kh\xF4ng c\xF3 test case");
+      if (!tcs.length) errors.push("No test cases");
       for (const t of tcs) {
-        if (!ucCodes.has(t.useCaseCode)) errors.push(`${t.code}: useCaseCode kh\xF4ng t\u1ED3n t\u1EA1i (${t.useCaseCode})`);
-        if (!t.requirementCodes.length) errors.push(`${t.code}: thi\u1EBFu requirementCodes h\u1EE3p l\u1EC7 (BR-04)`);
+        if (ucCodes.size ? !ucCodes.has(t.useCaseCode) : t.useCaseCode !== "") errors.push(`${t.code}: useCaseCode does not exist (${t.useCaseCode})`);
+        if (!t.requirementCodes.length) errors.push(`${t.code}: missing valid requirementCodes (BR-04)`);
       }
       return errors.length ? { errors } : { value: tcs };
     },
@@ -11645,71 +13267,112 @@ ${JSON.stringify(args.model.screens.map((s) => ({ screen: s.title, fields: s.fie
   });
 }
 async function refineUseCase(args) {
-  const screenIds = new Set(args.model.screens.map((s) => s.screenId));
+  const screenIds = new Set(args.model.screens.map((s2) => s2.screenId));
   return runAI({
     type: "refine_use_case",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nB\u1EA1n \u0111\xF3ng vai Senior Business Analyst.",
-    prompt: `Ch\u1EC9nh s\u1EEDa \u0111\u1EB7c t\u1EA3 Use Case theo y\xEAu c\u1EA7u c\u1EE7a BA. Gi\u1EEF nguy\xEAn m\xE3 UC v\xE0 nh\u1EEFng ph\u1EA7n kh\xF4ng li\xEAn quan.
+    system: SYSTEM_BASE + "\nYou act as a Senior Business Analyst.",
+    prompt: `Revise the use case specification according to the BA's request. Keep the use case ID and all unrelated parts unchanged.
 
-## Y\xEAu c\u1EA7u ch\u1EC9nh
+## Revision request
 ${args.instruction}
 
-## Use Case hi\u1EC7n t\u1EA1i
+## Current use case
 ${JSON.stringify(args.uc)}
 
-## M\xF4 h\xECnh thi\u1EBFt k\u1EBF
+## Design model
 ${modelForPrompt(args.model)}`,
-    tool: { name: "submit_use_case", description: "Tr\u1EA3 v\u1EC1 Use Case \u0111\xE3 ch\u1EC9nh", input_schema: UC_SCHEMA },
+    tool: { name: "submit_use_case", description: "Return the revised use case", input_schema: UC_SCHEMA },
     parse: (raw) => ({ value: { ...coerceUseCase(raw, screenIds), code: args.uc.code } }),
-    mock: () => ({ ...args.uc, assumptions: [...args.uc.assumptions, `BA y\xEAu c\u1EA7u: ${args.instruction} (ch\u1EBF \u0111\u1ED9 rule-based ch\u01B0a t\u1EF1 \xE1p d\u1EE5ng \u2013 c\u1EA7n ch\u1EC9nh tay)`] })
+    mock: () => ({ ...args.uc, assumptions: [...args.uc.assumptions, `BA request: ${args.instruction} (rule-based mode cannot apply this automatically \u2013 edit manually)`] })
   });
 }
 async function refineSequence(args) {
   return runAI({
     type: "refine_sequence",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nB\u1EA1n \u0111\xF3ng vai Solution Architect.",
-    prompt: `Ch\u1EC9nh sequence diagram Mermaid theo y\xEAu c\u1EA7u. Gi\u1EEF c\xFA ph\xE1p h\u1EE3p l\u1EC7 (d\xF2ng \u0111\u1EA7u sequenceDiagram, alias A/UI/API/DB).
+    system: SYSTEM_BASE + "\nYou act as a Solution Architect.",
+    prompt: `Revise the Mermaid sequence diagram as requested. Keep the syntax valid (first line sequenceDiagram, aliases A/UI/API/DB).
 
-## Y\xEAu c\u1EA7u
+## Request
 ${args.instruction}
 
-## S\u01A1 \u0111\u1ED3 hi\u1EC7n t\u1EA1i
+## Current diagram
 ${args.seq.mermaid}
 
-## Use Case
+## Use case
 ${JSON.stringify(args.uc ?? {})}`,
-    tool: { name: "submit_sequence", description: "Tr\u1EA3 v\u1EC1 s\u01A1 \u0111\u1ED3 \u0111\xE3 ch\u1EC9nh", input_schema: { type: "object", properties: { mermaid: { type: "string" } }, required: ["mermaid"] } },
+    tool: { name: "submit_sequence", description: "Return the revised diagram", input_schema: { type: "object", properties: { mermaid: { type: "string" } }, required: ["mermaid"] } },
     parse: (raw) => {
       const m = String(raw?.mermaid ?? "").trim();
       const errors = validateMermaid(m);
       return errors.length ? { errors } : { value: { ...args.seq, mermaid: m } };
     },
     mock: () => ({ ...args.seq, mermaid: `${args.seq.mermaid}
-  Note over A,UI: BA y\xEAu c\u1EA7u \u2013 ${args.instruction.replace(/[;#:"]/g, " ").slice(0, 80)}` })
+  Note over A,UI: BA request \u2013 ${args.instruction.replace(/[;#:"]/g, " ").slice(0, 80)}` })
   });
 }
 async function refineSrsSection(args) {
   return runAI({
     type: "refine_srs",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nB\u1EA1n \u0111\xF3ng vai Senior Business Analyst vi\u1EBFt SRS.",
-    prompt: `Ch\u1EC9nh m\u1EE5c SRS "${args.section.title}" theo y\xEAu c\u1EA7u. Tr\u1EA3 l\u1EA1i to\xE0n b\u1ED9 n\u1ED9i dung markdown c\u1EE7a m\u1EE5c.
+    system: SYSTEM_BASE + "\nYou act as a Senior Business Analyst writing an SRS.",
+    prompt: `Revise the SRS section "${args.section.title}" as requested. Return the full markdown content of the section.
 
-## Y\xEAu c\u1EA7u
+## Request
 ${args.instruction}
 
-## N\u1ED9i dung hi\u1EC7n t\u1EA1i
+## Current content
 ${args.section.content}
 
-## B\u1ED1i c\u1EA3nh
+## Context
 ${args.context}`,
-    tool: { name: "submit_section", description: "Tr\u1EA3 v\u1EC1 n\u1ED9i dung m\u1EE5c \u0111\xE3 ch\u1EC9nh", input_schema: { type: "object", properties: { content: { type: "string" } }, required: ["content"] } },
-    parse: (raw) => raw?.content ? { value: { ...args.section, content: String(raw.content) } } : { errors: ["Thi\u1EBFu content"] },
+    tool: { name: "submit_section", description: "Return the revised section content", input_schema: { type: "object", properties: { content: { type: "string" } }, required: ["content"] } },
+    parse: (raw) => raw?.content ? { value: { ...args.section, content: String(raw.content) } } : { errors: ["Missing content"] },
     mock: () => ({ ...args.section, content: `${args.section.content}
 
-> **Ghi ch\xFA BA:** ${args.instruction}` })
+> **BA note:** ${args.instruction}` })
+  });
+}
+async function generateUcDiagram(args) {
+  const ucCodes = new Set(args.useCases.map((u) => u.code));
+  const prompt = `Build the use case diagram for module "${args.moduleName}" from the use cases below.
+- actors: actors outside the system (do not list "System").
+- relations: relationships between use cases, using only use case IDs from the list.
+  - type "include": from is the base use case, to is the use case always invoked in the base use case's main flow.
+  - type "extend": from is the extending use case (only happens under specific conditions), to is the base use case.
+- Do not invent relationships. If no relationship is clear, return an empty relations list.
+
+## Use cases
+${JSON.stringify(args.useCases.map((u) => ({ code: u.code, name: u.name, actors: u.actors, mainFlow: u.mainFlow.map((s2) => `${s2.actor}: ${s2.text}`), altFlows: u.altFlows.map((f) => f.name), exceptions: u.exceptions.map((f) => f.name) })))}`;
+  return runAI({
+    type: "generate_uc_diagram",
+    moduleId: args.moduleId,
+    system: SYSTEM_BASE + "\nYou act as a Senior Business Analyst drawing a UML use case diagram.",
+    prompt,
+    tool: {
+      name: "submit_uc_diagram",
+      description: "Return the actors and include/extend relationships of the use case diagram",
+      input_schema: {
+        type: "object",
+        properties: {
+          actors: { type: "array", items: { type: "string" } },
+          relations: {
+            type: "array",
+            items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, type: { type: "string", enum: ["include", "extend"] } }, required: ["from", "to", "type"] }
+          }
+        },
+        required: ["actors", "relations"]
+      }
+    },
+    parse: (raw) => {
+      const relations = Array.isArray(raw?.relations) ? raw.relations.map((r) => ({ from: String(r.from ?? ""), to: String(r.to ?? ""), type: r.type === "extend" ? "extend" : "include" })) : [];
+      const errors = relations.filter((r) => !ucCodes.has(r.from) || !ucCodes.has(r.to)).map((r) => `Relationship references a use case that does not exist: ${r.from} \u2192 ${r.to}`);
+      if (errors.length) return { errors };
+      const actors = Array.isArray(raw?.actors) ? raw.actors.map(String) : [];
+      return { value: { code: buildUcMermaid(args.useCases, actors, relations) } };
+    },
+    mock: () => mockUcDiagram(args.useCases)
   });
 }
 
@@ -11724,11 +13387,11 @@ function checkScope(tree, op, selectedIds) {
     case "update":
     case "replace":
     case "remove":
-      return allowed.has(op.id) ? null : `Node ${op.id} n\u1EB1m ngo\xE0i v\xF9ng khoanh`;
+      return allowed.has(op.id) ? null : `Node ${op.id} is outside the selected region`;
     case "insert":
-      return allowed.has(op.parentId) || parentsOfSelected.has(op.parentId) ? null : `Kh\xF4ng \u0111\u01B0\u1EE3c ch\xE8n v\xE0o ${op.parentId} (ngo\xE0i v\xF9ng khoanh)`;
+      return allowed.has(op.parentId) || parentsOfSelected.has(op.parentId) ? null : `Cannot insert into ${op.parentId} (outside the selected region)`;
     default:
-      return "Thao t\xE1c kh\xF4ng h\u1EE3p l\u1EC7";
+      return "Invalid operation";
   }
 }
 function applyPatch(tree, ops, opts = {}) {
@@ -11739,7 +13402,7 @@ function applyPatch(tree, ops, opts = {}) {
   const touched = /* @__PURE__ */ new Set();
   for (const op of ops) {
     if (!op || typeof op !== "object" || !("op" in op)) {
-      rejected.push({ op, reason: "Thao t\xE1c kh\xF4ng \u0111\xFAng \u0111\u1ECBnh d\u1EA1ng" });
+      rejected.push({ op, reason: "Malformed operation" });
       continue;
     }
     const scopeErr = checkScope(tree, op, selected);
@@ -11758,7 +13421,7 @@ function applyPatch(tree, ops, opts = {}) {
     switch (op.op) {
       case "update": {
         const n = findNode(root3, op.id);
-        if (!n) return `Kh\xF4ng t\xECm th\u1EA5y node ${op.id}`;
+        if (!n) return `Node ${op.id} not found`;
         const next = { ...n.props };
         for (const [k, v] of Object.entries(op.props ?? {})) {
           if (v === null) delete next[k];
@@ -11770,10 +13433,10 @@ function applyPatch(tree, ops, opts = {}) {
       }
       case "replace": {
         const n = findNode(root3, op.id);
-        if (!n) return `Kh\xF4ng t\xECm th\u1EA5y node ${op.id}`;
+        if (!n) return `Node ${op.id} not found`;
         if (n === root3) {
           const fresh2 = normalizeTree(op.node, /* @__PURE__ */ new Set());
-          if (fresh2.type !== "Page") return "Node g\u1ED1c ph\u1EA3i l\xE0 Page";
+          if (fresh2.type !== "Page") return "The root node must be a Page";
           working = fresh2;
           touchedSet.add(fresh2.id);
           return null;
@@ -11789,8 +13452,8 @@ function applyPatch(tree, ops, opts = {}) {
       }
       case "insert": {
         const parent = findNode(root3, op.parentId);
-        if (!parent) return `Kh\xF4ng t\xECm th\u1EA5y node cha ${op.parentId}`;
-        if (!isContainer(parent.type)) return `${parent.type} kh\xF4ng ch\u1EE9a \u0111\u01B0\u1EE3c node con`;
+        if (!parent) return `Parent node ${op.parentId} not found`;
+        if (!isContainer(parent.type)) return `${parent.type} cannot contain child nodes`;
         const fresh = normalizeTree(op.node, existing);
         parent.children = parent.children ?? [];
         const idx = typeof op.index === "number" ? Math.max(0, Math.min(op.index, parent.children.length)) : parent.children.length;
@@ -11800,15 +13463,15 @@ function applyPatch(tree, ops, opts = {}) {
         return null;
       }
       case "remove": {
-        if (root3.id === op.id) return "Kh\xF4ng \u0111\u01B0\u1EE3c x\xF3a node g\u1ED1c";
+        if (root3.id === op.id) return "The root node cannot be deleted";
         const parent = findParent(root3, op.id);
-        if (!parent || !parent.children) return `Kh\xF4ng t\xECm th\u1EA5y node ${op.id}`;
+        if (!parent || !parent.children) return `Node ${op.id} not found`;
         parent.children = parent.children.filter((c) => c.id !== op.id);
         touchedSet.add(parent.id);
         return null;
       }
     }
-    return "Thao t\xE1c kh\xF4ng h\u1ED7 tr\u1EE3";
+    return "Unsupported operation";
   }
 }
 function subtreeExclusive(root3, subtreeId, existing) {
@@ -11820,14 +13483,14 @@ function subtreeExclusive(root3, subtreeId, existing) {
 
 // shared/extract.ts
 var FIELD_TYPES = ["Input", "Textarea", "Select", "Checkbox", "Radio", "DatePicker"];
-function slug(s) {
-  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+function slug(s2) {
+  return s2.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
 }
-function extractScreen(screenId, screenName, tree) {
+function extractScreen(screenId, screenName2, tree) {
   const m = {
     screenId,
-    screenName,
-    title: String(tree.props.title ?? screenName),
+    screenName: screenName2,
+    title: String(tree.props.title ?? screenName2),
     headings: [],
     fields: [],
     actions: [],
@@ -11848,8 +13511,8 @@ function extractScreen(screenId, screenName, tree) {
       const constraints = [];
       for (const k of ["minLength", "maxLength", "min", "max", "pattern"]) if (p2[k] !== void 0 && p2[k] !== "") constraints.push(`${k}=${p2[k]}`);
       const inputType = String(p2.inputType ?? (n.type === "DatePicker" ? "date" : n.type === "Input" ? "text" : n.type.toLowerCase()));
-      if (inputType === "email") constraints.push("\u0111\u1ECBnh d\u1EA1ng email");
-      if (inputType === "number") constraints.push("ch\u1EC9 nh\u1EADn s\u1ED1");
+      if (inputType === "email") constraints.push("email format");
+      if (inputType === "number") constraints.push("numbers only");
       m.fields.push({
         nodeId: n.id,
         label: String(p2.label ?? ""),
@@ -11896,12 +13559,12 @@ function extractScreen(screenId, screenName, tree) {
   return m;
 }
 function extractModel(screens) {
-  const models = screens.map((s) => extractScreen(s.id, s.name, s.tree));
+  const models = screens.map((s2) => extractScreen(s2.id, s2.name, s2.tree));
   const navigation = [];
   const byName = /* @__PURE__ */ new Map();
-  for (const s of screens) {
-    byName.set(slug(s.name), s.name);
-    byName.set(slug(String(s.tree.props.title ?? s.name)), s.name);
+  for (const s2 of screens) {
+    byName.set(slug(s2.name), s2.name);
+    byName.set(slug(String(s2.tree.props.title ?? s2.name)), s2.name);
   }
   for (const sm of models) {
     for (const a of sm.actions) if (a.navigateTo) navigation.push({ from: sm.screenName, to: byName.get(slug(a.navigateTo)) ?? a.navigateTo, via: a.label });
@@ -11922,15 +13585,15 @@ function buildTrace(useCases, requirements, tests) {
   const frs = requirements.filter((r) => r.type === "FR");
   const frWithTests = frs.filter((r) => tests.some((t) => t.requirementCodes.includes(r.code)));
   const ucWithScreens = useCases.filter((u) => u.screenIds.length > 0);
-  const flows = [];
+  const flows2 = [];
   for (const u of useCases) {
-    flows.push(`${u.code}/main`);
-    for (const a of u.altFlows) flows.push(`${u.code}/${a.code}`);
-    for (const e of u.exceptions) flows.push(`${u.code}/${e.code}`);
+    flows2.push(`${u.code}/main`);
+    for (const a of u.altFlows) flows2.push(`${u.code}/${a.code}`);
+    for (const e of u.exceptions) flows2.push(`${u.code}/${e.code}`);
   }
   const testedFlows = new Set(tests.map((t) => `${t.useCaseCode}/${t.flowRef}`));
   const reqCodes = new Set(requirements.map((r) => r.code));
-  const flowSet = new Set(flows);
+  const flowSet = new Set(flows2);
   return {
     rows,
     coverage: {
@@ -11938,592 +13601,408 @@ function buildTrace(useCases, requirements, tests) {
       frWithTests: frWithTests.length,
       ucTotal: useCases.length,
       ucWithScreens: ucWithScreens.length,
-      flowsTotal: flows.length,
-      flowsWithTests: flows.filter((f) => testedFlows.has(f)).length,
+      flowsTotal: flows2.length,
+      flowsWithTests: flows2.filter((f) => testedFlows.has(f)).length,
       untestedRequirements: frs.filter((r) => !frWithTests.includes(r)).map((r) => r.code),
       useCasesWithoutScreens: useCases.filter((u) => !u.screenIds.length).map((u) => u.code),
-      untestedFlows: flows.filter((f) => !testedFlows.has(f)),
+      untestedFlows: flows2.filter((f) => !testedFlows.has(f)),
       testsWithoutReference: tests.filter((t) => !t.requirementCodes.some((c) => reqCodes.has(c)) && !flowSet.has(`${t.useCaseCode}/${t.flowRef}`)).map((t) => t.code)
     }
   };
 }
-
-// shared/transformer.ts
-var CLOSE = "</>";
-var TOKEN_TYPES = [...ALL_TYPES, CLOSE];
-var SUBTYPES = ["-", "email", "password", "search", "phone", "number", "name", "text", "submit", "cancel", "create", "delete", "icon", "other", "auth", "remember", "agree"];
-var TYPE_IDX = new Map(TOKEN_TYPES.map((t, i) => [t, i]));
-var SUB_IDX = new Map(SUBTYPES.map((s, i) => [s, i]));
-function subtypeOf(n) {
-  const p2 = n.props ?? {};
-  const txt = `${p2.label ?? ""} ${p2.text ?? ""} ${p2.name ?? ""} ${p2.placeholder ?? ""}`.toLowerCase();
-  switch (n.type) {
-    case "Input": {
-      const it = String(p2.inputType ?? "");
-      if (it === "password" || /mật khẩu|password|passwd|pwd/.test(txt)) return "password";
-      if (it === "email" || /e-?mail/.test(txt)) return "email";
-      if (/tìm kiếm|tra cứu|từ khóa|search|keyword/.test(txt)) return "search";
-      if (it === "tel" || /điện thoại|sđt|phone|mobile/.test(txt)) return "phone";
-      if (it === "number" || /giá|số lượng|tồn kho|amount|price|qty|quantity/.test(txt)) return "number";
-      if (/tên|name|user/.test(txt)) return "name";
-      return "text";
-    }
-    case "Button": {
-      const s = `${txt} ${p2.action ?? ""}`;
-      if (p2.icon) return "icon";
-      if (/hủy|huỷ|quay lại|đóng|bỏ qua|từ chối|cancel|back|close|dismiss|skip|not now|reject/.test(s)) return "cancel";
-      if (/xóa|xoá|delete|remove/.test(s)) return "delete";
-      if (/thêm|tạo mới|^\s*\+|\badd\b|\bnew\b|\bcreate\b/.test(s) && !/account|tài khoản/.test(s)) return "create";
-      if (/tìm kiếm|tra cứu|search/.test(s)) return "search";
-      if (/lưu|gửi|xác nhận|cập nhật|đăng nhập|đăng ký|tiếp tục|hoàn tất|đặt hàng|thanh toán|đổi mật khẩu|duyệt|save|submit|send|log ?in|sign ?(in|up)|register|confirm|continue|next|done|\bok\b|apply|update|login|checkout/.test(s)) return "submit";
-      return "other";
-    }
-    case "Link":
-      return /quên|đăng ký|đăng nhập|forgot|sign ?up|register|log ?in|account/.test(txt) ? "auth" : "other";
-    case "Checkbox":
-      return /ghi nhớ|remember|keep me/.test(txt) ? "remember" : /đồng ý|điều khoản|agree|terms|accept/.test(txt) ? "agree" : "other";
-    default:
-      return "-";
-  }
+var STOP = new Set(
+  "toi muon de co the duoc cac va cua cho nguoi dung he thong mot nhung khi neu thi la voi tren trong ra vao khong da se dang bang tu theo nay do nhu hay hoac moi tat ca thong tin chuc nang man hinh cho phep quan ly user i want so that as a an the to of and or be can with my in on for".split(
+    " "
+  )
+);
+function words(text2) {
+  return text2.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d").toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 2 && !STOP.has(w));
 }
-function linearize(tree, maxDepth) {
-  const out = [];
-  const rec = (n, depth, slot) => {
-    const d = Math.min(depth, maxDepth - 1);
-    out.push({ type: TYPE_IDX.get(n.type), sub: SUB_IDX.get(subtypeOf(n)), depth: d, slot, nodeId: n.id, close: false });
-    if (!isContainer(n.type)) return;
-    const kids = n.children ?? [];
-    kids.forEach((c, i) => rec(c, depth + 1, { parentId: n.id, index: i }));
-    out.push({ type: TYPE_IDX.get(CLOSE), sub: 0, depth: d, slot: { parentId: n.id, index: kids.length }, nodeId: n.id, close: true });
+var wordSet = (text2) => new Set(words(text2));
+var normName = (x) => words(x).join(" ");
+function storyMatchesUc(story, uc) {
+  const ucText = [uc.name, uc.description, uc.trigger, ...uc.preconditions, ...uc.businessRules, ...uc.assumptions].join(" ");
+  const codes = uc.storyCodes;
+  if (Array.isArray(codes)) return codes.map(String).includes(story.code) ? { code: uc.code, inferred: false } : null;
+  const codeRe = new RegExp(`\b${story.code.replace(/[-]/g, "-")}\b`, "i");
+  if (story.code && codeRe.test(ucText)) return { code: uc.code, inferred: false };
+  const sw = [...wordSet(story.iWant)];
+  if (!sw.length) return null;
+  const uw = wordSet(`${uc.name} ${uc.description}`);
+  const hit = sw.filter((w) => uw.has(w)).length;
+  return hit >= Math.min(2, sw.length) && hit / sw.length >= 0.5 ? { code: uc.code, inferred: true } : null;
+}
+function screensOfRequirement(req, ucs, screens) {
+  const out = /* @__PURE__ */ new Map();
+  const ids = new Set(screens.map((s2) => s2.id));
+  for (const u of ucs) if (req.useCaseCodes.includes(u.code)) {
+    for (const id of u.screenIds) if (ids.has(id)) out.set(id, false);
+  }
+  const src = normName(req.source);
+  for (const s2 of screens) {
+    if (out.has(s2.id)) continue;
+    if (req.source.includes(s2.id) || normName(s2.name) && ` ${src} `.includes(` ${normName(s2.name)} `)) {
+      out.set(s2.id, false);
+      continue;
+    }
+    const fw = wordSet(`${req.statement} ${req.source}`);
+    for (const nm of [s2.name, s2.title ?? ""]) {
+      const nw = [...wordSet(nm)];
+      if (!nw.length) continue;
+      const hit = nw.filter((w) => fw.has(w)).length;
+      if (hit >= Math.max(1, Math.ceil(nw.length * 0.6))) {
+        out.set(s2.id, true);
+        break;
+      }
+    }
+  }
+  return [...out].map(([id, inferred]) => ({ id, inferred }));
+}
+function buildTraceMatrix(input) {
+  const { stories, useCases, requirements, screens, tests } = input;
+  const ucCodes = new Set(useCases.map((u) => u.code));
+  const reqCodes = new Set(requirements.map((r) => r.code));
+  const storyLinks = {};
+  for (const st of stories) storyLinks[st.code] = useCases.map((u) => storyMatchesUc(st, u)).filter((x) => !!x);
+  const reqScreens = new Map(requirements.map((r) => [r.code, screensOfRequirement(r, useCases, screens)]));
+  const reqTests = new Map(requirements.map((r) => [r.code, tests.filter((t) => t.requirementCodes.includes(r.code)).map((t) => t.code)]));
+  const reqsOfUc = (uc) => requirements.filter((r) => r.useCaseCodes.includes(uc));
+  const rowsOfUc = (story, uc) => {
+    const reqs = uc ? reqsOfUc(uc) : [];
+    if (!reqs.length) return [{ story, useCase: uc, requirement: null, screens: [], tests: uc ? tests.filter((t) => t.useCaseCode === uc).map((t) => t.code) : [] }];
+    return reqs.map((r) => ({ story, useCase: uc, requirement: r.code, screens: reqScreens.get(r.code) ?? [], tests: reqTests.get(r.code) ?? [] }));
   };
-  rec(tree, 0, null);
-  return out;
-}
-function loadTransformer(json) {
-  if (json.types.join() !== TOKEN_TYPES.join() || json.subtypes.join() !== SUBTYPES.join()) throw new Error("T\u1EEB v\u1EF1ng c\u1EE7a m\xF4 h\xECnh Transformer kh\xF4ng kh\u1EDBp v\u1EDBi m\xE3 ngu\u1ED3n \u2013 c\u1EA7n hu\u1EA5n luy\u1EC7n l\u1EA1i");
-  const t = {};
-  for (const [name, v] of Object.entries(json.tensors)) {
-    const bin = typeof Buffer !== "undefined" ? Buffer.from(v.b64, "base64") : Uint8Array.from(atob(v.b64), (c) => c.charCodeAt(0));
-    const data = new Float32Array(bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength));
-    t[name] = { shape: v.shape, data };
+  const rows = [];
+  const ucSeen = /* @__PURE__ */ new Set();
+  for (const st of stories) {
+    const links = storyLinks[st.code];
+    if (!links.length) rows.push({ story: st.code, useCase: null, requirement: null, screens: [], tests: [] });
+    for (const l of links) {
+      ucSeen.add(l.code);
+      rows.push(...rowsOfUc(st.code, l.code));
+    }
   }
-  return { config: json.config, meta: json.meta ?? {}, t };
+  for (const u of useCases) if (!ucSeen.has(u.code)) rows.push(...rowsOfUc(null, u.code));
+  const frLoose = requirements.filter((r) => !r.useCaseCodes.some((c) => ucCodes.has(c)));
+  for (const r of frLoose) rows.push({ story: null, useCase: null, requirement: r.code, screens: reqScreens.get(r.code) ?? [], tests: reqTests.get(r.code) ?? [] });
+  const frs = requirements.filter((r) => r.type === "FR");
+  const linkedScreens = new Set([...reqScreens.values()].flatMap((l) => l.map((x) => x.id)));
+  const flowSet = new Set(useCases.flatMap((u) => [`${u.code}/main`, ...u.altFlows.map((a) => `${u.code}/${a.code}`), ...u.exceptions.map((e) => `${u.code}/${e.code}`)]));
+  const gaps = {
+    storiesWithoutUc: stories.filter((s2) => !storyLinks[s2.code].length).map((s2) => s2.code),
+    useCasesWithoutFr: useCases.filter((u) => !reqsOfUc(u.code).length).map((u) => u.code),
+    frWithoutUc: frLoose.filter((r) => r.type === "FR").map((r) => r.code),
+    frWithoutScreen: frs.filter((r) => !(reqScreens.get(r.code) ?? []).length).map((r) => r.code),
+    frWithoutTest: frs.filter((r) => !(reqTests.get(r.code) ?? []).length).map((r) => r.code),
+    screensWithoutFr: screens.filter((s2) => !linkedScreens.has(s2.id)).map((s2) => s2.id),
+    testsWithoutReference: tests.filter((t) => !t.requirementCodes.some((c) => reqCodes.has(c)) && !flowSet.has(`${t.useCaseCode}/${t.flowRef}`)).map((t) => t.code)
+  };
+  return {
+    rows,
+    storyLinks,
+    gaps,
+    counts: {
+      stories: stories.length,
+      storiesWithUc: stories.length - gaps.storiesWithoutUc.length,
+      frTotal: frs.length,
+      frWithScreen: frs.length - gaps.frWithoutScreen.length,
+      frWithTest: frs.length - gaps.frWithoutTest.length,
+      useCases: useCases.length,
+      useCasesWithFr: useCases.length - gaps.useCasesWithoutFr.length
+    }
+  };
 }
-function linear(x, n, W, b) {
+
+// shared/recursive.ts
+var b64 = (s2) => {
+  const bin = typeof atob === "function" ? atob(s2) : Buffer.from(s2, "base64").toString("binary");
+  const u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return new Float32Array(u.buffer);
+};
+function loadRecursive(json) {
+  const w = {};
+  for (const [k, v] of Object.entries(json.tensors)) w[k] = { shape: v.shape, data: b64(v.b64) };
+  return { config: json.config, meta: json.meta ?? {}, w };
+}
+function linear(m, x, name2) {
+  const W = m.w[`${name2}.weight`], B = m.w[`${name2}.bias`];
   const [out, inn] = W.shape;
-  const y = new Float32Array(n * out);
-  const w = W.data;
-  for (let i = 0; i < n; i++) {
-    const xo = i * inn;
+  return x.map((r) => {
+    const y = new Float32Array(out);
     for (let o = 0; o < out; o++) {
-      let s = b.data[o];
-      const wo = o * inn;
-      for (let k = 0; k < inn; k++) s += x[xo + k] * w[wo + k];
-      y[i * out + o] = s;
+      let s2 = B ? B.data[o] : 0;
+      const off = o * inn;
+      for (let i = 0; i < inn; i++) s2 += W.data[off + i] * r[i];
+      y[o] = s2;
     }
-  }
-  return y;
+    return y;
+  });
 }
-function layerNorm(x, n, d, g, b) {
-  const y = new Float32Array(n * d);
-  for (let i = 0; i < n; i++) {
-    let mean = 0;
-    for (let k = 0; k < d; k++) mean += x[i * d + k];
-    mean /= d;
-    let v = 0;
-    for (let k = 0; k < d; k++) v += (x[i * d + k] - mean) ** 2;
-    const inv = 1 / Math.sqrt(v / d + 1e-5);
-    for (let k = 0; k < d; k++) y[i * d + k] = (x[i * d + k] - mean) * inv * g.data[k] + b.data[k];
-  }
-  return y;
+function layerNorm(m, x, name2) {
+  const g = m.w[`${name2}.weight`].data, b = m.w[`${name2}.bias`].data;
+  return x.map((r) => {
+    let mu = 0;
+    for (const v of r) mu += v;
+    mu /= r.length;
+    let va = 0;
+    for (const v of r) va += (v - mu) ** 2;
+    const inv = 1 / Math.sqrt(va / r.length + 1e-5);
+    return r.map((v, i) => (v - mu) * inv * g[i] + b[i]);
+  });
 }
-var GELU_C = Math.sqrt(2 / Math.PI);
-var gelu = (x) => 0.5 * x * (1 + Math.tanh(GELU_C * (x + 0.044715 * x * x * x)));
-function forward(m, toks) {
-  const { d, heads, layers } = m.config;
-  const n = toks.length;
-  const t = m.t;
-  let x = new Float32Array(n * d);
-  for (let i = 0; i < n; i++) {
-    const a = toks[i];
-    for (let k = 0; k < d; k++)
-      x[i * d + k] = t["emb_type.weight"].data[a.type * d + k] + t["emb_sub.weight"].data[a.sub * d + k] + t["emb_depth.weight"].data[a.depth * d + k] + t["emb_pos.weight"].data[i * d + k];
-  }
-  const hd = d / heads;
-  const scale = 1 / Math.sqrt(hd);
-  const att = new Float32Array(n);
-  for (let l = 0; l < layers; l++) {
-    const p2 = `layers.${l}.`;
-    const h2 = layerNorm(x, n, d, t[p2 + "ln1.weight"], t[p2 + "ln1.bias"]);
-    const qkv = linear(h2, n, t[p2 + "qkv.weight"], t[p2 + "qkv.bias"]);
-    const o = new Float32Array(n * d);
-    for (let hh = 0; hh < heads; hh++) {
-      const qo = hh * hd, ko = d + hh * hd, vo = 2 * d + hh * hd;
-      for (let i = 0; i < n; i++) {
-        let mx = -Infinity;
-        for (let j = 0; j < n; j++) {
-          let s = 0;
-          for (let k = 0; k < hd; k++) s += qkv[i * 3 * d + qo + k] * qkv[j * 3 * d + ko + k];
-          s *= scale;
-          att[j] = s;
-          if (s > mx) mx = s;
-        }
-        let sum2 = 0;
-        for (let j = 0; j < n; j++) sum2 += att[j] = Math.exp(att[j] - mx);
-        for (let k = 0; k < hd; k++) {
-          let s = 0;
-          for (let j = 0; j < n; j++) s += att[j] * qkv[j * 3 * d + vo + k];
-          o[i * d + qo + k] = s / sum2;
-        }
+function erf(x) {
+  const s2 = Math.sign(x), a = Math.abs(x), t = 1 / (1 + 0.3275911 * a);
+  const y = 1 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-a * a);
+  return s2 * y;
+}
+var gelu = (v) => 0.5 * v * (1 + erf(v / Math.SQRT2));
+function mha(m, name2, q, kv, causal) {
+  const { d, heads } = m.config;
+  const dh = d / heads;
+  const Wi = m.w[`${name2}.in_proj_weight`].data, Bi = m.w[`${name2}.in_proj_bias`].data;
+  const proj = (x, part) => x.map((r) => {
+    const y = new Float32Array(d);
+    for (let o = 0; o < d; o++) {
+      let s2 = Bi[part * d + o];
+      const off = (part * d + o) * d;
+      for (let i = 0; i < d; i++) s2 += Wi[off + i] * r[i];
+      y[o] = s2;
+    }
+    return y;
+  });
+  const Q = proj(q, 0), K = proj(kv, 1), V = proj(kv, 2);
+  const out = q.map(() => new Float32Array(d));
+  const scale = 1 / Math.sqrt(dh);
+  for (let h2 = 0; h2 < heads; h2++) {
+    const o0 = h2 * dh;
+    for (let i = 0; i < Q.length; i++) {
+      const lim = causal ? i + 1 : K.length;
+      const sc = new Float32Array(lim);
+      let mx = -Infinity;
+      for (let j = 0; j < lim; j++) {
+        let s2 = 0;
+        for (let t = 0; t < dh; t++) s2 += Q[i][o0 + t] * K[j][o0 + t];
+        sc[j] = s2 * scale;
+        if (sc[j] > mx) mx = sc[j];
+      }
+      let z = 0;
+      for (let j = 0; j < lim; j++) z += sc[j] = Math.exp(sc[j] - mx);
+      for (let j = 0; j < lim; j++) {
+        const a = sc[j] / z;
+        for (let t = 0; t < dh; t++) out[i][o0 + t] += a * V[j][o0 + t];
       }
     }
-    const proj = linear(o, n, t[p2 + "out.weight"], t[p2 + "out.bias"]);
-    for (let i = 0; i < n * d; i++) x[i] += proj[i];
-    const h22 = layerNorm(x, n, d, t[p2 + "ln2.weight"], t[p2 + "ln2.bias"]);
-    const f1 = linear(h22, n, t[p2 + "ff1.weight"], t[p2 + "ff1.bias"]);
-    for (let i = 0; i < f1.length; i++) f1[i] = gelu(f1[i]);
-    const f2 = linear(f1, n, t[p2 + "ff2.weight"], t[p2 + "ff2.bias"]);
-    for (let i = 0; i < n * d; i++) x[i] += f2[i];
   }
-  x = layerNorm(x, n, d, t["ln_f.weight"], t["ln_f.bias"]);
-  return { hidden: x, type: linear(x, n, t["head_type.weight"], t["head_type.bias"]) };
+  return linear(m, out, `${name2}.out_proj`);
 }
-function subLogits(m, h2, typeIdx) {
-  const d = m.config.d;
-  const cond = m.t["emb_cond.weight"].data;
-  const x = new Float32Array(d);
-  for (let k = 0; k < d; k++) x[k] = h2[k] + cond[typeIdx * d + k];
-  return linear(x, 1, m.t["head_sub.weight"], m.t["head_sub.bias"]);
-}
-function softmax(a, off, len) {
-  let mx = -Infinity;
-  for (let i = 0; i < len; i++) mx = Math.max(mx, a[off + i]);
-  const e = Array.from({ length: len }, (_, i) => Math.exp(a[off + i] - mx));
-  const s = e.reduce((x, y) => x + y, 0);
-  return e.map((v) => v / s);
-}
-function predictSlots(m, tree, topTypes = 3) {
-  const toks = linearize(tree, m.config.maxDepth);
-  const { maxLen: L, d } = m.config;
-  const nT = TOKEN_TYPES.length;
-  const typeLogits = new Float32Array(toks.length * nT);
-  const hidden = new Float32Array(toks.length * d);
-  const step = Math.max(1, Math.floor(L / 2));
-  for (let start = 0; ; start += step) {
-    const win = toks.slice(start, start + L);
-    const r = forward(m, win);
-    const from = start === 0 ? 0 : Math.floor(L / 4);
-    const last = start + L >= toks.length;
-    const to = last ? win.length : Math.floor(3 * L / 4);
-    for (let i = from; i < to; i++) {
-      typeLogits.set(r.type.subarray(i * nT, (i + 1) * nT), (start + i) * nT);
-      hidden.set(r.hidden.subarray(i * d, (i + 1) * d), (start + i) * d);
-    }
-    if (last) break;
-  }
-  const out = [];
-  toks.forEach((tk, i) => {
-    if (!tk.slot) return;
-    const pt = softmax(typeLogits, i * nT, nT);
-    const pMissing = 1 - pt[0];
-    const ranked = ALL_TYPES.map((type, j) => ({ type, j, p: pt[j + 1] / Math.max(pMissing, 1e-9) })).filter((x) => x.type !== "Page").sort((a, b) => b.p - a.p);
-    const h2 = hidden.subarray(i * d, (i + 1) * d);
-    const types = ranked.map((x, r) => {
-      if (r >= topTypes) return { type: x.type, p: x.p, sub: "-" };
-      const ps = subLogits(m, h2, x.j);
-      let best = 0;
-      for (let k = 1; k < ps.length; k++) if (ps[k] > ps[best]) best = k;
-      return { type: x.type, p: x.p, sub: SUBTYPES[best] };
-    });
-    out.push({ parentId: tk.slot.parentId, index: tk.slot.index, pMissing, types });
+var add = (a, b) => a.map((r, i) => r.map((v, j) => v + b[i][j]));
+function embed(m, toks) {
+  const { d } = m.config;
+  const q = d / 4;
+  const row = (name2, idx) => m.w[name2].data.subarray(idx * m.w[name2].shape[1], (idx + 1) * m.w[name2].shape[1]);
+  return toks.map(([c, t, x, y, x2, y2]) => {
+    const e = new Float32Array(d);
+    const parts = [row("emb.x.weight", x), row("emb.y.weight", y), row("emb.x2.weight", x2), row("emb.y2.weight", y2)];
+    parts.forEach((p2, k) => e.set(p2, k * q));
+    const ec = row("emb.c.weight", c), et = row("emb.t.weight", t);
+    for (let i = 0; i < d; i++) e[i] += ec[i] + et[i];
+    return e;
   });
+}
+function run(m, toks, mem) {
+  let x = embed(m, toks);
+  for (let l = 0; l < m.config.layers; l++) {
+    const p2 = `layers.${l}`;
+    x = add(x, mha(m, `${p2}.self_attn`, layerNorm(m, x, `${p2}.ln1`), layerNorm(m, x, `${p2}.ln1`), true));
+    x = add(x, mha(m, `${p2}.cross`, layerNorm(m, x, `${p2}.ln2`), mem, false));
+    const hh = layerNorm(m, x, `${p2}.ln3`);
+    const f1 = linear(m, hh, `${p2}.ff.0`).map((r) => r.map(gelu));
+    x = add(x, linear(m, f1, `${p2}.ff.2`));
+  }
+  const h2 = layerNorm(m, x, "ln");
+  const last = [h2[h2.length - 1]];
+  const heads = Object.fromEntries(["c", "t", "x", "y", "x2", "y2"].map((k) => [k, linear(m, last, `out.${k}`)[0]]));
+  return { h: h2, heads };
+}
+var argmax = (a) => a.reduce((bi, v, i, arr2) => v > arr2[bi] ? i : bi, 0);
+var softmax = (a) => {
+  const mx = Math.max(...a);
+  const e = a.map((v) => Math.exp(v - mx));
+  const z = e.reduce((s2, v) => s2 + v, 0);
+  return e.map((v) => v / z);
+};
+function toGrid(m, px, pageWidth) {
+  const { gx, gy, cellY } = m.config;
+  const qx = (v) => Math.max(0, Math.min(gx - 1, Math.floor(v / pageWidth * gx)));
+  const qy = (v) => Math.max(0, Math.min(gy - 1, Math.floor(v / cellY)));
+  return [qx(px.x), qy(px.y), qx(px.x2), qy(px.y2)];
+}
+function contextOf(m, tree, boxes, containerId) {
+  const { d, maxLen } = m.config;
+  const canvas = m.w["canvas"].data.subarray(0, d);
+  const path = [];
+  const find = (n) => {
+    path.push(n);
+    if (n.id === containerId) return true;
+    for (const c of n.children ?? []) if (find(c)) return true;
+    path.pop();
+    return false;
+  };
+  if (!find(tree) || !isContainer(path[path.length - 1].type)) return null;
+  const tok = (n, fallback) => {
+    const b = boxes[n.id] ?? fallback;
+    return [ALL_TYPES.indexOf(n.type), isContainer(n.type) ? 0 : 1, b[0], b[1], b[2], b[3]];
+  };
+  let anc = [canvas];
+  let own = null;
+  let box = boxes[tree.id] ?? [0, 0, m.config.gx - 1, m.config.gy - 1];
+  for (let i = 0; ; i++) {
+    const n = path[i];
+    box = boxes[n.id] ?? box;
+    const given = (n.children ?? []).slice(0, maxLen - 1);
+    const seq = [tok(n, box), ...given.map((c) => tok(c, box))];
+    const mem = own ? [...anc, own] : [...anc];
+    if (i === path.length - 1) return { seq, mem, given, box, anc, own };
+    const h2 = run(m, seq, mem).h;
+    const j = given.indexOf(path[i + 1]);
+    if (j < 0) return null;
+    anc = [...anc, own ?? h2[0]];
+    own = h2[j + 1];
+  }
+}
+function readingIndex(given, boxes, b) {
+  return given.filter((c) => {
+    const cb = boxes[c.id];
+    return cb && (cb[1] < b[1] || cb[1] === b[1] && cb[0] <= b[0]);
+  }).length;
+}
+function step(m, ctx, boxes, parentId, k) {
+  const { nTypes } = m.config;
+  const r = run(m, ctx.seq, ctx.mem);
+  const lc = Float32Array.from(r.heads.c);
+  lc[nTypes + 1] = -1e9;
+  const pr = softmax(lc);
+  const order = [...Array(nTypes).keys()].sort((a, b) => pr[b] - pr[a]);
+  const box = [argmax(r.heads.x), argmax(r.heads.y), argmax(r.heads.x2), argmax(r.heads.y2)];
+  return {
+    parentId,
+    index: readingIndex(ctx.given, boxes, box),
+    box,
+    leaf: argmax(r.heads.t) === 1,
+    candidates: order.slice(0, k).map((c) => ({ type: ALL_TYPES[c], p: pr[c] })),
+    pEos: pr[nTypes],
+    eos: argmax(lc) === nTypes
+  };
+}
+function nextInContainer(m, tree, boxes, containerId, k = 3) {
+  const ctx = contextOf(m, tree, boxes, containerId);
+  if (!ctx || ctx.seq.length >= m.config.maxLen) return null;
+  return step(m, ctx, boxes, containerId, k);
+}
+function nextElements(m, tree, boxes, k = 3) {
+  const { d, maxLen } = m.config;
+  const canvas = m.w["canvas"].data.subarray(0, d);
+  const out = [];
+  const tok = (n, fallback) => {
+    const b = boxes[n.id] ?? fallback;
+    return [ALL_TYPES.indexOf(n.type), isContainer(n.type) ? 0 : 1, b[0], b[1], b[2], b[3]];
+  };
+  const visit = (n, anc, own, box) => {
+    if (!isContainer(n.type)) return;
+    box = boxes[n.id] ?? box;
+    const given = (n.children ?? []).slice(0, maxLen - 1);
+    const ctx = { seq: [tok(n, box), ...given.map((c) => tok(c, box))], mem: own ? [...anc, own] : [...anc], given, box, anc, own };
+    if (ctx.seq.length < maxLen) {
+      const e = step(m, ctx, boxes, n.id, k);
+      if (!e.eos) out.push(e);
+    }
+    const h2 = run(m, ctx.seq, ctx.mem).h;
+    given.forEach((c, j) => visit(c, [...anc, own ?? h2[0]], h2[j + 1], box));
+  };
+  visit(tree, [canvas], null, boxes[tree.id] ?? [0, 0, m.config.gx - 1, m.config.gy - 1]);
+  return out.sort((a, b) => b.candidates[0].p - a.candidates[0].p);
+}
+function completeLayout(m, tree, boxes, rootId = tree.id, maxNodes = 100) {
+  const { nTypes, maxLen } = m.config;
+  const start = contextOf(m, tree, boxes, rootId);
+  if (!start) return [];
+  let count = 0;
+  walkCount(tree, () => count++);
+  const out = [];
+  const expand = (n, anc, own) => {
+    if (n.tok[1] !== 0) return;
+    const box = [n.tok[2], n.tok[3], n.tok[4], n.tok[5]];
+    const kids = n.given.map((c) => ({ id: c.id, tok: tokOf(c, boxes, box), given: (c.children ?? []).slice(0, maxLen - 1) }));
+    const seq = [n.tok, ...kids.map((k) => k.tok)];
+    const mem = own ? [...anc, own] : [...anc];
+    let gen = 0;
+    while (seq.length < maxLen && count < maxNodes) {
+      const r = run(m, seq, mem);
+      const lc = Float32Array.from(r.heads.c);
+      lc[nTypes + 1] = -1e9;
+      const c = argmax(lc);
+      if (c === nTypes) break;
+      const t = argmax(r.heads.t);
+      const b = [argmax(r.heads.x), argmax(r.heads.y), argmax(r.heads.x2), argmax(r.heads.y2)];
+      const g = { id: `g${out.length + 1}`, tok: [c, t, ...b], given: [] };
+      out.push({ tempId: g.id, parentId: n.id, index: n.given.length ? readingIndex(n.given, boxes, b) : gen, type: ALL_TYPES[c], leaf: t === 1, box: b, p: softmax(lc)[c] });
+      kids.push(g);
+      seq.push(g.tok);
+      gen++;
+      count++;
+    }
+    const h2 = run(m, seq, mem).h;
+    const ownH = own ?? h2[0];
+    kids.forEach((k, j) => expand(k, [...anc, ownH], h2[j + 1]));
+  };
+  expand({ id: rootId, tok: start.seq[0], given: start.given }, start.anc, start.own);
   return out;
+}
+function tokOf(n, boxes, fallback) {
+  const b = boxes[n.id] ?? fallback;
+  return [ALL_TYPES.indexOf(n.type), isContainer(n.type) ? 0 : 1, b[0], b[1], b[2], b[3]];
+}
+function walkCount(n, f) {
+  f();
+  (n.children ?? []).forEach((c) => walkCount(c, f));
 }
 
-// shared/nextComponent.ts
-var END = "<END>";
-var START = "<START>";
-var ROOT = "<ROOT>";
-var MIN_COUNT = 5;
-var BACKOFF = 0.4;
-var ADD_MIN_P = 0.15;
-var SURPRISAL_REVIEW = 6;
-var LAYOUT_TYPES = /* @__PURE__ */ new Set(["Card", "Section", "Row", "Column", "Header", "Sidebar"]);
-var OUTCOMES = [...ALL_TYPES, END];
-var CONTROL_TYPES = /* @__PURE__ */ new Set(["Stat", "Input", "Textarea", "Select", "DatePicker", "Checkbox", "Radio", "Button", "Link"]);
-function emptyModel() {
-  return { version: 1, counts: { tri: {}, bi: {}, uni: {}, all: {} }, meta: { trees: 0, events: 0, sources: {}, builtAt: (/* @__PURE__ */ new Date()).toISOString() } };
-}
-var add = (t, key, x, w) => {
-  const row = t[key] ??= {};
-  row[x] = (row[x] ?? 0) + w;
+// shared/layoutDefaults.ts
+var DEFAULT_PROPS = {
+  Page: () => ({ title: "Screen" }),
+  Header: () => ({}),
+  Sidebar: () => ({}),
+  Section: () => ({ title: "New section" }),
+  Card: () => ({}),
+  Row: () => ({ gap: 8 }),
+  Column: () => ({}),
+  Form: () => ({ submitAction: "submit" }),
+  List: () => ({}),
+  Modal: () => ({ title: "Dialog", open: true }),
+  Heading: () => ({ text: "Heading", level: 2 }),
+  Text: () => ({ text: "Content" }),
+  Button: () => ({ label: "Button", variant: "secondary", action: "todo" }),
+  Link: () => ({ text: "Link" }),
+  Input: (id) => ({ label: "New field", name: id, inputType: "text" }),
+  Textarea: (id) => ({ label: "Content", name: id }),
+  Select: (id) => ({ label: "Choice", name: id, options: ["Option 1", "Option 2"] }),
+  Checkbox: (id) => ({ label: "Option", name: id }),
+  Radio: (id) => ({ label: "Choice", name: id, options: ["Choice 1", "Choice 2"] }),
+  DatePicker: (id) => ({ label: "Date", name: id }),
+  Table: () => ({ columns: ["Column 1", "Column 2", "Column 3"] }),
+  Image: () => ({ alt: "Image" }),
+  Badge: () => ({ text: "Label" }),
+  Alert: () => ({ text: "Notice", tone: "info" }),
+  Stat: () => ({ label: "Metric", value: "0" }),
+  Avatar: () => ({ name: "User" }),
+  Divider: () => ({}),
+  Pagination: () => ({ pages: 5 })
 };
-var sum = (row) => row ? Object.values(row).reduce((a, b) => a + b, 0) : 0;
-function countTree(model2, tree, weight = 1, source = "unknown") {
-  const { tri, bi, uni, all } = model2.counts;
-  const emit = (c, x) => {
-    add(tri, `${c.g}|${c.p}|${c.s}`, x, weight);
-    add(bi, `${c.p}|${c.s}`, x, weight);
-    add(uni, c.p, x, weight);
-    all[x] = (all[x] ?? 0) + weight;
-    model2.meta.events += weight;
-  };
-  walk(tree, (n, parent) => {
-    if (!isContainer(n.type)) return;
-    const g = parent?.type ?? ROOT;
-    let s = START;
-    for (const c of n.children ?? []) {
-      emit({ g, p: n.type, s }, c.type);
-      s = c.type;
-    }
-    emit({ g, p: n.type, s }, END);
-  });
-  model2.meta.trees += 1;
-  model2.meta.sources[source] = (model2.meta.sources[source] ?? 0) + 1;
-  return model2;
-}
-function mergeModels(a, b, wb = 1) {
-  for (const k of ["tri", "bi", "uni"]) for (const [key, row] of Object.entries(b.counts[k])) for (const [x, c] of Object.entries(row)) add(a.counts[k], key, x, c * wb);
-  for (const [x, c] of Object.entries(b.counts.all)) a.counts.all[x] = (a.counts.all[x] ?? 0) + c * wb;
-  a.meta.trees += b.meta.trees;
-  a.meta.events += b.meta.events * wb;
-  for (const [s, n] of Object.entries(b.meta.sources)) a.meta.sources[s] = (a.meta.sources[s] ?? 0) + n;
-  return a;
-}
-function allProb(model2, x) {
-  return ((model2.counts.all[x] ?? 0) + 1) / (sum(model2.counts.all) + OUTCOMES.length);
-}
-function prob(model2, ctx, x) {
-  const levels = [model2.counts.tri[`${ctx.g}|${ctx.p}|${ctx.s}`], model2.counts.bi[`${ctx.p}|${ctx.s}`], model2.counts.uni[ctx.p]];
-  let factor = 1;
-  for (const row of levels) {
-    const total = sum(row);
-    if (total >= MIN_COUNT && row[x]) return factor * (row[x] / total);
-    factor *= BACKOFF;
-  }
-  return factor * allProb(model2, x);
-}
-function ctxForAppend(tree, containerId) {
-  const n = findNode(tree, containerId);
-  if (!n || !isContainer(n.type)) return null;
-  const kids = n.children ?? [];
-  return { g: findParent(tree, n.id)?.type ?? ROOT, p: n.type, s: kids.length ? kids[kids.length - 1].type : START };
-}
-function predictNext(model2, tree, containerId, k = 5) {
-  const ctx = ctxForAppend(tree, containerId);
-  if (!ctx) return [];
-  return rankTypes(model2, ctx, k);
-}
-function rankTypes(model2, ctx, k = 5) {
-  return ALL_TYPES.filter((t) => t !== "Page").map((type) => ({ type, p: prob(model2, ctx, type) })).sort((a, b) => b.p - a.p).slice(0, k);
-}
-function surprisal(model2, tree, nodeId) {
-  const parent = findParent(tree, nodeId);
-  const n = findNode(tree, nodeId);
-  if (!parent || !n) return 0;
-  const kids = parent.children ?? [];
-  const i = kids.findIndex((c) => c.id === nodeId);
-  const ctx = { g: findParent(tree, parent.id)?.type ?? ROOT, p: parent.type, s: i > 0 ? kids[i - 1].type : START };
-  return -Math.log2(prob(model2, ctx, n.type));
-}
-var FIELD_TYPES2 = ["Input", "Textarea", "Select", "DatePicker"];
-var label = (n) => String(n.props.label ?? n.props.text ?? "");
-var each = (tree, fn) => {
-  const out = [];
-  walk(tree, (n) => {
-    const r = fn(n);
-    if (Array.isArray(r)) out.push(...r);
-    else if (r) out.push(r);
-  });
-  return out;
-};
-var RULES = [
-  // R1 trường nhập thiếu name / thiếu required khi nhãn ghi bắt buộc
-  (t) => each(t, (n) => {
-    if (!FIELD_TYPES2.includes(n.type)) return null;
-    const lb = label(n);
-    if (/bắt buộc|\*/i.test(lb) && !n.props.required)
-      return { nodeId: n.id, code: "R1", message: `"${lb}" ghi b\u1EAFt bu\u1ED9c nh\u01B0ng ch\u01B0a \u0111\u1EB7t required`, severity: 2, fixPrompt: `\u0110\u1EB7t tr\u01B0\u1EDDng "${lb}" l\xE0 b\u1EAFt bu\u1ED9c.` };
-    if (!n.props.name) return { nodeId: n.id, code: "R1", message: `Tr\u01B0\u1EDDng "${lb}" ch\u01B0a c\xF3 name`, severity: 1, fixPrompt: `B\u1ED5 sung name (snake_case) cho tr\u01B0\u1EDDng "${lb}".` };
-    return null;
-  }),
-  // R2 email / mật khẩu sai kiểu hoặc thiếu ràng buộc
-  (t) => each(t, (n) => {
-    if (n.type !== "Input") return null;
-    const lb = label(n);
-    if (/email/i.test(lb) && n.props.inputType !== "email")
-      return { nodeId: n.id, code: "R2", message: `"${lb}" n\xEAn d\xF9ng inputType email`, severity: 2, fixPrompt: `\u0110\u1EB7t tr\u01B0\u1EDDng "${lb}" ki\u1EC3u email, b\u1EAFt bu\u1ED9c.` };
-    if (/mật khẩu|password/i.test(lb) && (n.props.inputType !== "password" || n.props.minLength === void 0))
-      return { nodeId: n.id, code: "R2", message: `"${lb}" c\u1EA7n inputType password v\xE0 minLength`, severity: 2, fixPrompt: `\u0110\u1EB7t tr\u01B0\u1EDDng "${lb}" ki\u1EC3u password, b\u1EAFt bu\u1ED9c, t\u1ED1i thi\u1EC3u 8 k\xFD t\u1EF1.` };
-    return null;
-  }),
-  // R3 Form không có nút gửi
-  (t) => each(t, (n) => {
-    if (n.type !== "Form") return null;
-    let hasBtn = false;
-    walk(n, (d) => hasBtn ||= d.type === "Button");
-    if (hasBtn) return null;
-    const b = submitLabel(t, n);
-    return { nodeId: n.id, code: "R3", message: "Form ch\u01B0a c\xF3 n\xFAt g\u1EEDi", severity: 3, fixPrompt: `Th\xEAm n\xFAt "${b.label}" (variant primary, action ${b.action}) v\xE0o cu\u1ED1i form n\xE0y.` };
-  }),
-  // R4 nút không có hành động
-  (t) => each(
-    t,
-    (n) => n.type === "Button" && !n.props.action && !n.props.navigateTo ? { nodeId: n.id, code: "R4", message: `N\xFAt "${label(n)}" ch\u01B0a c\xF3 action/navigateTo`, severity: 1, fixPrompt: `B\u1ED5 sung action cho n\xFAt "${label(n)}".` } : null
-  ),
-  // R5 bảng thiếu cột
-  (t) => each(
-    t,
-    (n) => n.type === "Table" && (!Array.isArray(n.props.columns) || !n.props.columns.length) ? { nodeId: n.id, code: "R5", message: "B\u1EA3ng ch\u01B0a c\xF3 c\u1ED9t", severity: 2, fixPrompt: "B\u1ED5 sung danh s\xE1ch c\u1ED9t cho b\u1EA3ng n\xE0y." } : null
-  ),
-  // R8 trường nhập chưa có placeholder hướng dẫn
-  (t) => each(t, (n) => {
-    if (n.type !== "Input" && n.type !== "Textarea" || n.props.placeholder) return null;
-    const lb = label(n);
-    return { nodeId: n.id, code: "R8", message: `Tr\u01B0\u1EDDng "${lb}" ch\u01B0a c\xF3 placeholder`, severity: 1, fixPrompt: `Th\xEAm placeholder "Nh\u1EADp ${lb.toLowerCase()}" cho tr\u01B0\u1EDDng "${lb}".` };
-  }),
-  // R9 ô nhập chữ chưa giới hạn độ dài
-  (t) => each(t, (n) => {
-    if (n.type !== "Input" || n.props.maxLength !== void 0) return null;
-    if (/tìm kiếm|search|keyword/i.test(`${n.props.label ?? ""} ${n.props.name ?? ""}`)) return null;
-    const kind = String(n.props.inputType ?? "text");
-    if (!["text", "email", "tel", "password"].includes(kind)) return null;
-    const max = kind === "password" ? 32 : kind === "tel" ? 15 : 100;
-    return { nodeId: n.id, code: "R9", message: `Tr\u01B0\u1EDDng "${label(n)}" ch\u01B0a gi\u1EDBi h\u1EA1n \u0111\u1ED9 d\xE0i`, severity: 1, fixPrompt: `\u0110\u1EB7t tr\u01B0\u1EDDng "${label(n)}" t\u1ED1i \u0111a ${max} k\xFD t\u1EF1.` };
-  }),
-  // R7 node còn bình luận chưa xử lý
-  (t, ctx) => {
-    const open = new Set(ctx.openAnnotationNodeIds ?? []);
-    return each(t, (n) => open.has(n.id) ? { nodeId: n.id, code: "R7", message: `${nodeLabel(n)} c\xF2n b\xECnh lu\u1EADn ch\u01B0a x\u1EED l\xFD`, severity: 2, fixPrompt: "X\u1EED l\xFD b\xECnh lu\u1EADn \u0111ang m\u1EDF c\u1EE7a ph\u1EA7n t\u1EED n\xE0y." } : null);
-  }
-];
-function ruleFindings(tree, ctx = {}) {
-  return RULES.flatMap((r) => r(tree, ctx));
-}
-var has2 = (texts, re) => texts.some((t) => re.test(t));
-function contextTexts(tree, container) {
-  const out = [String(tree.props.title ?? ""), String(container.props.title ?? "")];
-  walk(container, (d) => out.push(String(d.props.label ?? d.props.text ?? d.props.title ?? "")));
-  return out.map((t) => t.toLowerCase());
-}
-function submitLabel(tree, container) {
-  const t = contextTexts(tree, container);
-  const pw = has2(t, /mật khẩu|password/);
-  if (has2(t, /đổi mật khẩu|mật khẩu (cũ|hiện tại)/)) return { label: "\u0110\u1ED5i m\u1EADt kh\u1EA9u", action: "change_password" };
-  if (has2(t, /xác nhận mật khẩu|đăng ký|register|sign up/)) return { label: "\u0110\u0103ng k\xFD", action: "register" };
-  if (has2(t, /quên mật khẩu|đặt lại/) && !has2(t, /^mật khẩu$/)) return { label: "G\u1EEDi li\xEAn k\u1EBFt", action: "send_reset" };
-  if (pw && has2(t, /email|tên đăng nhập|username|tài khoản/)) return { label: "\u0110\u0103ng nh\u1EADp", action: "login" };
-  if (has2(t, /tìm kiếm|tra cứu|search|lọc/)) return { label: "T\xECm ki\u1EBFm", action: "search" };
-  if (has2(t, /thanh toán|checkout/)) return { label: "\u0110\u1EB7t h\xE0ng", action: "checkout" };
-  if (has2(t, /chỉnh sửa|cập nhật/)) return { label: "C\u1EADp nh\u1EADt", action: "update" };
-  if (has2(t, /^gửi|yêu cầu|phản hồi|liên hệ|góp ý/)) return { label: "G\u1EEDi", action: "submit" };
-  return { label: "L\u01B0u", action: "save" };
-}
-function missingField(tree, container) {
-  const t = contextTexts(tree, container);
-  if (has2(t, /email/) && !has2(t, /mật khẩu|password/) && !has2(t, /quên/)) return { label: "M\u1EADt kh\u1EA9u", extra: "b\u1EAFt bu\u1ED9c, ki\u1EC3u password, t\u1ED1i thi\u1EC3u 8 k\xFD t\u1EF1" };
-  if (has2(t, /^mật khẩu/) && has2(t, /đăng ký/) && !has2(t, /xác nhận mật khẩu/)) return { label: "X\xE1c nh\u1EADn m\u1EADt kh\u1EA9u", extra: "b\u1EAFt bu\u1ED9c, ki\u1EC3u password" };
-  if (has2(t, /tìm kiếm|tra cứu/)) return { label: "T\u1EEB kh\xF3a", extra: "kh\xF4ng b\u1EAFt bu\u1ED9c" };
-  return { label: "Ghi ch\xFA", extra: "kh\xF4ng b\u1EAFt bu\u1ED9c" };
-}
-function addPrompt(tree, container, type) {
-  const where = nodeLabel(container);
-  const kids = container.children ?? [];
-  switch (type) {
-    case "Button": {
-      if (container.type === "Form" || kids.some((k) => FIELD_TYPES2.includes(k.type))) {
-        const b = submitLabel(tree, container);
-        return `Th\xEAm n\xFAt "${b.label}" (variant primary, action ${b.action}) v\xE0o cu\u1ED1i ${where}.`;
-      }
-      const parent = findParent(tree, container.id);
-      if ((parent?.children ?? []).some((c) => c.type === "Table")) return `Th\xEAm n\xFAt "Th\xEAm m\u1EDBi" (variant primary, action create) v\xE0o cu\u1ED1i ${where}.`;
-      return `Th\xEAm n\xFAt "Xem chi ti\u1EBFt" (variant secondary) v\xE0o cu\u1ED1i ${where}.`;
-    }
-    case "Input": {
-      const f = missingField(tree, container);
-      return `Th\xEAm tr\u01B0\u1EDDng "${f.label}" (${f.extra}) v\xE0o cu\u1ED1i ${where}.`;
-    }
-    case "Link":
-      return has2(contextTexts(tree, container), /mật khẩu|password/) ? `Th\xEAm link "Qu\xEAn m\u1EADt kh\u1EA9u?" v\xE0o cu\u1ED1i ${where}.` : `Th\xEAm m\u1ED9t Link \u0111i\u1EC1u h\u01B0\u1EDBng ph\xF9 h\u1EE3p v\xE0o cu\u1ED1i ${where}.`;
-    case "Select": {
-      const table2 = (findParent(tree, container.id)?.children ?? []).find((c) => c.type === "Table");
-      const have = new Set(kids.map((k) => String(k.props.label ?? "").toLowerCase()));
-      const col = (table2?.props.columns ?? []).find((c) => !have.has(c.toLowerCase()) && !/^(mã|thao tác|stt)|tiền|giá|số lượng|ngày/i.test(c));
-      return col ? `Th\xEAm b\u1ED9 l\u1ECDc (Select) "${col}" v\xE0o cu\u1ED1i ${where}.` : `Th\xEAm \xF4 ch\u1ECDn (Select) "Lo\u1EA1i" v\xE0o cu\u1ED1i ${where}.`;
-    }
-    case "DatePicker":
-      return `Th\xEAm \xF4 ch\u1ECDn ng\xE0y (DatePicker) "${kids.some((k) => k.type === "DatePicker") ? "\u0110\u1EBFn ng\xE0y" : container.type === "Row" ? "T\u1EEB ng\xE0y" : "Ng\xE0y"}" v\xE0o cu\u1ED1i ${where}.`;
-    case "Textarea":
-      return `Th\xEAm \xF4 nh\u1EADp nhi\u1EC1u d\xF2ng (Textarea) "${kids.some((k) => /mô tả/i.test(String(k.props.label ?? ""))) ? "Ghi ch\xFA" : "M\xF4 t\u1EA3"}" v\xE0o cu\u1ED1i ${where}.`;
-    case "Stat":
-      return `Th\xEAm ch\u1EC9 s\u1ED1 (Stat) "${kids.some((k) => /doanh thu/i.test(String(k.props.label ?? ""))) ? "T\u1EF7 l\u1EC7 chuy\u1EC3n \u0111\u1ED5i" : "T\u1ED5ng s\u1ED1"}" v\xE0o cu\u1ED1i ${where}.`;
-    case "Pagination":
-      return `Th\xEAm ph\xE2n trang (Pagination) ngay sau b\u1EA3ng trong ${where}.`;
-    case "Heading":
-      return `Th\xEAm ti\xEAu \u0111\u1EC1 (Heading) m\xF4 t\u1EA3 n\u1ED9i dung c\u1EE7a ${where}.`;
-    case "Text":
-      return `Th\xEAm \u0111o\u1EA1n m\xF4 t\u1EA3 ng\u1EAFn (Text) h\u01B0\u1EDBng d\u1EABn ng\u01B0\u1EDDi d\xF9ng trong ${where}.`;
-    case "Checkbox":
-      return has2(contextTexts(tree, container), /mật khẩu/) ? `Th\xEAm \xF4 t\xEDch "Ghi nh\u1EDB \u0111\u0103ng nh\u1EADp" v\xE0o ${where}.` : `Th\xEAm \xF4 t\xEDch (Checkbox) ph\xF9 h\u1EE3p v\xE0o ${where}.`;
-    default:
-      return `Th\xEAm ${type} v\xE0o cu\u1ED1i ${where}.`;
-  }
-}
-function ctxText(ctx) {
-  if (!ctx) return "";
-  return ctx.s === START ? `\u0110\u1EA7u ${ctx.p}` : `Sau ${ctx.s} trong ${ctx.p}`;
-}
-var TF_ADD_MIN = 0.3;
-var TF_ADD_MIN_REGION = 0.15;
-function positionPhrase(container, index) {
-  const kids = container.children ?? [];
-  const where = nodeLabel(container);
-  if (index >= kids.length) return { prompt: `v\xE0o cu\u1ED1i ${where}`, short: `v\xE0o cu\u1ED1i ${where}` };
-  if (index > 0) return { prompt: `v\xE0o ${where}, ngay sau ${nodeLabel(kids[index - 1])}`, short: `sau ${nodeLabel(kids[index - 1])}` };
-  return { prompt: `v\xE0o ${where}, ngay tr\u01B0\u1EDBc ${nodeLabel(kids[0])}`, short: `tr\u01B0\u1EDBc ${nodeLabel(kids[0])}` };
-}
-var SUB_VI = {
-  email: "email",
-  password: "m\u1EADt kh\u1EA9u",
-  search: "t\xECm ki\u1EBFm",
-  phone: "s\u1ED1 \u0111i\u1EC7n tho\u1EA1i",
-  number: "s\u1ED1",
-  name: "t\xEAn",
-  submit: "g\u1EEDi",
-  cancel: "h\u1EE7y",
-  create: "th\xEAm m\u1EDBi",
-  delete: "x\xF3a",
-  auth: "t\xE0i kho\u1EA3n",
-  remember: "ghi nh\u1EDB",
-  agree: "\u0111\u1ED3ng \xFD"
-};
-function typedAddPrompt(tree, container, type, sub, index) {
-  const kids = container.children ?? [];
-  const labels = kids.map((k) => String(k.props.label ?? k.props.text ?? "").toLowerCase());
-  const hasLabel = (re) => labels.some((l) => re.test(l));
-  const pos = positionPhrase(container, index).prompt;
-  const ctx = contextTexts(tree, container);
-  switch (`${type}:${sub}`) {
-    case "Input:email":
-      return hasLabel(/email/) ? null : `Th\xEAm tr\u01B0\u1EDDng "Email" (ki\u1EC3u email, b\u1EAFt bu\u1ED9c) ${pos}.`;
-    case "Input:password":
-      if (hasLabel(/xác nhận mật khẩu/) || hasLabel(/mật khẩu/) && !has2(ctx, /đăng ký|register|mật khẩu mới/)) return null;
-      return hasLabel(/mật khẩu/) ? `Th\xEAm tr\u01B0\u1EDDng "X\xE1c nh\u1EADn m\u1EADt kh\u1EA9u" (b\u1EAFt bu\u1ED9c, ki\u1EC3u password) ${pos}.` : `Th\xEAm tr\u01B0\u1EDDng "M\u1EADt kh\u1EA9u" (b\u1EAFt bu\u1ED9c, ki\u1EC3u password, t\u1ED1i thi\u1EC3u 8 k\xFD t\u1EF1) ${pos}.`;
-    case "Input:search":
-      return hasLabel(/tìm kiếm|từ khóa/) ? null : `Th\xEAm \xF4 t\xECm ki\u1EBFm (Input) "T\xECm ki\u1EBFm" ${pos}.`;
-    case "Input:phone":
-      return hasLabel(/điện thoại/) ? null : `Th\xEAm tr\u01B0\u1EDDng "S\u1ED1 \u0111i\u1EC7n tho\u1EA1i" (ki\u1EC3u tel) ${pos}.`;
-    case "Input:number":
-      return `Th\xEAm tr\u01B0\u1EDDng "${hasLabel(/số lượng/) ? "\u0110\u01A1n gi\xE1" : "S\u1ED1 l\u01B0\u1EE3ng"}" (ki\u1EC3u number) ${pos}.`;
-    case "Input:text":
-      if (has2(ctx, /mật khẩu|password/)) return null;
-      break;
-    case "Input:name":
-      return hasLabel(/tên/) ? null : `Th\xEAm tr\u01B0\u1EDDng "H\u1ECD v\xE0 t\xEAn" (b\u1EAFt bu\u1ED9c) ${pos}.`;
-    case "Button:submit": {
-      if (kids.some((k) => k.type === "Button" && /primary/.test(String(k.props.variant ?? "")))) return null;
-      const b = submitLabel(tree, container);
-      return `Th\xEAm n\xFAt "${b.label}" (variant primary, action ${b.action}) ${pos}.`;
-    }
-    case "Button:cancel":
-      return hasLabel(/hủy|huỷ|quay lại/) ? null : `Th\xEAm n\xFAt "H\u1EE7y" (variant secondary, action cancel) ${pos}.`;
-    case "Button:create":
-      return hasLabel(/thêm/) ? null : `Th\xEAm n\xFAt "Th\xEAm m\u1EDBi" (variant primary, action create) ${pos}.`;
-    case "Button:delete":
-      return `Th\xEAm n\xFAt "X\xF3a" (variant danger, action delete) ${pos}.`;
-    case "Button:search":
-      return hasLabel(/tìm/) ? null : `Th\xEAm n\xFAt "T\xECm ki\u1EBFm" (variant primary, action search) ${pos}.`;
-    case "Link:auth":
-      if (has2(ctx, /mật khẩu|password/) && !hasLabel(/quên/)) return `Th\xEAm link "Qu\xEAn m\u1EADt kh\u1EA9u?" ${pos}.`;
-      return hasLabel(/đăng ký/) ? null : `Th\xEAm link "\u0110\u0103ng k\xFD t\xE0i kho\u1EA3n" ${pos}.`;
-    case "Checkbox:remember":
-      return hasLabel(/ghi nhớ/) ? null : `Th\xEAm \xF4 t\xEDch "Ghi nh\u1EDB \u0111\u0103ng nh\u1EADp" ${pos}.`;
-    case "Checkbox:agree":
-      return hasLabel(/đồng ý|điều khoản/) ? null : `Th\xEAm \xF4 t\xEDch "T\xF4i \u0111\u1ED3ng \xFD v\u1EDBi \u0111i\u1EC1u kho\u1EA3n s\u1EED d\u1EE5ng" ${pos}.`;
-  }
-  if (type === "Pagination" && (kids.some((k) => k.type === "Pagination") || !kids.some((k) => k.type === "Table"))) return null;
-  const base2 = addPrompt(tree, container, type);
-  return index >= kids.length ? base2 : base2.replace(new RegExp(`(v\xE0o cu\u1ED1i|v\xE0o|trong|ngay sau b\u1EA3ng trong|m\xF4 t\u1EA3 n\u1ED9i dung c\u1EE7a) ${nodeLabel(container).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\.$`), `${pos}.`);
-}
-function transformerAdds(m, tree, inScope, min) {
-  const out = [];
-  for (const s of predictSlots(m, tree)) {
-    const container = findNode(tree, s.parentId);
-    if (!container || !inScope(container.id) || container.type === "Table") continue;
-    for (const t of s.types.slice(0, 2)) {
-      const score = s.pMissing * t.p;
-      if (score < min || LAYOUT_TYPES.has(t.type)) continue;
-      const prompt = typedAddPrompt(tree, container, t.type, t.sub, s.index);
-      if (!prompt) continue;
-      const pos = positionPhrase(container, s.index);
-      const what = SUB_VI[t.sub] ? `${t.type} (${SUB_VI[t.sub]})` : t.type;
-      out.push({
-        id: `add:${container.id}:${s.index}:${t.type}:${t.sub}`,
-        kind: "add",
-        targetNodeId: container.id,
-        title: `Th\xEAm ${what} ${pos.short}`,
-        reason: `Transformer: ${Math.round(s.pMissing * 100)}% c\xF2n thi\u1EBFu ph\u1EA7n t\u1EED t\u1EA1i \u0111\xE2y \xB7 ${Math.round(t.p * 100)}% l\xE0 ${what}`,
-        confidence: Math.min(1, score),
-        fixPrompt: prompt
-      });
-    }
-  }
-  return out;
-}
-var isTransformer = (m) => "config" in m && "t" in m;
-function suggest(model2, tree, opts = {}) {
-  const k = opts.k ?? 5;
-  const scope = opts.selectedIds?.length ? regionIds(tree, opts.selectedIds) : null;
-  const inScope = (id) => !scope || scope.has(id);
-  const out = isTransformer(model2) ? transformerAdds(model2, tree, inScope, scope ? TF_ADD_MIN_REGION : TF_ADD_MIN) : [];
-  if (!isTransformer(model2)) walk(tree, (n) => {
-    if (!inScope(n.id) || !isContainer(n.type)) return;
-    const last = n.children?.at(-1)?.type;
-    const where = nodeLabel(n);
-    for (const { type, p: p2 } of predictNext(model2, tree, n.id, 5).filter((x) => x.p >= ADD_MIN_P && (x.type !== last || x.p >= 0.3) && !LAYOUT_TYPES.has(x.type)).slice(0, 2)) {
-      out.push({
-        id: `add:${n.id}:${type}`,
-        kind: "add",
-        targetNodeId: n.id,
-        title: `Th\xEAm ${type} v\xE0o ${where}`,
-        reason: `${ctxText(ctxForAppend(tree, n.id))}: ${Math.round(p2 * 100)}% tr\u01B0\u1EDDng h\u1EE3p t\u01B0\u01A1ng t\u1EF1 l\xE0 ${type}`,
-        confidence: Math.min(1, p2),
-        fixPrompt: addPrompt(tree, n, type)
-      });
-    }
-  });
-  for (const f of ruleFindings(tree, opts)) {
-    if (!inScope(f.nodeId)) continue;
-    out.push({
-      id: `fix:${f.nodeId}:${f.code}`,
-      kind: "fix",
-      targetNodeId: f.nodeId,
-      title: f.message,
-      reason: `Lu\u1EADt ${f.code}`,
-      confidence: f.code === "R8" || f.code === "R9" ? 0.3 : 0.3 + 0.2 * f.severity,
-      // thiếu sót nhỏ xếp sau gợi ý thêm phần tử
-      fixPrompt: f.fixPrompt
-    });
-  }
-  if (!isTransformer(model2)) walk(tree, (n, parent) => {
-    if (!parent || !inScope(n.id) || LAYOUT_TYPES.has(n.type) || isContainer(n.type)) return;
-    if (CONTROL_TYPES.has(n.type) && (parent.type === "Row" || parent.type === "Form")) return;
-    if (n.type === "Alert" && /^Ghi chú BA/.test(String(n.props.text ?? ""))) return;
-    const s = surprisal(model2, tree, n.id);
-    if (s < SURPRISAL_REVIEW) return;
-    out.push({
-      id: `review:${n.id}`,
-      kind: "review",
-      targetNodeId: n.id,
-      title: `Xem l\u1EA1i ${nodeLabel(n)} trong ${nodeLabel(parent)}`,
-      reason: `Hi\u1EBFm g\u1EB7p trong ng\u1EEF c\u1EA3nh n\xE0y (${s.toFixed(1)} bit)`,
-      confidence: Math.min(1, s / 12) * 0.6,
-      // đề xuất cụ thể để Mock/Claude làm được; prompt chỉ điền sẵn, BA tự quyết định có gửi hay không
-      fixPrompt: `X\xF3a ${nodeLabel(n)} kh\u1ECFi ${nodeLabel(parent)}.`
-    });
-  });
-  const seen = /* @__PURE__ */ new Set();
-  return out.filter((s) => seen.has(s.id) ? false : (seen.add(s.id), true)).filter((s) => !(s.kind === "add" && s.title.startsWith("Th\xEAm Button") && s.fixPrompt.includes("v\xE0o cu\u1ED1i") && out.some((o) => o.kind === "fix" && o.targetNodeId === s.targetNodeId && /chưa có nút/.test(o.title)))).sort((a, b) => b.confidence - a.confidence).slice(0, k);
+function defaultNode2(type, id) {
+  if (!ALL_TYPES.includes(type) || type === "Page") return null;
+  const t = type;
+  return { id, type: t, props: DEFAULT_PROPS[t](id), ...isContainer(t) ? { children: [] } : {} };
 }
 
 // server/nextModel.ts
@@ -12531,99 +14010,329 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname as dirname2, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 var root = resolve(dirname2(fileURLToPath(import.meta.url)), "..");
-var LEARN_WEIGHT = 5;
-var base = null;
-var model = null;
-var tf;
-function fallbackModel() {
-  const m = emptyModel();
-  for (const p2 of ["\u0111\u0103ng nh\u1EADp", "\u0111\u0103ng k\xFD", "qu\u1EA3n l\xFD s\u1EA3n ph\u1EA9m", "th\xEAm s\u1EA3n ph\u1EA9m", "dashboard t\u1ED5ng quan"]) countTree(m, mockScreen(p2, p2, { mode: "template" }), 1, "fallback");
+var rec;
+function getRecursive() {
+  if (rec !== void 0) return rec;
+  rec = null;
+  const file = process.env.RECURSIVE_FILE ?? join(root, "model", "recursive-layout.json");
+  if (existsSync(file)) {
+    try {
+      rec = loadRecursive(JSON.parse(readFileSync(file, "utf8")));
+    } catch (e) {
+      console.warn(`Could not read ${file}: ${e.message}`);
+    }
+  }
+  return rec;
+}
+
+// server/http.ts
+import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+var routes = [];
+var STUB = /* @__PURE__ */ Symbol("stub");
+function route(method, path, handler2) {
+  const keys = [];
+  const pattern = new RegExp("^" + path.replace(/:(\w+)/g, (_, k) => (keys.push(k), "([^/]+)")) + "$");
+  routes.push({ method, path, pattern, keys, handler: handler2, stub: STUB in handler2 });
+}
+function matchRoute(method, pathname) {
+  for (const r of routes) {
+    if (r.method !== method) continue;
+    const m = pathname.match(r.pattern);
+    if (!m) continue;
+    const params = {};
+    r.keys.forEach((k, i) => params[k] = decodeURIComponent(m[i + 1]));
+    return { route: r, params };
+  }
+  return null;
+}
+var HttpError = class extends Error {
+  constructor(message, status2, code, data) {
+    super(message);
+    this.status = status2;
+    this.code = code;
+    this.data = data;
+  }
+  status;
+  code;
+  data;
+};
+var FileResponse = class {
+  constructor(data, filename, contentType, disposition = "attachment") {
+    this.data = data;
+    this.filename = filename;
+    this.contentType = contentType;
+    this.disposition = disposition;
+  }
+  data;
+  filename;
+  contentType;
+  disposition;
+};
+var str = (v, max = 2e4) => typeof v === "string" ? v.slice(0, max) : "";
+var arr = (v) => Array.isArray(v) ? v.map(String) : [];
+var actor = (body) => str(body?.actorId, 100) || void 0;
+function baseRevOf(body, query) {
+  const raw = body?.baseRev ?? query?.get("baseRev") ?? void 0;
+  if (raw === void 0 || raw === null || raw === "") return void 0;
+  const n = Number(raw);
+  return Number.isInteger(n) ? n : void 0;
+}
+function assertRev(currentRev, baseRev) {
+  if (baseRev === void 0 || baseRev === null) return;
+  if (Number(baseRev) !== Number(currentRev)) throw new HttpError("This version has changed \u2013 reload", 409, "CONFLICT", { rev: currentRev });
+}
+var MEMBER_COOKIE = "bac_member";
+var SESSION_TTL_MS = 30 * 24 * 3600 * 1e3;
+var MIN_PASSWORD = 6;
+var toMember = (r) => ({ id: r.id, name: r.name, role: r.role, createdAt: r.created_at, hasPassword: !!r.password_hash });
+var memberRow = (id) => getDb().prepare("SELECT id, name, role, created_at, password_hash FROM members WHERE id = ?").get(id);
+function hashPassword(password) {
+  const salt = randomBytes(16);
+  return `scrypt$${salt.toString("base64")}$${scryptSync(password, salt, 64).toString("base64")}`;
+}
+function verifyPassword(password, stored) {
+  const [algo, salt, hash] = (stored ?? "").split("$");
+  if (algo !== "scrypt" || !salt || !hash) return false;
+  const want = Buffer.from(hash, "base64");
+  const got = scryptSync(password, Buffer.from(salt, "base64"), want.length);
+  return got.length === want.length && timingSafeEqual(got, want);
+}
+function memberAuthEnabled() {
+  return !!getDb().prepare("SELECT 1 FROM members WHERE password_hash IS NOT NULL AND password_hash <> '' LIMIT 1").get();
+}
+var secretCache = null;
+function sessionSecret() {
+  const env = process.env.SESSION_SECRET?.trim();
+  if (env) return env;
+  const d = getDb();
+  if (secretCache?.db === d) return secretCache.value;
+  let value = getMeta("session_secret", d);
+  if (!value) setMeta("session_secret", value = randomBytes(32).toString("hex"), d);
+  secretCache = { db: d, value };
+  return value;
+}
+var signSession = (memberId, exp, pw) => createHmac("sha256", sessionSecret()).update(`m1:${memberId}:${exp}:${pw.slice(-12)}`).digest("base64url");
+function readCookie(req, name2) {
+  for (const part of (req.headers.cookie ?? "").split(";")) {
+    const [k, ...v] = part.trim().split("=");
+    if (k === name2) return decodeURIComponent(v.join("="));
+  }
+  return null;
+}
+var isHttps = (req) => req.headers["x-forwarded-proto"]?.split(",")[0]?.trim() === "https";
+var clientIp = (req) => (req.headers["x-forwarded-for"]?.split(",")[0] ?? req.socket.remoteAddress ?? "?").trim();
+function sessionMember(req) {
+  const raw = readCookie(req, MEMBER_COOKIE);
+  if (!raw) return null;
+  const [id, exp, sig] = raw.split(".");
+  if (!id || !exp || !sig || Number(exp) < Date.now()) return null;
+  const r = memberRow(id);
+  if (!r?.password_hash) return null;
+  const want = Buffer.from(signSession(id, exp, r.password_hash));
+  const got = Buffer.from(sig);
+  return want.length === got.length && timingSafeEqual(want, got) ? toMember(r) : null;
+}
+var attempts = /* @__PURE__ */ new Map();
+function rateLimited(ip) {
+  const now3 = Date.now();
+  const a = attempts.get(ip);
+  if (!a || a.reset < now3) {
+    attempts.set(ip, { n: 1, reset: now3 + 10 * 6e4 });
+    return 0;
+  }
+  a.n++;
+  return a.n > 10 ? Math.ceil((a.reset - now3) / 1e3) : 0;
+}
+function loginMember(req, res, input) {
+  const wait = rateLimited(clientIp(req));
+  if (wait) throw new HttpError(`Too many failed attempts. Please wait ${Math.ceil(wait / 60)} minute(s).`, 429);
+  const d = getDb();
+  const r = input.memberId ? memberRow(input.memberId) : d.prepare("SELECT id, name, role, created_at, password_hash FROM members WHERE name = ? COLLATE NOCASE ORDER BY created_at LIMIT 1").get((input.name ?? "").trim());
+  if (!r || !r.password_hash || !verifyPassword(input.password, r.password_hash)) throw new HttpError("Incorrect username or password", 401, "UNAUTHENTICATED");
+  const exp = String(Date.now() + SESSION_TTL_MS);
+  const value = `${r.id}.${exp}.${signSession(r.id, exp, r.password_hash)}`;
+  res.setHeader("set-cookie", `${MEMBER_COOKIE}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_TTL_MS / 1e3}${isHttps(req) ? "; Secure" : ""}`);
+  attempts.delete(clientIp(req));
+  return toMember(r);
+}
+function logoutMemberCookie(req) {
+  return `${MEMBER_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${isHttps(req) ? "; Secure" : ""}`;
+}
+function setMemberPassword(memberId, password) {
+  const d = getDb();
+  const r = memberRow(memberId);
+  if (!r) throw new HttpError("Member not found", 404);
+  if (password) {
+    if (password.length < MIN_PASSWORD) throw new HttpError(`Password must be at least ${MIN_PASSWORD} characters`, 400);
+    if (!memberAuthEnabled() && r.role !== "BA_LEAD") throw new HttpError("Set a password for a BA Lead first", 400);
+    d.prepare("UPDATE members SET password_hash = ? WHERE id = ?").run(hashPassword(password), memberId);
+  } else if (r.password_hash) {
+    const leadsWithPw = Number(d.prepare("SELECT COUNT(*) AS n FROM members WHERE role = 'BA_LEAD' AND password_hash IS NOT NULL AND password_hash <> ''").get().n);
+    const othersWithPw = Number(d.prepare("SELECT COUNT(*) AS n FROM members WHERE id <> ? AND password_hash IS NOT NULL AND password_hash <> ''").get(memberId).n);
+    if (r.role === "BA_LEAD" && leadsWithPw === 1 && othersWithPw > 0) throw new HttpError("Cannot remove the last BA Lead's password while other members still have passwords", 400);
+    d.prepare("UPDATE members SET password_hash = NULL WHERE id = ?").run(memberId);
+  }
+  return toMember(memberRow(memberId));
+}
+function currentMember(ctx) {
+  const s2 = sessionMember(ctx.req);
+  if (s2) return s2;
+  if (memberAuthEnabled()) return null;
+  const id = str(ctx.body?.actorId, 100) || ctx.query?.get("actorId") || "";
+  const r = id ? memberRow(id) : void 0;
+  return r ? toMember(r) : null;
+}
+function requireMember(ctx) {
+  const m = currentMember(ctx);
+  if (!m && memberAuthEnabled()) throw new HttpError("Not signed in", 401, "UNAUTHENTICATED", { mode: "member" });
   return m;
 }
-function loadBase() {
-  const file = process.env.NEXT_MODEL_FILE ?? join(root, "model", "next-component.json");
-  if (existsSync(file)) {
-    try {
-      const m = JSON.parse(readFileSync(file, "utf8"));
-      if (m.version === 1 && m.counts?.all) return m;
-    } catch (e) {
-      console.warn(`Kh\xF4ng \u0111\u1ECDc \u0111\u01B0\u1EE3c ${file}: ${e.message}`);
-    }
+function requireLead(ctx) {
+  const m = requireMember(ctx);
+  if (m && m.role !== "BA_LEAD") throw new HttpError("Only a BA Lead can perform this action", 403, "FORBIDDEN");
+  return m;
+}
+
+// server/events.ts
+var EVENT_TYPES_V5 = ["artifact.drafted", "artifact.done", "artifact.approved", "artifact.revision_requested", "artifact.stale"];
+var EVENT_TYPES = [...EVENT_TYPES_V5, "artifact.unapproved"];
+var handlers = /* @__PURE__ */ new Map();
+function on(type, handler2) {
+  handlers.set(type, [...handlers.get(type) ?? [], handler2]);
+  return () => handlers.set(type, (handlers.get(type) ?? []).filter((h2) => h2 !== handler2));
+}
+function emit(event) {
+  for (const h2 of handlers.get(event.type) ?? []) h2(event);
+}
+var approvedPusher = null;
+function registerApprovedPusher(fn) {
+  approvedPusher = fn;
+}
+function pushApproved(ref2, actorId) {
+  return approvedPusher ? approvedPusher(ref2, actorId) : Promise.resolve({ pushed: false, message: "GitHub is not configured \u2013 nothing was pushed" });
+}
+
+// server/prereq.ts
+function prereqFacts(moduleId, opts = {}) {
+  const d = getDb();
+  const legacy = d.prepare("SELECT docs_status FROM modules WHERE id = ?").get(moduleId);
+  return {
+    docStatus: (k) => d.prepare("SELECT status FROM module_docs WHERE module_id = ? AND kind = ?").get(moduleId, k)?.status ?? "none",
+    storyCount: opts.stories === false ? void 0 : Number(d.prepare("SELECT COUNT(*) AS n FROM user_stories WHERE module_id = ?").get(moduleId).n),
+    legacyDocsApproved: legacy?.docs_status === "approved"
+  };
+}
+function artifactBlockReason(ref2, action) {
+  if (ref2.kind !== "doc" && ref2.kind !== "diagram" && ref2.kind !== "tests") return null;
+  return prereqBlockReason({ kind: ref2.kind, sub: ref2.sub }, prereqFacts(ref2.moduleId || ref2.id), action);
+}
+function cascadeOutdated(moduleId, actorId) {
+  const facts = prereqFacts(moduleId, { stories: false });
+  const refs = [
+    ...DOC_KINDS.map((k) => ({ kind: "doc", id: moduleId, moduleId, sub: k })),
+    ...DIAGRAM_KINDS.map((k) => ({ kind: "diagram", id: moduleId, moduleId, sub: k })),
+    { kind: "tests", id: moduleId, moduleId }
+  ];
+  const changed = [];
+  for (const r of refs) {
+    const st = getArtifactState(r);
+    if (!st || !isReady(st.status)) continue;
+    if (!prereqBlockReason({ kind: r.kind, sub: r.sub }, facts, "done")) continue;
+    setArtifactState(r, { status: "outdated" });
+    emit({ type: "artifact.stale", artifact: r, actorId });
+    changed.push(r);
   }
-  return fallbackModel();
-}
-function getModel() {
-  if (model) return model;
-  base ??= loadBase();
-  model = mergeModels(emptyModel(), base);
-  model.meta.builtAt = base.meta.builtAt;
-  for (const r of getDb().prepare("SELECT tree FROM model_learned_trees").all()) {
-    try {
-      countTree(model, JSON.parse(r.tree), LEARN_WEIGHT, "learned");
-    } catch {
-    }
-  }
-  return model;
-}
-function getTransformer() {
-  if (tf !== void 0) return tf;
-  tf = null;
-  if (process.env.NEXT_MODEL === "ngram") return tf;
-  const file = process.env.NEXT_TF_FILE ?? join(root, "model", "next-transformer.json");
-  if (existsSync(file)) {
-    try {
-      tf = loadTransformer(JSON.parse(readFileSync(file, "utf8")));
-    } catch (e) {
-      console.warn(`Kh\xF4ng \u0111\u1ECDc \u0111\u01B0\u1EE3c ${file}: ${e.message} \u2013 d\xF9ng n-gram`);
-    }
-  }
-  return tf;
-}
-function getPredictor() {
-  const learned = getDb().prepare("SELECT COUNT(*) AS c FROM model_learned_trees").get().c;
-  const t = getTransformer();
-  if (t) return { model: t, info: { kind: "transformer", trees: Number(t.meta.trees ?? 0), learned } };
-  const m = getModel();
-  return { model: m, info: { kind: "ngram", trees: m.meta.trees, learned } };
-}
-function learnFromScreen(screenId, versionId, tree) {
-  const r = getDb().prepare("INSERT OR IGNORE INTO model_learned_trees (version_id, screen_id, tree, created_at) VALUES (?, ?, ?, ?)").run(versionId, screenId, JSON.stringify(tree), (/* @__PURE__ */ new Date()).toISOString());
-  if (Number(r.changes) > 0 && model) countTree(model, tree, LEARN_WEIGHT, "learned");
+  return changed;
 }
 
 // server/service.ts
 var BizError = class extends Error {
-  constructor(message, status = 400) {
+  constructor(message, status2 = 400) {
     super(message);
-    this.status = status;
+    this.status = status2;
   }
   status;
 };
 function mustModule(id) {
   const m = getModule(id);
-  if (!m) throw new BizError("Kh\xF4ng t\xECm th\u1EA5y module", 404);
+  if (!m) throw new BizError("Module not found", 404);
   return m;
 }
 function mustScreen(id) {
-  const s = getScreen(id);
-  if (!s) throw new BizError("Kh\xF4ng t\xECm th\u1EA5y m\xE0n h\xECnh", 404);
-  return s;
+  const s2 = getScreen(id);
+  if (!s2) throw new BizError("Screen not found", 404);
+  return s2;
 }
-async function createScreenFromPrompt(moduleId, prompt, name) {
+function screenEvent(type, screen, actorId) {
+  emit({ type, artifact: { kind: "screen", id: screen.id, moduleId: screen.moduleId }, actorId });
+}
+function moduleEvent(type, kind, moduleId, actorId) {
+  emit({ type, artifact: { kind, id: moduleId, moduleId }, actorId });
+}
+var live = (s2) => s2 !== "none" && s2 !== "outdated";
+function markStale(moduleId, actorId) {
+  const before = getModule(moduleId);
+  markOutdated(moduleId);
+  if (before && live(before.docsStatus)) moduleEvent("artifact.stale", "docs", moduleId, actorId);
+  if (before && live(before.testsStatus)) moduleEvent("artifact.stale", "tests", moduleId, actorId);
+}
+var STATUS_VI = { none: "Not started", draft: "Draft", done: "Done", approved: "Approved", outdated: "Outdated" };
+var clip = (t, n) => t.length > n ? t.slice(0, n) + "\n\u2026(truncated)" : t;
+function storyLines(moduleId) {
+  return listModuleStories(moduleId).map((st) => {
+    const ac = st.acceptanceCriteria.filter(Boolean);
+    return `- ${st.code} [${st.priority}]: As a ${st.asA || "\u2026"}, I want ${st.iWant || "\u2026"}${st.soThat ? `, so that ${st.soThat}` : ""}${ac.length ? `
+  Acceptance criteria: ${ac.join("; ")}` : ""}`;
+  });
+}
+function moduleContext(moduleId, full = true) {
   const m = mustModule(moduleId);
-  if (!prompt.trim()) throw new BizError("Prompt kh\xF4ng \u0111\u01B0\u1EE3c \u0111\u1EC3 tr\u1ED1ng");
-  const others = listScreens(moduleId).map((s) => s.name);
-  const result = await generateScreen({ moduleId, prompt, name: name.trim(), requirementInput: m.requirementInput, otherScreens: others });
-  const screen = createScreen(moduleId, result.name);
-  const version = addVersion(screen.id, { kind: "generate", prompt, tree: result.tree });
-  return { screen: getScreen(screen.id), version };
+  const parts = [];
+  const stories = storyLines(moduleId);
+  if (stories.length) parts.push(`### User story
+${stories.join("\n")}`);
+  const srs = getModuleDocRow(moduleId, "SRS");
+  if (full && srs?.content.trim()) parts.push(`### SRS (${STATUS_VI[srs.status] ?? srs.status})
+${clip(srs.content.trim(), 8e3)}`);
+  const frd = getModuleDocRow(moduleId, "FRD_NFR");
+  const reqs = frd ? getDocs(moduleId).requirements : [];
+  if (frd && reqs.length)
+    parts.push(`### FRD-NFR (${STATUS_VI[frd.status] ?? frd.status})
+${reqs.map((r) => `- ${r.code} (${r.type}, ${r.priority}${r.useCaseCodes.length ? `, ${r.useCaseCodes.join("/")}` : ""}): ${r.statement}`).join("\n")}`);
+  else if (frd?.content.trim()) parts.push(`### FRD-NFR (${STATUS_VI[frd.status] ?? frd.status})
+${clip(frd.content.trim(), 6e3)}`);
+  if (!parts.length && m.requirementInput.trim()) parts.push(`### Business requirements (legacy)
+${m.requirementInput.trim()}`);
+  return parts.join("\n\n");
 }
-async function editScreenWithPrompt(screenId, input) {
+var foldVi2 = (x) => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d").toLowerCase().trim();
+function mockPromptFor(moduleId, name2) {
+  const words2 = foldVi2(name2).split(/\s+/).filter((w) => w.length >= 2);
+  const hit = (t) => words2.length > 0 && words2.every((w) => foldVi2(t).includes(w));
+  const reqs = getDocs(moduleId).requirements.filter((r) => r.type === "FR" && hit(r.statement)).map((r) => r.statement);
+  const stories = listModuleStories(moduleId).filter((st) => hit(st.iWant)).map((st) => st.iWant);
+  return [`Screen ${name2}.`, ...stories, ...reqs].join(" ");
+}
+async function createScreenFromPrompt(moduleId, prompt, name2, actorId) {
+  mustModule(moduleId);
+  if (!prompt.trim() && !name2.trim()) throw new BizError("Enter a screen name or a screen description");
+  const others = listScreens(moduleId).map((s2) => s2.name);
+  const context = moduleContext(moduleId);
+  const mockPrompt = prompt.trim() ? void 0 : mockPromptFor(moduleId, name2.trim());
+  const result2 = await generateScreen({ moduleId, prompt, name: name2.trim(), context, otherScreens: others, mockPrompt });
+  return tx(() => {
+    const screen = createScreen(moduleId, result2.name, actorId);
+    const version = addVersion(screen.id, { kind: "generate", prompt, tree: result2.tree });
+    screenEvent("artifact.drafted", screen, actorId);
+    return { screen: getScreen(screen.id), version };
+  });
+}
+async function editScreenWithPrompt(screenId, input, actorId) {
   const screen = mustScreen(screenId);
-  if (!screen.currentVersionId) throw new BizError("M\xE0n h\xECnh ch\u01B0a c\xF3 phi\xEAn b\u1EA3n");
+  if (!screen.currentVersionId) throw new BizError("The screen has no versions yet");
   const current = getVersion(screen.currentVersionId);
   const annotations = getAnnotations(input.annotationIds).filter((a) => a.screenId === screenId);
-  if (!input.prompt.trim() && !annotations.length) throw new BizError("C\u1EA7n nh\u1EADp y\xEAu c\u1EA7u s\u1EEDa ho\u1EB7c ch\u1ECDn \xEDt nh\u1EA5t m\u1ED9t b\xECnh lu\u1EADn");
+  if (!input.prompt.trim() && !annotations.length) throw new BizError("Enter an edit request or select at least one comment");
   const idSet = new Set(collectIds(current.tree));
   const exists = (id) => idSet.has(id);
   const selected = topMostIds(current.tree, [.../* @__PURE__ */ new Set([...input.nodeIds, ...annotations.flatMap((a) => a.nodeIds)])].filter(exists));
@@ -12632,143 +14341,304 @@ async function editScreenWithPrompt(screenId, input) {
     tree: current.tree,
     selectedIds: selected,
     instruction: input.prompt,
-    comments: annotations.map((a) => ({ comment: a.comment, nodeIds: a.nodeIds }))
+    comments: annotations.map((a) => ({ comment: a.comment, nodeIds: a.nodeIds })),
+    context: moduleContext(screen.moduleId, false)
   });
-  const result = applyPatch(current.tree, ops, { selectedIds: selected });
-  const valid = validateTree(result.tree);
-  if (!valid.ok) throw new BizError(`K\u1EBFt qu\u1EA3 s\u1EEDa kh\xF4ng h\u1EE3p l\u1EC7: ${valid.errors.slice(0, 3).join("; ")}`);
-  const diff = diffTrees(current.tree, result.tree);
+  const result2 = applyPatch(current.tree, ops, { selectedIds: selected });
+  const valid = validateTree(result2.tree);
+  if (!valid.ok) throw new BizError(`Invalid edit result: ${valid.errors.slice(0, 3).join("; ")}`);
+  const diff = diffTrees(current.tree, result2.tree);
   const changed = [.../* @__PURE__ */ new Set([...diff.added, ...diff.changed])];
   if (!changed.length && !diff.removed.length) {
-    return { version: null, summary: summary || "Kh\xF4ng c\xF3 thay \u0111\u1ED5i n\xE0o \u0111\u01B0\u1EE3c \xE1p d\u1EE5ng", rejected: result.rejected.map((r) => ({ reason: r.reason })), diff };
+    return { version: null, summary: summary || "No changes were applied", rejected: result2.rejected.map((r) => ({ reason: r.reason })), diff };
   }
-  const version = addVersion(screenId, {
-    kind: "edit",
-    prompt: [input.prompt, ...annotations.map((a) => `[B\xECnh lu\u1EADn] ${a.comment}`)].filter(Boolean).join("\n"),
-    scope: selected.length ? "region" : "global",
-    selectedIds: selected,
-    changedIds: changed,
-    rejected: result.rejected.map((r) => ({ reason: r.reason })),
-    tree: result.tree
+  const version = tx(() => {
+    const version2 = addVersion(screenId, {
+      kind: "edit",
+      prompt: [input.prompt, ...annotations.map((a) => `[Comment] ${a.comment}`)].filter(Boolean).join("\n"),
+      scope: selected.length ? "region" : "global",
+      selectedIds: selected,
+      changedIds: changed,
+      rejected: result2.rejected.map((r) => ({ reason: r.reason })),
+      tree: result2.tree
+    });
+    if (annotations.length) setAnnotationStatus(annotations.map((a) => a.id), "sent");
+    draftAfterChange(screen, actorId);
+    return version2;
   });
-  if (annotations.length) setAnnotationStatus(annotations.map((a) => a.id), "sent");
-  if (screen.status === "approved") {
-    updateScreen(screenId, { status: "draft" });
-    markOutdated(screen.moduleId);
-  }
   return { version, summary, rejected: version.rejected, diff };
 }
-function revertScreen(screenId, versionId) {
+function revertScreen(screenId, versionId, actorId) {
   const screen = mustScreen(screenId);
   const target = getVersion(versionId);
-  if (!target || target.screenId !== screenId) throw new BizError("Phi\xEAn b\u1EA3n kh\xF4ng h\u1EE3p l\u1EC7");
+  if (!target || target.screenId !== screenId) throw new BizError("Invalid version");
   const current = screen.currentVersionId ? getVersion(screen.currentVersionId) : null;
   const diff = current ? diffTrees(current.tree, target.tree) : { added: [], changed: [], removed: [] };
-  const version = addVersion(screenId, { kind: "revert", prompt: `Kh\xF4i ph\u1EE5c phi\xEAn b\u1EA3n v${target.number}`, changedIds: [...diff.added, ...diff.changed], tree: target.tree });
+  return tx(() => {
+    const version = addVersion(screenId, { kind: "revert", prompt: `Restore version v${target.number}`, changedIds: [...diff.added, ...diff.changed], tree: target.tree });
+    draftAfterChange(screen, actorId);
+    return version;
+  });
+}
+function setScreenApproval(screenId, approved, actorId) {
+  const screen = mustScreen(screenId);
+  return tx(() => {
+    updateScreen(screenId, { status: approved ? "approved" : "draft" });
+    screenEvent(approved ? "artifact.approved" : "artifact.unapproved", screen, actorId);
+    if (!approved) markStale(screen.moduleId, actorId);
+    return getScreen(screenId);
+  });
+}
+function toPx(m, b, pageWidth) {
+  const cx = pageWidth / m.config.gx, cy = m.config.cellY;
+  return [Math.round(b[0] * cx), b[1] * cy, Math.round((b[2] + 1) * cx), (b[3] + 1) * cy];
+}
+function mustRecursive() {
+  const rm = getRecursive();
+  if (!rm) throw new BizError("The layout suggestion model is not available (model/recursive-layout.json)", 503);
+  return rm;
+}
+function currentVersion(screenId) {
+  const screen = mustScreen(screenId);
+  if (!screen.currentVersionId) throw new BizError("The screen has no versions yet");
+  return { screen, v: getVersion(screen.currentVersionId) };
+}
+function focusContainer(tree, nodeIds) {
+  const n = nodeIds.map((id) => findNode(tree, id)).find(Boolean);
+  if (!n) return null;
+  return isContainer(n.type) ? n.id : findParent(tree, n.id)?.id ?? null;
+}
+function layoutSuggestions(screenId, input) {
+  const rm = mustRecursive();
+  const { v } = currentVersion(screenId);
+  const layout = input.layout;
+  if (!layout || !(layout.pageWidth > 0) || !Object.keys(layout.boxes).length) throw new BizError("Missing bounding boxes of the elements on the canvas");
+  const boxes = {};
+  for (const [id, b] of Object.entries(layout.boxes)) boxes[id] = toGrid(rm, { x: b[0], y: b[1], x2: b[2], y2: b[3] }, layout.pageWidth);
+  const focus = focusContainer(v.tree, input.nodeIds);
+  const model = { kind: "recursive", trees: Number(rm.meta.trees ?? 0), roots: Number(rm.meta.roots ?? 0) };
+  if (input.mode === "complete") {
+    const items2 = completeLayout(rm, v.tree, boxes, focus ?? v.tree.id).map((g) => ({ ...g, boxPx: toPx(rm, g.box, layout.pageWidth) }));
+    return { mode: "complete", versionId: v.id, focusId: focus, items: items2, model };
+  }
+  const found = focus ? [nextInContainer(rm, v.tree, boxes, focus)].filter((x) => x !== null) : nextElements(rm, v.tree, boxes).slice(0, 3);
+  const items = found.map((e) => ({ ...e, boxPx: toPx(rm, e.box, layout.pageWidth), parentLabel: nodeLabel(findNode(v.tree, e.parentId)) }));
+  return { mode: "next", versionId: v.id, focusId: focus, items, model };
+}
+function acceptLayout(screenId, input, actorId) {
+  const { screen, v } = currentVersion(screenId);
+  if (input.versionId && input.versionId !== v.id) throw new BizError("The screen has changed \u2013 the old suggestions no longer apply, reload the suggestions", 409);
+  if (!input.items.length || input.items.length > 100) throw new BizError("Invalid element list");
+  const refs = /* @__PURE__ */ new Map();
+  const roots = [];
+  for (const it of input.items) {
+    const node = defaultNode2(it.type, newId(it.type.toLowerCase()));
+    if (!node) throw new BizError(`Invalid element type: ${it.type}`);
+    refs.set(it.ref, node);
+    const parentRef = refs.get(it.parentId);
+    if (parentRef) {
+      if (!isContainer(parentRef.type)) throw new BizError(`${parentRef.type} cannot contain child elements`);
+      (parentRef.children ??= []).push(node);
+    } else {
+      const parent = findNode(v.tree, it.parentId);
+      if (!parent || !isContainer(parent.type)) throw new BizError(`Container ${it.parentId} not found`);
+      roots.push({ item: it, node });
+    }
+  }
+  const tree = cloneTree(v.tree);
+  const byParent = /* @__PURE__ */ new Map();
+  for (const r of roots) byParent.set(r.item.parentId, [...byParent.get(r.item.parentId) ?? [], r]);
+  const added = [];
+  for (const [pid, list] of byParent) {
+    const parent = findNode(tree, pid);
+    const kids = parent.children ??= [];
+    list.sort((a, b) => a.item.index - b.item.index).forEach((r, k) => {
+      kids.splice(Math.max(0, Math.min(kids.length, r.item.index + k)), 0, r.node);
+    });
+  }
+  for (const n of refs.values()) added.push(n.id);
+  const valid = validateTree(tree);
+  if (!valid.ok) throw new BizError(`Invalid result: ${valid.errors.slice(0, 3).join("; ")}`);
+  const desc = roots.map((r) => `${r.node.type} into ${nodeLabel(findNode(v.tree, r.item.parentId))}`).join(", ");
+  const version = tx(() => {
+    const version2 = addVersion(screenId, {
+      kind: "layout",
+      prompt: `Accepted layout suggestion (Recursive, Li et al. 2020): added ${added.length} element(s) \u2013 ${desc}`,
+      scope: "region",
+      selectedIds: [...byParent.keys()],
+      changedIds: added,
+      tree
+    });
+    draftAfterChange(screen, actorId);
+    return version2;
+  });
+  return { version, added };
+}
+function manualEdit(screenId, input, actorId) {
+  const { screen, v } = currentVersion(screenId);
+  const tree = cloneTree(v.tree);
+  const node = findNode(tree, input.id);
+  const parent = node ? findParent(tree, input.id) : null;
+  if (!node || !parent) throw new BizError("Element not found (the root Page cannot be deleted or moved)");
+  const kids = parent.children;
+  const i = kids.indexOf(node);
+  let changed = [];
+  let what = "";
+  if (input.op === "remove") {
+    kids.splice(i, 1);
+    what = `delete ${nodeLabel(node)}`;
+  } else {
+    const j = input.op === "up" ? i - 1 : i + 1;
+    if (j < 0 || j >= kids.length) throw new BizError("The element is already at the start/end of the container");
+    [kids[i], kids[j]] = [kids[j], kids[i]];
+    changed = [node.id];
+    what = `move ${nodeLabel(node)} ${input.op === "up" ? "up" : "down"}`;
+  }
+  const version = tx(() => {
+    const version2 = addVersion(screenId, { kind: "manual", prompt: `Manual edit: ${what}`, scope: "region", selectedIds: [parent.id], changedIds: changed, tree });
+    draftAfterChange(screen, actorId);
+    return version2;
+  });
+  return { version };
+}
+function draftAfterChange(screen, actorId) {
+  const ref2 = { kind: "screen", id: screen.id, moduleId: screen.moduleId };
+  if (screen.status !== "draft") setArtifactState(ref2, { status: "draft" });
+  screenEvent("artifact.drafted", screen, actorId);
   if (screen.status === "approved") {
-    updateScreen(screenId, { status: "draft" });
-    markOutdated(screen.moduleId);
-  }
-  return version;
+    screenEvent("artifact.unapproved", screen, actorId);
+    markStale(screen.moduleId, actorId);
+  } else if (screen.status === "done") staleTests(screen.moduleId, actorId);
 }
-function setScreenApproval(screenId, approved) {
-  const screen = mustScreen(screenId);
-  updateScreen(screenId, { status: approved ? "approved" : "draft" });
-  if (!approved) markOutdated(screen.moduleId);
-  if (approved && screen.currentVersionId) {
-    const v = getVersion(screen.currentVersionId);
-    if (v) learnFromScreen(screenId, v.id, v.tree);
-  }
-  return getScreen(screenId);
-}
-function screenSuggestions(screenId, nodeIds) {
-  const screen = mustScreen(screenId);
-  if (!screen.currentVersionId) throw new BizError("M\xE0n h\xECnh ch\u01B0a c\xF3 phi\xEAn b\u1EA3n");
-  const v = getVersion(screen.currentVersionId);
-  const openAnnotationNodeIds = listAnnotationsForModule(screen.moduleId).filter((a) => a.screenId === screenId && a.status === "open").flatMap((a) => a.nodeIds);
-  const { model: model2, info } = getPredictor();
-  const suggestions = suggest(model2, v.tree, { selectedIds: nodeIds, openAnnotationNodeIds, k: 5 });
-  return { suggestions, versionId: v.id, model: info };
-}
-function approvedModel(moduleId) {
-  const screens = listScreens(moduleId).filter((s) => s.status === "approved" && s.tree);
-  if (!screens.length) throw new BizError("BR-01: C\u1EA7n \xEDt nh\u1EA5t m\u1ED9t m\xE0n h\xECnh \u1EDF tr\u1EA1ng th\xE1i \u0110\xE3 duy\u1EC7t tr\u01B0\u1EDBc khi sinh t\xE0i li\u1EC7u");
-  return extractModel(screens.map((s) => ({ id: s.id, name: s.name, tree: s.tree })));
+function staleTests(moduleId, actorId) {
+  const m = getModule(moduleId);
+  if (!m || !live(m.testsStatus)) return;
+  setArtifactState({ kind: "tests", id: moduleId, moduleId }, { status: "outdated" });
+  moduleEvent("artifact.stale", "tests", moduleId, actorId);
 }
 function getDesignModel(moduleId) {
   mustModule(moduleId);
-  const screens = listScreens(moduleId).filter((s) => s.tree);
-  return extractModel(screens.map((s) => ({ id: s.id, name: s.name, tree: s.tree })));
+  const screens = listScreens(moduleId).filter((s2) => s2.tree);
+  return extractModel(screens.map((s2) => ({ id: s2.id, name: s2.name, tree: s2.tree })));
 }
-async function generateDocs(moduleId) {
+async function generateDocs(moduleId, actorId) {
   const m = mustModule(moduleId);
-  const model2 = approvedModel(moduleId);
-  const { useCases, requirements } = await generateUseCases({ moduleId, moduleName: m.name, requirementInput: m.requirementInput, model: model2 });
+  const model = getDesignModel(moduleId);
+  const { useCases, requirements } = await generateUseCases({ moduleId, moduleName: m.name, requirementInput: m.requirementInput, model });
   saveUseCasesAndRequirements(moduleId, useCases, requirements);
   const [srs, sequences] = await Promise.all([
-    generateSrs({ moduleId, moduleName: m.name, requirementInput: m.requirementInput, model: model2, useCases, requirements }),
-    generateSequences({ moduleId, useCases, model: model2 })
+    generateSrs({ moduleId, moduleName: m.name, requirementInput: m.requirementInput, model, useCases, requirements }),
+    generateSequences({ moduleId, useCases, model })
   ]);
-  saveSrs(moduleId, srs);
-  saveSequences(moduleId, sequences);
-  updateModule(moduleId, { docsStatus: "draft", testsStatus: m.testsStatus === "none" ? "none" : "outdated" });
-  return getDocs(moduleId);
+  tx(() => {
+    saveSrs(moduleId, srs);
+    saveSequences(moduleId, sequences);
+    updateModule(moduleId, { docsStatus: "draft", testsStatus: m.testsStatus === "none" ? "none" : "outdated" });
+    if (m.docsStatus === "approved") moduleEvent("artifact.unapproved", "docs", moduleId, actorId);
+    moduleEvent("artifact.drafted", "docs", moduleId, actorId);
+    if (live(m.testsStatus)) moduleEvent("artifact.stale", "tests", moduleId, actorId);
+  });
+  return getLegacyDocs(moduleId);
 }
-async function refineDoc(moduleId, target, instruction) {
+async function refineDoc(moduleId, target, instruction, actorId) {
   const m = mustModule(moduleId);
-  if (!instruction.trim()) throw new BizError("Nh\u1EADp y\xEAu c\u1EA7u ch\u1EC9nh");
-  const docs = getDocs(moduleId);
-  const model2 = getDesignModel(moduleId);
+  if (!instruction.trim()) throw new BizError("Enter a refinement instruction");
+  const docs = getLegacyDocs(moduleId);
+  const model = getDesignModel(moduleId);
   if (target.startsWith("SEQ:")) {
     const code = target.slice(4);
-    const seq = docs.sequences.find((s) => s.useCaseCode === code);
-    if (!seq) throw new BizError("Kh\xF4ng t\xECm th\u1EA5y s\u01A1 \u0111\u1ED3");
+    const seq = docs.sequences.find((s2) => s2.useCaseCode === code);
+    if (!seq) throw new BizError("Diagram not found");
     const next = await refineSequence({ moduleId, seq, instruction, uc: docs.useCases.find((u) => u.code === code) });
     saveSequence(moduleId, next);
   } else if (target.startsWith("SRS:")) {
-    const key = target.slice(4);
-    if (!docs.srs) throw new BizError("Ch\u01B0a c\xF3 SRS");
-    const section = docs.srs.sections.find((s) => s.key === key);
-    if (!section) throw new BizError("Kh\xF4ng t\xECm th\u1EA5y m\u1EE5c SRS");
+    const key2 = target.slice(4);
+    if (!docs.srs) throw new BizError("There is no SRS yet");
+    const section = docs.srs.sections.find((s2) => s2.key === key2);
+    if (!section) throw new BizError("SRS section not found");
     const next = await refineSrsSection({ moduleId, section, instruction, context: `Module ${m.name}. UC: ${docs.useCases.map((u) => `${u.code} ${u.name}`).join("; ")}` });
-    saveSrs(moduleId, { sections: docs.srs.sections.map((s) => s.key === key ? next : s) });
+    saveSrs(moduleId, { sections: docs.srs.sections.map((s2) => s2.key === key2 ? next : s2) });
   } else {
     const uc = docs.useCases.find((u) => u.code === target);
-    if (!uc) throw new BizError("Kh\xF4ng t\xECm th\u1EA5y Use Case");
-    const next = await refineUseCase({ moduleId, uc, instruction, model: model2 });
+    if (!uc) throw new BizError("Use case not found");
+    const next = await refineUseCase({ moduleId, uc, instruction, model });
     saveUseCase(moduleId, next);
   }
-  if (m.docsStatus === "approved") updateModule(moduleId, { docsStatus: "draft" });
-  if (m.testsStatus !== "none") updateModule(moduleId, { testsStatus: "outdated" });
-  return getDocs(moduleId);
+  tx(() => {
+    if (m.docsStatus === "approved") updateModule(moduleId, { docsStatus: "draft" });
+    if (m.testsStatus !== "none") updateModule(moduleId, { testsStatus: "outdated" });
+    if (m.docsStatus === "approved") moduleEvent("artifact.unapproved", "docs", moduleId, actorId);
+    moduleEvent("artifact.drafted", "docs", moduleId, actorId);
+    if (live(m.testsStatus)) moduleEvent("artifact.stale", "tests", moduleId, actorId);
+  });
+  return getLegacyDocs(moduleId);
 }
 function updateRequirements(moduleId, reqs) {
   mustModule(moduleId);
   saveRequirements(moduleId, reqs);
-  return getDocs(moduleId);
+  return getLegacyDocs(moduleId);
 }
-function approveDocs(moduleId, approved) {
+function approveDocs(moduleId, approved, actorId) {
   const m = mustModule(moduleId);
-  if (m.docsStatus === "none") throw new BizError("Ch\u01B0a c\xF3 t\xE0i li\u1EC7u \u0111\u1EC3 duy\u1EC7t");
-  updateModule(moduleId, { docsStatus: approved ? "approved" : "draft" });
-  return getModule(moduleId);
+  if (m.docsStatus === "none") throw new BizError("There are no documents to approve yet");
+  return tx(() => {
+    updateModule(moduleId, { docsStatus: approved ? "approved" : "draft" });
+    moduleEvent(approved ? "artifact.approved" : "artifact.unapproved", "docs", moduleId, actorId);
+    if (!approved) cascadeOutdated(moduleId, actorId);
+    return getModule(moduleId);
+  });
 }
-async function generateTests2(moduleId) {
+function testsReadiness(moduleId) {
   const m = mustModule(moduleId);
-  if (m.docsStatus !== "approved") throw new BizError("C\u1EA7n duy\u1EC7t t\xE0i li\u1EC7u (Approved) tr\u01B0\u1EDBc khi sinh test case");
-  const docs = getDocs(moduleId);
-  const model2 = getDesignModel(moduleId);
-  const tests = await generateTests({ moduleId, useCases: docs.useCases, requirements: docs.requirements, model: model2 });
-  saveTests(moduleId, tests);
-  updateModule(moduleId, { testsStatus: "draft" });
+  const frd = getArtifactState({ kind: "doc", id: moduleId, moduleId, sub: "FRD_NFR" });
+  const st = frd?.status ?? "none";
+  if (st === "done" || st === "approved") {
+    if (!getDocs(moduleId).requirements.length) return { ready: false, reason: `${DOC_KIND_LABEL.FRD_NFR} has no requirements (FR/NFR) to generate test cases from`, source: null, frdStatus: st };
+    return { ready: true, reason: "", source: "v5", frdStatus: st };
+  }
+  if (st === "none" && m.docsStatus === "approved") return { ready: true, reason: "", source: "legacy", frdStatus: st };
+  return { ready: false, reason: `${DOC_KIND_LABEL.FRD_NFR} must be Done before generating test cases (current: ${STATUS_VI[st]})`, source: null, frdStatus: st };
+}
+async function generateTests2(moduleId, actorId, baseRev) {
+  const m = mustModule(moduleId);
+  assertRev(m.testsRev ?? 0, baseRev);
+  const r = testsReadiness(moduleId);
+  if (!r.ready) throw new BizError(r.reason);
+  const docs = r.source === "legacy" ? getLegacyDocs(moduleId) : getDocs(moduleId);
+  const model = getDesignModel(moduleId);
+  const tests = await generateTests({ moduleId, useCases: docs.useCases, requirements: docs.requirements, model });
+  const ref2 = { kind: "tests", id: moduleId, moduleId };
+  tx(() => {
+    assertRev(getModule(moduleId)?.testsRev ?? 0, baseRev);
+    saveTests(moduleId, tests);
+    setArtifactState(ref2, { status: "draft" });
+    bumpRev(ref2, actorId);
+    moduleEvent("artifact.drafted", "tests", moduleId, actorId);
+  });
   return tests;
 }
 function trace(moduleId) {
   mustModule(moduleId);
   const docs = getDocs(moduleId);
   const tests = getTests(moduleId);
-  const screens = listScreens(moduleId).map((s) => ({ id: s.id, name: s.name }));
-  return { ...buildTrace(docs.useCases, docs.requirements, tests), screens, useCases: docs.useCases.map((u) => ({ code: u.code, name: u.name, screenIds: u.screenIds })) };
+  const screenRows = listScreens(moduleId);
+  const stories = listModuleStories(moduleId);
+  const matrix = buildTraceMatrix({
+    stories,
+    useCases: docs.useCases,
+    requirements: docs.requirements,
+    screens: screenRows.map((s2) => ({ id: s2.id, name: s2.name, title: String(s2.tree?.props?.title ?? "") })),
+    tests
+  });
+  return {
+    ...buildTrace(docs.useCases, docs.requirements, tests),
+    screens: screenRows.map((s2) => ({ id: s2.id, name: s2.name, status: s2.status })),
+    useCases: docs.useCases.map((u) => ({ code: u.code, name: u.name, screenIds: u.screenIds })),
+    stories: stories.map((st) => ({ code: st.code, asA: st.asA, iWant: st.iWant, soThat: st.soThat })),
+    requirements: docs.requirements.map((r) => ({ code: r.code, type: r.type, statement: r.statement })),
+    tests: tests.map((t) => ({ code: t.code, title: t.title })),
+    matrix
+  };
 }
 
 // node_modules/docx/dist/index.mjs
@@ -12788,11 +14658,11 @@ var __esmMin = (fn, res, err) => () => {
 };
 var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod), cb = null), mod.exports);
 var __copyProps2 = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") for (var keys = __getOwnPropNames2(from), i = 0, n = keys.length, key; i < n; i++) {
-    key = keys[i];
-    if (!__hasOwnProp2.call(to, key) && key !== except) __defProp2(to, key, {
-      get: ((k) => from[k]).bind(null, key),
-      enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable
+  if (from && typeof from === "object" || typeof from === "function") for (var keys = __getOwnPropNames2(from), i = 0, n = keys.length, key2; i < n; i++) {
+    key2 = keys[i];
+    if (!__hasOwnProp2.call(to, key2) && key2 !== except) __defProp2(to, key2, {
+      get: ((k) => from[k]).bind(null, key2),
+      enumerable: !(desc = __getOwnPropDesc2(from, key2)) || desc.enumerable
     });
   }
   return to;
@@ -12942,9 +14812,9 @@ var IgnoreIfEmptyXmlComponent = class extends XmlComponent {
   * @returns The XML-serializable object, or undefined if empty
   */
   prepForXml(context) {
-    const result = super.prepForXml(context);
-    if (this.includeIfEmpty) return result;
-    return result && (typeof result[this.rootKey] !== "object" || Object.keys(result[this.rootKey]).length) ? result : void 0;
+    const result2 = super.prepForXml(context);
+    if (this.includeIfEmpty) return result2;
+    return result2 && (typeof result2[this.rootKey] !== "object" || Object.keys(result2[this.rootKey]).length) ? result2 : void 0;
   }
 };
 function ownKeys(e, r) {
@@ -12996,9 +14866,9 @@ var XmlAttributeComponent = class extends BaseXmlComponent {
   */
   prepForXml(_) {
     const attrs = {};
-    Object.entries(this.root).forEach(([key, value]) => {
+    Object.entries(this.root).forEach(([key2, value]) => {
       if (value !== void 0) {
-        const newKey = this.xmlKeys && this.xmlKeys[key] || key;
+        const newKey = this.xmlKeys && this.xmlKeys[key2] || key2;
         attrs[newKey] = value;
       }
     });
@@ -13026,7 +14896,7 @@ var NextAttributeComponent = class extends BaseXmlComponent {
   * @returns Object with _attr key containing the attributes
   */
   prepForXml(_) {
-    return { _attr: Object.values(this.root).filter(({ value }) => value !== void 0).reduce((acc, { key, value }) => _objectSpread2(_objectSpread2({}, acc), {}, { [key]: value }), {}) };
+    return { _attr: Object.values(this.root).filter(({ value }) => value !== void 0).reduce((acc, { key: key2, value }) => _objectSpread2(_objectSpread2({}, acc), {}, { [key2]: value }), {}) };
   }
 };
 var Attributes = class extends XmlAttributeComponent {
@@ -13117,7 +14987,7 @@ var require_events = /* @__PURE__ */ __commonJSMin(((exports, module) => {
   EventEmitter.prototype.getMaxListeners = function getMaxListeners() {
     return _getMaxListeners(this);
   };
-  EventEmitter.prototype.emit = function emit(type) {
+  EventEmitter.prototype.emit = function emit2(type) {
     var args = [];
     for (var i = 1; i < arguments.length; i++) args.push(arguments[i]);
     var doError = type === "error";
@@ -13132,12 +15002,12 @@ var require_events = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       err.context = er;
       throw err;
     }
-    var handler = events[type];
-    if (handler === void 0) return false;
-    if (typeof handler === "function") ReflectApply(handler, this, args);
+    var handler2 = events[type];
+    if (handler2 === void 0) return false;
+    if (typeof handler2 === "function") ReflectApply(handler2, this, args);
     else {
-      var len = handler.length;
-      var listeners = arrayClone(handler, len);
+      var len = handler2.length;
+      var listeners = arrayClone(handler2, len);
       for (var i = 0; i < len; ++i) ReflectApply(listeners[i], this, args);
     }
     return true;
@@ -13260,11 +15130,11 @@ var require_events = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     }
     if (arguments.length === 0) {
       var keys = Object.keys(events);
-      var key;
+      var key2;
       for (i = 0; i < keys.length; ++i) {
-        key = keys[i];
-        if (key === "removeListener") continue;
-        this.removeAllListeners(key);
+        key2 = keys[i];
+        if (key2 === "removeListener") continue;
+        this.removeAllListeners(key2);
       }
       this.removeAllListeners("removeListener");
       this._events = /* @__PURE__ */ Object.create(null);
@@ -13321,29 +15191,29 @@ var require_events = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     for (var i = 0; i < ret.length; ++i) ret[i] = arr2[i].listener || arr2[i];
     return ret;
   }
-  function once(emitter, name) {
-    return new Promise(function(resolve4, reject) {
+  function once(emitter, name2) {
+    return new Promise(function(resolve5, reject) {
       function errorListener(err) {
-        emitter.removeListener(name, resolver);
+        emitter.removeListener(name2, resolver);
         reject(err);
       }
       function resolver() {
         if (typeof emitter.removeListener === "function") emitter.removeListener("error", errorListener);
-        resolve4([].slice.call(arguments));
+        resolve5([].slice.call(arguments));
       }
-      eventTargetAgnosticAddListener(emitter, name, resolver, { once: true });
-      if (name !== "error") addErrorHandlerIfEventEmitter(emitter, errorListener, { once: true });
+      eventTargetAgnosticAddListener(emitter, name2, resolver, { once: true });
+      if (name2 !== "error") addErrorHandlerIfEventEmitter(emitter, errorListener, { once: true });
     });
   }
-  function addErrorHandlerIfEventEmitter(emitter, handler, flags) {
-    if (typeof emitter.on === "function") eventTargetAgnosticAddListener(emitter, "error", handler, flags);
+  function addErrorHandlerIfEventEmitter(emitter, handler2, flags) {
+    if (typeof emitter.on === "function") eventTargetAgnosticAddListener(emitter, "error", handler2, flags);
   }
-  function eventTargetAgnosticAddListener(emitter, name, listener, flags) {
+  function eventTargetAgnosticAddListener(emitter, name2, listener, flags) {
     if (typeof emitter.on === "function") {
-      if (flags.once) emitter.once(name, listener);
-      else emitter.on(name, listener);
-    } else if (typeof emitter.addEventListener === "function") emitter.addEventListener(name, function wrapListener(arg) {
-      if (flags.once) emitter.removeEventListener(name, wrapListener);
+      if (flags.once) emitter.once(name2, listener);
+      else emitter.on(name2, listener);
+    } else if (typeof emitter.addEventListener === "function") emitter.addEventListener(name2, function wrapListener(arg) {
+      if (flags.once) emitter.removeEventListener(name2, wrapListener);
       listener(arg);
     });
     else throw new TypeError('The "emitter" argument must be of type EventEmitter. Received type ' + typeof emitter);
@@ -13500,10 +15370,10 @@ var init_dist = __esmMin((() => {
   process2.emit = noop;
   process2.prependListener = noop;
   process2.prependOnceListener = noop;
-  process2.listeners = function(name) {
+  process2.listeners = function(name2) {
     return [];
   };
-  process2.binding = function(name) {
+  process2.binding = function(name2) {
     throw new Error("process.binding is not supported");
   };
   process2.cwd = function() {
@@ -13535,51 +15405,51 @@ var require_base64_js = /* @__PURE__ */ __commonJSMin(((exports) => {
   }
   revLookup["-".charCodeAt(0)] = 62;
   revLookup["_".charCodeAt(0)] = 63;
-  function getLens(b64) {
-    var len2 = b64.length;
+  function getLens(b642) {
+    var len2 = b642.length;
     if (len2 % 4 > 0) throw new Error("Invalid string. Length must be a multiple of 4");
-    var validLen = b64.indexOf("=");
+    var validLen = b642.indexOf("=");
     if (validLen === -1) validLen = len2;
     var placeHoldersLen = validLen === len2 ? 0 : 4 - validLen % 4;
     return [validLen, placeHoldersLen];
   }
-  function byteLength(b64) {
-    var lens = getLens(b64);
+  function byteLength(b642) {
+    var lens = getLens(b642);
     var validLen = lens[0];
     var placeHoldersLen = lens[1];
     return (validLen + placeHoldersLen) * 3 / 4 - placeHoldersLen;
   }
-  function _byteLength(b64, validLen, placeHoldersLen) {
+  function _byteLength(b642, validLen, placeHoldersLen) {
     return (validLen + placeHoldersLen) * 3 / 4 - placeHoldersLen;
   }
-  function toByteArray(b64) {
+  function toByteArray(b642) {
     var tmp;
-    var lens = getLens(b64);
+    var lens = getLens(b642);
     var validLen = lens[0];
     var placeHoldersLen = lens[1];
-    var arr2 = new Arr(_byteLength(b64, validLen, placeHoldersLen));
+    var arr2 = new Arr(_byteLength(b642, validLen, placeHoldersLen));
     var curByte = 0;
     var len2 = placeHoldersLen > 0 ? validLen - 4 : validLen;
     var i2 = 0;
     for (; i2 < len2; i2 += 4) {
-      tmp = revLookup[b64.charCodeAt(i2)] << 18 | revLookup[b64.charCodeAt(i2 + 1)] << 12 | revLookup[b64.charCodeAt(i2 + 2)] << 6 | revLookup[b64.charCodeAt(i2 + 3)];
+      tmp = revLookup[b642.charCodeAt(i2)] << 18 | revLookup[b642.charCodeAt(i2 + 1)] << 12 | revLookup[b642.charCodeAt(i2 + 2)] << 6 | revLookup[b642.charCodeAt(i2 + 3)];
       arr2[curByte++] = tmp >> 16 & 255;
       arr2[curByte++] = tmp >> 8 & 255;
       arr2[curByte++] = tmp & 255;
     }
     if (placeHoldersLen === 2) {
-      tmp = revLookup[b64.charCodeAt(i2)] << 2 | revLookup[b64.charCodeAt(i2 + 1)] >> 4;
+      tmp = revLookup[b642.charCodeAt(i2)] << 2 | revLookup[b642.charCodeAt(i2 + 1)] >> 4;
       arr2[curByte++] = tmp & 255;
     }
     if (placeHoldersLen === 1) {
-      tmp = revLookup[b64.charCodeAt(i2)] << 10 | revLookup[b64.charCodeAt(i2 + 1)] << 4 | revLookup[b64.charCodeAt(i2 + 2)] >> 2;
+      tmp = revLookup[b642.charCodeAt(i2)] << 10 | revLookup[b642.charCodeAt(i2 + 1)] << 4 | revLookup[b642.charCodeAt(i2 + 2)] >> 2;
       arr2[curByte++] = tmp >> 8 & 255;
       arr2[curByte++] = tmp & 255;
     }
     return arr2;
   }
-  function tripletToBase64(num2) {
-    return lookup[num2 >> 18 & 63] + lookup[num2 >> 12 & 63] + lookup[num2 >> 6 & 63] + lookup[num2 & 63];
+  function tripletToBase64(num3) {
+    return lookup[num3 >> 18 & 63] + lookup[num3 >> 12 & 63] + lookup[num3 >> 6 & 63] + lookup[num3 & 63];
   }
   function encodeChunk(uint8, start, end) {
     var tmp;
@@ -13616,10 +15486,10 @@ var require_ieee754 = /* @__PURE__ */ __commonJSMin(((exports) => {
     var nBits = -7;
     var i = isLE ? nBytes - 1 : 0;
     var d = isLE ? -1 : 1;
-    var s = buffer[offset + i];
+    var s2 = buffer[offset + i];
     i += d;
-    e = s & (1 << -nBits) - 1;
-    s >>= -nBits;
+    e = s2 & (1 << -nBits) - 1;
+    s2 >>= -nBits;
     nBits += eLen;
     for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) ;
     m = e & (1 << -nBits) - 1;
@@ -13627,12 +15497,12 @@ var require_ieee754 = /* @__PURE__ */ __commonJSMin(((exports) => {
     nBits += mLen;
     for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) ;
     if (e === 0) e = 1 - eBias;
-    else if (e === eMax) return m ? NaN : (s ? -1 : 1) * Infinity;
+    else if (e === eMax) return m ? NaN : (s2 ? -1 : 1) * Infinity;
     else {
       m = m + Math.pow(2, mLen);
       e = e - eBias;
     }
-    return (s ? -1 : 1) * m * Math.pow(2, e - mLen);
+    return (s2 ? -1 : 1) * m * Math.pow(2, e - mLen);
   };
   exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
     var e, m, c;
@@ -13642,7 +15512,7 @@ var require_ieee754 = /* @__PURE__ */ __commonJSMin(((exports) => {
     var rt = mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0;
     var i = isLE ? 0 : nBytes - 1;
     var d = isLE ? 1 : -1;
-    var s = value < 0 || value === 0 && 1 / value < 0 ? 1 : 0;
+    var s2 = value < 0 || value === 0 && 1 / value < 0 ? 1 : 0;
     value = Math.abs(value);
     if (isNaN(value) || value === Infinity) {
       m = isNaN(value) ? 1 : 0;
@@ -13674,7 +15544,7 @@ var require_ieee754 = /* @__PURE__ */ __commonJSMin(((exports) => {
     e = e << mLen | m;
     eLen += mLen;
     for (; eLen > 0; buffer[offset + i] = e & 255, i += d, e /= 256, eLen -= 8) ;
-    buffer[offset + i - d] |= s * 128;
+    buffer[offset + i - d] |= s2 * 128;
   };
 }));
 var require_buffer = /* @__PURE__ */ __commonJSMin(((exports) => {
@@ -14141,7 +16011,7 @@ var require_buffer = /* @__PURE__ */ __commonJSMin(((exports) => {
   function ucs2Write(buf, string, offset, length) {
     return blitBuffer(utf16leToBytes(string, buf.length - offset), buf, offset, length);
   }
-  Buffer2.prototype.write = function write(string, offset, length, encoding) {
+  Buffer2.prototype.write = function write2(string, offset, length, encoding) {
     if (offset === void 0) {
       encoding = "utf8";
       length = this.length;
@@ -14911,8 +16781,8 @@ var require_implementation = /* @__PURE__ */ __commonJSMin(((exports, module) =>
     var bound;
     var binder = function() {
       if (this instanceof bound) {
-        var result = target.apply(this, concatty(args, arguments));
-        if (Object(result) === result) return result;
+        var result2 = target.apply(this, concatty(args, arguments));
+        if (Object(result2) === result2) return result2;
         return this;
       }
       return target.apply(that, concatty(args, arguments));
@@ -15131,19 +17001,19 @@ var require_get_intrinsic = /* @__PURE__ */ __commonJSMin(((exports, module) => 
   } catch (e) {
     INTRINSICS["%Error.prototype%"] = getProto(getProto(e));
   }
-  var doEval = function doEval2(name) {
+  var doEval = function doEval2(name2) {
     var value;
-    if (name === "%AsyncFunction%") value = getEvalledConstructor("async function () {}");
-    else if (name === "%GeneratorFunction%") value = getEvalledConstructor("function* () {}");
-    else if (name === "%AsyncGeneratorFunction%") value = getEvalledConstructor("async function* () {}");
-    else if (name === "%AsyncGenerator%") {
+    if (name2 === "%AsyncFunction%") value = getEvalledConstructor("async function () {}");
+    else if (name2 === "%GeneratorFunction%") value = getEvalledConstructor("function* () {}");
+    else if (name2 === "%AsyncGeneratorFunction%") value = getEvalledConstructor("async function* () {}");
+    else if (name2 === "%AsyncGenerator%") {
       var fn = doEval2("%AsyncGeneratorFunction%");
       if (fn) value = fn.prototype;
-    } else if (name === "%AsyncIteratorPrototype%") {
+    } else if (name2 === "%AsyncIteratorPrototype%") {
       var gen = doEval2("%AsyncGenerator%");
       if (gen && getProto) value = getProto(gen.prototype);
     }
-    INTRINSICS[name] = value;
+    INTRINSICS[name2] = value;
     return value;
   };
   var LEGACY_ALIASES = {
@@ -15250,14 +17120,14 @@ var require_get_intrinsic = /* @__PURE__ */ __commonJSMin(((exports, module) => 
     var last = $strSlice(string, -1);
     if (first === "%" && last !== "%") throw new $SyntaxError("invalid intrinsic syntax, expected closing `%`");
     else if (last === "%" && first !== "%") throw new $SyntaxError("invalid intrinsic syntax, expected opening `%`");
-    var result = [];
+    var result2 = [];
     $replace(string, rePropName, function(match, number, quote, subString) {
-      result[result.length] = quote ? $replace(subString, reEscapeChar, "$1") : number || match;
+      result2[result2.length] = quote ? $replace(subString, reEscapeChar, "$1") : number || match;
     });
-    return result;
+    return result2;
   };
-  var getBaseIntrinsic = function getBaseIntrinsic2(name, allowMissing) {
-    var intrinsicName = name;
+  var getBaseIntrinsic = function getBaseIntrinsic2(name2, allowMissing) {
+    var intrinsicName = name2;
     var alias;
     if (hasOwn(LEGACY_ALIASES, intrinsicName)) {
       alias = LEGACY_ALIASES[intrinsicName];
@@ -15266,20 +17136,20 @@ var require_get_intrinsic = /* @__PURE__ */ __commonJSMin(((exports, module) => 
     if (hasOwn(INTRINSICS, intrinsicName)) {
       var value = INTRINSICS[intrinsicName];
       if (value === needsEval) value = doEval(intrinsicName);
-      if (typeof value === "undefined" && !allowMissing) throw new $TypeError("intrinsic " + name + " exists, but is not available. Please file an issue!");
+      if (typeof value === "undefined" && !allowMissing) throw new $TypeError("intrinsic " + name2 + " exists, but is not available. Please file an issue!");
       return {
         alias,
         name: intrinsicName,
         value
       };
     }
-    throw new $SyntaxError("intrinsic " + name + " does not exist!");
+    throw new $SyntaxError("intrinsic " + name2 + " does not exist!");
   };
-  module.exports = function GetIntrinsic(name, allowMissing) {
-    if (typeof name !== "string" || name.length === 0) throw new $TypeError("intrinsic name must be a non-empty string");
+  module.exports = function GetIntrinsic(name2, allowMissing) {
+    if (typeof name2 !== "string" || name2.length === 0) throw new $TypeError("intrinsic name must be a non-empty string");
     if (arguments.length > 1 && typeof allowMissing !== "boolean") throw new $TypeError('"allowMissing" argument must be a boolean');
-    if ($exec(/^%?[^%]*%?$/, name) === null) throw new $SyntaxError("`%` may not be present anywhere but at the beginning and end of the intrinsic name");
-    var parts = stringToPath(name);
+    if ($exec(/^%?[^%]*%?$/, name2) === null) throw new $SyntaxError("`%` may not be present anywhere but at the beginning and end of the intrinsic name");
+    var parts = stringToPath(name2);
     var intrinsicBaseName = parts.length > 0 ? parts[0] : "";
     var intrinsic = getBaseIntrinsic("%" + intrinsicBaseName + "%", allowMissing);
     var intrinsicRealName = intrinsic.name;
@@ -15301,7 +17171,7 @@ var require_get_intrinsic = /* @__PURE__ */ __commonJSMin(((exports, module) => 
       if (hasOwn(INTRINSICS, intrinsicRealName)) value = INTRINSICS[intrinsicRealName];
       else if (value != null) {
         if (!(part in value)) {
-          if (!allowMissing) throw new $TypeError("base intrinsic for " + name + " exists, but the property is not available.");
+          if (!allowMissing) throw new $TypeError("base intrinsic for " + name2 + " exists, but the property is not available.");
           return;
         }
         if ($gOPD && i + 1 >= parts.length) {
@@ -15323,9 +17193,9 @@ var require_call_bound = /* @__PURE__ */ __commonJSMin(((exports, module) => {
   var GetIntrinsic = require_get_intrinsic();
   var callBindBasic = require_call_bind_apply_helpers();
   var $indexOf = callBindBasic([GetIntrinsic("%String.prototype.indexOf%")]);
-  module.exports = function callBoundIntrinsic(name, allowMissing) {
-    var intrinsic = GetIntrinsic(name, !!allowMissing);
-    if (typeof intrinsic === "function" && $indexOf(name, ".prototype.") > -1) return callBindBasic([intrinsic]);
+  module.exports = function callBoundIntrinsic(name2, allowMissing) {
+    var intrinsic = GetIntrinsic(name2, !!allowMissing);
+    if (typeof intrinsic === "function" && $indexOf(name2, ".prototype.") > -1) return callBindBasic([intrinsic]);
     return intrinsic;
   };
 }));
@@ -15647,10 +17517,10 @@ var require_which_typed_array = /* @__PURE__ */ __commonJSMin(((exports, module)
     forEach(
       cache,
       /** @type {(getter: Getter, name: `\$${import('.').TypedArrayName}`) => void} */
-      function(getter, name) {
+      function(getter, name2) {
         if (!found) try {
           getter(value);
-          found = $slice(name, 1);
+          found = $slice(name2, 1);
         } catch (e) {
         }
       }
@@ -16034,23 +17904,23 @@ var require_util = /* @__PURE__ */ __commonJSMin(((exports) => {
     if (isError(value) && (keys.indexOf("message") >= 0 || keys.indexOf("description") >= 0)) return formatError(value);
     if (keys.length === 0) {
       if (isFunction(value)) {
-        var name = value.name ? ": " + value.name : "";
-        return ctx.stylize("[Function" + name + "]", "special");
+        var name2 = value.name ? ": " + value.name : "";
+        return ctx.stylize("[Function" + name2 + "]", "special");
       }
       if (isRegExp(value)) return ctx.stylize(RegExp.prototype.toString.call(value), "regexp");
       if (isDate(value)) return ctx.stylize(Date.prototype.toString.call(value), "date");
       if (isError(value)) return formatError(value);
     }
-    var base2 = "", array = false, braces = ["{", "}"];
+    var base = "", array = false, braces = ["{", "}"];
     if (isArray(value)) {
       array = true;
       braces = ["[", "]"];
     }
-    if (isFunction(value)) base2 = " [Function" + (value.name ? ": " + value.name : "") + "]";
-    if (isRegExp(value)) base2 = " " + RegExp.prototype.toString.call(value);
-    if (isDate(value)) base2 = " " + Date.prototype.toUTCString.call(value);
-    if (isError(value)) base2 = " " + formatError(value);
-    if (keys.length === 0 && (!array || value.length == 0)) return braces[0] + base2 + braces[1];
+    if (isFunction(value)) base = " [Function" + (value.name ? ": " + value.name : "") + "]";
+    if (isRegExp(value)) base = " " + RegExp.prototype.toString.call(value);
+    if (isDate(value)) base = " " + Date.prototype.toUTCString.call(value);
+    if (isError(value)) base = " " + formatError(value);
+    if (keys.length === 0 && (!array || value.length == 0)) return braces[0] + base + braces[1];
     if (recurseTimes < 0) {
       if (isRegExp(value)) return ctx.stylize(RegExp.prototype.toString.call(value), "regexp");
       else return ctx.stylize("[Object]", "special");
@@ -16058,11 +17928,11 @@ var require_util = /* @__PURE__ */ __commonJSMin(((exports) => {
     ctx.seen.push(value);
     var output;
     if (array) output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
-    else output = keys.map(function(key) {
-      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
+    else output = keys.map(function(key2) {
+      return formatProperty(ctx, value, recurseTimes, visibleKeys, key2, array);
     });
     ctx.seen.pop();
-    return reduceToSingleString(output, base2, braces);
+    return reduceToSingleString(output, base, braces);
   }
   function formatPrimitive(ctx, value) {
     if (isUndefined(value)) return ctx.stylize("undefined", "undefined");
@@ -16081,18 +17951,18 @@ var require_util = /* @__PURE__ */ __commonJSMin(((exports) => {
     var output = [];
     for (var i = 0, l = value.length; i < l; ++i) if (hasOwnProperty(value, String(i))) output.push(formatProperty(ctx, value, recurseTimes, visibleKeys, String(i), true));
     else output.push("");
-    keys.forEach(function(key) {
-      if (!key.match(/^\d+$/)) output.push(formatProperty(ctx, value, recurseTimes, visibleKeys, key, true));
+    keys.forEach(function(key2) {
+      if (!key2.match(/^\d+$/)) output.push(formatProperty(ctx, value, recurseTimes, visibleKeys, key2, true));
     });
     return output;
   }
-  function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
-    var name, str2, desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
+  function formatProperty(ctx, value, recurseTimes, visibleKeys, key2, array) {
+    var name2, str2, desc = Object.getOwnPropertyDescriptor(value, key2) || { value: value[key2] };
     if (desc.get) {
       if (desc.set) str2 = ctx.stylize("[Getter/Setter]", "special");
       else str2 = ctx.stylize("[Getter]", "special");
     } else if (desc.set) str2 = ctx.stylize("[Setter]", "special");
-    if (!hasOwnProperty(visibleKeys, key)) name = "[" + key + "]";
+    if (!hasOwnProperty(visibleKeys, key2)) name2 = "[" + key2 + "]";
     if (!str2) {
       if (ctx.seen.indexOf(desc.value) < 0) {
         if (isNull(recurseTimes)) str2 = formatValue(ctx, desc.value, null);
@@ -16107,27 +17977,27 @@ var require_util = /* @__PURE__ */ __commonJSMin(((exports) => {
         }
       } else str2 = ctx.stylize("[Circular]", "special");
     }
-    if (isUndefined(name)) {
-      if (array && key.match(/^\d+$/)) return str2;
-      name = JSON.stringify("" + key);
-      if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
-        name = name.slice(1, -1);
-        name = ctx.stylize(name, "name");
+    if (isUndefined(name2)) {
+      if (array && key2.match(/^\d+$/)) return str2;
+      name2 = JSON.stringify("" + key2);
+      if (name2.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
+        name2 = name2.slice(1, -1);
+        name2 = ctx.stylize(name2, "name");
       } else {
-        name = name.replace(/'/g, "\\'").replace(/\\"/g, '"').replace(/(^"|"$)/g, "'");
-        name = ctx.stylize(name, "string");
+        name2 = name2.replace(/'/g, "\\'").replace(/\\"/g, '"').replace(/(^"|"$)/g, "'");
+        name2 = ctx.stylize(name2, "string");
       }
     }
-    return name + ": " + str2;
+    return name2 + ": " + str2;
   }
-  function reduceToSingleString(output, base2, braces) {
+  function reduceToSingleString(output, base, braces) {
     var numLinesEst = 0;
     if (output.reduce(function(prev, cur) {
       numLinesEst++;
       if (cur.indexOf("\n") >= 0) numLinesEst++;
       return prev + cur.replace(/\u001b\[\d\d?m/g, "").length + 1;
-    }, 0) > 60) return braces[0] + (base2 === "" ? "" : base2 + "\n ") + " " + output.join(",\n  ") + " " + braces[1];
-    return braces[0] + base2 + " " + output.join(", ") + " " + braces[1];
+    }, 0) > 60) return braces[0] + (base === "" ? "" : base + "\n ") + " " + output.join(",\n  ") + " " + braces[1];
+    return braces[0] + base + " " + output.join(", ") + " " + braces[1];
   }
   exports.types = require_types();
   function isArray(ar) {
@@ -16253,8 +18123,8 @@ var require_util = /* @__PURE__ */ __commonJSMin(((exports) => {
     }
     function fn() {
       var promiseResolve, promiseReject;
-      var promise = new Promise(function(resolve4, reject) {
-        promiseResolve = resolve4;
+      var promise = new Promise(function(resolve5, reject) {
+        promiseResolve = resolve5;
         promiseReject = reject;
       });
       var args = [];
@@ -16325,23 +18195,23 @@ var require_buffer_list = /* @__PURE__ */ __commonJSMin(((exports, module) => {
   function _objectSpread(target) {
     for (var i = 1; i < arguments.length; i++) {
       var source = null != arguments[i] ? arguments[i] : {};
-      i % 2 ? ownKeys2(Object(source), true).forEach(function(key) {
-        _defineProperty2(target, key, source[key]);
-      }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys2(Object(source)).forEach(function(key) {
-        Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+      i % 2 ? ownKeys2(Object(source), true).forEach(function(key2) {
+        _defineProperty2(target, key2, source[key2]);
+      }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys2(Object(source)).forEach(function(key2) {
+        Object.defineProperty(target, key2, Object.getOwnPropertyDescriptor(source, key2));
       });
     }
     return target;
   }
-  function _defineProperty2(obj, key, value) {
-    key = _toPropertyKey(key);
-    if (key in obj) Object.defineProperty(obj, key, {
+  function _defineProperty2(obj, key2, value) {
+    key2 = _toPropertyKey(key2);
+    if (key2 in obj) Object.defineProperty(obj, key2, {
       value,
       enumerable: true,
       configurable: true,
       writable: true
     });
-    else obj[key] = value;
+    else obj[key2] = value;
     return obj;
   }
   function _classCallCheck(instance, Constructor) {
@@ -16363,8 +18233,8 @@ var require_buffer_list = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     return Constructor;
   }
   function _toPropertyKey(arg) {
-    var key = _toPrimitive(arg, "string");
-    return typeof key === "symbol" ? key : String(key);
+    var key2 = _toPrimitive(arg, "string");
+    return typeof key2 === "symbol" ? key2 : String(key2);
   }
   function _toPrimitive(input, hint) {
     if (typeof input !== "object" || input === null) return input;
@@ -16435,11 +18305,11 @@ var require_buffer_list = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       },
       {
         key: "join",
-        value: function join4(s) {
+        value: function join6(s2) {
           if (this.length === 0) return "";
           var p2 = this.head;
           var ret = "" + p2.data;
-          while (p2 = p2.next) ret += s + p2.data;
+          while (p2 = p2.next) ret += s2 + p2.data;
           return ret;
         }
       },
@@ -16670,31 +18540,31 @@ var require_errors_browser = /* @__PURE__ */ __commonJSMin(((exports, module) =>
     if (start + search.length > str2.length) return false;
     else return str2.indexOf(search, start) !== -1;
   }
-  createErrorType("ERR_INVALID_OPT_VALUE", function(name, value) {
-    return 'The value "' + value + '" is invalid for option "' + name + '"';
+  createErrorType("ERR_INVALID_OPT_VALUE", function(name2, value) {
+    return 'The value "' + value + '" is invalid for option "' + name2 + '"';
   }, TypeError);
-  createErrorType("ERR_INVALID_ARG_TYPE", function(name, expected, actual) {
+  createErrorType("ERR_INVALID_ARG_TYPE", function(name2, expected, actual) {
     var determiner;
     if (typeof expected === "string" && startsWith(expected, "not ")) {
       determiner = "must not be";
       expected = expected.replace(/^not /, "");
     } else determiner = "must be";
     var msg;
-    if (endsWith(name, " argument")) msg = "The ".concat(name, " ").concat(determiner, " ").concat(oneOf(expected, "type"));
+    if (endsWith(name2, " argument")) msg = "The ".concat(name2, " ").concat(determiner, " ").concat(oneOf(expected, "type"));
     else {
-      var type = includes(name, ".") ? "property" : "argument";
-      msg = 'The "'.concat(name, '" ').concat(type, " ").concat(determiner, " ").concat(oneOf(expected, "type"));
+      var type = includes(name2, ".") ? "property" : "argument";
+      msg = 'The "'.concat(name2, '" ').concat(type, " ").concat(determiner, " ").concat(oneOf(expected, "type"));
     }
     msg += ". Received type ".concat(typeof actual);
     return msg;
   }, TypeError);
   createErrorType("ERR_STREAM_PUSH_AFTER_EOF", "stream.push() after EOF");
-  createErrorType("ERR_METHOD_NOT_IMPLEMENTED", function(name) {
-    return "The " + name + " method is not implemented";
+  createErrorType("ERR_METHOD_NOT_IMPLEMENTED", function(name2) {
+    return "The " + name2 + " method is not implemented";
   });
   createErrorType("ERR_STREAM_PREMATURE_CLOSE", "Premature close");
-  createErrorType("ERR_STREAM_DESTROYED", function(name) {
-    return "Cannot call " + name + " after a stream was destroyed";
+  createErrorType("ERR_STREAM_DESTROYED", function(name2) {
+    return "Cannot call " + name2 + " after a stream was destroyed";
   });
   createErrorType("ERR_MULTIPLE_CALLBACK", "Callback called multiple times");
   createErrorType("ERR_STREAM_CANNOT_PIPE", "Cannot pipe, not readable");
@@ -16738,13 +18608,13 @@ var require_browser = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     }
     return deprecated;
   }
-  function config(name) {
+  function config(name2) {
     try {
       if (!global2.localStorage) return false;
     } catch (_) {
       return false;
     }
-    var val = global2.localStorage[name];
+    var val = global2.localStorage[name2];
     if (null == val) return false;
     return String(val).toLowerCase() === "true";
   }
@@ -17182,7 +19052,7 @@ var require__stream_duplex = /* @__PURE__ */ __commonJSMin(((exports, module) =>
   init_dist();
   var objectKeys = Object.keys || function(obj) {
     var keys2 = [];
-    for (var key in obj) keys2.push(key);
+    for (var key2 in obj) keys2.push(key2);
     return keys2;
   };
   module.exports = Duplex;
@@ -17250,7 +19120,7 @@ var require_safe_buffer = /* @__PURE__ */ __commonJSMin(((exports, module) => {
   var buffer = require_buffer();
   var Buffer2 = buffer.Buffer;
   function copyProps(src, dst) {
-    for (var key in src) dst[key] = src[key];
+    for (var key2 in src) dst[key2] = src[key2];
   }
   if (Buffer2.from && Buffer2.alloc && Buffer2.allocUnsafe && Buffer2.allocUnsafeSlow) module.exports = buffer;
   else {
@@ -17596,20 +19466,20 @@ var require_end_of_stream = /* @__PURE__ */ __commonJSMin(((exports, module) => 
 var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) => {
   init_dist();
   var _Object$setPrototypeO;
-  function _defineProperty2(obj, key, value) {
-    key = _toPropertyKey(key);
-    if (key in obj) Object.defineProperty(obj, key, {
+  function _defineProperty2(obj, key2, value) {
+    key2 = _toPropertyKey(key2);
+    if (key2 in obj) Object.defineProperty(obj, key2, {
       value,
       enumerable: true,
       configurable: true,
       writable: true
     });
-    else obj[key] = value;
+    else obj[key2] = value;
     return obj;
   }
   function _toPropertyKey(arg) {
-    var key = _toPrimitive(arg, "string");
-    return typeof key === "symbol" ? key : String(key);
+    var key2 = _toPrimitive(arg, "string");
+    return typeof key2 === "symbol" ? key2 : String(key2);
   }
   function _toPrimitive(input, hint) {
     if (typeof input !== "object" || input === null) return input;
@@ -17636,14 +19506,14 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
     };
   }
   function readAndResolve(iter) {
-    var resolve4 = iter[kLastResolve];
-    if (resolve4 !== null) {
+    var resolve5 = iter[kLastResolve];
+    if (resolve5 !== null) {
       var data = iter[kStream].read();
       if (data !== null) {
         iter[kLastPromise] = null;
         iter[kLastResolve] = null;
         iter[kLastReject] = null;
-        resolve4(createIterResult(data, false));
+        resolve5(createIterResult(data, false));
       }
     }
   }
@@ -17651,13 +19521,13 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
     process$1.nextTick(readAndResolve, iter);
   }
   function wrapForNext(lastPromise, iter) {
-    return function(resolve4, reject) {
+    return function(resolve5, reject) {
       lastPromise.then(function() {
         if (iter[kEnded]) {
-          resolve4(createIterResult(void 0, true));
+          resolve5(createIterResult(void 0, true));
           return;
         }
-        iter[kHandlePromise](resolve4, reject);
+        iter[kHandlePromise](resolve5, reject);
       }, reject);
     };
   }
@@ -17672,10 +19542,10 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
       var error = this[kError];
       if (error !== null) return Promise.reject(error);
       if (this[kEnded]) return Promise.resolve(createIterResult(void 0, true));
-      if (this[kStream].destroyed) return new Promise(function(resolve4, reject) {
+      if (this[kStream].destroyed) return new Promise(function(resolve5, reject) {
         process$1.nextTick(function() {
           if (_this[kError]) reject(_this[kError]);
-          else resolve4(createIterResult(void 0, true));
+          else resolve5(createIterResult(void 0, true));
         });
       });
       var lastPromise = this[kLastPromise];
@@ -17693,13 +19563,13 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
     return this;
   }), _defineProperty2(_Object$setPrototypeO, "return", function _return() {
     var _this2 = this;
-    return new Promise(function(resolve4, reject) {
+    return new Promise(function(resolve5, reject) {
       _this2[kStream].destroy(null, function(err) {
         if (err) {
           reject(err);
           return;
         }
-        resolve4(createIterResult(void 0, true));
+        resolve5(createIterResult(void 0, true));
       });
     });
   }), _Object$setPrototypeO), AsyncIteratorPrototype);
@@ -17721,15 +19591,15 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
       value: stream._readableState.endEmitted,
       writable: true
     }), _defineProperty2(_Object$create, kHandlePromise, {
-      value: function value(resolve4, reject) {
+      value: function value(resolve5, reject) {
         var data = iterator[kStream].read();
         if (data) {
           iterator[kLastPromise] = null;
           iterator[kLastResolve] = null;
           iterator[kLastReject] = null;
-          resolve4(createIterResult(data, false));
+          resolve5(createIterResult(data, false));
         } else {
-          iterator[kLastResolve] = resolve4;
+          iterator[kLastResolve] = resolve5;
           iterator[kLastReject] = reject;
         }
       },
@@ -17748,12 +19618,12 @@ var require_async_iterator = /* @__PURE__ */ __commonJSMin(((exports, module) =>
         iterator[kError] = err;
         return;
       }
-      var resolve4 = iterator[kLastResolve];
-      if (resolve4 !== null) {
+      var resolve5 = iterator[kLastResolve];
+      if (resolve5 !== null) {
         iterator[kLastPromise] = null;
         iterator[kLastResolve] = null;
         iterator[kLastReject] = null;
-        resolve4(createIterResult(void 0, true));
+        resolve5(createIterResult(void 0, true));
       }
       iterator[kEnded] = true;
     });
@@ -18668,8 +20538,8 @@ var require_stream_browserify = /* @__PURE__ */ __commonJSMin(((exports, module)
 }));
 var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
   (function(sax) {
-    sax.parser = function(strict, opt) {
-      return new SAXParser(strict, opt);
+    sax.parser = function(strict, opt2) {
+      return new SAXParser(strict, opt2);
     };
     sax.SAXParser = SAXParser;
     sax.SAXStream = SAXStream;
@@ -18709,13 +20579,13 @@ var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
       "opennamespace",
       "closenamespace"
     ];
-    function SAXParser(strict, opt) {
-      if (!(this instanceof SAXParser)) return new SAXParser(strict, opt);
+    function SAXParser(strict, opt2) {
+      if (!(this instanceof SAXParser)) return new SAXParser(strict, opt2);
       var parser = this;
       clearBuffers(parser);
       parser.q = parser.c = "";
       parser.bufferCheckPosition = sax.MAX_BUFFER_LENGTH;
-      parser.opt = opt || {};
+      parser.opt = opt2 || {};
       parser.opt.lowercase = parser.opt.lowercase || parser.opt.lowercasetags;
       parser.looseCase = parser.opt.lowercase ? "toLowerCase" : "toUpperCase";
       parser.tags = [];
@@ -18730,7 +20600,7 @@ var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
       if (parser.opt.xmlns) parser.ns = Object.create(rootNS);
       parser.trackPosition = parser.opt.position !== false;
       if (parser.trackPosition) parser.position = parser.line = parser.column = 0;
-      emit(parser, "onready");
+      emit2(parser, "onready");
     }
     if (!Object.create) Object.create = function(o) {
       function F() {
@@ -18785,7 +20655,7 @@ var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
       end: function() {
         end(this);
       },
-      write,
+      write: write2,
       resume: function() {
         this.error = null;
         return this;
@@ -18807,13 +20677,13 @@ var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
     var streamWraps = sax.EVENTS.filter(function(ev) {
       return ev !== "error" && ev !== "end";
     });
-    function createStream(strict, opt) {
-      return new SAXStream(strict, opt);
+    function createStream(strict, opt2) {
+      return new SAXStream(strict, opt2);
     }
-    function SAXStream(strict, opt) {
-      if (!(this instanceof SAXStream)) return new SAXStream(strict, opt);
+    function SAXStream(strict, opt2) {
+      if (!(this instanceof SAXStream)) return new SAXStream(strict, opt2);
       Stream.apply(this);
-      this._parser = new SAXParser(strict, opt);
+      this._parser = new SAXParser(strict, opt2);
       this.writable = true;
       this.readable = true;
       var me = this;
@@ -18861,14 +20731,14 @@ var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
       this._parser.end();
       return true;
     };
-    SAXStream.prototype.on = function(ev, handler) {
+    SAXStream.prototype.on = function(ev, handler2) {
       var me = this;
       if (!me._parser["on" + ev] && streamWraps.indexOf(ev) !== -1) me._parser["on" + ev] = function() {
         var args = arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments);
         args.splice(0, 0, ev);
         me.emit.apply(me, args);
       };
-      return Stream.prototype.on.call(me, ev, handler);
+      return Stream.prototype.on.call(me, ev, handler2);
     };
     var CDATA = "[CDATA[";
     var DOCTYPE = "DOCTYPE";
@@ -19198,36 +21068,36 @@ var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
       "hearts": 9829,
       "diams": 9830
     };
-    Object.keys(sax.ENTITIES).forEach(function(key) {
-      var e = sax.ENTITIES[key];
-      var s2 = typeof e === "number" ? String.fromCharCode(e) : e;
-      sax.ENTITIES[key] = s2;
+    Object.keys(sax.ENTITIES).forEach(function(key2) {
+      var e = sax.ENTITIES[key2];
+      var s3 = typeof e === "number" ? String.fromCharCode(e) : e;
+      sax.ENTITIES[key2] = s3;
     });
-    for (var s in sax.STATE) sax.STATE[sax.STATE[s]] = s;
+    for (var s2 in sax.STATE) sax.STATE[sax.STATE[s2]] = s2;
     S = sax.STATE;
-    function emit(parser, event, data) {
+    function emit2(parser, event, data) {
       parser[event] && parser[event](data);
     }
     function emitNode(parser, nodeType, data) {
       if (parser.textNode) closeText(parser);
-      emit(parser, nodeType, data);
+      emit2(parser, nodeType, data);
     }
     function closeText(parser) {
       parser.textNode = textopts(parser.opt, parser.textNode);
-      if (parser.textNode) emit(parser, "ontext", parser.textNode);
+      if (parser.textNode) emit2(parser, "ontext", parser.textNode);
       parser.textNode = "";
     }
-    function textopts(opt, text) {
-      if (opt.trim) text = text.trim();
-      if (opt.normalize) text = text.replace(/\s+/g, " ");
-      return text;
+    function textopts(opt2, text2) {
+      if (opt2.trim) text2 = text2.trim();
+      if (opt2.normalize) text2 = text2.replace(/\s+/g, " ");
+      return text2;
     }
     function error(parser, er) {
       closeText(parser);
       if (parser.trackPosition) er += "\nLine: " + parser.line + "\nColumn: " + parser.column + "\nChar: " + parser.c;
       er = new Error(er);
       parser.error = er;
-      emit(parser, "onerror", er);
+      emit2(parser, "onerror", er);
       return parser;
     }
     function end(parser) {
@@ -19236,7 +21106,7 @@ var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
       closeText(parser);
       parser.c = "";
       parser.closed = true;
-      emit(parser, "onend");
+      emit2(parser, "onend");
       SAXParser.call(parser, parser.strict, parser.opt);
       return parser;
     }
@@ -19255,11 +21125,11 @@ var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
       parser.attribList.length = 0;
       emitNode(parser, "onopentagstart", tag);
     }
-    function qname(name, attribute) {
-      var qualName = name.indexOf(":") < 0 ? ["", name] : name.split(":");
+    function qname(name2, attribute) {
+      var qualName = name2.indexOf(":") < 0 ? ["", name2] : name2.split(":");
       var prefix = qualName[0];
       var local = qualName[1];
-      if (attribute && name === "xmlns") {
+      if (attribute && name2 === "xmlns") {
         prefix = "xmlns";
         local = "";
       }
@@ -19318,14 +21188,14 @@ var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
         });
         for (var i = 0, l = parser.attribList.length; i < l; i++) {
           var nv = parser.attribList[i];
-          var name = nv[0];
+          var name2 = nv[0];
           var value = nv[1];
-          var qualName = qname(name, true);
+          var qualName = qname(name2, true);
           var prefix = qualName.prefix;
           var local = qualName.local;
           var uri = prefix === "" ? "" : tag.ns[prefix] || "";
           var a = {
-            name,
+            name: name2,
             value,
             prefix,
             local,
@@ -19335,7 +21205,7 @@ var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
             strictFail(parser, "Unbound namespace prefix: " + JSON.stringify(prefix));
             a.uri = prefix;
           }
-          parser.tag.attributes[name] = a;
+          parser.tag.attributes[name2] = a;
           emitNode(parser, "onattribute", a);
         }
         parser.attribList.length = 0;
@@ -19383,8 +21253,8 @@ var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
         return;
       }
       parser.tagName = tagName;
-      var s2 = parser.tags.length;
-      while (s2-- > t) {
+      var s3 = parser.tags.length;
+      while (s3-- > t) {
         var tag = parser.tag = parser.tags.pop();
         parser.tagName = parser.tag.name;
         emitNode(parser, "onclosetag", parser.tagName);
@@ -19407,7 +21277,7 @@ var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
     function parseEntity(parser) {
       var entity = parser.entity;
       var entityLC = entity.toLowerCase();
-      var num2;
+      var num3;
       var numStr = "";
       if (parser.ENTITIES[entity]) return parser.ENTITIES[entity];
       if (parser.ENTITIES[entityLC]) return parser.ENTITIES[entityLC];
@@ -19415,20 +21285,20 @@ var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
       if (entity.charAt(0) === "#") {
         if (entity.charAt(1) === "x") {
           entity = entity.slice(2);
-          num2 = parseInt(entity, 16);
-          numStr = num2.toString(16);
+          num3 = parseInt(entity, 16);
+          numStr = num3.toString(16);
         } else {
           entity = entity.slice(1);
-          num2 = parseInt(entity, 10);
-          numStr = num2.toString(10);
+          num3 = parseInt(entity, 10);
+          numStr = num3.toString(10);
         }
       }
       entity = entity.replace(/^0+/, "");
-      if (isNaN(num2) || numStr.toLowerCase() !== entity) {
+      if (isNaN(num3) || numStr.toLowerCase() !== entity) {
         strictFail(parser, "Invalid character entity");
         return "&" + parser.entity + ";";
       }
-      return String.fromCodePoint(num2);
+      return String.fromCodePoint(num3);
     }
     function beginWhiteSpace(parser, c) {
       if (c === "<") {
@@ -19441,11 +21311,11 @@ var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
       }
     }
     function charAt(chunk, i) {
-      var result = "";
-      if (i < chunk.length) result = chunk.charAt(i);
-      return result;
+      var result2 = "";
+      if (i < chunk.length) result2 = chunk.charAt(i);
+      return result2;
     }
-    function write(chunk) {
+    function write2(chunk) {
       var parser = this;
       if (this.error) throw this.error;
       if (parser.closed) return error(parser, "Cannot write after close. Assign an onready handler.");
@@ -19846,7 +21716,7 @@ var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
         var index = -1;
         var length = arguments.length;
         if (!length) return "";
-        var result = "";
+        var result2 = "";
         while (++index < length) {
           var codePoint = Number(arguments[index]);
           if (!isFinite(codePoint) || codePoint < 0 || codePoint > 1114111 || floor(codePoint) !== codePoint) throw RangeError("Invalid code point: " + codePoint);
@@ -19858,11 +21728,11 @@ var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
             codeUnits.push(highSurrogate, lowSurrogate);
           }
           if (index + 1 === length || codeUnits.length > MAX_SIZE) {
-            result += stringFromCharCode.apply(null, codeUnits);
+            result2 += stringFromCharCode.apply(null, codeUnits);
             codeUnits.length = 0;
           }
         }
-        return result;
+        return result2;
       };
       if (Object.defineProperty) Object.defineProperty(String, "fromCodePoint", {
         value: fromCodePoint,
@@ -19883,8 +21753,8 @@ var require_options_helper = /* @__PURE__ */ __commonJSMin(((exports, module) =>
   var isArray = require_array_helper().isArray;
   module.exports = {
     copyOptions: function(options) {
-      var key, copy = {};
-      for (key in options) if (options.hasOwnProperty(key)) copy[key] = options[key];
+      var key2, copy = {};
+      for (key2 in options) if (options.hasOwnProperty(key2)) copy[key2] = options[key2];
       return copy;
     },
     ensureFlagExists: function(item, options) {
@@ -19896,11 +21766,11 @@ var require_options_helper = /* @__PURE__ */ __commonJSMin(((exports, module) =>
     ensureAlwaysArrayExists: function(options) {
       if (!("alwaysArray" in options) || typeof options.alwaysArray !== "boolean" && !isArray(options.alwaysArray)) options.alwaysArray = false;
     },
-    ensureKeyExists: function(key, options) {
-      if (!(key + "Key" in options) || typeof options[key + "Key"] !== "string") options[key + "Key"] = options.compact ? "_" + key : key;
+    ensureKeyExists: function(key2, options) {
+      if (!(key2 + "Key" in options) || typeof options[key2 + "Key"] !== "string") options[key2 + "Key"] = options.compact ? "_" + key2 : key2;
     },
-    checkFnExists: function(key, options) {
-      return key + "Fn" in options;
+    checkFnExists: function(key2, options) {
+      return key2 + "Fn" in options;
     }
   };
 }));
@@ -19968,18 +21838,18 @@ var require_xml2js = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     return value;
   }
   function addField(type, value) {
-    var key;
+    var key2;
     if (options.compact) {
       if (!currentElement[options[type + "Key"]] && (isArray(options.alwaysArray) ? options.alwaysArray.indexOf(options[type + "Key"]) !== -1 : options.alwaysArray)) currentElement[options[type + "Key"]] = [];
       if (currentElement[options[type + "Key"]] && !isArray(currentElement[options[type + "Key"]])) currentElement[options[type + "Key"]] = [currentElement[options[type + "Key"]]];
       if (type + "Fn" in options && typeof value === "string") value = options[type + "Fn"](value, currentElement);
       if (type === "instruction" && ("instructionFn" in options || "instructionNameFn" in options)) {
-        for (key in value) if (value.hasOwnProperty(key)) {
-          if ("instructionFn" in options) value[key] = options.instructionFn(value[key], key, currentElement);
+        for (key2 in value) if (value.hasOwnProperty(key2)) {
+          if ("instructionFn" in options) value[key2] = options.instructionFn(value[key2], key2, currentElement);
           else {
-            var temp = value[key];
-            delete value[key];
-            value[options.instructionNameFn(key, temp, currentElement)] = temp;
+            var temp = value[key2];
+            delete value[key2];
+            value[options.instructionNameFn(key2, temp, currentElement)] = temp;
           }
         }
       }
@@ -19990,14 +21860,14 @@ var require_xml2js = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       var element = {};
       element[options.typeKey] = type;
       if (type === "instruction") {
-        for (key in value) if (value.hasOwnProperty(key)) break;
-        element[options.nameKey] = "instructionNameFn" in options ? options.instructionNameFn(key, value, currentElement) : key;
+        for (key2 in value) if (value.hasOwnProperty(key2)) break;
+        element[options.nameKey] = "instructionNameFn" in options ? options.instructionNameFn(key2, value, currentElement) : key2;
         if (options.instructionHasAttributes) {
-          element[options.attributesKey] = value[key][options.attributesKey];
-          if ("instructionFn" in options) element[options.attributesKey] = options.instructionFn(element[options.attributesKey], key, currentElement);
+          element[options.attributesKey] = value[key2][options.attributesKey];
+          if ("instructionFn" in options) element[options.attributesKey] = options.instructionFn(element[options.attributesKey], key2, currentElement);
         } else {
-          if ("instructionFn" in options) value[key] = options.instructionFn(value[key], key, currentElement);
-          element[options.instructionKey] = value[key];
+          if ("instructionFn" in options) value[key2] = options.instructionFn(value[key2], key2, currentElement);
+          element[options.instructionKey] = value[key2];
         }
       } else {
         if (type + "Fn" in options) value = options[type + "Fn"](value, currentElement);
@@ -20010,15 +21880,15 @@ var require_xml2js = /* @__PURE__ */ __commonJSMin(((exports, module) => {
   function manipulateAttributes(attributes) {
     if ("attributesFn" in options && attributes) attributes = options.attributesFn(attributes, currentElement);
     if ((options.trim || "attributeValueFn" in options || "attributeNameFn" in options || options.nativeTypeAttributes) && attributes) {
-      var key;
-      for (key in attributes) if (attributes.hasOwnProperty(key)) {
-        if (options.trim) attributes[key] = attributes[key].trim();
-        if (options.nativeTypeAttributes) attributes[key] = nativeType(attributes[key]);
-        if ("attributeValueFn" in options) attributes[key] = options.attributeValueFn(attributes[key], key, currentElement);
+      var key2;
+      for (key2 in attributes) if (attributes.hasOwnProperty(key2)) {
+        if (options.trim) attributes[key2] = attributes[key2].trim();
+        if (options.nativeTypeAttributes) attributes[key2] = nativeType(attributes[key2]);
+        if ("attributeValueFn" in options) attributes[key2] = options.attributeValueFn(attributes[key2], key2, currentElement);
         if ("attributeNameFn" in options) {
-          var temp = attributes[key];
-          delete attributes[key];
-          attributes[options.attributeNameFn(key, attributes[key], currentElement)] = temp;
+          var temp = attributes[key2];
+          delete attributes[key2];
+          attributes[options.attributeNameFn(key2, attributes[key2], currentElement)] = temp;
         }
       }
     }
@@ -20048,30 +21918,30 @@ var require_xml2js = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       addField("instruction", value);
     }
   }
-  function onStartElement(name, attributes) {
+  function onStartElement(name2, attributes) {
     var element;
-    if (typeof name === "object") {
-      attributes = name.attributes;
-      name = name.name;
+    if (typeof name2 === "object") {
+      attributes = name2.attributes;
+      name2 = name2.name;
     }
     attributes = manipulateAttributes(attributes);
-    if ("elementNameFn" in options) name = options.elementNameFn(name, currentElement);
+    if ("elementNameFn" in options) name2 = options.elementNameFn(name2, currentElement);
     if (options.compact) {
       element = {};
       if (!options.ignoreAttributes && attributes && Object.keys(attributes).length) {
         element[options.attributesKey] = {};
-        var key;
-        for (key in attributes) if (attributes.hasOwnProperty(key)) element[options.attributesKey][key] = attributes[key];
+        var key2;
+        for (key2 in attributes) if (attributes.hasOwnProperty(key2)) element[options.attributesKey][key2] = attributes[key2];
       }
-      if (!(name in currentElement) && (isArray(options.alwaysArray) ? options.alwaysArray.indexOf(name) !== -1 : options.alwaysArray)) currentElement[name] = [];
-      if (currentElement[name] && !isArray(currentElement[name])) currentElement[name] = [currentElement[name]];
-      if (isArray(currentElement[name])) currentElement[name].push(element);
-      else currentElement[name] = element;
+      if (!(name2 in currentElement) && (isArray(options.alwaysArray) ? options.alwaysArray.indexOf(name2) !== -1 : options.alwaysArray)) currentElement[name2] = [];
+      if (currentElement[name2] && !isArray(currentElement[name2])) currentElement[name2] = [currentElement[name2]];
+      if (isArray(currentElement[name2])) currentElement[name2].push(element);
+      else currentElement[name2] = element;
     } else {
       if (!currentElement[options.elementsKey]) currentElement[options.elementsKey] = [];
       element = {};
       element[options.typeKey] = "element";
-      element[options.nameKey] = name;
+      element[options.nameKey] = name2;
       if (!options.ignoreAttributes && attributes && Object.keys(attributes).length) element[options.attributesKey] = attributes;
       if (options.alwaysChildren) element[options.elementsKey] = [];
       currentElement[options.elementsKey].push(element);
@@ -20079,20 +21949,20 @@ var require_xml2js = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     element[options.parentKey] = currentElement;
     currentElement = element;
   }
-  function onText(text) {
+  function onText(text2) {
     if (options.ignoreText) return;
-    if (!text.trim() && !options.captureSpacesBetweenElements) return;
-    if (options.trim) text = text.trim();
-    if (options.nativeType) text = nativeType(text);
-    if (options.sanitize) text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    addField("text", text);
+    if (!text2.trim() && !options.captureSpacesBetweenElements) return;
+    if (options.trim) text2 = text2.trim();
+    if (options.nativeType) text2 = nativeType(text2);
+    if (options.sanitize) text2 = text2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    addField("text", text2);
   }
   function onComment(comment) {
     if (options.ignoreComment) return;
     if (options.trim) comment = comment.trim();
     addField("comment", comment);
   }
-  function onEndElement(name) {
+  function onEndElement(name2) {
     var parentElement = currentElement[options.parentKey];
     if (!options.addParent) delete currentElement[options.parentKey];
     currentElement = parentElement;
@@ -20113,8 +21983,8 @@ var require_xml2js = /* @__PURE__ */ __commonJSMin(((exports, module) => {
   }
   module.exports = function(xml, userOptions) {
     var parser = pureJsParser ? sax.parser(true, {}) : parser = new expat.Parser("UTF-8");
-    var result = {};
-    currentElement = result;
+    var result2 = {};
+    currentElement = result2;
     options = validateOptions(userOptions);
     if (pureJsParser) {
       parser.opt = { strictEntities: true };
@@ -20135,13 +22005,13 @@ var require_xml2js = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     }
     if (pureJsParser) parser.write(xml).close();
     else if (!parser.parse(xml)) throw new Error("XML parsing error: " + parser.getError());
-    if (result[options.elementsKey]) {
-      var temp = result[options.elementsKey];
-      delete result[options.elementsKey];
-      result[options.elementsKey] = temp;
-      delete result.text;
+    if (result2[options.elementsKey]) {
+      var temp = result2[options.elementsKey];
+      delete result2[options.elementsKey];
+      result2[options.elementsKey] = temp;
+      delete result2.text;
     }
-    return result;
+    return result2;
   };
 }));
 var require_xml2json = /* @__PURE__ */ __commonJSMin(((exports, module) => {
@@ -20207,41 +22077,41 @@ var require_js2xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     helper.checkFnExists("fullTagEmptyElement", options);
     return options;
   }
-  function writeIndentation(options, depth, firstLine) {
-    return (!firstLine && options.spaces ? "\n" : "") + Array(depth + 1).join(options.spaces);
+  function writeIndentation(options, depth2, firstLine) {
+    return (!firstLine && options.spaces ? "\n" : "") + Array(depth2 + 1).join(options.spaces);
   }
-  function writeAttributes(attributes, options, depth) {
+  function writeAttributes(attributes, options, depth2) {
     if (options.ignoreAttributes) return "";
     if ("attributesFn" in options) attributes = options.attributesFn(attributes, currentElementName, currentElement);
-    var key, attr, attrName, quote, result = [];
-    for (key in attributes) if (attributes.hasOwnProperty(key) && attributes[key] !== null && attributes[key] !== void 0) {
-      quote = options.noQuotesForNativeAttributes && typeof attributes[key] !== "string" ? "" : '"';
-      attr = "" + attributes[key];
+    var key2, attr, attrName, quote, result2 = [];
+    for (key2 in attributes) if (attributes.hasOwnProperty(key2) && attributes[key2] !== null && attributes[key2] !== void 0) {
+      quote = options.noQuotesForNativeAttributes && typeof attributes[key2] !== "string" ? "" : '"';
+      attr = "" + attributes[key2];
       attr = attr.replace(/"/g, "&quot;");
-      attrName = "attributeNameFn" in options ? options.attributeNameFn(key, attr, currentElementName, currentElement) : key;
-      result.push(options.spaces && options.indentAttributes ? writeIndentation(options, depth + 1, false) : " ");
-      result.push(attrName + "=" + quote + ("attributeValueFn" in options ? options.attributeValueFn(attr, key, currentElementName, currentElement) : attr) + quote);
+      attrName = "attributeNameFn" in options ? options.attributeNameFn(key2, attr, currentElementName, currentElement) : key2;
+      result2.push(options.spaces && options.indentAttributes ? writeIndentation(options, depth2 + 1, false) : " ");
+      result2.push(attrName + "=" + quote + ("attributeValueFn" in options ? options.attributeValueFn(attr, key2, currentElementName, currentElement) : attr) + quote);
     }
-    if (attributes && Object.keys(attributes).length && options.spaces && options.indentAttributes) result.push(writeIndentation(options, depth, false));
-    return result.join("");
+    if (attributes && Object.keys(attributes).length && options.spaces && options.indentAttributes) result2.push(writeIndentation(options, depth2, false));
+    return result2.join("");
   }
-  function writeDeclaration(declaration, options, depth) {
+  function writeDeclaration(declaration, options, depth2) {
     currentElement = declaration;
     currentElementName = "xml";
-    return options.ignoreDeclaration ? "" : "<?xml" + writeAttributes(declaration[options.attributesKey], options, depth) + "?>";
+    return options.ignoreDeclaration ? "" : "<?xml" + writeAttributes(declaration[options.attributesKey], options, depth2) + "?>";
   }
-  function writeInstruction(instruction, options, depth) {
+  function writeInstruction(instruction, options, depth2) {
     if (options.ignoreInstruction) return "";
-    var key;
-    for (key in instruction) if (instruction.hasOwnProperty(key)) break;
-    var instructionName = "instructionNameFn" in options ? options.instructionNameFn(key, instruction[key], currentElementName, currentElement) : key;
-    if (typeof instruction[key] === "object") {
+    var key2;
+    for (key2 in instruction) if (instruction.hasOwnProperty(key2)) break;
+    var instructionName = "instructionNameFn" in options ? options.instructionNameFn(key2, instruction[key2], currentElementName, currentElement) : key2;
+    if (typeof instruction[key2] === "object") {
       currentElement = instruction;
       currentElementName = instructionName;
-      return "<?" + instructionName + writeAttributes(instruction[key][options.attributesKey], options, depth) + "?>";
+      return "<?" + instructionName + writeAttributes(instruction[key2][options.attributesKey], options, depth2) + "?>";
     } else {
-      var instructionValue = instruction[key] ? instruction[key] : "";
-      if ("instructionFn" in options) instructionValue = options.instructionFn(instructionValue, key, currentElementName, currentElement);
+      var instructionValue = instruction[key2] ? instruction[key2] : "";
+      if ("instructionFn" in options) instructionValue = options.instructionFn(instructionValue, key2, currentElementName, currentElement);
       return "<?" + instructionName + (instructionValue ? " " + instructionValue : "") + "?>";
     }
   }
@@ -20254,12 +22124,12 @@ var require_js2xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
   function writeDoctype(doctype, options) {
     return options.ignoreDoctype ? "" : "<!DOCTYPE " + ("doctypeFn" in options ? options.doctypeFn(doctype, currentElementName, currentElement) : doctype) + ">";
   }
-  function writeText(text, options) {
+  function writeText(text2, options) {
     if (options.ignoreText) return "";
-    text = "" + text;
-    text = text.replace(/&amp;/g, "&");
-    text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    return "textFn" in options ? options.textFn(text, currentElementName, currentElement) : text;
+    text2 = "" + text2;
+    text2 = text2.replace(/&amp;/g, "&");
+    text2 = text2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return "textFn" in options ? options.textFn(text2, currentElementName, currentElement) : text2;
   }
   function hasContent(element, options) {
     var i;
@@ -20282,12 +22152,12 @@ var require_js2xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     }
     return false;
   }
-  function writeElement(element, options, depth) {
+  function writeElement(element, options, depth2) {
     currentElement = element;
     currentElementName = element.name;
     var xml = [], elementName = "elementNameFn" in options ? options.elementNameFn(element.name, element) : element.name;
     xml.push("<" + elementName);
-    if (element[options.attributesKey]) xml.push(writeAttributes(element[options.attributesKey], options, depth));
+    if (element[options.attributesKey]) xml.push(writeAttributes(element[options.attributesKey], options, depth2));
     var withClosingTag = element[options.elementsKey] && element[options.elementsKey].length || element[options.attributesKey] && element[options.attributesKey]["xml:space"] === "preserve";
     if (!withClosingTag) {
       if ("fullTagEmptyElementFn" in options) withClosingTag = options.fullTagEmptyElementFn(element.name, element);
@@ -20296,21 +22166,21 @@ var require_js2xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     if (withClosingTag) {
       xml.push(">");
       if (element[options.elementsKey] && element[options.elementsKey].length) {
-        xml.push(writeElements(element[options.elementsKey], options, depth + 1));
+        xml.push(writeElements(element[options.elementsKey], options, depth2 + 1));
         currentElement = element;
         currentElementName = element.name;
       }
-      xml.push(options.spaces && hasContent(element, options) ? "\n" + Array(depth + 1).join(options.spaces) : "");
+      xml.push(options.spaces && hasContent(element, options) ? "\n" + Array(depth2 + 1).join(options.spaces) : "");
       xml.push("</" + elementName + ">");
     } else xml.push("/>");
     return xml.join("");
   }
-  function writeElements(elements, options, depth, firstLine) {
+  function writeElements(elements, options, depth2, firstLine) {
     return elements.reduce(function(xml, element) {
-      var indent = writeIndentation(options, depth, firstLine && !xml);
+      var indent = writeIndentation(options, depth2, firstLine && !xml);
       switch (element.type) {
         case "element":
-          return xml + indent + writeElement(element, options, depth);
+          return xml + indent + writeElement(element, options, depth2);
         case "comment":
           return xml + indent + writeComment(element[options.commentKey], options);
         case "doctype":
@@ -20322,13 +22192,13 @@ var require_js2xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         case "instruction":
           var instruction = {};
           instruction[element[options.nameKey]] = element[options.attributesKey] ? element : element[options.instructionKey];
-          return xml + (options.indentInstruction ? indent : "") + writeInstruction(instruction, options, depth);
+          return xml + (options.indentInstruction ? indent : "") + writeInstruction(instruction, options, depth2);
       }
     }, "");
   }
   function hasContentCompact(element, options, anyContent) {
-    var key;
-    for (key in element) if (element.hasOwnProperty(key)) switch (key) {
+    var key2;
+    for (key2 in element) if (element.hasOwnProperty(key2)) switch (key2) {
       case options.parentKey:
       case options.attributesKey:
         break;
@@ -20349,22 +22219,22 @@ var require_js2xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     }
     return false;
   }
-  function writeElementCompact(element, name, options, depth, indent) {
+  function writeElementCompact(element, name2, options, depth2, indent) {
     currentElement = element;
-    currentElementName = name;
-    var elementName = "elementNameFn" in options ? options.elementNameFn(name, element) : name;
-    if (typeof element === "undefined" || element === null || element === "") return "fullTagEmptyElementFn" in options && options.fullTagEmptyElementFn(name, element) || options.fullTagEmptyElement ? "<" + elementName + "></" + elementName + ">" : "<" + elementName + "/>";
+    currentElementName = name2;
+    var elementName = "elementNameFn" in options ? options.elementNameFn(name2, element) : name2;
+    if (typeof element === "undefined" || element === null || element === "") return "fullTagEmptyElementFn" in options && options.fullTagEmptyElementFn(name2, element) || options.fullTagEmptyElement ? "<" + elementName + "></" + elementName + ">" : "<" + elementName + "/>";
     var xml = [];
-    if (name) {
+    if (name2) {
       xml.push("<" + elementName);
       if (typeof element !== "object") {
         xml.push(">" + writeText(element, options) + "</" + elementName + ">");
         return xml.join("");
       }
-      if (element[options.attributesKey]) xml.push(writeAttributes(element[options.attributesKey], options, depth));
+      if (element[options.attributesKey]) xml.push(writeAttributes(element[options.attributesKey], options, depth2));
       var withClosingTag = hasContentCompact(element, options, true) || element[options.attributesKey] && element[options.attributesKey]["xml:space"] === "preserve";
       if (!withClosingTag) {
-        if ("fullTagEmptyElementFn" in options) withClosingTag = options.fullTagEmptyElementFn(name, element);
+        if ("fullTagEmptyElementFn" in options) withClosingTag = options.fullTagEmptyElementFn(name2, element);
         else withClosingTag = options.fullTagEmptyElement;
       }
       if (withClosingTag) xml.push(">");
@@ -20373,41 +22243,41 @@ var require_js2xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         return xml.join("");
       }
     }
-    xml.push(writeElementsCompact(element, options, depth + 1, false));
+    xml.push(writeElementsCompact(element, options, depth2 + 1, false));
     currentElement = element;
-    currentElementName = name;
-    if (name) xml.push((indent ? writeIndentation(options, depth, false) : "") + "</" + elementName + ">");
+    currentElementName = name2;
+    if (name2) xml.push((indent ? writeIndentation(options, depth2, false) : "") + "</" + elementName + ">");
     return xml.join("");
   }
-  function writeElementsCompact(element, options, depth, firstLine) {
-    var i, key, nodes, xml = [];
-    for (key in element) if (element.hasOwnProperty(key)) {
-      nodes = isArray(element[key]) ? element[key] : [element[key]];
+  function writeElementsCompact(element, options, depth2, firstLine) {
+    var i, key2, nodes, xml = [];
+    for (key2 in element) if (element.hasOwnProperty(key2)) {
+      nodes = isArray(element[key2]) ? element[key2] : [element[key2]];
       for (i = 0; i < nodes.length; ++i) {
-        switch (key) {
+        switch (key2) {
           case options.declarationKey:
-            xml.push(writeDeclaration(nodes[i], options, depth));
+            xml.push(writeDeclaration(nodes[i], options, depth2));
             break;
           case options.instructionKey:
-            xml.push((options.indentInstruction ? writeIndentation(options, depth, firstLine) : "") + writeInstruction(nodes[i], options, depth));
+            xml.push((options.indentInstruction ? writeIndentation(options, depth2, firstLine) : "") + writeInstruction(nodes[i], options, depth2));
             break;
           case options.attributesKey:
           case options.parentKey:
             break;
           case options.textKey:
-            xml.push((options.indentText ? writeIndentation(options, depth, firstLine) : "") + writeText(nodes[i], options));
+            xml.push((options.indentText ? writeIndentation(options, depth2, firstLine) : "") + writeText(nodes[i], options));
             break;
           case options.cdataKey:
-            xml.push((options.indentCdata ? writeIndentation(options, depth, firstLine) : "") + writeCdata(nodes[i], options));
+            xml.push((options.indentCdata ? writeIndentation(options, depth2, firstLine) : "") + writeCdata(nodes[i], options));
             break;
           case options.doctypeKey:
-            xml.push(writeIndentation(options, depth, firstLine) + writeDoctype(nodes[i], options));
+            xml.push(writeIndentation(options, depth2, firstLine) + writeDoctype(nodes[i], options));
             break;
           case options.commentKey:
-            xml.push(writeIndentation(options, depth, firstLine) + writeComment(nodes[i], options));
+            xml.push(writeIndentation(options, depth2, firstLine) + writeComment(nodes[i], options));
             break;
           default:
-            xml.push(writeIndentation(options, depth, firstLine) + writeElementCompact(nodes[i], key, options, depth, hasContentCompact(nodes[i], options)));
+            xml.push(writeIndentation(options, depth2, firstLine) + writeElementCompact(nodes[i], key2, options, depth2, hasContentCompact(nodes[i], options)));
         }
         firstLine = firstLine && !xml.length;
       }
@@ -20606,8 +22476,8 @@ var OnOffElement = class extends XmlComponent {
   * @param name - The XML element name (e.g., "w:b", "w:i")
   * @param val - The boolean value (defaults to true)
   */
-  constructor(name, val = true) {
-    super(name);
+  constructor(name2, val = true) {
+    super(name2);
     if (val !== true) this.root.push(new Attributes({ val }));
   }
 };
@@ -20618,8 +22488,8 @@ var HpsMeasureElement = class extends XmlComponent {
   * @param name - The XML element name
   * @param val - The measurement value (number in half-points or string with units)
   */
-  constructor(name, val) {
-    super(name);
+  constructor(name2, val) {
+    super(name2);
     this.root.push(new Attributes({ val: hpsMeasureValue(val) }));
   }
 };
@@ -20632,13 +22502,13 @@ var StringValueElement = class extends XmlComponent {
   * @param name - The XML element name
   * @param val - The string value
   */
-  constructor(name, val) {
-    super(name);
+  constructor(name2, val) {
+    super(name2);
     this.root.push(new Attributes({ val }));
   }
 };
-var createStringElement = (name, value) => new BuilderElement({
-  name,
+var createStringElement = (name2, value) => new BuilderElement({
+  name: name2,
   attributes: { value: {
     key: "w:val",
     value
@@ -20651,8 +22521,8 @@ var NumberValueElement = class extends XmlComponent {
   * @param name - The XML element name
   * @param val - The numeric value
   */
-  constructor(name, val) {
-    super(name);
+  constructor(name2, val) {
+    super(name2);
     this.root.push(new Attributes({ val }));
   }
 };
@@ -20663,8 +22533,8 @@ var StringContainer = class extends XmlComponent {
   * @param name - The XML element name
   * @param val - The text content
   */
-  constructor(name, val) {
-    super(name);
+  constructor(name2, val) {
+    super(name2);
     this.root.push(val);
   }
 };
@@ -20677,8 +22547,8 @@ var BuilderElement = class extends XmlComponent {
   * @param config.attributes - Optional attributes with explicit key-value pairs
   * @param config.children - Optional child elements
   */
-  constructor({ name, attributes, children }) {
-    super(name);
+  constructor({ name: name2, attributes, children }) {
+    super(name2);
     if (attributes) this.root.push(new NextAttributeComponent(attributes));
     if (children) this.root.push(...children);
   }
@@ -20754,27 +22624,27 @@ var OFFICE_SYSTEM_COLORS = {
     lastColor: "FFFFFF"
   }
 };
-var rgbColorValue = (name, color) => {
-  if (color === "auto") throw new Error(`Invalid theme color ${name} 'auto'. Expected 6 digit hex value`);
+var rgbColorValue = (name2, color) => {
+  if (color === "auto") throw new Error(`Invalid theme color ${name2} 'auto'. Expected 6 digit hex value`);
   return hexColorValue(color);
 };
-var themeColorValues = (colors = {}) => Object.fromEntries(Object.keys(COLOR_OOXML_NAMES).map((name) => {
-  const color = colors[name];
-  const office = name === "dark1" || name === "light1" ? OFFICE_SYSTEM_COLORS[name].lastColor : OFFICE_COLORS[name];
-  return [name, color === void 0 ? office : rgbColorValue(name, color)];
+var themeColorValues = (colors = {}) => Object.fromEntries(Object.keys(COLOR_OOXML_NAMES).map((name2) => {
+  const color = colors[name2];
+  const office = name2 === "dark1" || name2 === "light1" ? OFFICE_SYSTEM_COLORS[name2].lastColor : OFFICE_COLORS[name2];
+  return [name2, color === void 0 ? office : rgbColorValue(name2, color)];
 }));
-var createRgbColor = (name, color) => new BuilderElement({
+var createRgbColor = (name2, color) => new BuilderElement({
   name: "a:srgbClr",
   attributes: { value: {
     key: "val",
-    value: rgbColorValue(name, color)
+    value: rgbColorValue(name2, color)
   } }
 });
-var createColor = (name, colors) => {
-  const color = colors[name];
-  const system = name === "dark1" || name === "light1" ? OFFICE_SYSTEM_COLORS[name] : void 0;
+var createColor = (name2, colors) => {
+  const color = colors[name2];
+  const system = name2 === "dark1" || name2 === "light1" ? OFFICE_SYSTEM_COLORS[name2] : void 0;
   return new BuilderElement({
-    name: `a:${COLOR_OOXML_NAMES[name]}`,
+    name: `a:${COLOR_OOXML_NAMES[name2]}`,
     children: [color === void 0 && system ? new BuilderElement({
       name: "a:sysClr",
       attributes: {
@@ -20787,14 +22657,14 @@ var createColor = (name, colors) => {
           value: system.lastColor
         }
       }
-    }) : createRgbColor(name, color !== null && color !== void 0 ? color : OFFICE_COLORS[name])]
+    }) : createRgbColor(name2, color !== null && color !== void 0 ? color : OFFICE_COLORS[name2])]
   });
 };
-var createColorScheme = (name, colors = {}) => new BuilderElement({
+var createColorScheme = (name2, colors = {}) => new BuilderElement({
   name: "a:clrScheme",
   attributes: { name: {
     key: "name",
-    value: name
+    value: name2
   } },
   children: Object.keys(COLOR_OOXML_NAMES).map((color) => createColor(color, colors))
 });
@@ -20950,12 +22820,12 @@ var ColorAttributeComponent = class extends BaseXmlComponent {
   }
 };
 var ColorElement = class extends XmlComponent {
-  constructor(name, attributes) {
-    super(name);
+  constructor(name2, attributes) {
+    super(name2);
     this.root.push(new ColorAttributeComponent(attributes));
   }
 };
-var createColorElement = (name, attributes) => new ColorElement(name, attributes);
+var createColorElement = (name2, attributes) => new ColorElement(name2, attributes);
 var COLOR_ATTRIBUTES = {
   color: "w:color",
   theme: "w:themeColor",
@@ -21316,25 +23186,25 @@ var createLanguageComponent = (options) => new BuilderElement({
 });
 var createRunFonts = (nameOrAttrs, hint) => {
   if (typeof nameOrAttrs === "string") {
-    const name = nameOrAttrs;
+    const name2 = nameOrAttrs;
     return new BuilderElement({
       name: "w:rFonts",
       attributes: {
         ascii: {
           key: "w:ascii",
-          value: name
+          value: name2
         },
         cs: {
           key: "w:cs",
-          value: name
+          value: name2
         },
         eastAsia: {
           key: "w:eastAsia",
-          value: name
+          value: name2
         },
         hAnsi: {
           key: "w:hAnsi",
-          value: name
+          value: name2
         },
         hint: {
           key: "w:hint",
@@ -21597,9 +23467,9 @@ var Run = class Run2 extends XmlComponent {
     else if (options.text !== void 0) this.root.push(new Text(options.text));
   }
   get writtenAs() {
-    return this.following.length > 0 ? [this, ...this.following.flatMap((run) => {
+    return this.following.length > 0 ? [this, ...this.following.flatMap((run2) => {
       var _run$writtenAs;
-      return (_run$writtenAs = run.writtenAs) !== null && _run$writtenAs !== void 0 ? _run$writtenAs : run;
+      return (_run$writtenAs = run2.writtenAs) !== null && _run$writtenAs !== void 0 ? _run$writtenAs : run2;
     })] : void 0;
   }
 };
@@ -21800,20 +23670,20 @@ var require_utils = /* @__PURE__ */ __commonJSMin(((exports) => {
     return al + bl + cl + dl + el >>> 0;
   }
   exports.sum64_5_lo = sum64_5_lo;
-  function rotr64_hi(ah, al, num2) {
-    return (al << 32 - num2 | ah >>> num2) >>> 0;
+  function rotr64_hi(ah, al, num3) {
+    return (al << 32 - num3 | ah >>> num3) >>> 0;
   }
   exports.rotr64_hi = rotr64_hi;
-  function rotr64_lo(ah, al, num2) {
-    return (ah << 32 - num2 | al >>> num2) >>> 0;
+  function rotr64_lo(ah, al, num3) {
+    return (ah << 32 - num3 | al >>> num3) >>> 0;
   }
   exports.rotr64_lo = rotr64_lo;
-  function shr64_hi(ah, al, num2) {
-    return ah >>> num2;
+  function shr64_hi(ah, al, num3) {
+    return ah >>> num3;
   }
   exports.shr64_hi = shr64_hi;
-  function shr64_lo(ah, al, num2) {
-    return (ah << 32 - num2 | al >>> num2) >>> 0;
+  function shr64_lo(ah, al, num3) {
+    return (ah << 32 - num3 | al >>> num3) >>> 0;
   }
   exports.shr64_lo = shr64_lo;
 }));
@@ -21886,10 +23756,10 @@ var require_common$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
 }));
 var require_common = /* @__PURE__ */ __commonJSMin(((exports) => {
   var rotr32 = require_utils().rotr32;
-  function ft_1(s, x, y, z) {
-    if (s === 0) return ch32(x, y, z);
-    if (s === 1 || s === 3) return p32(x, y, z);
-    if (s === 2) return maj32(x, y, z);
+  function ft_1(s2, x, y, z) {
+    if (s2 === 0) return ch32(x, y, z);
+    if (s2 === 1 || s2 === 3) return p32(x, y, z);
+    if (s2 === 2) return maj32(x, y, z);
   }
   exports.ft_1 = ft_1;
   function ch32(x, y, z) {
@@ -21964,8 +23834,8 @@ var require__1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     var d = this.h[3];
     var e = this.h[4];
     for (i = 0; i < W.length; i++) {
-      var s = ~~(i / 20);
-      var t = sum32_5(rotl32(a, 5), ft_1(s, b, c, d), e, W[i], sha1_K[s]);
+      var s2 = ~~(i / 20);
+      var t = sum32_5(rotl32(a, 5), ft_1(s2, b, c, d), e, W[i], sha1_K[s2]);
       e = d;
       d = c;
       c = rotl32(b, 30);
@@ -22612,7 +24482,7 @@ var require_ripemd = /* @__PURE__ */ __commonJSMin(((exports) => {
     var Dh = D;
     var Eh = E;
     for (var j = 0; j < 80; j++) {
-      var T = sum32(rotl32(sum32_4(A, f(j, B, C, D), msg[r[j] + start], K(j)), s[j]), E);
+      var T = sum32(rotl32(sum32_4(A, f(j, B, C, D), msg[r[j] + start], K(j)), s2[j]), E);
       A = E;
       E = D;
       D = rotl32(C, 10);
@@ -22821,7 +24691,7 @@ var require_ripemd = /* @__PURE__ */ __commonJSMin(((exports) => {
     9,
     11
   ];
-  var s = [
+  var s2 = [
     11,
     14,
     15,
@@ -22989,24 +24859,24 @@ var require_ripemd = /* @__PURE__ */ __commonJSMin(((exports) => {
 var require_hmac = /* @__PURE__ */ __commonJSMin(((exports, module) => {
   var utils = require_utils();
   var assert = require_minimalistic_assert();
-  function Hmac(hash, key, enc) {
-    if (!(this instanceof Hmac)) return new Hmac(hash, key, enc);
+  function Hmac(hash, key2, enc) {
+    if (!(this instanceof Hmac)) return new Hmac(hash, key2, enc);
     this.Hash = hash;
     this.blockSize = hash.blockSize / 8;
     this.outSize = hash.outSize / 8;
     this.inner = null;
     this.outer = null;
-    this._init(utils.toArray(key, enc));
+    this._init(utils.toArray(key2, enc));
   }
   module.exports = Hmac;
-  Hmac.prototype._init = function init(key) {
-    if (key.length > this.blockSize) key = new this.Hash().update(key).digest();
-    assert(key.length <= this.blockSize);
-    for (var i = key.length; i < this.blockSize; i++) key.push(0);
-    for (i = 0; i < key.length; i++) key[i] ^= 54;
-    this.inner = new this.Hash().update(key);
-    for (i = 0; i < key.length; i++) key[i] ^= 106;
-    this.outer = new this.Hash().update(key);
+  Hmac.prototype._init = function init(key2) {
+    if (key2.length > this.blockSize) key2 = new this.Hash().update(key2).digest();
+    assert(key2.length <= this.blockSize);
+    for (var i = key2.length; i < this.blockSize; i++) key2.push(0);
+    for (i = 0; i < key2.length; i++) key2[i] ^= 54;
+    this.inner = new this.Hash().update(key2);
+    for (i = 0; i < key2.length; i++) key2[i] ^= 106;
+    this.outer = new this.Hash().update(key2);
   };
   Hmac.prototype.update = function update(msg, enc) {
     this.inner.update(msg, enc);
@@ -23130,9 +25000,9 @@ var ROMAN = [
   [4, "IV"],
   [1, "I"]
 ];
-var roman = (value) => value <= LARGEST_ROMAN ? ROMAN.reduce(({ rest, text }, [amount, numeral]) => ({
+var roman = (value) => value <= LARGEST_ROMAN ? ROMAN.reduce(({ rest, text: text2 }, [amount, numeral]) => ({
   rest: rest % amount,
-  text: text + numeral.repeat(Math.floor(rest / amount))
+  text: text2 + numeral.repeat(Math.floor(rest / amount))
 }), {
   rest: value,
   text: ""
@@ -23149,9 +25019,9 @@ var ordinal = (value) => {
 };
 var numberWriterOf = (format) => {
   const small = format.charAt(0) !== format.charAt(0).toUpperCase();
-  const inCase = (write) => (value) => {
+  const inCase = (write2) => (value) => {
     var _write;
-    return small ? (_write = write(value)) === null || _write === void 0 ? void 0 : _write.toLowerCase() : write(value);
+    return small ? (_write = write2(value)) === null || _write === void 0 ? void 0 : _write.toLowerCase() : write2(value);
   };
   switch (format.toLowerCase()) {
     case "arabic":
@@ -23187,16 +25057,16 @@ var inNumberPicture = (value, picture) => {
   if (digits.length < places || zeros === 0 && value === 0) return;
   return picture.includes(",") ? digits.replace(/\B(?=(\d{3})+$)/g, ",") : digits;
 };
-var inCapitals = (text, capitals) => {
+var inCapitals = (text2, capitals) => {
   switch (capitals) {
     case "upper":
-      return text.toUpperCase();
+      return text2.toUpperCase();
     case "lower":
-      return text.toLowerCase();
+      return text2.toLowerCase();
     case "firstcap":
-      return text.charAt(0).toUpperCase() + text.slice(1);
+      return text2.charAt(0).toUpperCase() + text2.slice(1);
     default:
-      return text;
+      return text2;
   }
 };
 var numberFieldOf = (instruction) => {
@@ -23223,13 +25093,13 @@ var numberFieldOf = (instruction) => {
       written && (written = picture === void 0 && isNumberPicture(value));
       (_picture = picture) !== null && _picture !== void 0 || (picture = value);
     } else if (part.startsWith("\\*")) {
-      const name = argument();
-      const lower = name.toLowerCase();
+      const name2 = argument();
+      const lower = name2.toLowerCase();
       if (CASE_FORMATS.has(lower)) capitals.push(lower);
-      else if (name !== "" && !PLAIN_FORMATS.has(lower)) {
+      else if (name2 !== "" && !PLAIN_FORMATS.has(lower)) {
         var _numberFormat;
-        written && (written = numberFormat === void 0 && numberWriterOf(name) !== void 0);
-        (_numberFormat = numberFormat) !== null && _numberFormat !== void 0 || (numberFormat = name);
+        written && (written = numberFormat === void 0 && numberWriterOf(name2) !== void 0);
+        (_numberFormat = numberFormat) !== null && _numberFormat !== void 0 || (numberFormat = name2);
       }
     }
   }
@@ -23252,22 +25122,22 @@ var resultFrom = (instruction, { enclosing, within, inTextBox }, { estimate, sec
   const writesNumber = numberFormat !== void 0 || picture !== void 0;
   const inFormat = (value) => value === void 0 ? void 0 : picture === void 0 ? numberWriterOf(numberFormat !== null && numberFormat !== void 0 ? numberFormat : "arabic")(value) : inNumberPicture(value, picture);
   const position = field.type === "pageReference" && field.relative && within === "counted" && !inTextBox ? relativeTo === null || relativeTo === void 0 ? void 0 : relativeTo(field.bookmark) : void 0;
-  let result;
-  if (!written) result = void 0;
-  else if (field.type === "pageCount") result = inFormat(field.scope === "document" ? pageCount : sectionPageCount);
-  else if (enclosing.some(prefixesPageNumbers)) result = void 0;
-  else if (writesNumber) result = inFormat(bookmarkPageNumbers === null || bookmarkPageNumbers === void 0 ? void 0 : bookmarkPageNumbers.get(field.bookmark));
-  else result = field.relative ? position : bookmarks.get(field.bookmark);
-  return result === void 0 ? blank ? "" : void 0 : inCapitals(result, capitals);
+  let result2;
+  if (!written) result2 = void 0;
+  else if (field.type === "pageCount") result2 = inFormat(field.scope === "document" ? pageCount : sectionPageCount);
+  else if (enclosing.some(prefixesPageNumbers)) result2 = void 0;
+  else if (writesNumber) result2 = inFormat(bookmarkPageNumbers === null || bookmarkPageNumbers === void 0 ? void 0 : bookmarkPageNumbers.get(field.bookmark));
+  else result2 = field.relative ? position : bookmarks.get(field.bookmark);
+  return result2 === void 0 ? blank ? "" : void 0 : inCapitals(result2, capitals);
 };
-var placeIn = (name, within) => name === "mc:Fallback" || within === "fallback" ? "fallback" : name === "w:del" || name === "w:moveFrom" ? "deleted" : within;
+var placeIn = (name2, within) => name2 === "mc:Fallback" || within === "fallback" ? "fallback" : name2 === "w:del" || name2 === "w:moveFrom" ? "deleted" : within;
 var fillFields = (tree, elements, open, filling, within = "counted", inTextBox = false) => {
   for (let index = 0; index < elements.length; index++) {
     const element = elements[index];
-    const name = tree.nameOf(element);
-    if (name === void 0) continue;
+    const name2 = tree.nameOf(element);
+    if (name2 === void 0) continue;
     const current = open[open.length - 1];
-    if (name === "w:fldChar") {
+    if (name2 === "w:fldChar") {
       const type = tree.attributeOf(element, "w:fldCharType");
       if (type === "begin") open.push({
         begin: element,
@@ -23287,36 +25157,36 @@ var fillFields = (tree, elements, open, filling, within = "counted", inTextBox =
           index++;
         }
       } else if (type === "end") open.pop();
-    } else if (name === "w:instrText" && current && !current.inResult) current.instruction += tree.textOf(element);
-    else if ((name === "w:t" || name === "w:tab" || name === "w:br" || name === "w:cr") && (current === null || current === void 0 ? void 0 : current.result) !== void 0) {
+    } else if (name2 === "w:instrText" && current && !current.inResult) current.instruction += tree.textOf(element);
+    else if ((name2 === "w:t" || name2 === "w:tab" || name2 === "w:br" || name2 === "w:cr") && (current === null || current === void 0 ? void 0 : current.result) !== void 0) {
       elements.splice(index, 1);
       index--;
-    } else if (name === "w:fldSimple") {
-      const result = filling.resultOf(String(tree.attributeOf(element, "w:instr")), {
+    } else if (name2 === "w:fldSimple") {
+      const result2 = filling.resultOf(String(tree.attributeOf(element, "w:instr")), {
         within,
         enclosing: open.map((field) => field.instruction),
         inTextBox
       });
-      if (result === void 0) {
+      if (result2 === void 0) {
         var _tree$contentOf;
         fillFields(tree, (_tree$contentOf = tree.contentOf(element)) !== null && _tree$contentOf !== void 0 ? _tree$contentOf : [], [], filling, within, inTextBox);
-      } else tree.setSimpleFieldResult(element, result);
+      } else tree.setSimpleFieldResult(element, result2);
     } else {
       var _tree$contentOf2;
-      if (name === "w:p") {
+      if (name2 === "w:p") {
         var _filling$beforeParagr;
         (_filling$beforeParagr = filling.beforeParagraph) === null || _filling$beforeParagr === void 0 || _filling$beforeParagr.call(filling, element);
       }
-      fillFields(tree, (_tree$contentOf2 = tree.contentOf(element)) !== null && _tree$contentOf2 !== void 0 ? _tree$contentOf2 : [], open, filling, placeIn(name, within), inTextBox || name === "w:txbxContent");
-      if (name === "w:p") filling.afterParagraph(element);
+      fillFields(tree, (_tree$contentOf2 = tree.contentOf(element)) !== null && _tree$contentOf2 !== void 0 ? _tree$contentOf2 : [], open, filling, placeIn(name2, within), inTextBox || name2 === "w:txbxContent");
+      if (name2 === "w:p") filling.afterParagraph(element);
     }
   }
 };
 var sectionPropertiesIn = (tree, elements) => elements.flatMap((element) => {
   var _tree$contentOf3;
-  const name = tree.nameOf(element);
-  if (name === void 0) return [];
-  return name === "w:sectPr" ? [element] : sectionPropertiesIn(tree, (_tree$contentOf3 = tree.contentOf(element)) !== null && _tree$contentOf3 !== void 0 ? _tree$contentOf3 : []);
+  const name2 = tree.nameOf(element);
+  if (name2 === void 0) return [];
+  return name2 === "w:sectPr" ? [element] : sectionPropertiesIn(tree, (_tree$contentOf3 = tree.contentOf(element)) !== null && _tree$contentOf3 !== void 0 ? _tree$contentOf3 : []);
 });
 var endsSection = (tree, paragraph) => {
   var _tree$contentOf4;
@@ -23329,8 +25199,8 @@ var partPageCountsOf = (tree, body, sectionPageCounts) => {
   const countsOfParts = sectionPropertiesIn(tree, [body]).reduce((all, properties) => {
     var _tree$contentOf6, _all;
     const references = ((_tree$contentOf6 = tree.contentOf(properties)) !== null && _tree$contentOf6 !== void 0 ? _tree$contentOf6 : []).flatMap((child2) => {
-      const name = tree.nameOf(child2);
-      return name === "w:headerReference" || name === "w:footerReference" ? [[`${name} ${String(tree.attributeOf(child2, "w:type"))}`, String(tree.attributeOf(child2, "r:id"))]] : [];
+      const name2 = tree.nameOf(child2);
+      return name2 === "w:headerReference" || name2 === "w:footerReference" ? [[`${name2} ${String(tree.attributeOf(child2, "w:type"))}`, String(tree.attributeOf(child2, "r:id"))]] : [];
     });
     return [...all, new Map([...(_all = all[all.length - 1]) !== null && _all !== void 0 ? _all : [], ...references])];
   }, []).reduce((counts, parts, section) => {
@@ -23367,8 +25237,8 @@ var fillBodyFields = (tree, body, estimate, { blank }) => {
 };
 var fillPartFields = (tree, part, estimate, { blank, sectionPageCount, notes = false }) => {
   const onPage = (bookmark2) => {
-    const page = estimate.bookmarks.get(bookmark2);
-    return page === void 0 ? void 0 : `on page ${page}`;
+    const page2 = estimate.bookmarks.get(bookmark2);
+    return page2 === void 0 ? void 0 : `on page ${page2}`;
   };
   fillFields(tree, [part], [], {
     resultOf: (instruction, place) => resultFrom(instruction, place, _objectSpread2({
@@ -23432,11 +25302,11 @@ var HeadingBookmarkIds = class {
 };
 var nameOf$2 = (element) => typeof element === "object" && element !== null ? Object.keys(element)[0] : void 0;
 var childrenOf = (element) => {
-  const name = nameOf$2(element);
-  const content = name === void 0 ? void 0 : element[name];
+  const name2 = nameOf$2(element);
+  const content = name2 === void 0 ? void 0 : element[name2];
   return Array.isArray(content) ? content : content === void 0 ? [] : [content];
 };
-var childOf = (element, name) => childrenOf(element).find((child2) => nameOf$2(child2) === name);
+var childOf = (element, name2) => childrenOf(element).find((child2) => nameOf$2(child2) === name2);
 var attributeOf = (element, attribute) => {
   var _childOf;
   return (_childOf = childOf(element, "_attr")) === null || _childOf === void 0 || (_childOf = _childOf._attr) === null || _childOf === void 0 ? void 0 : _childOf[attribute];
@@ -23454,9 +25324,9 @@ var BLOCK_CONTAINERS = /* @__PURE__ */ new Set([
   "w:customXml"
 ]);
 var blocksOf = (elements) => elements.flatMap((element) => {
-  const name = nameOf$2(element);
-  if (name === "w:p" || writtenTables.has(element)) return [element];
-  return name !== void 0 && BLOCK_CONTAINERS.has(name) ? blocksOf(childrenOf(element)) : [];
+  const name2 = nameOf$2(element);
+  if (name2 === "w:p" || writtenTables.has(element)) return [element];
+  return name2 !== void 0 && BLOCK_CONTAINERS.has(name2) ? blocksOf(childrenOf(element)) : [];
 });
 var TEXT_CONTAINERS = /* @__PURE__ */ new Set([
   "w:r",
@@ -23488,33 +25358,33 @@ var textOfRunContent = (element) => {
   }
 };
 var textOf = (paragraph) => {
-  const fields = [];
+  const fields2 = [];
   const read = (element) => {
-    const name = nameOf$2(element);
-    if (name !== void 0 && TEXT_CONTAINERS.has(name)) return childrenOf(element).map(read).join("");
-    if (name === "w:fldChar") {
+    const name2 = nameOf$2(element);
+    if (name2 !== void 0 && TEXT_CONTAINERS.has(name2)) return childrenOf(element).map(read).join("");
+    if (name2 === "w:fldChar") {
       const type = attributeOf(element, "w:fldCharType");
-      if (type === "begin") fields.push(false);
-      else if (type === "separate") fields[fields.length - 1] = true;
-      else fields.pop();
+      if (type === "begin") fields2.push(false);
+      else if (type === "separate") fields2[fields2.length - 1] = true;
+      else fields2.pop();
       return "";
     }
-    return fields.every(Boolean) ? textOfRunContent(element) : "";
+    return fields2.every(Boolean) ? textOfRunContent(element) : "";
   };
   return childrenOf(paragraph).map(read).join("");
 };
 var bookmarkMarksOf = (element) => {
-  const name = nameOf$2(element);
-  if (name === "w:bookmarkStart") return [{
+  const name2 = nameOf$2(element);
+  if (name2 === "w:bookmarkStart") return [{
     start: true,
     id: attributeOf(element, "w:id"),
     name: attributeOf(element, "w:name")
   }];
-  if (name === "w:bookmarkEnd") return [{
+  if (name2 === "w:bookmarkEnd") return [{
     start: false,
     id: attributeOf(element, "w:id")
   }];
-  return name === void 0 || name === "_attr" ? [] : childrenOf(element).flatMap(bookmarkMarksOf);
+  return name2 === void 0 || name2 === "_attr" ? [] : childrenOf(element).flatMap(bookmarkMarksOf);
 };
 var bookmarksOf = (paragraphs) => {
   const open = /* @__PURE__ */ new Map();
@@ -23560,12 +25430,12 @@ var headingLevelOf = (styleId, styles) => {
   const match = /^heading ?([1-9])$/i.exec((_styles$get$name = (_styles$get = styles.get(styleId)) === null || _styles$get === void 0 ? void 0 : _styles$get.name) !== null && _styles$get$name !== void 0 ? _styles$get$name : styleId);
   return match ? Number(match[1]) : void 0;
 };
-var styleOutlineLevelOf = (styleId, styles, depth = 0) => {
+var styleOutlineLevelOf = (styleId, styles, depth2 = 0) => {
   var _style$outlineLevel;
-  if (styleId === void 0 || depth > styles.size) return;
+  if (styleId === void 0 || depth2 > styles.size) return;
   const style = styles.get(styleId);
   const heading = headingLevelOf(styleId, styles);
-  return (_style$outlineLevel = style === null || style === void 0 ? void 0 : style.outlineLevel) !== null && _style$outlineLevel !== void 0 ? _style$outlineLevel : heading === void 0 ? styleOutlineLevelOf(style === null || style === void 0 ? void 0 : style.basedOn, styles, depth + 1) : heading - 1;
+  return (_style$outlineLevel = style === null || style === void 0 ? void 0 : style.outlineLevel) !== null && _style$outlineLevel !== void 0 ? _style$outlineLevel : heading === void 0 ? styleOutlineLevelOf(style === null || style === void 0 ? void 0 : style.basedOn, styles, depth2 + 1) : heading - 1;
 };
 var headingLevels = (context) => {
   const styles = stylesOf(context);
@@ -23590,7 +25460,7 @@ var levelIn = (properties, paragraph, styles) => {
   var _styles$get2;
   const { entriesFromBookmark, headingStyleRange, stylesWithLevels = [], useAppliedParagraphOutlineLevel } = properties;
   if (paragraph.text.trim() === "" || entriesFromBookmark && !paragraph.bookmarks.has(entriesFromBookmark)) return;
-  const names = [paragraph.styleId, paragraph.styleId === void 0 ? void 0 : (_styles$get2 = styles.get(paragraph.styleId)) === null || _styles$get2 === void 0 ? void 0 : _styles$get2.name].filter((name) => name !== void 0).map((name) => name.toLowerCase());
+  const names = [paragraph.styleId, paragraph.styleId === void 0 ? void 0 : (_styles$get2 = styles.get(paragraph.styleId)) === null || _styles$get2 === void 0 ? void 0 : _styles$get2.name].filter((name2) => name2 !== void 0).map((name2) => name2.toLowerCase());
   const listed = stylesWithLevels.find((style) => names.includes(style.styleName.toLowerCase()));
   if (listed) return listed.level;
   const namesItsEntries = Boolean(headingStyleRange) || stylesWithLevels.length > 0 || Boolean(useAppliedParagraphOutlineLevel) || Boolean(properties.tcFieldIdentifier) || Boolean(properties.tcFieldLevelRange) || Boolean(properties.captionLabel) || Boolean(properties.captionLabelIncludingNumbers);
@@ -23601,8 +25471,8 @@ var levelIn = (properties, paragraph, styles) => {
   return outlineLevel !== void 0 && isWithin(outlineLevel + 1, headingRange !== null && headingRange !== void 0 ? headingRange : [1, 9]) ? outlineLevel + 1 : void 0;
 };
 var titleRunsOf = (title, properties) => {
-  const text = properties.preserveTabInEntries ? title : title.replace(/\t/g, " ");
-  return (properties.preserveNewLineInEntries ? text.split("\n") : [text.replace(/\n/g, " ")]).map((line, index) => new TextRun({
+  const text2 = properties.preserveTabInEntries ? title : title.replace(/\t/g, " ");
+  return (properties.preserveNewLineInEntries ? text2.split("\n") : [text2.replace(/\n/g, " ")]).map((line, index) => new TextRun({
     break: index > 0 ? 1 : void 0,
     children: line.split("	").flatMap((part, partIndex) => [...partIndex > 0 ? [new Tab()] : [], ...part === "" ? [] : [part]])
   }));
@@ -23648,12 +25518,12 @@ var contentOf = ({ properties, beginDirty, textWidth }, entries, styles, context
   content.addChildElement(new Paragraph({ children: [new Run({ children: [createEnd()] })] }));
   return content.prepForXml(context);
 };
-var bookmark = (paragraph, name, id, context) => {
+var bookmark = (paragraph, name2, id, context) => {
   const children = childrenOf(paragraph);
   const start = children.findIndex((child2) => nameOf$2(child2) === "w:pPr") + 1;
   paragraph["w:p"] = [
     ...children.slice(0, start),
-    new BookmarkStart(name, id).prepForXml(context),
+    new BookmarkStart(name2, id).prepForXml(context),
     ...children.slice(start),
     new BookmarkEnd(id).prepForXml(context)
   ];
@@ -23688,32 +25558,32 @@ var fillTablesOfContents = (body, context, bookmarkIds) => {
 var IDENTIFIER = new RegExp("^\\p{L}[\\p{L}\\p{N}_]*$", "u");
 var sequenceOf = (switches) => {
   var _step, _format;
-  let step;
+  let step2;
   let hidden = false;
   let format;
   let caseFormat = false;
   let picture = false;
   for (let index = 0; index < switches.length; index++) {
     var _switches, _next;
-    const name = switches[index];
+    const name2 = switches[index];
     const argument = (_switches = switches[index + 1]) !== null && _switches !== void 0 ? _switches : "";
     let next;
-    if (index === 0 && !name.startsWith("\\")) next = { type: "bookmark" };
-    else if (name === "\\c" || name === "\\n") next = { type: name === "\\c" ? "repeat" : "next" };
-    else if ((name === "\\r" || name === "\\s") && /^\d+$/.test(argument)) {
+    if (index === 0 && !name2.startsWith("\\")) next = { type: "bookmark" };
+    else if (name2 === "\\c" || name2 === "\\n") next = { type: name2 === "\\c" ? "repeat" : "next" };
+    else if ((name2 === "\\r" || name2 === "\\s") && /^\d+$/.test(argument)) {
       index++;
-      next = name === "\\r" ? {
+      next = name2 === "\\r" ? {
         type: "reset",
         to: Number(argument)
       } : {
         type: "heading",
         level: Number(argument)
       };
-    } else if (name === "\\h") hidden = true;
-    else if (name === "\\#" && index + 1 < switches.length) {
+    } else if (name2 === "\\h") hidden = true;
+    else if (name2 === "\\#" && index + 1 < switches.length) {
       index++;
       picture = true;
-    } else if (name === "\\*" && index + 1 < switches.length) {
+    } else if (name2 === "\\*" && index + 1 < switches.length) {
       const value = switches[++index];
       if (CASE_FORMATS.has(value.toLowerCase())) caseFormat = true;
       else if (!PLAIN_FORMATS.has(value.toLowerCase())) {
@@ -23721,13 +25591,13 @@ var sequenceOf = (switches) => {
         format = value;
       }
     } else return;
-    if (next && step) return;
-    step = (_next = next) !== null && _next !== void 0 ? _next : step;
+    if (next && step2) return;
+    step2 = (_next = next) !== null && _next !== void 0 ? _next : step2;
   }
-  if ((step === null || step === void 0 ? void 0 : step.type) === "bookmark" && switches.length > 1) return;
+  if ((step2 === null || step2 === void 0 ? void 0 : step2.type) === "bookmark" && switches.length > 1) return;
   const written = !picture && !(caseFormat && format !== void 0 && format.toLowerCase() !== "arabic");
   return {
-    step: (_step = step) !== null && _step !== void 0 ? _step : { type: "next" },
+    step: (_step = step2) !== null && _step !== void 0 ? _step : { type: "next" },
     hidden: hidden && format === void 0,
     format: written ? (_format = format) !== null && _format !== void 0 ? _format : "ARABIC" : ""
   };
@@ -23748,8 +25618,8 @@ var isSequenceField = (instruction) => sequenceFieldOf(instruction) !== void 0;
 var identifiersIn = (element) => {
   if (typeof element !== "object" || element === null) return [];
   if (Array.isArray(element)) return element.flatMap(identifiersIn);
-  return Object.entries(element).flatMap(([name, content]) => {
-    return [...(name === "w:instrText" && Array.isArray(content) ? content : name === "_attr" ? [content["w:instr"]] : []).flatMap((instruction) => {
+  return Object.entries(element).flatMap(([name2, content]) => {
+    return [...(name2 === "w:instrText" && Array.isArray(content) ? content : name2 === "_attr" ? [content["w:instr"]] : []).flatMap((instruction) => {
       const field = typeof instruction === "string" ? sequenceFieldOf(instruction) : void 0;
       return (field === null || field === void 0 ? void 0 : field.identifier) === void 0 ? [] : [field.identifier.toLowerCase()];
     }), ...identifiersIn(content)];
@@ -23776,11 +25646,11 @@ var sequenceNumbering = (context) => {
   let unclearAt = -1;
   let paragraph = -1;
   let unknown;
-  const afterHeading = (key, level) => {
+  const afterHeading = (key2, level) => {
     var _counted$get;
     const headingAt = Math.max(-1, ...headingsAt.slice(1, level + 1).filter((at) => at !== void 0));
-    const since = ((_counted$get = counted.get(key)) !== null && _counted$get !== void 0 ? _counted$get : []).filter((field) => field.paragraph >= headingAt);
-    const followed = since.every(({ step }) => (step === null || step === void 0 ? void 0 : step.type) === "next" || (step === null || step === void 0 ? void 0 : step.type) === "heading" && step.level === level);
+    const since = ((_counted$get = counted.get(key2)) !== null && _counted$get !== void 0 ? _counted$get : []).filter((field) => field.paragraph >= headingAt);
+    const followed = since.every(({ step: step2 }) => (step2 === null || step2 === void 0 ? void 0 : step2.type) === "next" || (step2 === null || step2 === void 0 ? void 0 : step2.type) === "heading" && step2.level === level);
     if (unclearAt > headingAt || !followed) return;
     return since.length + 1;
   };
@@ -23796,22 +25666,22 @@ var sequenceNumbering = (context) => {
       const { identifier, sequence } = sequenceFieldOf(instruction);
       if (identifier === void 0 || place === "fallback") return;
       (_unknown = unknown) !== null && _unknown !== void 0 || (unknown = identifiersInCommentsOf(context));
-      const key = identifier.toLowerCase();
-      if ((sequence === null || sequence === void 0 ? void 0 : sequence.step.type) === "bookmark" && place === "counted" && !unknown.has(key)) return;
-      const before = numbers.has(key) ? numbers.get(key) : 0;
-      const step = unknown.has(key) || place === "deleted" ? void 0 : sequence === null || sequence === void 0 ? void 0 : sequence.step;
-      const value = (step === null || step === void 0 ? void 0 : step.type) === "reset" ? step.to : (step === null || step === void 0 ? void 0 : step.type) === "repeat" ? before : (step === null || step === void 0 ? void 0 : step.type) === "heading" ? afterHeading(key, step.level) : (step === null || step === void 0 ? void 0 : step.type) === "next" && before !== void 0 ? before + 1 : void 0;
-      numbers.set(key, value);
-      counted.set(key, [...(_counted$get2 = counted.get(key)) !== null && _counted$get2 !== void 0 ? _counted$get2 : [], _objectSpread2({ paragraph }, value === void 0 ? {} : { step })]);
+      const key2 = identifier.toLowerCase();
+      if ((sequence === null || sequence === void 0 ? void 0 : sequence.step.type) === "bookmark" && place === "counted" && !unknown.has(key2)) return;
+      const before = numbers.has(key2) ? numbers.get(key2) : 0;
+      const step2 = unknown.has(key2) || place === "deleted" ? void 0 : sequence === null || sequence === void 0 ? void 0 : sequence.step;
+      const value = (step2 === null || step2 === void 0 ? void 0 : step2.type) === "reset" ? step2.to : (step2 === null || step2 === void 0 ? void 0 : step2.type) === "repeat" ? before : (step2 === null || step2 === void 0 ? void 0 : step2.type) === "heading" ? afterHeading(key2, step2.level) : (step2 === null || step2 === void 0 ? void 0 : step2.type) === "next" && before !== void 0 ? before + 1 : void 0;
+      numbers.set(key2, value);
+      counted.set(key2, [...(_counted$get2 = counted.get(key2)) !== null && _counted$get2 !== void 0 ? _counted$get2 : [], _objectSpread2({ paragraph }, value === void 0 ? {} : { step: step2 })]);
       return value === void 0 || sequence === void 0 ? void 0 : sequence.hidden ? "" : (_numberWriterOf = numberWriterOf(sequence.format)) === null || _numberWriterOf === void 0 ? void 0 : _numberWriterOf(value);
     }
   };
 };
 var nameOf$1 = (element) => {
-  const name = typeof element === "object" && element !== null && !Array.isArray(element) ? Object.keys(element)[0] : void 0;
-  return name === "_attr" ? void 0 : name;
+  const name2 = typeof element === "object" && element !== null && !Array.isArray(element) ? Object.keys(element)[0] : void 0;
+  return name2 === "_attr" ? void 0 : name2;
 };
-var textElement = (text) => ({ "w:t": [{ _attr: { "xml:space": "preserve" } }, text] });
+var textElement = (text2) => ({ "w:t": [{ _attr: { "xml:space": "preserve" } }, text2] });
 var FORMATTED = {
   nameOf: nameOf$1,
   contentOf: (element) => {
@@ -23829,12 +25699,12 @@ var FORMATTED = {
   writeClean: (begin) => {
     if (isDirtyWithoutPageNumbers(begin)) {
       const attributes = begin["w:fldChar"]._attr;
-      begin["w:fldChar"] = { _attr: Object.fromEntries(Object.entries(attributes).filter(([key]) => key !== "w:dirty")) };
+      begin["w:fldChar"] = { _attr: Object.fromEntries(Object.entries(attributes).filter(([key2]) => key2 !== "w:dirty")) };
     }
   },
-  setSimpleFieldResult: (element, text) => {
+  setSimpleFieldResult: (element, text2) => {
     const content = element["w:fldSimple"];
-    element["w:fldSimple"] = [...(Array.isArray(content) ? content : [content]).filter((child2) => typeof child2 === "object" && child2 !== null && "_attr" in child2), { "w:r": [textElement(text)] }];
+    element["w:fldSimple"] = [...(Array.isArray(content) ? content : [content]).filter((child2) => typeof child2 === "object" && child2 !== null && "_attr" in child2), { "w:r": [textElement(text2)] }];
   }
 };
 var estimates = /* @__PURE__ */ new WeakMap();
@@ -23978,10 +25848,10 @@ var Comment = class extends XmlComponent {
   * corresponding w15:commentEx entry in commentsExtended.xml.
   */
   prepForXml(context) {
-    const result = super.prepForXml(context);
-    if (!result || !this.paraId) return result;
-    const commentChildren = result["w:comment"];
-    if (!Array.isArray(commentChildren)) return result;
+    const result2 = super.prepForXml(context);
+    if (!result2 || !this.paraId) return result2;
+    const commentChildren = result2["w:comment"];
+    if (!Array.isArray(commentChildren)) return result2;
     for (let i = commentChildren.length - 1; i >= 0; i--) {
       const child2 = commentChildren[i];
       if (child2 && typeof child2 === "object" && "w:p" in child2) {
@@ -23993,7 +25863,7 @@ var Comment = class extends XmlComponent {
         break;
       }
     }
-    return result;
+    return result2;
   }
 };
 var commentIdToParaId = (id) => (id + 1).toString(16).toUpperCase().padStart(8, "0");
@@ -24470,8 +26340,8 @@ var externalHyperlinkTarget = (link) => {
     anchor: link.slice(index + 1)
   } : { target: link };
 };
-var createFontRelationship = ({ id, fontKey, subsetted }, name) => new BuilderElement({
-  name,
+var createFontRelationship = ({ id, fontKey, subsetted }, name2) => new BuilderElement({
+  name: name2,
   attributes: _objectSpread2({ id: {
     key: "r:id",
     value: id
@@ -24481,11 +26351,11 @@ var createFontRelationship = ({ id, fontKey, subsetted }, name) => new BuilderEl
   } } : {}),
   children: [...subsetted ? [new OnOffElement("w:subsetted", subsetted)] : []]
 });
-var createFont = ({ name, altName, panose1, charset, family, notTrueType, pitch, sig, embedRegular, embedBold, embedItalic, embedBoldItalic }) => new BuilderElement({
+var createFont = ({ name: name2, altName, panose1, charset, family, notTrueType, pitch, sig, embedRegular, embedBold, embedItalic, embedBoldItalic }) => new BuilderElement({
   name: "w:font",
   attributes: { name: {
     key: "w:name",
-    value: name
+    value: name2
   } },
   children: [
     ...altName ? [createStringElement("w:altName", altName)] : [],
@@ -24529,8 +26399,8 @@ var createFont = ({ name, altName, panose1, charset, family, notTrueType, pitch,
     ...embedBoldItalic ? [createFontRelationship(embedBoldItalic, "w:embedBoldItalic")] : []
   ]
 });
-var createEmbeddedFont = ({ name, characterSet, embedRegular, embedBold, embedItalic, embedBoldItalic }) => createFont({
-  name,
+var createEmbeddedFont = ({ name: name2, characterSet, embedRegular, embedBold, embedItalic, embedBoldItalic }) => createFont({
+  name: name2,
   sig: {
     usb0: "E0002AFF",
     usb1: "C000247B",
@@ -24922,8 +26792,8 @@ var Paragraph = class extends FileChild {
   removeSectionProperties(sectionProperties) {
     this.properties.removeSectionProperties(sectionProperties);
   }
-  addRunToFront(run) {
-    this.root.splice(1, 0, run);
+  addRunToFront(run2) {
+    this.root.splice(1, 0, run2);
     return this;
   }
 };
@@ -24940,8 +26810,8 @@ function _objectWithoutProperties(e, t) {
   if (null == e) return {};
   var o, r, i = _objectWithoutPropertiesLoose(e, t);
   if (Object.getOwnPropertySymbols) {
-    var s = Object.getOwnPropertySymbols(e);
-    for (r = 0; r < s.length; r++) o = s[r], t.includes(o) || {}.propertyIsEnumerable.call(e, o) && (i[o] = e[o]);
+    var s2 = Object.getOwnPropertySymbols(e);
+    for (r = 0; r < s2.length; r++) o = s2[r], t.includes(o) || {}.propertyIsEnumerable.call(e, o) && (i[o] = e[o]);
   }
   return i;
 }
@@ -25043,8 +26913,8 @@ var createLineNumberType = ({ countBy, start, restart, distance }) => new Builde
     }
   }
 });
-var createNoteProperties = ({ name, position, numberFormat, start, restart }) => new BuilderElement({
-  name,
+var createNoteProperties = ({ name: name2, position, numberFormat, start, restart }) => new BuilderElement({
+  name: name2,
   children: [
     ...position === void 0 ? [] : [new BuilderElement({
       name: "w:pos",
@@ -25502,11 +27372,11 @@ var WidthType = {
   /** Value is in percentage. */
   PERCENTAGE: "pct"
 };
-var createTableWidthElement = (name, { type = WidthType.AUTO, size }) => {
+var createTableWidthElement = (name2, { type = WidthType.AUTO, size }) => {
   let tableWidthValue = size;
   if (type === WidthType.PERCENTAGE && typeof size === "number") tableWidthValue = Math.round(size * 50);
   return new BuilderElement({
-    name,
+    name: name2,
     attributes: {
       type: {
         key: "w:type",
@@ -25520,7 +27390,7 @@ var createTableWidthElement = (name, { type = WidthType.AUTO, size }) => {
   });
 };
 var DEFAULT_AVAILABLE_WIDTH = sectionPageSizeDefaults.WIDTH - sectionMarginDefaults.LEFT - sectionMarginDefaults.RIGHT - sectionMarginDefaults.GUTTER;
-var columnSpanOf = (cell) => cell.options.columnSpan || 1;
+var columnSpanOf = (cell4) => cell4.options.columnSpan || 1;
 var resolvePreferredWidth = (width, referenceWidth) => {
   if (!width) return;
   const { type = WidthType.AUTO, size } = width;
@@ -25532,7 +27402,7 @@ var resolveTableWidth = (width, availableWidth) => {
   var _resolvePreferredWidt;
   return (_resolvePreferredWidt = resolvePreferredWidth(width, availableWidth)) !== null && _resolvePreferredWidt !== void 0 ? _resolvePreferredWidt : availableWidth;
 };
-var countGridColumns = (rows) => Math.max(0, ...rows.map((row) => row.cells.reduce((count, cell) => count + columnSpanOf(cell), 0)));
+var countGridColumns = (rows) => Math.max(0, ...rows.map((row) => row.cells.reduce((count, cell4) => count + columnSpanOf(cell4), 0)));
 var resolveColumnWidths = ({ rows, width, availableWidth }) => {
   const columnCount = countGridColumns(rows);
   if (columnCount === 0) return [];
@@ -25541,9 +27411,9 @@ var resolveColumnWidths = ({ rows, width, availableWidth }) => {
   const spanningCells = [];
   for (const row of rows) {
     let column = 0;
-    for (const cell of row.cells) {
-      const span = columnSpanOf(cell);
-      const cellWidth = resolvePreferredWidth(cell.options.width, tableWidth);
+    for (const cell4 of row.cells) {
+      const span = columnSpanOf(cell4);
+      const cellWidth = resolvePreferredWidth(cell4.options.width, tableWidth);
       if (cellWidth !== void 0) {
         if (span === 1) {
           var _column, _widths$_column;
@@ -25560,15 +27430,15 @@ var resolveColumnWidths = ({ rows, width, availableWidth }) => {
   for (const { start, span, width: cellWidth } of spanningCells) {
     const columns = Array.from({ length: span }, (_, i) => start + i).filter((column) => column < columnCount);
     const unresolvedSpanColumns = columns.filter((column) => widths[column] === void 0);
-    const remaining = cellWidth - columns.reduce((sum2, column) => {
+    const remaining = cellWidth - columns.reduce((sum, column) => {
       var _widths$column;
-      return sum2 + ((_widths$column = widths[column]) !== null && _widths$column !== void 0 ? _widths$column : 0);
+      return sum + ((_widths$column = widths[column]) !== null && _widths$column !== void 0 ? _widths$column : 0);
     }, 0);
     if (unresolvedSpanColumns.length > 0 && remaining > 0) for (const column of unresolvedSpanColumns) widths[column] = remaining / unresolvedSpanColumns.length;
   }
   const unresolvedColumns = widths.flatMap((columnWidth, column) => columnWidth === void 0 ? [column] : []);
   if (unresolvedColumns.length > 0) {
-    const remaining = tableWidth - widths.reduce((sum2, columnWidth) => sum2 + (columnWidth !== null && columnWidth !== void 0 ? columnWidth : 0), 0);
+    const remaining = tableWidth - widths.reduce((sum, columnWidth) => sum + (columnWidth !== null && columnWidth !== void 0 ? columnWidth : 0), 0);
     const share = remaining > 0 ? remaining / unresolvedColumns.length : tableWidth / columnCount;
     for (const column of unresolvedColumns) widths[column] = share;
   }
@@ -25676,7 +27546,7 @@ var buildMarginChildren = ({ marginUnitType = WidthType.DXA, top, left, bottom, 
     name: "w:right",
     size: right
   }
-].filter((entry) => entry.size !== void 0).map(({ name, size }) => createTableWidthElement(name, {
+].filter((entry) => entry.size !== void 0).map(({ name: name2, size }) => createTableWidthElement(name2, {
   type: marginUnitType,
   size
 }));
@@ -25836,7 +27706,7 @@ var TableCell = class extends XmlComponent {
     return super.prepForXml(context);
   }
 };
-var createOnOffOnlyElement = (name, value) => value ? new OnOffElement(name) : new StringValueElement(name, "off");
+var createOnOffOnlyElement = (name2, value) => value ? new OnOffElement(name2) : new StringValueElement(name2, "off");
 var NONE_BORDER = {
   style: BorderStyle.NONE,
   size: 0,
@@ -26058,19 +27928,19 @@ var TableRow = class extends XmlComponent {
   get cells() {
     return this.root.filter((xmlComponent) => xmlComponent instanceof TableCell);
   }
-  addCellToIndex(cell, index) {
-    this.root.splice(index + 1, 0, cell);
+  addCellToIndex(cell4, index) {
+    this.root.splice(index + 1, 0, cell4);
   }
-  addCellToColumnIndex(cell, columnIndex) {
+  addCellToColumnIndex(cell4, columnIndex) {
     const rootIndex = this.columnIndexToRootIndex(columnIndex, true);
-    this.addCellToIndex(cell, rootIndex - 1);
+    this.addCellToIndex(cell4, rootIndex - 1);
   }
   rootIndexToColumnIndex(rootIndex) {
     if (rootIndex < 1 || rootIndex >= this.root.length) throw new Error(`cell 'rootIndex' should between 1 to ${this.root.length - 1}`);
     let colIdx = 0;
     for (let rootIdx = 1; rootIdx < rootIndex; rootIdx++) {
-      const cell = this.root[rootIdx];
-      colIdx += cell.options.columnSpan || 1;
+      const cell4 = this.root[rootIdx];
+      colIdx += cell4.options.columnSpan || 1;
     }
     return colIdx;
   }
@@ -26083,9 +27953,9 @@ var TableRow = class extends XmlComponent {
         if (allowEndNewCell) return this.root.length;
         else throw new Error(`cell 'columnIndex' should not great than ${colIdx - 1}`);
       }
-      const cell = this.root[rootIdx];
+      const cell4 = this.root[rootIdx];
       rootIdx += 1;
-      colIdx += cell && cell.options.columnSpan || 1;
+      colIdx += cell4 && cell4.options.columnSpan || 1;
     }
     return rootIdx - 1;
   }
@@ -26114,18 +27984,18 @@ var Table = class Table2 extends FileChild {
     rows.forEach((row, rowIndex) => {
       if (rowIndex === rows.length - 1) return;
       let columnIndex = 0;
-      row.cells.forEach((cell) => {
-        if (cell.options.rowSpan && cell.options.rowSpan > 1) {
+      row.cells.forEach((cell4) => {
+        if (cell4.options.rowSpan && cell4.options.rowSpan > 1) {
           const continueCell = new TableCell({
-            rowSpan: cell.options.rowSpan - 1,
-            columnSpan: cell.options.columnSpan,
-            borders: cell.options.borders,
+            rowSpan: cell4.options.rowSpan - 1,
+            columnSpan: cell4.options.columnSpan,
+            borders: cell4.options.borders,
             children: [],
             verticalMerge: VerticalMergeType.CONTINUE
           });
           rows[rowIndex + 1].addCellToColumnIndex(continueCell, columnIndex);
         }
-        columnIndex += cell.options.columnSpan || 1;
+        columnIndex += cell4.options.columnSpan || 1;
       });
     });
     this.setCellWidths(DEFAULT_AVAILABLE_WIDTH);
@@ -26171,13 +28041,13 @@ var Table = class Table2 extends FileChild {
   * @param cell - A cell of that row
   * @returns The summed width of the grid columns the cell spans, or undefined if the cell cannot be located on the grid
   */
-  getCellWidth(row, cell) {
+  getCellWidth(row, cell4) {
     const { cells } = row;
-    const cellIndex = cells.indexOf(cell);
+    const cellIndex = cells.indexOf(cell4);
     if (cellIndex === -1) return;
     const start = cells.slice(0, cellIndex).reduce((column, previous) => column + (previous.options.columnSpan || 1), 0);
-    const columns = this.resolvedColumnWidths.slice(start, start + (cell.options.columnSpan || 1));
-    return columns.length === 0 ? void 0 : columns.reduce((sum2, columnWidth) => sum2 + columnWidth, 0);
+    const columns = this.resolvedColumnWidths.slice(start, start + (cell4.options.columnSpan || 1));
+    return columns.length === 0 ? void 0 : columns.reduce((sum, columnWidth) => sum + columnWidth, 0);
   }
   /**
   * Resolves derived grid column widths against the width actually available to the
@@ -26206,16 +28076,16 @@ var Table = class Table2 extends FileChild {
   setCellWidths(availableWidth) {
     var _resolvePreferredWidt;
     if (this.columnWidths === void 0) return;
-    const total = this.columnWidths.reduce((sum2, columnWidth) => sum2 + columnWidth, 0);
+    const total = this.columnWidths.reduce((sum, columnWidth) => sum + columnWidth, 0);
     const tableWidth = (_resolvePreferredWidt = resolvePreferredWidth(this.width, availableWidth)) !== null && _resolvePreferredWidt !== void 0 ? _resolvePreferredWidt : 0;
     const scale = total > 0 && tableWidth > total ? tableWidth / total : 1;
     for (const row of this.rows) {
       let column = 0;
-      for (const cell of row.cells) {
-        const span = cell.options.columnSpan || 1;
+      for (const cell4 of row.cells) {
+        const span = cell4.options.columnSpan || 1;
         const spanned = this.columnWidths.slice(column, column + span);
-        const cellWidth = Math.round(spanned.reduce((sum2, columnWidth) => sum2 + columnWidth, 0) * scale);
-        if (spanned.length === span && cellWidth > 0) cell.setColumnWidth(cellWidth);
+        const cellWidth = Math.round(spanned.reduce((sum, columnWidth) => sum + columnWidth, 0) * scale);
+        if (spanned.length === span && cellWidth > 0) cell4.setColumnWidth(cellWidth);
         column += span;
       }
     }
@@ -26229,11 +28099,11 @@ var Table = class Table2 extends FileChild {
   resolveAvailableWidth(context) {
     var _context$file, _stack, _section$AvailableTex;
     const { stack } = context;
-    const cell = stack[stack.length - 1];
+    const cell4 = stack[stack.length - 1];
     const row = stack[stack.length - 2];
     const parentTable = stack[stack.length - 3];
-    if (cell instanceof TableCell && row instanceof TableRow && parentTable instanceof Table2) {
-      const cellWidth = parentTable.getCellWidth(row, cell);
+    if (cell4 instanceof TableCell && row instanceof TableRow && parentTable instanceof Table2) {
+      const cellWidth = parentTable.getCellWidth(row, cell4);
       if (cellWidth !== void 0) return cellWidth;
     }
     const bodyIndex = stack.findIndex((component) => component instanceof Body);
@@ -26403,7 +28273,7 @@ var DocumentAttributeNamespaces = {
 var DocumentAttributes = class extends XmlAttributeComponent {
   constructor(ns, Ignorable) {
     super(_objectSpread2({ Ignorable }, Object.fromEntries(ns.map((n) => [n, DocumentAttributeNamespaces[n]]))));
-    _defineProperty(this, "xmlKeys", _objectSpread2({ Ignorable: "mc:Ignorable" }, Object.fromEntries(Object.keys(DocumentAttributeNamespaces).map((key) => [key, `xmlns:${key}`]))));
+    _defineProperty(this, "xmlKeys", _objectSpread2({ Ignorable: "mc:Ignorable" }, Object.fromEntries(Object.keys(DocumentAttributeNamespaces).map((key2) => [key2, `xmlns:${key2}`]))));
   }
 };
 var CoreProperties = class extends XmlComponent {
@@ -26434,8 +28304,8 @@ var TimestampElementProperties = class extends XmlAttributeComponent {
   }
 };
 var TimestampElement = class extends XmlComponent {
-  constructor(name) {
-    super(name);
+  constructor(name2) {
+    super(name2);
     this.root.push(new TimestampElementProperties({ type: "dcterms:W3CDTF" }));
     this.root.push(dateTimeValue(/* @__PURE__ */ new Date()));
   }
@@ -27129,8 +28999,8 @@ var Media = class {
   * @param key - Unique identifier for this image
   * @param mediaData - Complete image data including file name, transformation, and raw data
   */
-  addImage(key, mediaData) {
-    this.map.set(key, mediaData);
+  addImage(key2, mediaData) {
+    this.map.set(key2, mediaData);
   }
   /**
   * Gets all images as an array.
@@ -27325,7 +29195,7 @@ var LevelBase = class extends XmlComponent {
   * @param options - Level configuration options
   * @throws Error if level is greater than 9 (Word limitation)
   */
-  constructor({ level, format, text, alignment = AlignmentType.START, start = 1, style, suffix, isLegalNumberingStyle }) {
+  constructor({ level, format, text: text2, alignment = AlignmentType.START, start = 1, style, suffix, isLegalNumberingStyle }) {
     super("w:lvl");
     _defineProperty(this, "paragraphProperties", void 0);
     _defineProperty(this, "runProperties", void 0);
@@ -27334,7 +29204,7 @@ var LevelBase = class extends XmlComponent {
     if (style === null || style === void 0 ? void 0 : style.style) this.root.push(createParagraphStyle(style.style));
     if (isLegalNumberingStyle) this.root.push(new IsLegalNumberingStyle());
     if (suffix) this.root.push(new Suffix(suffix));
-    if (text) this.root.push(new LevelText(text));
+    if (text2) this.root.push(new LevelText(text2));
     this.root.push(new LevelJc(alignment));
     this.paragraphProperties = new ParagraphProperties(style && style.paragraph, { implicitListParagraphStyle: false });
     this.runProperties = new RunProperties((style === null || style === void 0 ? void 0 : style.run) && _objectSpread2(_objectSpread2({}, style.run), {}, {
@@ -27704,11 +29574,11 @@ var PackageParts = class {
   add(part) {
     const added = this.paths.get(part);
     if (added !== void 0) return added;
-    const { folder, name, extension, contentType } = part.options;
+    const { folder, name: name2, extension, contentType } = part.options;
     const taken = /* @__PURE__ */ new Set([...this.existingPaths, ...this.paths.values()]);
     let index = 1;
-    while (taken.has(`${folder}/${name}${index}.${extension}`)) index++;
-    const path = `${folder}/${name}${index}.${extension}`;
+    while (taken.has(`${folder}/${name2}${index}.${extension}`)) index++;
+    const path = `${folder}/${name2}${index}.${extension}`;
     this.paths.set(part, path);
     this.contentTypes.addOverride(contentType, `/word/${path}`);
     return path;
@@ -28208,7 +30078,7 @@ var Styles = class extends XmlComponent {
     const xml = super.prepForXml(context);
     const children = xml["w:styles"];
     if (!Array.isArray(children)) return xml;
-    const named = (name) => children.filter((child2) => nameOf(child2) === name);
+    const named = (name2) => children.filter((child2) => nameOf(child2) === name2);
     const ids = children.map((child2) => nameOf(child2) === "w:style" ? styleIdOf(child2) : void 0);
     const kept = children.filter((child2, index) => ![
       "_attr",
@@ -28429,8 +30299,8 @@ var OFFICE_SCRIPT_FONTS = [
   ["Talu", "Microsoft New Tai Lue"],
   ["Tfng", "Ebrima"]
 ];
-var createTextFont = (name, typeface, panose) => new BuilderElement({
-  name,
+var createTextFont = (name2, typeface, panose) => new BuilderElement({
+  name: name2,
   attributes: {
     typeface: {
       key: "typeface",
@@ -28474,11 +30344,11 @@ var createFontCollection = (use, fonts) => {
     ]
   });
 };
-var createFontScheme = (name, fonts = {}) => new BuilderElement({
+var createFontScheme = (name2, fonts = {}) => new BuilderElement({
   name: "a:fontScheme",
   attributes: { name: {
     key: "name",
-    value: name
+    value: name2
   } },
   children: [createFontCollection("headings", fonts), createFontCollection("body", fonts)]
 });
@@ -28488,8 +30358,8 @@ var createStyleColor = (changes = []) => new BuilderElement({
     key: "val",
     value: "phClr"
   } },
-  children: changes.map(([name, value]) => new BuilderElement({
-    name: `a:${name}`,
+  children: changes.map(([name2, value]) => new BuilderElement({
+    name: `a:${name2}`,
     attributes: { value: {
       key: "val",
       value
@@ -28702,7 +30572,7 @@ var createFormatScheme = () => new BuilderElement({
   ]
 });
 var Theme = class extends XmlComponent {
-  constructor({ name = "Office Theme", colors, fonts } = {}) {
+  constructor({ name: name2 = "Office Theme", colors, fonts } = {}) {
     super("a:theme");
     _defineProperty(this, "colors", void 0);
     this.colors = themeColorValues(colors);
@@ -28713,14 +30583,14 @@ var Theme = class extends XmlComponent {
       },
       name: {
         key: "name",
-        value: name
+        value: name2
       }
     }));
     this.root.push(new BuilderElement({
       name: "a:themeElements",
       children: [
-        createColorScheme(colors ? name : "Office", colors),
-        createFontScheme(fonts ? name : "Office", fonts),
+        createColorScheme(colors ? name2 : "Office", colors),
+        createFontScheme(fonts ? name2 : "Office", fonts),
         createFormatScheme()
       ]
     }));
@@ -28808,7 +30678,7 @@ var File = class {
       var _options$styles$defau, _options$styles, _options$styles2, _options$styles3;
       const given = (_options$styles$defau = (_options$styles = options.styles) === null || _options$styles === void 0 ? void 0 : _options$styles.default) !== null && _options$styles$defau !== void 0 ? _options$styles$defau : {};
       const defaultStyles = Object.entries(createDefaultStyles(given));
-      const isGiven = ([key]) => given[key] !== void 0;
+      const isGiven = ([key2]) => given[key2] !== void 0;
       const externalStyles = new ExternalStylesFactory().newInstance(options.externalStyles);
       this.styles = new Styles(_objectSpread2(_objectSpread2({}, externalStyles), {}, {
         paragraphStyles: (_options$styles2 = options.styles) === null || _options$styles2 === void 0 ? void 0 : _options$styles2.paragraphStyles,
@@ -28828,8 +30698,8 @@ var File = class {
     }
     this.addDefaultRelationships();
     for (const section of options.sections) this.addSection(section);
-    if (options.footnotes) for (const key in options.footnotes) this.footnotesWrapper.View.createFootNote(parseFloat(key), options.footnotes[key].children);
-    if (options.endnotes) for (const key in options.endnotes) this.endnotesWrapper.View.createEndnote(parseFloat(key), options.endnotes[key].children);
+    if (options.footnotes) for (const key2 in options.footnotes) this.footnotesWrapper.View.createFootNote(parseFloat(key2), options.footnotes[key2].children);
+    if (options.endnotes) for (const key2 in options.endnotes) this.endnotesWrapper.View.createEndnote(parseFloat(key2), options.endnotes[key2].children);
     this.fontWrapper = new FontWrapper((_options$fonts2 = options.fonts) !== null && _options$fonts2 !== void 0 ? _options$fonts2 : []);
     this.theme = new Theme(options.theme);
     this.documentWrapper.Relationships.addRelationship(this.currentRelationshipId++, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme", "theme/theme1.xml");
@@ -28973,7 +30843,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     else if ("function" == typeof define && define.amd) define([], e);
     else ("undefined" != typeof window ? window : "undefined" != typeof global2 ? global2 : "undefined" != typeof self ? self : this).JSZip = e();
   })(function() {
-    return (function s(a, o, h2) {
+    return (function s2(a, o, h2) {
       function u(r, e2) {
         if (!o[r]) {
           if (!a[r]) {
@@ -28987,7 +30857,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           a[r][0].call(i.exports, function(e3) {
             var t2 = a[r][1][e3];
             return u(t2 || e3);
-          }, i, i.exports, s, a, o, h2);
+          }, i, i.exports, s2, a, o, h2);
         }
         return o[r].exports;
       }
@@ -28998,14 +30868,14 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         "use strict";
         var d = e("./utils"), c = e("./support"), p2 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
         r.encode = function(e2) {
-          for (var t2, r2, n, i, s, a, o, h2 = [], u = 0, l = e2.length, f = l, c2 = "string" !== d.getTypeOf(e2); u < e2.length; ) f = l - u, n = c2 ? (t2 = e2[u++], r2 = u < l ? e2[u++] : 0, u < l ? e2[u++] : 0) : (t2 = e2.charCodeAt(u++), r2 = u < l ? e2.charCodeAt(u++) : 0, u < l ? e2.charCodeAt(u++) : 0), i = t2 >> 2, s = (3 & t2) << 4 | r2 >> 4, a = 1 < f ? (15 & r2) << 2 | n >> 6 : 64, o = 2 < f ? 63 & n : 64, h2.push(p2.charAt(i) + p2.charAt(s) + p2.charAt(a) + p2.charAt(o));
+          for (var t2, r2, n, i, s2, a, o, h2 = [], u = 0, l = e2.length, f = l, c2 = "string" !== d.getTypeOf(e2); u < e2.length; ) f = l - u, n = c2 ? (t2 = e2[u++], r2 = u < l ? e2[u++] : 0, u < l ? e2[u++] : 0) : (t2 = e2.charCodeAt(u++), r2 = u < l ? e2.charCodeAt(u++) : 0, u < l ? e2.charCodeAt(u++) : 0), i = t2 >> 2, s2 = (3 & t2) << 4 | r2 >> 4, a = 1 < f ? (15 & r2) << 2 | n >> 6 : 64, o = 2 < f ? 63 & n : 64, h2.push(p2.charAt(i) + p2.charAt(s2) + p2.charAt(a) + p2.charAt(o));
           return h2.join("");
         }, r.decode = function(e2) {
-          var t2, r2, n, i, s, a, o = 0, h2 = 0, u = "data:";
+          var t2, r2, n, i, s2, a, o = 0, h2 = 0, u = "data:";
           if (e2.substr(0, u.length) === u) throw new Error("Invalid base64 input, it looks like a data url.");
           var l, f = 3 * (e2 = e2.replace(/[^A-Za-z0-9+/=]/g, "")).length / 4;
           if (e2.charAt(e2.length - 1) === p2.charAt(64) && f--, e2.charAt(e2.length - 2) === p2.charAt(64) && f--, f % 1 != 0) throw new Error("Invalid base64 input, bad content length.");
-          for (l = c.uint8array ? new Uint8Array(0 | f) : new Array(0 | f); o < e2.length; ) t2 = p2.indexOf(e2.charAt(o++)) << 2 | (i = p2.indexOf(e2.charAt(o++))) >> 4, r2 = (15 & i) << 4 | (s = p2.indexOf(e2.charAt(o++))) >> 2, n = (3 & s) << 6 | (a = p2.indexOf(e2.charAt(o++))), l[h2++] = t2, 64 !== s && (l[h2++] = r2), 64 !== a && (l[h2++] = n);
+          for (l = c.uint8array ? new Uint8Array(0 | f) : new Array(0 | f); o < e2.length; ) t2 = p2.indexOf(e2.charAt(o++)) << 2 | (i = p2.indexOf(e2.charAt(o++))) >> 4, r2 = (15 & i) << 4 | (s2 = p2.indexOf(e2.charAt(o++))) >> 2, n = (3 & s2) << 6 | (a = p2.indexOf(e2.charAt(o++))), l[h2++] = t2, 64 !== s2 && (l[h2++] = r2), 64 !== a && (l[h2++] = n);
           return l;
         };
       }, {
@@ -29014,7 +30884,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       }],
       2: [function(e, t, r) {
         "use strict";
-        var n = e("./external"), i = e("./stream/DataWorker"), s = e("./stream/Crc32Probe"), a = e("./stream/DataLengthProbe");
+        var n = e("./external"), i = e("./stream/DataWorker"), s2 = e("./stream/Crc32Probe"), a = e("./stream/DataLengthProbe");
         function o(e2, t2, r2, n2, i2) {
           this.compressedSize = e2, this.uncompressedSize = t2, this.crc32 = r2, this.compression = n2, this.compressedContent = i2;
         }
@@ -29029,7 +30899,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             return new i(n.Promise.resolve(this.compressedContent)).withStreamInfo("compressedSize", this.compressedSize).withStreamInfo("uncompressedSize", this.uncompressedSize).withStreamInfo("crc32", this.crc32).withStreamInfo("compression", this.compression);
           }
         }, o.createWorkerFrom = function(e2, t2, r2) {
-          return e2.pipe(new s()).pipe(new a("uncompressedSize")).pipe(t2.compressWorker(r2)).pipe(new a("compressedSize")).withStreamInfo("compression", t2);
+          return e2.pipe(new s2()).pipe(new a("uncompressedSize")).pipe(t2.compressWorker(r2)).pipe(new a("compressedSize")).withStreamInfo("compression", t2);
         }, t.exports = o;
       }, {
         "./external": 6,
@@ -29066,14 +30936,14 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         })();
         t.exports = function(e2, t2) {
           return void 0 !== e2 && e2.length ? "string" !== n.getTypeOf(e2) ? (function(e3, t3, r2, n2) {
-            var i = o, s = n2 + r2;
+            var i = o, s2 = n2 + r2;
             e3 ^= -1;
-            for (var a = n2; a < s; a++) e3 = e3 >>> 8 ^ i[255 & (e3 ^ t3[a])];
+            for (var a = n2; a < s2; a++) e3 = e3 >>> 8 ^ i[255 & (e3 ^ t3[a])];
             return -1 ^ e3;
           })(0 | t2, e2, e2.length, 0) : (function(e3, t3, r2, n2) {
-            var i = o, s = n2 + r2;
+            var i = o, s2 = n2 + r2;
             e3 ^= -1;
-            for (var a = n2; a < s; a++) e3 = e3 >>> 8 ^ i[255 & (e3 ^ t3.charCodeAt(a))];
+            for (var a = n2; a < s2; a++) e3 = e3 >>> 8 ^ i[255 & (e3 ^ t3.charCodeAt(a))];
             return -1 ^ e3;
           })(0 | t2, e2, e2.length, 0) : 0;
         };
@@ -29089,12 +30959,12 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       }, { lie: 37 }],
       7: [function(e, t, r) {
         "use strict";
-        var n = "undefined" != typeof Uint8Array && "undefined" != typeof Uint16Array && "undefined" != typeof Uint32Array, i = e("pako"), s = e("./utils"), a = e("./stream/GenericWorker"), o = n ? "uint8array" : "array";
+        var n = "undefined" != typeof Uint8Array && "undefined" != typeof Uint16Array && "undefined" != typeof Uint32Array, i = e("pako"), s2 = e("./utils"), a = e("./stream/GenericWorker"), o = n ? "uint8array" : "array";
         function h2(e2, t2) {
           a.call(this, "FlateWorker/" + e2), this._pako = null, this._pakoAction = e2, this._pakoOptions = t2, this.meta = {};
         }
-        r.magic = "\b\0", s.inherits(h2, a), h2.prototype.processChunk = function(e2) {
-          this.meta = e2.meta, null === this._pako && this._createPako(), this._pako.push(s.transformTo(o, e2.data), false);
+        r.magic = "\b\0", s2.inherits(h2, a), h2.prototype.processChunk = function(e2) {
+          this.meta = e2.meta, null === this._pako && this._createPako(), this._pako.push(s2.transformTo(o, e2.data), false);
         }, h2.prototype.flush = function() {
           a.prototype.flush.call(this), null === this._pako && this._createPako(), this._pako.push([], true);
         }, h2.prototype.cleanUp = function() {
@@ -29128,8 +30998,8 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           for (r2 = 0; r2 < t2; r2++) n2 += String.fromCharCode(255 & e2), e2 >>>= 8;
           return n2;
         }
-        function n(e2, t2, r2, n2, i2, s2) {
-          var a, o, h2 = e2.file, u = e2.compression, l = s2 !== O.utf8encode, f = I.transformTo("string", s2(h2.name)), c = I.transformTo("string", O.utf8encode(h2.name)), d = h2.comment, p2 = I.transformTo("string", s2(d)), m = I.transformTo("string", O.utf8encode(d)), _ = c.length !== h2.name.length, g = m.length !== d.length, b = "", v = "", y = "", w = h2.dir, k = h2.date, x = {
+        function n(e2, t2, r2, n2, i2, s3) {
+          var a, o, h2 = e2.file, u = e2.compression, l = s3 !== O.utf8encode, f = I.transformTo("string", s3(h2.name)), c = I.transformTo("string", O.utf8encode(h2.name)), d = h2.comment, p2 = I.transformTo("string", s3(d)), m = I.transformTo("string", O.utf8encode(d)), _ = c.length !== h2.name.length, g = m.length !== d.length, b = "", v = "", y = "", w = h2.dir, k = h2.date, x = {
             crc32: 0,
             compressedSize: 0,
             uncompressedSize: 0
@@ -29151,10 +31021,10 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           };
         }
         var I = e("../utils"), i = e("../stream/GenericWorker"), O = e("../utf8"), B = e("../crc32"), R = e("../signature");
-        function s(e2, t2, r2, n2) {
+        function s2(e2, t2, r2, n2) {
           i.call(this, "ZipFileWorker"), this.bytesWritten = 0, this.zipComment = t2, this.zipPlatform = r2, this.encodeFileName = n2, this.streamFiles = e2, this.accumulate = false, this.contentBuffer = [], this.dirRecords = [], this.currentSourceOffset = 0, this.entriesCount = 0, this.currentFile = null, this._sources = [];
         }
-        I.inherits(s, i), s.prototype.push = function(e2) {
+        I.inherits(s2, i), s2.prototype.push = function(e2) {
           var t2 = e2.meta.percent || 0, r2 = this.entriesCount, n2 = this._sources.length;
           this.accumulate ? this.contentBuffer.push(e2) : (this.bytesWritten += e2.data.length, i.prototype.push.call(this, {
             data: e2.data,
@@ -29163,7 +31033,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
               percent: r2 ? (t2 + 100 * (r2 - n2 - 1)) / r2 : 100
             }
           }));
-        }, s.prototype.openedSource = function(e2) {
+        }, s2.prototype.openedSource = function(e2) {
           this.currentSourceOffset = this.bytesWritten, this.currentFile = e2.file.name;
           var t2 = this.streamFiles && !e2.file.dir;
           if (t2) {
@@ -29173,7 +31043,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
               meta: { percent: 0 }
             });
           } else this.accumulate = true;
-        }, s.prototype.closedSource = function(e2) {
+        }, s2.prototype.closedSource = function(e2) {
           this.accumulate = false;
           var t2 = this.streamFiles && !e2.file.dir, r2 = n(e2, t2, true, this.currentSourceOffset, this.zipPlatform, this.encodeFileName);
           if (this.dirRecords.push(r2.dirRecord), t2) this.push({
@@ -29187,22 +31057,22 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             meta: { percent: 0 }
           }); this.contentBuffer.length; ) this.push(this.contentBuffer.shift());
           this.currentFile = null;
-        }, s.prototype.flush = function() {
+        }, s2.prototype.flush = function() {
           for (var e2 = this.bytesWritten, t2 = 0; t2 < this.dirRecords.length; t2++) this.push({
             data: this.dirRecords[t2],
             meta: { percent: 100 }
           });
           var r2 = this.bytesWritten - e2, n2 = (function(e3, t3, r3, n3, i2) {
-            var s2 = I.transformTo("string", i2(n3));
-            return R.CENTRAL_DIRECTORY_END + "\0\0\0\0" + A(e3, 2) + A(e3, 2) + A(t3, 4) + A(r3, 4) + A(s2.length, 2) + s2;
+            var s3 = I.transformTo("string", i2(n3));
+            return R.CENTRAL_DIRECTORY_END + "\0\0\0\0" + A(e3, 2) + A(e3, 2) + A(t3, 4) + A(r3, 4) + A(s3.length, 2) + s3;
           })(this.dirRecords.length, r2, e2, this.zipComment, this.encodeFileName);
           this.push({
             data: n2,
             meta: { percent: 100 }
           });
-        }, s.prototype.prepareNextSource = function() {
+        }, s2.prototype.prepareNextSource = function() {
           this.previous = this._sources.shift(), this.openedSource(this.previous.streamInfo), this.isPaused ? this.previous.pause() : this.previous.resume();
-        }, s.prototype.registerPrevious = function(e2) {
+        }, s2.prototype.registerPrevious = function(e2) {
           this._sources.push(e2);
           var t2 = this;
           return e2.on("data", function(e3) {
@@ -29212,9 +31082,9 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           }), e2.on("error", function(e3) {
             t2.error(e3);
           }), this;
-        }, s.prototype.resume = function() {
+        }, s2.prototype.resume = function() {
           return !!i.prototype.resume.call(this) && (!this.previous && this._sources.length ? (this.prepareNextSource(), true) : this.previous || this._sources.length || this.generatedError ? void 0 : (this.end(), true));
-        }, s.prototype.error = function(e2) {
+        }, s2.prototype.error = function(e2) {
           var t2 = this._sources;
           if (!i.prototype.error.call(this, e2)) return false;
           for (var r2 = 0; r2 < t2.length; r2++) try {
@@ -29222,10 +31092,10 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           } catch (e3) {
           }
           return true;
-        }, s.prototype.lock = function() {
+        }, s2.prototype.lock = function() {
           i.prototype.lock.call(this);
           for (var e2 = this._sources, t2 = 0; t2 < e2.length; t2++) e2[t2].lock();
-        }, t.exports = s;
+        }, t.exports = s2;
       }, {
         "../crc32": 4,
         "../signature": 23,
@@ -29245,11 +31115,11 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
                 var r3 = e4 || t4, n3 = u[r3];
                 if (!n3) throw new Error(r3 + " is not a valid compression method !");
                 return n3;
-              })(t3.options.compression, a.compression), n2 = t3.options.compressionOptions || a.compressionOptions || {}, i = t3.dir, s = t3.date;
+              })(t3.options.compression, a.compression), n2 = t3.options.compressionOptions || a.compressionOptions || {}, i = t3.dir, s2 = t3.date;
               t3._compressWorker(r2, n2).withStreamInfo("file", {
                 name: e3,
                 dir: i,
-                date: s,
+                date: s2,
                 comment: t3.comment || "",
                 unixPermissions: t3.unixPermissions,
                 dosPermissions: t3.dosPermissions
@@ -29287,7 +31157,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       }],
       11: [function(e, t, r) {
         "use strict";
-        var u = e("./utils"), i = e("./external"), n = e("./utf8"), s = e("./zipEntries"), a = e("./stream/Crc32Probe"), l = e("./nodejsUtils");
+        var u = e("./utils"), i = e("./external"), n = e("./utf8"), s2 = e("./zipEntries"), a = e("./stream/Crc32Probe"), l = e("./nodejsUtils");
         function f(n2) {
           return new i.Promise(function(e2, t2) {
             var r2 = n2.decompressed.getContentWorker().pipe(new a());
@@ -29307,7 +31177,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             createFolders: false,
             decodeFileName: n.utf8decode
           }), l.isNode && l.isStream(e2) ? i.Promise.reject(/* @__PURE__ */ new Error("JSZip can't accept a stream when loading a zip file.")) : u.prepareContent("the loaded zip file", e2, true, o.optimizedBinaryString, o.base64).then(function(e3) {
-            var t2 = new s(o);
+            var t2 = new s2(o);
             return t2.load(e3), t2;
           }).then(function(e3) {
             var t2 = [i.Promise.resolve(e3)], r2 = e3.files;
@@ -29315,7 +31185,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             return i.Promise.all(t2);
           }).then(function(e3) {
             for (var t2 = e3.shift(), r2 = t2.files, n2 = 0; n2 < r2.length; n2++) {
-              var i2 = r2[n2], s2 = i2.fileNameStr, a2 = u.resolve(i2.fileNameStr);
+              var i2 = r2[n2], s3 = i2.fileNameStr, a2 = u.resolve(i2.fileNameStr);
               h2.file(a2, i2.decompressed, {
                 binary: true,
                 optimizedBinaryString: true,
@@ -29325,7 +31195,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
                 unixPermissions: i2.unixPermissions,
                 dosPermissions: i2.dosPermissions,
                 createFolders: o.createFolders
-              }), i2.dir || (h2.file(a2).unsafeOriginalName = s2);
+              }), i2.dir || (h2.file(a2).unsafeOriginalName = s3);
             }
             return t2.zipComment.length && (h2.comment = t2.zipComment), h2;
           });
@@ -29341,10 +31211,10 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       12: [function(e, t, r) {
         "use strict";
         var n = e("../utils"), i = e("../stream/GenericWorker");
-        function s(e2, t2) {
+        function s2(e2, t2) {
           i.call(this, "Nodejs stream input adapter for " + e2), this._upstreamEnded = false, this._bindStream(t2);
         }
-        n.inherits(s, i), s.prototype._bindStream = function(e2) {
+        n.inherits(s2, i), s2.prototype._bindStream = function(e2) {
           var t2 = this;
           (this._stream = e2).pause(), e2.on("data", function(e3) {
             t2.push({
@@ -29356,11 +31226,11 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           }).on("end", function() {
             t2.isPaused ? t2._upstreamEnded = true : t2.end();
           });
-        }, s.prototype.pause = function() {
+        }, s2.prototype.pause = function() {
           return !!i.prototype.pause.call(this) && (this._stream.pause(), true);
-        }, s.prototype.resume = function() {
+        }, s2.prototype.resume = function() {
           return !!i.prototype.resume.call(this) && (this._upstreamEnded ? this.end() : this._stream.resume(), true);
-        }, t.exports = s;
+        }, t.exports = s2;
       }, {
         "../stream/GenericWorker": 28,
         "../utils": 32
@@ -29410,14 +31280,14 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       }, {}],
       15: [function(e, t, r) {
         "use strict";
-        function s(e2, t2, r2) {
-          var n, i2 = u.getTypeOf(t2), s2 = u.extend(r2 || {}, f);
-          s2.date = s2.date || /* @__PURE__ */ new Date(), null !== s2.compression && (s2.compression = s2.compression.toUpperCase()), "string" == typeof s2.unixPermissions && (s2.unixPermissions = parseInt(s2.unixPermissions, 8)), s2.unixPermissions && 16384 & s2.unixPermissions && (s2.dir = true), s2.dosPermissions && 16 & s2.dosPermissions && (s2.dir = true), s2.dir && (e2 = g(e2)), s2.createFolders && (n = _(e2)) && b.call(this, n, true);
-          var a2 = "string" === i2 && false === s2.binary && false === s2.base64;
-          r2 && void 0 !== r2.binary || (s2.binary = !a2), (t2 instanceof c && 0 === t2.uncompressedSize || s2.dir || !t2 || 0 === t2.length) && (s2.base64 = false, s2.binary = true, t2 = "", s2.compression = "STORE", i2 = "string");
+        function s2(e2, t2, r2) {
+          var n, i2 = u.getTypeOf(t2), s3 = u.extend(r2 || {}, f);
+          s3.date = s3.date || /* @__PURE__ */ new Date(), null !== s3.compression && (s3.compression = s3.compression.toUpperCase()), "string" == typeof s3.unixPermissions && (s3.unixPermissions = parseInt(s3.unixPermissions, 8)), s3.unixPermissions && 16384 & s3.unixPermissions && (s3.dir = true), s3.dosPermissions && 16 & s3.dosPermissions && (s3.dir = true), s3.dir && (e2 = g(e2)), s3.createFolders && (n = _(e2)) && b.call(this, n, true);
+          var a2 = "string" === i2 && false === s3.binary && false === s3.base64;
+          r2 && void 0 !== r2.binary || (s3.binary = !a2), (t2 instanceof c && 0 === t2.uncompressedSize || s3.dir || !t2 || 0 === t2.length) && (s3.base64 = false, s3.binary = true, t2 = "", s3.compression = "STORE", i2 = "string");
           var o2 = null;
-          o2 = t2 instanceof c || t2 instanceof l ? t2 : p2.isNode && p2.isStream(t2) ? new m(e2, t2) : u.prepareContent(e2, t2, s2.binary, s2.optimizedBinaryString, s2.base64);
-          var h3 = new d(e2, o2, s2);
+          o2 = t2 instanceof c || t2 instanceof l ? t2 : p2.isNode && p2.isStream(t2) ? new m(e2, t2) : u.prepareContent(e2, t2, s3.binary, s3.optimizedBinaryString, s3.base64);
+          var h3 = new d(e2, o2, s3);
           this.files[e2] = h3;
         }
         var i = e("./utf8"), u = e("./utils"), l = e("./stream/GenericWorker"), a = e("./stream/StreamHelper"), f = e("./defaults"), c = e("./compressedObject"), d = e("./zipObject"), o = e("./generate"), p2 = e("./nodejsUtils"), m = e("./nodejs/NodejsStreamInputAdapter"), _ = function(e2) {
@@ -29427,7 +31297,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         }, g = function(e2) {
           return "/" !== e2.slice(-1) && (e2 += "/"), e2;
         }, b = function(e2, t2) {
-          return t2 = void 0 !== t2 ? t2 : f.createFolders, e2 = g(e2), this.files[e2] || s.call(this, e2, null, {
+          return t2 = void 0 !== t2 ? t2 : f.createFolders, e2 = g(e2), this.files[e2] || s2.call(this, e2, null, {
             dir: true,
             createFolders: t2
           }), this.files[e2];
@@ -29450,7 +31320,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             }), n;
           },
           file: function(e2, t2, r2) {
-            if (1 !== arguments.length) return e2 = this.root + e2, s.call(this, e2, t2, r2), this;
+            if (1 !== arguments.length) return e2 = this.root + e2, s2.call(this, e2, t2, r2), this;
             if (h2(e2)) {
               var n = e2;
               return this.filter(function(e3, t3) {
@@ -29534,11 +31404,11 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         e("../utils").inherits(i, n), i.prototype.byteAt = function(e2) {
           return this.data[this.zero + e2];
         }, i.prototype.lastIndexOfSignature = function(e2) {
-          for (var t2 = e2.charCodeAt(0), r2 = e2.charCodeAt(1), n2 = e2.charCodeAt(2), i2 = e2.charCodeAt(3), s = this.length - 4; 0 <= s; --s) if (this.data[s] === t2 && this.data[s + 1] === r2 && this.data[s + 2] === n2 && this.data[s + 3] === i2) return s - this.zero;
+          for (var t2 = e2.charCodeAt(0), r2 = e2.charCodeAt(1), n2 = e2.charCodeAt(2), i2 = e2.charCodeAt(3), s2 = this.length - 4; 0 <= s2; --s2) if (this.data[s2] === t2 && this.data[s2 + 1] === r2 && this.data[s2 + 2] === n2 && this.data[s2 + 3] === i2) return s2 - this.zero;
           return -1;
         }, i.prototype.readAndCheckSignature = function(e2) {
-          var t2 = e2.charCodeAt(0), r2 = e2.charCodeAt(1), n2 = e2.charCodeAt(2), i2 = e2.charCodeAt(3), s = this.readData(4);
-          return t2 === s[0] && r2 === s[1] && n2 === s[2] && i2 === s[3];
+          var t2 = e2.charCodeAt(0), r2 = e2.charCodeAt(1), n2 = e2.charCodeAt(2), i2 = e2.charCodeAt(3), s2 = this.readData(4);
+          return t2 === s2[0] && r2 === s2[1] && n2 === s2[2] && i2 === s2[3];
         }, i.prototype.readData = function(e2) {
           if (this.checkOffset(e2), 0 === e2) return [];
           var t2 = this.data.slice(this.zero + this.index, this.zero + this.index + e2);
@@ -29642,10 +31512,10 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       }],
       22: [function(e, t, r) {
         "use strict";
-        var n = e("../utils"), i = e("../support"), s = e("./ArrayReader"), a = e("./StringReader"), o = e("./NodeBufferReader"), h2 = e("./Uint8ArrayReader");
+        var n = e("../utils"), i = e("../support"), s2 = e("./ArrayReader"), a = e("./StringReader"), o = e("./NodeBufferReader"), h2 = e("./Uint8ArrayReader");
         t.exports = function(e2) {
           var t2 = n.getTypeOf(e2);
-          return n.checkSupport(t2), "string" !== t2 || i.uint8array ? "nodebuffer" === t2 ? new o(e2) : i.uint8array ? new h2(n.transformTo("uint8array", e2)) : new s(n.transformTo("array", e2)) : new a(e2);
+          return n.checkSupport(t2), "string" !== t2 || i.uint8array ? "nodebuffer" === t2 ? new o(e2) : i.uint8array ? new h2(n.transformTo("uint8array", e2)) : new s2(n.transformTo("array", e2)) : new a(e2);
         };
       }, {
         "../support": 30,
@@ -29662,15 +31532,15 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       24: [function(e, t, r) {
         "use strict";
         var n = e("./GenericWorker"), i = e("../utils");
-        function s(e2) {
+        function s2(e2) {
           n.call(this, "ConvertWorker to " + e2), this.destType = e2;
         }
-        i.inherits(s, n), s.prototype.processChunk = function(e2) {
+        i.inherits(s2, n), s2.prototype.processChunk = function(e2) {
           this.push({
             data: i.transformTo(this.destType, e2.data),
             meta: e2.meta
           });
-        }, t.exports = s;
+        }, t.exports = s2;
       }, {
         "../utils": 32,
         "./GenericWorker": 28
@@ -29678,12 +31548,12 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       25: [function(e, t, r) {
         "use strict";
         var n = e("./GenericWorker"), i = e("../crc32");
-        function s() {
+        function s2() {
           n.call(this, "Crc32Probe"), this.withStreamInfo("crc32", 0);
         }
-        e("../utils").inherits(s, n), s.prototype.processChunk = function(e2) {
+        e("../utils").inherits(s2, n), s2.prototype.processChunk = function(e2) {
           this.streamInfo.crc32 = i(e2.data, this.streamInfo.crc32 || 0), this.push(e2);
-        }, t.exports = s;
+        }, t.exports = s2;
       }, {
         "../crc32": 4,
         "../utils": 32,
@@ -29692,16 +31562,16 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       26: [function(e, t, r) {
         "use strict";
         var n = e("../utils"), i = e("./GenericWorker");
-        function s(e2) {
+        function s2(e2) {
           i.call(this, "DataLengthProbe for " + e2), this.propName = e2, this.withStreamInfo(e2, 0);
         }
-        n.inherits(s, i), s.prototype.processChunk = function(e2) {
+        n.inherits(s2, i), s2.prototype.processChunk = function(e2) {
           if (e2) {
             var t2 = this.streamInfo[this.propName] || 0;
             this.streamInfo[this.propName] = t2 + e2.data.length;
           }
           i.prototype.processChunk.call(this, e2);
-        }, t.exports = s;
+        }, t.exports = s2;
       }, {
         "../utils": 32,
         "./GenericWorker": 28
@@ -29709,7 +31579,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       27: [function(e, t, r) {
         "use strict";
         var n = e("../utils"), i = e("./GenericWorker");
-        function s(e2) {
+        function s2(e2) {
           i.call(this, "DataWorker");
           var t2 = this;
           this.dataIsReady = false, this.index = 0, this.max = 0, this.data = null, this.type = "", this._tickScheduled = false, e2.then(function(e3) {
@@ -29718,13 +31588,13 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             t2.error(e3);
           });
         }
-        n.inherits(s, i), s.prototype.cleanUp = function() {
+        n.inherits(s2, i), s2.prototype.cleanUp = function() {
           i.prototype.cleanUp.call(this), this.data = null;
-        }, s.prototype.resume = function() {
+        }, s2.prototype.resume = function() {
           return !!i.prototype.resume.call(this) && (!this._tickScheduled && this.dataIsReady && (this._tickScheduled = true, n.delay(this._tickAndRepeat, [], this)), true);
-        }, s.prototype._tickAndRepeat = function() {
+        }, s2.prototype._tickAndRepeat = function() {
           this._tickScheduled = false, this.isPaused || this.isFinished || (this._tick(), this.isFinished || (n.delay(this._tickAndRepeat, [], this), this._tickScheduled = true));
-        }, s.prototype._tick = function() {
+        }, s2.prototype._tick = function() {
           if (this.isPaused || this.isFinished) return false;
           var e2 = null, t2 = Math.min(this.max, this.index + 16384);
           if (this.index >= this.max) return this.end();
@@ -29743,7 +31613,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             data: e2,
             meta: { percent: this.max ? this.index / this.max * 100 : 0 }
           });
-        }, t.exports = s;
+        }, t.exports = s2;
       }, {
         "../utils": 32,
         "./GenericWorker": 28
@@ -29829,14 +31699,14 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       }, {}],
       29: [function(e, t, r) {
         "use strict";
-        var h2 = e("../utils"), i = e("./ConvertWorker"), s = e("./GenericWorker"), u = e("../base64"), n = e("../support"), a = e("../external"), o = null;
+        var h2 = e("../utils"), i = e("./ConvertWorker"), s2 = e("./GenericWorker"), u = e("../base64"), n = e("../support"), a = e("../external"), o = null;
         if (n.nodestream) try {
           o = e("../nodejs/NodejsStreamOutputAdapter");
         } catch (e2) {
         }
         function l(e2, o2) {
           return new a.Promise(function(t2, r2) {
-            var n2 = [], i2 = e2._internalType, s2 = e2._outputType, a2 = e2._mimeType;
+            var n2 = [], i2 = e2._internalType, s3 = e2._outputType, a2 = e2._mimeType;
             e2.on("data", function(e3, t3) {
               n2.push(e3), o2 && o2(t3);
             }).on("error", function(e3) {
@@ -29852,16 +31722,16 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
                     default:
                       return h2.transformTo(e3, t3);
                   }
-                })(s2, (function(e3, t3) {
-                  var r3, n3 = 0, i3 = null, s3 = 0;
-                  for (r3 = 0; r3 < t3.length; r3++) s3 += t3[r3].length;
+                })(s3, (function(e3, t3) {
+                  var r3, n3 = 0, i3 = null, s4 = 0;
+                  for (r3 = 0; r3 < t3.length; r3++) s4 += t3[r3].length;
                   switch (e3) {
                     case "string":
                       return t3.join("");
                     case "array":
                       return Array.prototype.concat.apply([], t3);
                     case "uint8array":
-                      for (i3 = new Uint8Array(s3), r3 = 0; r3 < t3.length; r3++) i3.set(t3[r3], n3), n3 += t3[r3].length;
+                      for (i3 = new Uint8Array(s4), r3 = 0; r3 < t3.length; r3++) i3.set(t3[r3], n3), n3 += t3[r3].length;
                       return i3;
                     case "nodebuffer":
                       return Buffer.concat(t3);
@@ -29889,7 +31759,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           try {
             this._internalType = n2, this._outputType = t2, this._mimeType = r2, h2.checkSupport(n2), this._worker = e2.pipe(new i(n2)), e2.lock();
           } catch (e3) {
-            this._worker = new s("error"), this._worker.error(e3);
+            this._worker = new s2("error"), this._worker.error(e3);
           }
         }
         f.prototype = {
@@ -29946,7 +31816,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           r.nodestream = false;
         }
       }, { "readable-stream": 16 }],
-      31: [function(e, t, s) {
+      31: [function(e, t, s2) {
         "use strict";
         for (var o = e("./utils"), h2 = e("./support"), r = e("./nodejsUtils"), n = e("./stream/GenericWorker"), u = new Array(256), i = 0; i < 256; i++) u[i] = 252 <= i ? 6 : 248 <= i ? 5 : 240 <= i ? 4 : 224 <= i ? 3 : 192 <= i ? 2 : 1;
         u[254] = u[254] = 1;
@@ -29956,20 +31826,20 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         function l() {
           n.call(this, "utf-8 encode");
         }
-        s.utf8encode = function(e2) {
+        s2.utf8encode = function(e2) {
           return h2.nodebuffer ? r.newBufferFrom(e2, "utf-8") : (function(e3) {
-            var t2, r2, n2, i2, s2, a2 = e3.length, o2 = 0;
+            var t2, r2, n2, i2, s3, a2 = e3.length, o2 = 0;
             for (i2 = 0; i2 < a2; i2++) 55296 == (64512 & (r2 = e3.charCodeAt(i2))) && i2 + 1 < a2 && 56320 == (64512 & (n2 = e3.charCodeAt(i2 + 1))) && (r2 = 65536 + (r2 - 55296 << 10) + (n2 - 56320), i2++), o2 += r2 < 128 ? 1 : r2 < 2048 ? 2 : r2 < 65536 ? 3 : 4;
-            for (t2 = h2.uint8array ? new Uint8Array(o2) : new Array(o2), i2 = s2 = 0; s2 < o2; i2++) 55296 == (64512 & (r2 = e3.charCodeAt(i2))) && i2 + 1 < a2 && 56320 == (64512 & (n2 = e3.charCodeAt(i2 + 1))) && (r2 = 65536 + (r2 - 55296 << 10) + (n2 - 56320), i2++), r2 < 128 ? t2[s2++] = r2 : (r2 < 2048 ? t2[s2++] = 192 | r2 >>> 6 : (r2 < 65536 ? t2[s2++] = 224 | r2 >>> 12 : (t2[s2++] = 240 | r2 >>> 18, t2[s2++] = 128 | r2 >>> 12 & 63), t2[s2++] = 128 | r2 >>> 6 & 63), t2[s2++] = 128 | 63 & r2);
+            for (t2 = h2.uint8array ? new Uint8Array(o2) : new Array(o2), i2 = s3 = 0; s3 < o2; i2++) 55296 == (64512 & (r2 = e3.charCodeAt(i2))) && i2 + 1 < a2 && 56320 == (64512 & (n2 = e3.charCodeAt(i2 + 1))) && (r2 = 65536 + (r2 - 55296 << 10) + (n2 - 56320), i2++), r2 < 128 ? t2[s3++] = r2 : (r2 < 2048 ? t2[s3++] = 192 | r2 >>> 6 : (r2 < 65536 ? t2[s3++] = 224 | r2 >>> 12 : (t2[s3++] = 240 | r2 >>> 18, t2[s3++] = 128 | r2 >>> 12 & 63), t2[s3++] = 128 | r2 >>> 6 & 63), t2[s3++] = 128 | 63 & r2);
             return t2;
           })(e2);
-        }, s.utf8decode = function(e2) {
+        }, s2.utf8decode = function(e2) {
           return h2.nodebuffer ? o.transformTo("nodebuffer", e2).toString("utf-8") : (function(e3) {
-            var t2, r2, n2, i2, s2 = e3.length, a2 = new Array(2 * s2);
-            for (t2 = r2 = 0; t2 < s2; ) if ((n2 = e3[t2++]) < 128) a2[r2++] = n2;
+            var t2, r2, n2, i2, s3 = e3.length, a2 = new Array(2 * s3);
+            for (t2 = r2 = 0; t2 < s3; ) if ((n2 = e3[t2++]) < 128) a2[r2++] = n2;
             else if (4 < (i2 = u[n2])) a2[r2++] = 65533, t2 += i2 - 1;
             else {
-              for (n2 &= 2 === i2 ? 31 : 3 === i2 ? 15 : 7; 1 < i2 && t2 < s2; ) n2 = n2 << 6 | 63 & e3[t2++], i2--;
+              for (n2 &= 2 === i2 ? 31 : 3 === i2 ? 15 : 7; 1 < i2 && t2 < s3; ) n2 = n2 << 6 | 63 & e3[t2++], i2--;
               1 < i2 ? a2[r2++] = 65533 : n2 < 65536 ? a2[r2++] = n2 : (n2 -= 65536, a2[r2++] = 55296 | n2 >> 10 & 1023, a2[r2++] = 56320 | 1023 & n2);
             }
             return a2.length !== r2 && (a2.subarray ? a2 = a2.subarray(0, r2) : a2.length = r2), o.applyFromCharCode(a2);
@@ -29989,20 +31859,20 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             return r3 < 0 ? t3 : 0 === r3 ? t3 : r3 + u[e3[r3]] > t3 ? r3 : t3;
           })(t2), i2 = t2;
           n2 !== t2.length && (h2.uint8array ? (i2 = t2.subarray(0, n2), this.leftOver = t2.subarray(n2, t2.length)) : (i2 = t2.slice(0, n2), this.leftOver = t2.slice(n2, t2.length))), this.push({
-            data: s.utf8decode(i2),
+            data: s2.utf8decode(i2),
             meta: e2.meta
           });
         }, a.prototype.flush = function() {
           this.leftOver && this.leftOver.length && (this.push({
-            data: s.utf8decode(this.leftOver),
+            data: s2.utf8decode(this.leftOver),
             meta: {}
           }), this.leftOver = null);
-        }, s.Utf8DecodeWorker = a, o.inherits(l, n), l.prototype.processChunk = function(e2) {
+        }, s2.Utf8DecodeWorker = a, o.inherits(l, n), l.prototype.processChunk = function(e2) {
           this.push({
-            data: s.utf8encode(e2.data),
+            data: s2.utf8encode(e2.data),
             meta: e2.meta
           });
-        }, s.Utf8EncodeWorker = l;
+        }, s2.Utf8EncodeWorker = l;
       }, {
         "./nodejsUtils": 14,
         "./stream/GenericWorker": 28,
@@ -30034,9 +31904,9 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         };
         var i = {
           stringifyByChunk: function(e2, t2, r2) {
-            var n2 = [], i2 = 0, s2 = e2.length;
-            if (s2 <= r2) return String.fromCharCode.apply(null, e2);
-            for (; i2 < s2; ) "array" === t2 || "nodebuffer" === t2 ? n2.push(String.fromCharCode.apply(null, e2.slice(i2, Math.min(i2 + r2, s2)))) : n2.push(String.fromCharCode.apply(null, e2.subarray(i2, Math.min(i2 + r2, s2)))), i2 += r2;
+            var n2 = [], i2 = 0, s3 = e2.length;
+            if (s3 <= r2) return String.fromCharCode.apply(null, e2);
+            for (; i2 < s3; ) "array" === t2 || "nodebuffer" === t2 ? n2.push(String.fromCharCode.apply(null, e2.slice(i2, Math.min(i2 + r2, s3)))) : n2.push(String.fromCharCode.apply(null, e2.subarray(i2, Math.min(i2 + r2, s3)))), i2 += r2;
             return n2.join("");
           },
           stringifyByChar: function(e2) {
@@ -30060,7 +31930,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             })()
           }
         };
-        function s(e2) {
+        function s2(e2) {
           var t2 = 65536, r2 = a.getTypeOf(e2), n2 = true;
           if ("uint8array" === r2 ? n2 = i.applyCanBeUsed.uint8array : "nodebuffer" === r2 && (n2 = i.applyCanBeUsed.nodebuffer), n2) for (; 1 < t2; ) try {
             return i.stringifyByChunk(e2, r2, t2);
@@ -30073,7 +31943,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           for (var r2 = 0; r2 < e2.length; r2++) t2[r2] = e2[r2];
           return t2;
         }
-        a.applyFromCharCode = s;
+        a.applyFromCharCode = s2;
         var c = {};
         c.string = {
           string: n,
@@ -30090,7 +31960,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             return l(e2, r.allocBuffer(e2.length));
           }
         }, c.array = {
-          string: s,
+          string: s2,
           array: n,
           arraybuffer: function(e2) {
             return new Uint8Array(e2).buffer;
@@ -30103,7 +31973,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           }
         }, c.arraybuffer = {
           string: function(e2) {
-            return s(new Uint8Array(e2));
+            return s2(new Uint8Array(e2));
           },
           array: function(e2) {
             return f(new Uint8Array(e2), new Array(e2.byteLength));
@@ -30116,7 +31986,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             return r.newBufferFrom(new Uint8Array(e2));
           }
         }, c.uint8array = {
-          string: s,
+          string: s2,
           array: function(e2) {
             return f(e2, new Array(e2.length));
           },
@@ -30128,7 +31998,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             return r.newBufferFrom(e2);
           }
         }, c.nodebuffer = {
-          string: s,
+          string: s2,
           array: function(e2) {
             return f(e2, new Array(e2.length));
           },
@@ -30171,7 +32041,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           var e2, t2, r2 = {};
           for (e2 = 0; e2 < arguments.length; e2++) for (t2 in arguments[e2]) Object.prototype.hasOwnProperty.call(arguments[e2], t2) && void 0 === r2[t2] && (r2[t2] = arguments[e2][t2]);
           return r2;
-        }, a.prepareContent = function(r2, e2, n2, i2, s2) {
+        }, a.prepareContent = function(r2, e2, n2, i2, s3) {
           return u.Promise.resolve(e2).then(function(n3) {
             return o.blob && (n3 instanceof Blob || -1 !== ["[object File]", "[object Blob]"].indexOf(Object.prototype.toString.call(n3))) ? void 0 !== Blob.prototype.arrayBuffer ? n3.arrayBuffer() : "undefined" != typeof FileReader ? new u.Promise(function(t2, r3) {
               var e3 = new FileReader();
@@ -30183,7 +32053,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             }) : u.Promise.reject(/* @__PURE__ */ new Error(r2 + " is a Blob, but we have no way of reading it.")) : n3;
           }).then(function(e3) {
             var t2 = a.getTypeOf(e3);
-            return t2 ? ("arraybuffer" === t2 ? e3 = a.transformTo("uint8array", e3) : "string" === t2 && (s2 ? e3 = h2.decode(e3) : n2 && true !== i2 && (e3 = (function(e4) {
+            return t2 ? ("arraybuffer" === t2 ? e3 = a.transformTo("uint8array", e3) : "string" === t2 && (s3 ? e3 = h2.decode(e3) : n2 && true !== i2 && (e3 = (function(e4) {
               return l(e4, o.uint8array ? new Uint8Array(e4.length) : new Array(e4.length));
             })(e3))), e3) : u.Promise.reject(/* @__PURE__ */ new Error("Can't read the data of '" + r2 + "'. Is it in a supported JavaScript type (String, Blob, ArrayBuffer, etc) ?"));
           });
@@ -30197,7 +32067,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       }],
       33: [function(e, t, r) {
         "use strict";
-        var n = e("./reader/readerFor"), i = e("./utils"), s = e("./signature"), a = e("./zipEntry"), o = e("./support");
+        var n = e("./reader/readerFor"), i = e("./utils"), s2 = e("./signature"), a = e("./zipEntry"), o = e("./support");
         function h2(e2) {
           this.files = [], this.loadOptions = e2;
         }
@@ -30233,27 +32103,27 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           },
           readLocalFiles: function() {
             var e2 = 0, t2;
-            for (; e2 < this.files.length; e2++) t2 = this.files[e2], this.reader.setIndex(t2.localHeaderOffset), this.checkSignature(s.LOCAL_FILE_HEADER), t2.readLocalPart(this.reader), t2.handleUTF8(), t2.processAttributes();
+            for (; e2 < this.files.length; e2++) t2 = this.files[e2], this.reader.setIndex(t2.localHeaderOffset), this.checkSignature(s2.LOCAL_FILE_HEADER), t2.readLocalPart(this.reader), t2.handleUTF8(), t2.processAttributes();
           },
           readCentralDir: function() {
             var e2;
-            for (this.reader.setIndex(this.centralDirOffset); this.reader.readAndCheckSignature(s.CENTRAL_FILE_HEADER); ) (e2 = new a({ zip64: this.zip64 }, this.loadOptions)).readCentralPart(this.reader), this.files.push(e2);
+            for (this.reader.setIndex(this.centralDirOffset); this.reader.readAndCheckSignature(s2.CENTRAL_FILE_HEADER); ) (e2 = new a({ zip64: this.zip64 }, this.loadOptions)).readCentralPart(this.reader), this.files.push(e2);
             if (this.centralDirRecords !== this.files.length && 0 !== this.centralDirRecords && 0 === this.files.length) throw new Error("Corrupted zip or bug: expected " + this.centralDirRecords + " records in central dir, got " + this.files.length);
           },
           readEndOfCentral: function() {
-            var e2 = this.reader.lastIndexOfSignature(s.CENTRAL_DIRECTORY_END);
-            if (e2 < 0) throw !this.isSignature(0, s.LOCAL_FILE_HEADER) ? /* @__PURE__ */ new Error("Can't find end of central directory : is this a zip file ? If it is, see https://stuk.github.io/jszip/documentation/howto/read_zip.html") : /* @__PURE__ */ new Error("Corrupted zip: can't find end of central directory");
+            var e2 = this.reader.lastIndexOfSignature(s2.CENTRAL_DIRECTORY_END);
+            if (e2 < 0) throw !this.isSignature(0, s2.LOCAL_FILE_HEADER) ? /* @__PURE__ */ new Error("Can't find end of central directory : is this a zip file ? If it is, see https://stuk.github.io/jszip/documentation/howto/read_zip.html") : /* @__PURE__ */ new Error("Corrupted zip: can't find end of central directory");
             this.reader.setIndex(e2);
             var t2 = e2;
-            if (this.checkSignature(s.CENTRAL_DIRECTORY_END), this.readBlockEndOfCentral(), this.diskNumber === i.MAX_VALUE_16BITS || this.diskWithCentralDirStart === i.MAX_VALUE_16BITS || this.centralDirRecordsOnThisDisk === i.MAX_VALUE_16BITS || this.centralDirRecords === i.MAX_VALUE_16BITS || this.centralDirSize === i.MAX_VALUE_32BITS || this.centralDirOffset === i.MAX_VALUE_32BITS) {
-              if (this.zip64 = true, (e2 = this.reader.lastIndexOfSignature(s.ZIP64_CENTRAL_DIRECTORY_LOCATOR)) < 0) throw new Error("Corrupted zip: can't find the ZIP64 end of central directory locator");
-              if (this.reader.setIndex(e2), this.checkSignature(s.ZIP64_CENTRAL_DIRECTORY_LOCATOR), this.readBlockZip64EndOfCentralLocator(), !this.isSignature(this.relativeOffsetEndOfZip64CentralDir, s.ZIP64_CENTRAL_DIRECTORY_END) && (this.relativeOffsetEndOfZip64CentralDir = this.reader.lastIndexOfSignature(s.ZIP64_CENTRAL_DIRECTORY_END), this.relativeOffsetEndOfZip64CentralDir < 0)) throw new Error("Corrupted zip: can't find the ZIP64 end of central directory");
-              this.reader.setIndex(this.relativeOffsetEndOfZip64CentralDir), this.checkSignature(s.ZIP64_CENTRAL_DIRECTORY_END), this.readBlockZip64EndOfCentral();
+            if (this.checkSignature(s2.CENTRAL_DIRECTORY_END), this.readBlockEndOfCentral(), this.diskNumber === i.MAX_VALUE_16BITS || this.diskWithCentralDirStart === i.MAX_VALUE_16BITS || this.centralDirRecordsOnThisDisk === i.MAX_VALUE_16BITS || this.centralDirRecords === i.MAX_VALUE_16BITS || this.centralDirSize === i.MAX_VALUE_32BITS || this.centralDirOffset === i.MAX_VALUE_32BITS) {
+              if (this.zip64 = true, (e2 = this.reader.lastIndexOfSignature(s2.ZIP64_CENTRAL_DIRECTORY_LOCATOR)) < 0) throw new Error("Corrupted zip: can't find the ZIP64 end of central directory locator");
+              if (this.reader.setIndex(e2), this.checkSignature(s2.ZIP64_CENTRAL_DIRECTORY_LOCATOR), this.readBlockZip64EndOfCentralLocator(), !this.isSignature(this.relativeOffsetEndOfZip64CentralDir, s2.ZIP64_CENTRAL_DIRECTORY_END) && (this.relativeOffsetEndOfZip64CentralDir = this.reader.lastIndexOfSignature(s2.ZIP64_CENTRAL_DIRECTORY_END), this.relativeOffsetEndOfZip64CentralDir < 0)) throw new Error("Corrupted zip: can't find the ZIP64 end of central directory");
+              this.reader.setIndex(this.relativeOffsetEndOfZip64CentralDir), this.checkSignature(s2.ZIP64_CENTRAL_DIRECTORY_END), this.readBlockZip64EndOfCentral();
             }
             var r2 = this.centralDirOffset + this.centralDirSize;
             this.zip64 && (r2 += 20, r2 += 12 + this.zip64EndOfCentralSize);
             var n2 = t2 - r2;
-            if (0 < n2) this.isSignature(t2, s.CENTRAL_FILE_HEADER) || (this.reader.zero = n2);
+            if (0 < n2) this.isSignature(t2, s2.CENTRAL_FILE_HEADER) || (this.reader.zero = n2);
             else if (n2 < 0) throw new Error("Corrupted zip: missing " + Math.abs(n2) + " bytes.");
           },
           prepareReader: function(e2) {
@@ -30272,7 +32142,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       }],
       34: [function(e, t, r) {
         "use strict";
-        var n = e("./reader/readerFor"), s = e("./utils"), i = e("./compressedObject"), a = e("./crc32"), o = e("./utf8"), h2 = e("./compressions"), u = e("./support");
+        var n = e("./reader/readerFor"), s2 = e("./utils"), i = e("./compressedObject"), a = e("./crc32"), o = e("./utf8"), h2 = e("./compressions"), u = e("./support");
         function l(e2, t2) {
           this.options = e2, this.loadOptions = t2;
         }
@@ -30289,7 +32159,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             if (null === (t2 = (function(e3) {
               for (var t3 in h2) if (Object.prototype.hasOwnProperty.call(h2, t3) && h2[t3].magic === e3) return h2[t3];
               return null;
-            })(this.compressionMethod))) throw new Error("Corrupted zip : compression " + s.pretty(this.compressionMethod) + " unknown (inner file : " + s.transformTo("string", this.fileName) + ")");
+            })(this.compressionMethod))) throw new Error("Corrupted zip : compression " + s2.pretty(this.compressionMethod) + " unknown (inner file : " + s2.transformTo("string", this.fileName) + ")");
             this.decompressed = new i(this.compressedSize, this.uncompressedSize, this.crc32, t2, e2.readData(this.compressedSize));
           },
           readCentralPart: function(e2) {
@@ -30306,7 +32176,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           parseZIP64ExtraField: function() {
             if (this.extraFields[1]) {
               var e2 = n(this.extraFields[1].value);
-              this.uncompressedSize === s.MAX_VALUE_32BITS && (this.uncompressedSize = e2.readInt(8)), this.compressedSize === s.MAX_VALUE_32BITS && (this.compressedSize = e2.readInt(8)), this.localHeaderOffset === s.MAX_VALUE_32BITS && (this.localHeaderOffset = e2.readInt(8)), this.diskNumberStart === s.MAX_VALUE_32BITS && (this.diskNumberStart = e2.readInt(4));
+              this.uncompressedSize === s2.MAX_VALUE_32BITS && (this.uncompressedSize = e2.readInt(8)), this.compressedSize === s2.MAX_VALUE_32BITS && (this.compressedSize = e2.readInt(8)), this.localHeaderOffset === s2.MAX_VALUE_32BITS && (this.localHeaderOffset = e2.readInt(8)), this.diskNumberStart === s2.MAX_VALUE_32BITS && (this.diskNumberStart = e2.readInt(4));
             }
           },
           readExtraFields: function(e2) {
@@ -30325,13 +32195,13 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
               var t2 = this.findExtraFieldUnicodePath();
               if (null !== t2) this.fileNameStr = t2;
               else {
-                var r2 = s.transformTo(e2, this.fileName);
+                var r2 = s2.transformTo(e2, this.fileName);
                 this.fileNameStr = this.loadOptions.decodeFileName(r2);
               }
               var n2 = this.findExtraFieldUnicodeComment();
               if (null !== n2) this.fileCommentStr = n2;
               else {
-                var i2 = s.transformTo(e2, this.fileComment);
+                var i2 = s2.transformTo(e2, this.fileComment);
                 this.fileCommentStr = this.loadOptions.decodeFileName(i2);
               }
             }
@@ -30370,7 +32240,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             compressionOptions: r2.compressionOptions
           };
         }
-        var s = e("./stream/StreamHelper"), i = e("./stream/DataWorker"), a = e("./utf8"), o = e("./compressedObject"), h2 = e("./stream/GenericWorker");
+        var s2 = e("./stream/StreamHelper"), i = e("./stream/DataWorker"), a = e("./utf8"), o = e("./compressedObject"), h2 = e("./stream/GenericWorker");
         n.prototype = {
           internalStream: function(e2) {
             var t2 = null, r2 = "string";
@@ -30383,7 +32253,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             } catch (e3) {
               (t2 = new h2("error")).error(e3);
             }
-            return new s(t2, r2, "");
+            return new s2(t2, r2, "");
           },
           async: function(e2, t2) {
             return this.internalStream(e2).accumulate(t2);
@@ -30422,8 +32292,8 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           "use strict";
           var r, n, e2 = t2.MutationObserver || t2.WebKitMutationObserver;
           if (e2) {
-            var i = 0, s = new e2(u), a = t2.document.createTextNode("");
-            s.observe(a, { characterData: true }), r = function() {
+            var i = 0, s2 = new e2(u), a = t2.document.createTextNode("");
+            s2.observe(a, { characterData: true }), r = function() {
               a.data = i = ++i % 2;
             };
           } else if (t2.setImmediate || void 0 === t2.MessageChannel) r = "document" in t2 && "onreadystatechange" in t2.document.createElement("script") ? function() {
@@ -30460,7 +32330,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         var i = e("immediate");
         function u() {
         }
-        var l = {}, s = ["REJECTED"], a = ["FULFILLED"], n = ["PENDING"];
+        var l = {}, s2 = ["REJECTED"], a = ["FULFILLED"], n = ["PENDING"];
         function o(e2) {
           if ("function" != typeof e2) throw new TypeError("resolver must be a function");
           this.state = n, this.queue = [], this.outcome = void 0, e2 !== u && d(this, e2);
@@ -30493,10 +32363,10 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           function i2(e3) {
             r2 || (r2 = true, l.resolve(t2, e3));
           }
-          var s2 = p2(function() {
+          var s3 = p2(function() {
             e2(i2, n2);
           });
-          "error" === s2.status && n2(s2.value);
+          "error" === s3.status && n2(s3.value);
         }
         function p2(e2, t2) {
           var r2 = {};
@@ -30522,7 +32392,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         }, o.prototype.catch = function(e2) {
           return this.then(null, e2);
         }, o.prototype.then = function(e2, t2) {
-          if ("function" != typeof e2 && this.state === a || "function" != typeof t2 && this.state === s) return this;
+          if ("function" != typeof e2 && this.state === a || "function" != typeof t2 && this.state === s2) return this;
           var r2 = new this.constructor(u);
           this.state !== n ? f(r2, this.state === a ? e2 : t2, this.outcome) : this.queue.push(new h2(r2, e2, t2));
           return r2;
@@ -30541,11 +32411,11 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           if (n2) d(e2, n2);
           else {
             e2.state = a, e2.outcome = t2;
-            for (var i2 = -1, s2 = e2.queue.length; ++i2 < s2; ) e2.queue[i2].callFulfilled(t2);
+            for (var i2 = -1, s3 = e2.queue.length; ++i2 < s3; ) e2.queue[i2].callFulfilled(t2);
           }
           return e2;
         }, l.reject = function(e2, t2) {
-          e2.state = s, e2.outcome = t2;
+          e2.state = s2, e2.outcome = t2;
           for (var r2 = -1, n2 = e2.queue.length; ++r2 < n2; ) e2.queue[r2].callRejected(t2);
           return e2;
         }, o.resolve = function(e2) {
@@ -30559,12 +32429,12 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           if ("[object Array]" !== Object.prototype.toString.call(e2)) return this.reject(/* @__PURE__ */ new TypeError("must be an array"));
           var n2 = e2.length, i2 = false;
           if (!n2) return this.resolve([]);
-          var s2 = new Array(n2), a2 = 0, t2 = -1, o2 = new this(u);
+          var s3 = new Array(n2), a2 = 0, t2 = -1, o2 = new this(u);
           for (; ++t2 < n2; ) h3(e2[t2], t2);
           return o2;
           function h3(e3, t3) {
             r2.resolve(e3).then(function(e4) {
-              s2[t3] = e4, ++a2 !== n2 || i2 || (i2 = true, l.resolve(o2, s2));
+              s3[t3] = e4, ++a2 !== n2 || i2 || (i2 = true, l.resolve(o2, s3));
             }, function(e4) {
               i2 || (i2 = true, l.reject(o2, e4));
             });
@@ -30574,14 +32444,14 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           if ("[object Array]" !== Object.prototype.toString.call(e2)) return this.reject(/* @__PURE__ */ new TypeError("must be an array"));
           var r2 = e2.length, n2 = false;
           if (!r2) return this.resolve([]);
-          var i2 = -1, s2 = new this(u);
+          var i2 = -1, s3 = new this(u);
           for (; ++i2 < r2; ) a2 = e2[i2], t2.resolve(a2).then(function(e3) {
-            n2 || (n2 = true, l.resolve(s2, e3));
+            n2 || (n2 = true, l.resolve(s3, e3));
           }, function(e3) {
-            n2 || (n2 = true, l.reject(s2, e3));
+            n2 || (n2 = true, l.reject(s3, e3));
           });
           var a2;
-          return s2;
+          return s3;
         };
       }, { immediate: 36 }],
       38: [function(e, t, r) {
@@ -30596,7 +32466,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       }],
       39: [function(e, t, r) {
         "use strict";
-        var a = e("./zlib/deflate"), o = e("./utils/common"), h2 = e("./utils/strings"), i = e("./zlib/messages"), s = e("./zlib/zstream"), u = Object.prototype.toString, l = 0, f = -1, c = 0, d = 8;
+        var a = e("./zlib/deflate"), o = e("./utils/common"), h2 = e("./utils/strings"), i = e("./zlib/messages"), s2 = e("./zlib/zstream"), u = Object.prototype.toString, l = 0, f = -1, c = 0, d = 8;
         function p2(e2) {
           if (!(this instanceof p2)) return new p2(e2);
           this.options = o.assign({
@@ -30609,7 +32479,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             to: ""
           }, e2 || {});
           var t2 = this.options;
-          t2.raw && 0 < t2.windowBits ? t2.windowBits = -t2.windowBits : t2.gzip && 0 < t2.windowBits && t2.windowBits < 16 && (t2.windowBits += 16), this.err = 0, this.msg = "", this.ended = false, this.chunks = [], this.strm = new s(), this.strm.avail_out = 0;
+          t2.raw && 0 < t2.windowBits ? t2.windowBits = -t2.windowBits : t2.gzip && 0 < t2.windowBits && t2.windowBits < 16 && (t2.windowBits += 16), this.err = 0, this.msg = "", this.ended = false, this.chunks = [], this.strm = new s2(), this.strm.avail_out = 0;
           var r2 = a.deflateInit2(this.strm, t2.level, t2.method, t2.windowBits, t2.memLevel, t2.strategy);
           if (r2 !== l) throw new Error(i[r2]);
           if (t2.header && a.deflateSetHeader(this.strm, t2.header), t2.dictionary) {
@@ -30624,11 +32494,11 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           return r2.result;
         }
         p2.prototype.push = function(e2, t2) {
-          var r2, n2, i2 = this.strm, s2 = this.options.chunkSize;
+          var r2, n2, i2 = this.strm, s3 = this.options.chunkSize;
           if (this.ended) return false;
           n2 = t2 === ~~t2 ? t2 : true === t2 ? 4 : 0, "string" == typeof e2 ? i2.input = h2.string2buf(e2) : "[object ArrayBuffer]" === u.call(e2) ? i2.input = new Uint8Array(e2) : i2.input = e2, i2.next_in = 0, i2.avail_in = i2.input.length;
           do {
-            if (0 === i2.avail_out && (i2.output = new o.Buf8(s2), i2.next_out = 0, i2.avail_out = s2), 1 !== (r2 = a.deflate(i2, n2)) && r2 !== l) return this.onEnd(r2), !(this.ended = true);
+            if (0 === i2.avail_out && (i2.output = new o.Buf8(s3), i2.next_out = 0, i2.avail_out = s3), 1 !== (r2 = a.deflate(i2, n2)) && r2 !== l) return this.onEnd(r2), !(this.ended = true);
             0 !== i2.avail_out && (0 !== i2.avail_in || 4 !== n2 && 2 !== n2) || ("string" === this.options.to ? this.onData(h2.buf2binstring(o.shrinkBuf(i2.output, i2.next_out))) : this.onData(o.shrinkBuf(i2.output, i2.next_out)));
           } while ((0 < i2.avail_in || 0 === i2.avail_out) && 1 !== r2);
           return 4 === n2 ? (r2 = a.deflateEnd(this.strm), this.onEnd(r2), this.ended = true, r2 === l) : 2 !== n2 || (this.onEnd(l), !(i2.avail_out = 0));
@@ -30650,7 +32520,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       }],
       40: [function(e, t, r) {
         "use strict";
-        var c = e("./zlib/inflate"), d = e("./utils/common"), p2 = e("./utils/strings"), m = e("./zlib/constants"), n = e("./zlib/messages"), i = e("./zlib/zstream"), s = e("./zlib/gzheader"), _ = Object.prototype.toString;
+        var c = e("./zlib/inflate"), d = e("./utils/common"), p2 = e("./utils/strings"), m = e("./zlib/constants"), n = e("./zlib/messages"), i = e("./zlib/zstream"), s2 = e("./zlib/gzheader"), _ = Object.prototype.toString;
         function a(e2) {
           if (!(this instanceof a)) return new a(e2);
           this.options = d.assign({
@@ -30662,7 +32532,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           t2.raw && 0 <= t2.windowBits && t2.windowBits < 16 && (t2.windowBits = -t2.windowBits, 0 === t2.windowBits && (t2.windowBits = -15)), !(0 <= t2.windowBits && t2.windowBits < 16) || e2 && e2.windowBits || (t2.windowBits += 32), 15 < t2.windowBits && t2.windowBits < 48 && 0 == (15 & t2.windowBits) && (t2.windowBits |= 15), this.err = 0, this.msg = "", this.ended = false, this.chunks = [], this.strm = new i(), this.strm.avail_out = 0;
           var r2 = c.inflateInit2(this.strm, t2.windowBits);
           if (r2 !== m.Z_OK) throw new Error(n[r2]);
-          this.header = new s(), c.inflateGetHeader(this.strm, this.header);
+          this.header = new s2(), c.inflateGetHeader(this.strm, this.header);
         }
         function o(e2, t2) {
           var r2 = new a(t2);
@@ -30670,12 +32540,12 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           return r2.result;
         }
         a.prototype.push = function(e2, t2) {
-          var r2, n2, i2, s2, a2, o2, h2 = this.strm, u = this.options.chunkSize, l = this.options.dictionary, f = false;
+          var r2, n2, i2, s3, a2, o2, h2 = this.strm, u = this.options.chunkSize, l = this.options.dictionary, f = false;
           if (this.ended) return false;
           n2 = t2 === ~~t2 ? t2 : true === t2 ? m.Z_FINISH : m.Z_NO_FLUSH, "string" == typeof e2 ? h2.input = p2.binstring2buf(e2) : "[object ArrayBuffer]" === _.call(e2) ? h2.input = new Uint8Array(e2) : h2.input = e2, h2.next_in = 0, h2.avail_in = h2.input.length;
           do {
             if (0 === h2.avail_out && (h2.output = new d.Buf8(u), h2.next_out = 0, h2.avail_out = u), (r2 = c.inflate(h2, m.Z_NO_FLUSH)) === m.Z_NEED_DICT && l && (o2 = "string" == typeof l ? p2.string2buf(l) : "[object ArrayBuffer]" === _.call(l) ? new Uint8Array(l) : l, r2 = c.inflateSetDictionary(this.strm, o2)), r2 === m.Z_BUF_ERROR && true === f && (r2 = m.Z_OK, f = false), r2 !== m.Z_STREAM_END && r2 !== m.Z_OK) return this.onEnd(r2), !(this.ended = true);
-            h2.next_out && (0 !== h2.avail_out && r2 !== m.Z_STREAM_END && (0 !== h2.avail_in || n2 !== m.Z_FINISH && n2 !== m.Z_SYNC_FLUSH) || ("string" === this.options.to ? (i2 = p2.utf8border(h2.output, h2.next_out), s2 = h2.next_out - i2, a2 = p2.buf2string(h2.output, i2), h2.next_out = s2, h2.avail_out = u - s2, s2 && d.arraySet(h2.output, h2.output, i2, s2, 0), this.onData(a2)) : this.onData(d.shrinkBuf(h2.output, h2.next_out)))), 0 === h2.avail_in && 0 === h2.avail_out && (f = true);
+            h2.next_out && (0 !== h2.avail_out && r2 !== m.Z_STREAM_END && (0 !== h2.avail_in || n2 !== m.Z_FINISH && n2 !== m.Z_SYNC_FLUSH) || ("string" === this.options.to ? (i2 = p2.utf8border(h2.output, h2.next_out), s3 = h2.next_out - i2, a2 = p2.buf2string(h2.output, i2), h2.next_out = s3, h2.avail_out = u - s3, s3 && d.arraySet(h2.output, h2.output, i2, s3, 0), this.onData(a2)) : this.onData(d.shrinkBuf(h2.output, h2.next_out)))), 0 === h2.avail_in && 0 === h2.avail_out && (f = true);
           } while ((0 < h2.avail_in || 0 === h2.avail_out) && r2 !== m.Z_STREAM_END);
           return r2 === m.Z_STREAM_END && (n2 = m.Z_FINISH), n2 === m.Z_FINISH ? (r2 = c.inflateEnd(this.strm), this.onEnd(r2), this.ended = true, r2 === m.Z_OK) : n2 !== m.Z_SYNC_FLUSH || (this.onEnd(m.Z_OK), !(h2.avail_out = 0));
         }, a.prototype.onData = function(e2) {
@@ -30712,29 +32582,29 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         var i = {
           arraySet: function(e2, t2, r2, n2, i2) {
             if (t2.subarray && e2.subarray) e2.set(t2.subarray(r2, r2 + n2), i2);
-            else for (var s2 = 0; s2 < n2; s2++) e2[i2 + s2] = t2[r2 + s2];
+            else for (var s3 = 0; s3 < n2; s3++) e2[i2 + s3] = t2[r2 + s3];
           },
           flattenChunks: function(e2) {
-            var t2 = n2 = 0, r2 = e2.length, n2, i2, s2, a;
+            var t2 = n2 = 0, r2 = e2.length, n2, i2, s3, a;
             for (; t2 < r2; t2++) n2 += e2[t2].length;
-            for (a = new Uint8Array(n2), t2 = i2 = 0, r2 = e2.length; t2 < r2; t2++) s2 = e2[t2], a.set(s2, i2), i2 += s2.length;
+            for (a = new Uint8Array(n2), t2 = i2 = 0, r2 = e2.length; t2 < r2; t2++) s3 = e2[t2], a.set(s3, i2), i2 += s3.length;
             return a;
           }
-        }, s = {
+        }, s2 = {
           arraySet: function(e2, t2, r2, n2, i2) {
-            for (var s2 = 0; s2 < n2; s2++) e2[i2 + s2] = t2[r2 + s2];
+            for (var s3 = 0; s3 < n2; s3++) e2[i2 + s3] = t2[r2 + s3];
           },
           flattenChunks: function(e2) {
             return [].concat.apply([], e2);
           }
         };
         r.setTyped = function(e2) {
-          e2 ? (r.Buf8 = Uint8Array, r.Buf16 = Uint16Array, r.Buf32 = Int32Array, r.assign(r, i)) : (r.Buf8 = Array, r.Buf16 = Array, r.Buf32 = Array, r.assign(r, s));
+          e2 ? (r.Buf8 = Uint8Array, r.Buf16 = Uint16Array, r.Buf32 = Int32Array, r.assign(r, i)) : (r.Buf8 = Array, r.Buf16 = Array, r.Buf32 = Array, r.assign(r, s2));
         }, r.setTyped(n);
       }, {}],
       42: [function(e, t, r) {
         "use strict";
-        var h2 = e("./common"), i = true, s = true;
+        var h2 = e("./common"), i = true, s2 = true;
         try {
           String.fromCharCode.apply(null, [0]);
         } catch (e2) {
@@ -30743,18 +32613,18 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         try {
           String.fromCharCode.apply(null, /* @__PURE__ */ new Uint8Array(1));
         } catch (e2) {
-          s = false;
+          s2 = false;
         }
         for (var u = new h2.Buf8(256), n = 0; n < 256; n++) u[n] = 252 <= n ? 6 : 248 <= n ? 5 : 240 <= n ? 4 : 224 <= n ? 3 : 192 <= n ? 2 : 1;
         function l(e2, t2) {
-          if (t2 < 65537 && (e2.subarray && s || !e2.subarray && i)) return String.fromCharCode.apply(null, h2.shrinkBuf(e2, t2));
+          if (t2 < 65537 && (e2.subarray && s2 || !e2.subarray && i)) return String.fromCharCode.apply(null, h2.shrinkBuf(e2, t2));
           for (var r2 = "", n2 = 0; n2 < t2; n2++) r2 += String.fromCharCode(e2[n2]);
           return r2;
         }
         u[254] = u[254] = 1, r.string2buf = function(e2) {
-          var t2, r2, n2, i2, s2, a = e2.length, o = 0;
+          var t2, r2, n2, i2, s3, a = e2.length, o = 0;
           for (i2 = 0; i2 < a; i2++) 55296 == (64512 & (r2 = e2.charCodeAt(i2))) && i2 + 1 < a && 56320 == (64512 & (n2 = e2.charCodeAt(i2 + 1))) && (r2 = 65536 + (r2 - 55296 << 10) + (n2 - 56320), i2++), o += r2 < 128 ? 1 : r2 < 2048 ? 2 : r2 < 65536 ? 3 : 4;
-          for (t2 = new h2.Buf8(o), i2 = s2 = 0; s2 < o; i2++) 55296 == (64512 & (r2 = e2.charCodeAt(i2))) && i2 + 1 < a && 56320 == (64512 & (n2 = e2.charCodeAt(i2 + 1))) && (r2 = 65536 + (r2 - 55296 << 10) + (n2 - 56320), i2++), r2 < 128 ? t2[s2++] = r2 : (r2 < 2048 ? t2[s2++] = 192 | r2 >>> 6 : (r2 < 65536 ? t2[s2++] = 224 | r2 >>> 12 : (t2[s2++] = 240 | r2 >>> 18, t2[s2++] = 128 | r2 >>> 12 & 63), t2[s2++] = 128 | r2 >>> 6 & 63), t2[s2++] = 128 | 63 & r2);
+          for (t2 = new h2.Buf8(o), i2 = s3 = 0; s3 < o; i2++) 55296 == (64512 & (r2 = e2.charCodeAt(i2))) && i2 + 1 < a && 56320 == (64512 & (n2 = e2.charCodeAt(i2 + 1))) && (r2 = 65536 + (r2 - 55296 << 10) + (n2 - 56320), i2++), r2 < 128 ? t2[s3++] = r2 : (r2 < 2048 ? t2[s3++] = 192 | r2 >>> 6 : (r2 < 65536 ? t2[s3++] = 224 | r2 >>> 12 : (t2[s3++] = 240 | r2 >>> 18, t2[s3++] = 128 | r2 >>> 12 & 63), t2[s3++] = 128 | r2 >>> 6 & 63), t2[s3++] = 128 | 63 & r2);
           return t2;
         }, r.buf2binstring = function(e2) {
           return l(e2, e2.length);
@@ -30762,12 +32632,12 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           for (var t2 = new h2.Buf8(e2.length), r2 = 0, n2 = t2.length; r2 < n2; r2++) t2[r2] = e2.charCodeAt(r2);
           return t2;
         }, r.buf2string = function(e2, t2) {
-          var r2, n2, i2, s2, a = t2 || e2.length, o = new Array(2 * a);
+          var r2, n2, i2, s3, a = t2 || e2.length, o = new Array(2 * a);
           for (r2 = n2 = 0; r2 < a; ) if ((i2 = e2[r2++]) < 128) o[n2++] = i2;
-          else if (4 < (s2 = u[i2])) o[n2++] = 65533, r2 += s2 - 1;
+          else if (4 < (s3 = u[i2])) o[n2++] = 65533, r2 += s3 - 1;
           else {
-            for (i2 &= 2 === s2 ? 31 : 3 === s2 ? 15 : 7; 1 < s2 && r2 < a; ) i2 = i2 << 6 | 63 & e2[r2++], s2--;
-            1 < s2 ? o[n2++] = 65533 : i2 < 65536 ? o[n2++] = i2 : (i2 -= 65536, o[n2++] = 55296 | i2 >> 10 & 1023, o[n2++] = 56320 | 1023 & i2);
+            for (i2 &= 2 === s3 ? 31 : 3 === s3 ? 15 : 7; 1 < s3 && r2 < a; ) i2 = i2 << 6 | 63 & e2[r2++], s3--;
+            1 < s3 ? o[n2++] = 65533 : i2 < 65536 ? o[n2++] = i2 : (i2 -= 65536, o[n2++] = 55296 | i2 >> 10 & 1023, o[n2++] = 56320 | 1023 & i2);
           }
           return l(o, n2);
         }, r.utf8border = function(e2, t2) {
@@ -30779,11 +32649,11 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       43: [function(e, t, r) {
         "use strict";
         t.exports = function(e2, t2, r2, n) {
-          for (var i = 65535 & e2 | 0, s = e2 >>> 16 & 65535 | 0, a = 0; 0 !== r2; ) {
-            for (r2 -= a = 2e3 < r2 ? 2e3 : r2; s = s + (i = i + t2[n++] | 0) | 0, --a; ) ;
-            i %= 65521, s %= 65521;
+          for (var i = 65535 & e2 | 0, s2 = e2 >>> 16 & 65535 | 0, a = 0; 0 !== r2; ) {
+            for (r2 -= a = 2e3 < r2 ? 2e3 : r2; s2 = s2 + (i = i + t2[n++] | 0) | 0, --a; ) ;
+            i %= 65521, s2 %= 65521;
           }
-          return i | s << 16 | 0;
+          return i | s2 << 16 | 0;
         };
       }, {}],
       44: [function(e, t, r) {
@@ -30829,15 +32699,15 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           return t2;
         })();
         t.exports = function(e2, t2, r2, n) {
-          var i = o, s = n + r2;
+          var i = o, s2 = n + r2;
           e2 ^= -1;
-          for (var a = n; a < s; a++) e2 = e2 >>> 8 ^ i[255 & (e2 ^ t2[a])];
+          for (var a = n; a < s2; a++) e2 = e2 >>> 8 ^ i[255 & (e2 ^ t2[a])];
           return -1 ^ e2;
         };
       }, {}],
       46: [function(e, t, r) {
         "use strict";
-        var h2, c = e("../utils/common"), u = e("./trees"), d = e("./adler32"), p2 = e("./crc32"), n = e("./messages"), l = 0, f = 4, m = 0, _ = -2, g = -1, b = 4, i = 2, v = 8, y = 9, s = 286, a = 30, o = 19, w = 2 * s + 1, k = 15, x = 3, S = 258, z = S + x + 1, C = 42, E = 113, A = 1, I = 2, O = 3, B = 4;
+        var h2, c = e("../utils/common"), u = e("./trees"), d = e("./adler32"), p2 = e("./crc32"), n = e("./messages"), l = 0, f = 4, m = 0, _ = -2, g = -1, b = 4, i = 2, v = 8, y = 9, s2 = 286, a = 30, o = 19, w = 2 * s2 + 1, k = 15, x = 3, S = 258, z = S + x + 1, C = 42, E = 113, A = 1, I = 2, O = 3, B = 4;
         function R(e2, t2) {
           return e2.msg = n[t2], t2;
         }
@@ -30861,24 +32731,24 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           e2.pending_buf[e2.pending++] = t2 >>> 8 & 255, e2.pending_buf[e2.pending++] = 255 & t2;
         }
         function L(e2, t2) {
-          var r2, n2, i2 = e2.max_chain_length, s2 = e2.strstart, a2 = e2.prev_length, o2 = e2.nice_match, h3 = e2.strstart > e2.w_size - z ? e2.strstart - (e2.w_size - z) : 0, u2 = e2.window, l2 = e2.w_mask, f2 = e2.prev, c2 = e2.strstart + S, d2 = u2[s2 + a2 - 1], p3 = u2[s2 + a2];
+          var r2, n2, i2 = e2.max_chain_length, s3 = e2.strstart, a2 = e2.prev_length, o2 = e2.nice_match, h3 = e2.strstart > e2.w_size - z ? e2.strstart - (e2.w_size - z) : 0, u2 = e2.window, l2 = e2.w_mask, f2 = e2.prev, c2 = e2.strstart + S, d2 = u2[s3 + a2 - 1], p3 = u2[s3 + a2];
           e2.prev_length >= e2.good_match && (i2 >>= 2), o2 > e2.lookahead && (o2 = e2.lookahead);
           do
-            if (u2[(r2 = t2) + a2] === p3 && u2[r2 + a2 - 1] === d2 && u2[r2] === u2[s2] && u2[++r2] === u2[s2 + 1]) {
-              s2 += 2, r2++;
+            if (u2[(r2 = t2) + a2] === p3 && u2[r2 + a2 - 1] === d2 && u2[r2] === u2[s3] && u2[++r2] === u2[s3 + 1]) {
+              s3 += 2, r2++;
               do
                 ;
-              while (u2[++s2] === u2[++r2] && u2[++s2] === u2[++r2] && u2[++s2] === u2[++r2] && u2[++s2] === u2[++r2] && u2[++s2] === u2[++r2] && u2[++s2] === u2[++r2] && u2[++s2] === u2[++r2] && u2[++s2] === u2[++r2] && s2 < c2);
-              if (n2 = S - (c2 - s2), s2 = c2 - S, a2 < n2) {
+              while (u2[++s3] === u2[++r2] && u2[++s3] === u2[++r2] && u2[++s3] === u2[++r2] && u2[++s3] === u2[++r2] && u2[++s3] === u2[++r2] && u2[++s3] === u2[++r2] && u2[++s3] === u2[++r2] && u2[++s3] === u2[++r2] && s3 < c2);
+              if (n2 = S - (c2 - s3), s3 = c2 - S, a2 < n2) {
                 if (e2.match_start = t2, o2 <= (a2 = n2)) break;
-                d2 = u2[s2 + a2 - 1], p3 = u2[s2 + a2];
+                d2 = u2[s3 + a2 - 1], p3 = u2[s3 + a2];
               }
             }
           while ((t2 = f2[t2 & l2]) > h3 && 0 != --i2);
           return a2 <= e2.lookahead ? a2 : e2.lookahead;
         }
         function j(e2) {
-          var t2, r2, n2, i2, s2, a2, o2, h3, u2, l2, f2 = e2.w_size;
+          var t2, r2, n2, i2, s3, a2, o2, h3, u2, l2, f2 = e2.w_size;
           do {
             if (i2 = e2.window_size - e2.lookahead - e2.strstart, e2.strstart >= f2 + (f2 - z)) {
               for (c.arraySet(e2.window, e2.window, f2, f2, 0), e2.match_start -= f2, e2.strstart -= f2, e2.block_start -= f2, t2 = r2 = e2.hash_size; n2 = e2.head[--t2], e2.head[t2] = f2 <= n2 ? n2 - f2 : 0, --r2; ) ;
@@ -30886,7 +32756,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
               i2 += f2;
             }
             if (0 === e2.strm.avail_in) break;
-            if (a2 = e2.strm, o2 = e2.window, h3 = e2.strstart + e2.lookahead, u2 = i2, l2 = void 0, l2 = a2.avail_in, u2 < l2 && (l2 = u2), r2 = 0 === l2 ? 0 : (a2.avail_in -= l2, c.arraySet(o2, a2.input, a2.next_in, l2, h3), 1 === a2.state.wrap ? a2.adler = d(a2.adler, o2, l2, h3) : 2 === a2.state.wrap && (a2.adler = p2(a2.adler, o2, l2, h3)), a2.next_in += l2, a2.total_in += l2, l2), e2.lookahead += r2, e2.lookahead + e2.insert >= x) for (s2 = e2.strstart - e2.insert, e2.ins_h = e2.window[s2], e2.ins_h = (e2.ins_h << e2.hash_shift ^ e2.window[s2 + 1]) & e2.hash_mask; e2.insert && (e2.ins_h = (e2.ins_h << e2.hash_shift ^ e2.window[s2 + x - 1]) & e2.hash_mask, e2.prev[s2 & e2.w_mask] = e2.head[e2.ins_h], e2.head[e2.ins_h] = s2, s2++, e2.insert--, !(e2.lookahead + e2.insert < x)); ) ;
+            if (a2 = e2.strm, o2 = e2.window, h3 = e2.strstart + e2.lookahead, u2 = i2, l2 = void 0, l2 = a2.avail_in, u2 < l2 && (l2 = u2), r2 = 0 === l2 ? 0 : (a2.avail_in -= l2, c.arraySet(o2, a2.input, a2.next_in, l2, h3), 1 === a2.state.wrap ? a2.adler = d(a2.adler, o2, l2, h3) : 2 === a2.state.wrap && (a2.adler = p2(a2.adler, o2, l2, h3)), a2.next_in += l2, a2.total_in += l2, l2), e2.lookahead += r2, e2.lookahead + e2.insert >= x) for (s3 = e2.strstart - e2.insert, e2.ins_h = e2.window[s3], e2.ins_h = (e2.ins_h << e2.hash_shift ^ e2.window[s3 + 1]) & e2.hash_mask; e2.insert && (e2.ins_h = (e2.ins_h << e2.hash_shift ^ e2.window[s3 + x - 1]) & e2.hash_mask, e2.prev[s3 & e2.w_mask] = e2.head[e2.ins_h], e2.head[e2.ins_h] = s3, s3++, e2.insert--, !(e2.lookahead + e2.insert < x)); ) ;
           } while (e2.lookahead < z && 0 !== e2.strm.avail_in);
         }
         function Z(e2, t2) {
@@ -30923,7 +32793,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           this.good_length = e2, this.max_lazy = t2, this.nice_length = r2, this.max_chain = n2, this.func = i2;
         }
         function H() {
-          this.strm = null, this.status = 0, this.pending_buf = null, this.pending_buf_size = 0, this.pending_out = 0, this.pending = 0, this.wrap = 0, this.gzhead = null, this.gzindex = 0, this.method = v, this.last_flush = -1, this.w_size = 0, this.w_bits = 0, this.w_mask = 0, this.window = null, this.window_size = 0, this.prev = null, this.head = null, this.ins_h = 0, this.hash_size = 0, this.hash_bits = 0, this.hash_mask = 0, this.hash_shift = 0, this.block_start = 0, this.match_length = 0, this.prev_match = 0, this.match_available = 0, this.strstart = 0, this.match_start = 0, this.lookahead = 0, this.prev_length = 0, this.max_chain_length = 0, this.max_lazy_match = 0, this.level = 0, this.strategy = 0, this.good_match = 0, this.nice_match = 0, this.dyn_ltree = new c.Buf16(2 * w), this.dyn_dtree = new c.Buf16(2 * (2 * a + 1)), this.bl_tree = new c.Buf16(2 * (2 * o + 1)), D(this.dyn_ltree), D(this.dyn_dtree), D(this.bl_tree), this.l_desc = null, this.d_desc = null, this.bl_desc = null, this.bl_count = new c.Buf16(k + 1), this.heap = new c.Buf16(2 * s + 1), D(this.heap), this.heap_len = 0, this.heap_max = 0, this.depth = new c.Buf16(2 * s + 1), D(this.depth), this.l_buf = 0, this.lit_bufsize = 0, this.last_lit = 0, this.d_buf = 0, this.opt_len = 0, this.static_len = 0, this.matches = 0, this.insert = 0, this.bi_buf = 0, this.bi_valid = 0;
+          this.strm = null, this.status = 0, this.pending_buf = null, this.pending_buf_size = 0, this.pending_out = 0, this.pending = 0, this.wrap = 0, this.gzhead = null, this.gzindex = 0, this.method = v, this.last_flush = -1, this.w_size = 0, this.w_bits = 0, this.w_mask = 0, this.window = null, this.window_size = 0, this.prev = null, this.head = null, this.ins_h = 0, this.hash_size = 0, this.hash_bits = 0, this.hash_mask = 0, this.hash_shift = 0, this.block_start = 0, this.match_length = 0, this.prev_match = 0, this.match_available = 0, this.strstart = 0, this.match_start = 0, this.lookahead = 0, this.prev_length = 0, this.max_chain_length = 0, this.max_lazy_match = 0, this.level = 0, this.strategy = 0, this.good_match = 0, this.nice_match = 0, this.dyn_ltree = new c.Buf16(2 * w), this.dyn_dtree = new c.Buf16(2 * (2 * a + 1)), this.bl_tree = new c.Buf16(2 * (2 * o + 1)), D(this.dyn_ltree), D(this.dyn_dtree), D(this.bl_tree), this.l_desc = null, this.d_desc = null, this.bl_desc = null, this.bl_count = new c.Buf16(k + 1), this.heap = new c.Buf16(2 * s2 + 1), D(this.heap), this.heap_len = 0, this.heap_max = 0, this.depth = new c.Buf16(2 * s2 + 1), D(this.depth), this.l_buf = 0, this.lit_bufsize = 0, this.last_lit = 0, this.d_buf = 0, this.opt_len = 0, this.static_len = 0, this.matches = 0, this.insert = 0, this.bi_buf = 0, this.bi_valid = 0;
         }
         function G(e2) {
           var t2;
@@ -30935,13 +32805,13 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             e3.window_size = 2 * e3.w_size, D(e3.head), e3.max_lazy_match = h2[e3.level].max_lazy, e3.good_match = h2[e3.level].good_length, e3.nice_match = h2[e3.level].nice_length, e3.max_chain_length = h2[e3.level].max_chain, e3.strstart = 0, e3.block_start = 0, e3.lookahead = 0, e3.insert = 0, e3.match_length = e3.prev_length = x - 1, e3.match_available = 0, e3.ins_h = 0;
           })(e2.state), t2;
         }
-        function Y(e2, t2, r2, n2, i2, s2) {
+        function Y(e2, t2, r2, n2, i2, s3) {
           if (!e2) return _;
           var a2 = 1;
-          if (t2 === g && (t2 = 6), n2 < 0 ? (a2 = 0, n2 = -n2) : 15 < n2 && (a2 = 2, n2 -= 16), i2 < 1 || y < i2 || r2 !== v || n2 < 8 || 15 < n2 || t2 < 0 || 9 < t2 || s2 < 0 || b < s2) return R(e2, _);
+          if (t2 === g && (t2 = 6), n2 < 0 ? (a2 = 0, n2 = -n2) : 15 < n2 && (a2 = 2, n2 -= 16), i2 < 1 || y < i2 || r2 !== v || n2 < 8 || 15 < n2 || t2 < 0 || 9 < t2 || s3 < 0 || b < s3) return R(e2, _);
           8 === n2 && (n2 = 9);
           var o2 = new H();
-          return (e2.state = o2).strm = e2, o2.wrap = a2, o2.gzhead = null, o2.w_bits = n2, o2.w_size = 1 << o2.w_bits, o2.w_mask = o2.w_size - 1, o2.hash_bits = i2 + 7, o2.hash_size = 1 << o2.hash_bits, o2.hash_mask = o2.hash_size - 1, o2.hash_shift = ~~((o2.hash_bits + x - 1) / x), o2.window = new c.Buf8(2 * o2.w_size), o2.head = new c.Buf16(o2.hash_size), o2.prev = new c.Buf16(o2.w_size), o2.lit_bufsize = 1 << i2 + 6, o2.pending_buf_size = 4 * o2.lit_bufsize, o2.pending_buf = new c.Buf8(o2.pending_buf_size), o2.d_buf = 1 * o2.lit_bufsize, o2.l_buf = 3 * o2.lit_bufsize, o2.level = t2, o2.strategy = s2, o2.method = r2, K(e2);
+          return (e2.state = o2).strm = e2, o2.wrap = a2, o2.gzhead = null, o2.w_bits = n2, o2.w_size = 1 << o2.w_bits, o2.w_mask = o2.w_size - 1, o2.hash_bits = i2 + 7, o2.hash_size = 1 << o2.hash_bits, o2.hash_mask = o2.hash_size - 1, o2.hash_shift = ~~((o2.hash_bits + x - 1) / x), o2.window = new c.Buf8(2 * o2.w_size), o2.head = new c.Buf16(o2.hash_size), o2.prev = new c.Buf16(o2.w_size), o2.lit_bufsize = 1 << i2 + 6, o2.pending_buf_size = 4 * o2.lit_bufsize, o2.pending_buf = new c.Buf8(o2.pending_buf_size), o2.d_buf = 1 * o2.lit_bufsize, o2.l_buf = 3 * o2.lit_bufsize, o2.level = t2, o2.strategy = s3, o2.method = r2, K(e2);
         }
         h2 = [
           new M(0, 0, 0, 0, function(e2, t2) {
@@ -30972,7 +32842,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         }, r.deflateInit2 = Y, r.deflateReset = K, r.deflateResetKeep = G, r.deflateSetHeader = function(e2, t2) {
           return e2 && e2.state ? 2 !== e2.state.wrap ? _ : (e2.state.gzhead = t2, m) : _;
         }, r.deflate = function(e2, t2) {
-          var r2, n2, i2, s2;
+          var r2, n2, i2, s3;
           if (!e2 || !e2.state || 5 < t2 || t2 < 0) return e2 ? R(e2, _) : _;
           if (n2 = e2.state, !e2.output || !e2.input && 0 !== e2.avail_in || 666 === n2.status && t2 !== f) return R(e2, 0 === e2.avail_out ? -5 : _);
           if (n2.strm = e2, r2 = n2.last_flush, n2.last_flush = t2, n2.status === C) if (2 === n2.wrap) e2.adler = 0, U(n2, 31), U(n2, 139), U(n2, 8), n2.gzhead ? (U(n2, (n2.gzhead.text ? 1 : 0) + (n2.gzhead.hcrc ? 2 : 0) + (n2.gzhead.extra ? 4 : 0) + (n2.gzhead.name ? 8 : 0) + (n2.gzhead.comment ? 16 : 0)), U(n2, 255 & n2.gzhead.time), U(n2, n2.gzhead.time >> 8 & 255), U(n2, n2.gzhead.time >> 16 & 255), U(n2, n2.gzhead.time >> 24 & 255), U(n2, 9 === n2.level ? 2 : 2 <= n2.strategy || n2.level < 2 ? 4 : 0), U(n2, 255 & n2.gzhead.os), n2.gzhead.extra && n2.gzhead.extra.length && (U(n2, 255 & n2.gzhead.extra.length), U(n2, n2.gzhead.extra.length >> 8 & 255)), n2.gzhead.hcrc && (e2.adler = p2(e2.adler, n2.pending_buf, n2.pending, 0)), n2.gzindex = 0, n2.status = 69) : (U(n2, 0), U(n2, 0), U(n2, 0), U(n2, 0), U(n2, 0), U(n2, 9 === n2.level ? 2 : 2 <= n2.strategy || n2.level < 2 ? 4 : 0), U(n2, 3), n2.status = E);
@@ -30988,23 +32858,23 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             i2 = n2.pending;
             do {
               if (n2.pending === n2.pending_buf_size && (n2.gzhead.hcrc && n2.pending > i2 && (e2.adler = p2(e2.adler, n2.pending_buf, n2.pending - i2, i2)), F(e2), i2 = n2.pending, n2.pending === n2.pending_buf_size)) {
-                s2 = 1;
+                s3 = 1;
                 break;
               }
-              s2 = n2.gzindex < n2.gzhead.name.length ? 255 & n2.gzhead.name.charCodeAt(n2.gzindex++) : 0, U(n2, s2);
-            } while (0 !== s2);
-            n2.gzhead.hcrc && n2.pending > i2 && (e2.adler = p2(e2.adler, n2.pending_buf, n2.pending - i2, i2)), 0 === s2 && (n2.gzindex = 0, n2.status = 91);
+              s3 = n2.gzindex < n2.gzhead.name.length ? 255 & n2.gzhead.name.charCodeAt(n2.gzindex++) : 0, U(n2, s3);
+            } while (0 !== s3);
+            n2.gzhead.hcrc && n2.pending > i2 && (e2.adler = p2(e2.adler, n2.pending_buf, n2.pending - i2, i2)), 0 === s3 && (n2.gzindex = 0, n2.status = 91);
           } else n2.status = 91;
           if (91 === n2.status) if (n2.gzhead.comment) {
             i2 = n2.pending;
             do {
               if (n2.pending === n2.pending_buf_size && (n2.gzhead.hcrc && n2.pending > i2 && (e2.adler = p2(e2.adler, n2.pending_buf, n2.pending - i2, i2)), F(e2), i2 = n2.pending, n2.pending === n2.pending_buf_size)) {
-                s2 = 1;
+                s3 = 1;
                 break;
               }
-              s2 = n2.gzindex < n2.gzhead.comment.length ? 255 & n2.gzhead.comment.charCodeAt(n2.gzindex++) : 0, U(n2, s2);
-            } while (0 !== s2);
-            n2.gzhead.hcrc && n2.pending > i2 && (e2.adler = p2(e2.adler, n2.pending_buf, n2.pending - i2, i2)), 0 === s2 && (n2.status = 103);
+              s3 = n2.gzindex < n2.gzhead.comment.length ? 255 & n2.gzhead.comment.charCodeAt(n2.gzindex++) : 0, U(n2, s3);
+            } while (0 !== s3);
+            n2.gzhead.hcrc && n2.pending > i2 && (e2.adler = p2(e2.adler, n2.pending_buf, n2.pending - i2, i2)), 0 === s3 && (n2.status = 103);
           } else n2.status = 103;
           if (103 === n2.status && (n2.gzhead.hcrc ? (n2.pending + 2 > n2.pending_buf_size && F(e2), n2.pending + 2 <= n2.pending_buf_size && (U(n2, 255 & e2.adler), U(n2, e2.adler >> 8 & 255), e2.adler = 0, n2.status = E)) : n2.status = E), 0 !== n2.pending) {
             if (F(e2), 0 === e2.avail_out) return n2.last_flush = -1, m;
@@ -31021,17 +32891,17 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
               }
               return e3.insert = 0, t3 === f ? (N(e3, true), 0 === e3.strm.avail_out ? O : B) : e3.last_lit && (N(e3, false), 0 === e3.strm.avail_out) ? A : I;
             })(n2, t2) : 3 === n2.strategy ? (function(e3, t3) {
-              for (var r3, n3, i3, s3, a3 = e3.window; ; ) {
+              for (var r3, n3, i3, s4, a3 = e3.window; ; ) {
                 if (e3.lookahead <= S) {
                   if (j(e3), e3.lookahead <= S && t3 === l) return A;
                   if (0 === e3.lookahead) break;
                 }
                 if (e3.match_length = 0, e3.lookahead >= x && 0 < e3.strstart && (n3 = a3[i3 = e3.strstart - 1]) === a3[++i3] && n3 === a3[++i3] && n3 === a3[++i3]) {
-                  s3 = e3.strstart + S;
+                  s4 = e3.strstart + S;
                   do
                     ;
-                  while (n3 === a3[++i3] && n3 === a3[++i3] && n3 === a3[++i3] && n3 === a3[++i3] && n3 === a3[++i3] && n3 === a3[++i3] && n3 === a3[++i3] && n3 === a3[++i3] && i3 < s3);
-                  e3.match_length = S - (s3 - i3), e3.match_length > e3.lookahead && (e3.match_length = e3.lookahead);
+                  while (n3 === a3[++i3] && n3 === a3[++i3] && n3 === a3[++i3] && n3 === a3[++i3] && n3 === a3[++i3] && n3 === a3[++i3] && n3 === a3[++i3] && n3 === a3[++i3] && i3 < s4);
+                  e3.match_length = S - (s4 - i3), e3.match_length > e3.lookahead && (e3.match_length = e3.lookahead);
                 }
                 if (e3.match_length >= x ? (r3 = u._tr_tally(e3, 1, e3.match_length - x), e3.lookahead -= e3.match_length, e3.strstart += e3.match_length, e3.match_length = 0) : (r3 = u._tr_tally(e3, 0, e3.window[e3.strstart]), e3.lookahead--, e3.strstart++), r3 && (N(e3, false), 0 === e3.strm.avail_out)) return A;
               }
@@ -31045,14 +32915,14 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           var t2;
           return e2 && e2.state ? (t2 = e2.state.status) !== C && 69 !== t2 && 73 !== t2 && 91 !== t2 && 103 !== t2 && t2 !== E && 666 !== t2 ? R(e2, _) : (e2.state = null, t2 === E ? R(e2, -3) : m) : _;
         }, r.deflateSetDictionary = function(e2, t2) {
-          var r2, n2, i2, s2, a2, o2, h3, u2, l2 = t2.length;
+          var r2, n2, i2, s3, a2, o2, h3, u2, l2 = t2.length;
           if (!e2 || !e2.state) return _;
-          if (2 === (s2 = (r2 = e2.state).wrap) || 1 === s2 && r2.status !== C || r2.lookahead) return _;
-          for (1 === s2 && (e2.adler = d(e2.adler, t2, l2, 0)), r2.wrap = 0, l2 >= r2.w_size && (0 === s2 && (D(r2.head), r2.strstart = 0, r2.block_start = 0, r2.insert = 0), u2 = new c.Buf8(r2.w_size), c.arraySet(u2, t2, l2 - r2.w_size, r2.w_size, 0), t2 = u2, l2 = r2.w_size), a2 = e2.avail_in, o2 = e2.next_in, h3 = e2.input, e2.avail_in = l2, e2.next_in = 0, e2.input = t2, j(r2); r2.lookahead >= x; ) {
+          if (2 === (s3 = (r2 = e2.state).wrap) || 1 === s3 && r2.status !== C || r2.lookahead) return _;
+          for (1 === s3 && (e2.adler = d(e2.adler, t2, l2, 0)), r2.wrap = 0, l2 >= r2.w_size && (0 === s3 && (D(r2.head), r2.strstart = 0, r2.block_start = 0, r2.insert = 0), u2 = new c.Buf8(r2.w_size), c.arraySet(u2, t2, l2 - r2.w_size, r2.w_size, 0), t2 = u2, l2 = r2.w_size), a2 = e2.avail_in, o2 = e2.next_in, h3 = e2.input, e2.avail_in = l2, e2.next_in = 0, e2.input = t2, j(r2); r2.lookahead >= x; ) {
             for (n2 = r2.strstart, i2 = r2.lookahead - (x - 1); r2.ins_h = (r2.ins_h << r2.hash_shift ^ r2.window[n2 + x - 1]) & r2.hash_mask, r2.prev[n2 & r2.w_mask] = r2.head[r2.ins_h], r2.head[r2.ins_h] = n2, n2++, --i2; ) ;
             r2.strstart = n2, r2.lookahead = x - 1, j(r2);
           }
-          return r2.strstart += r2.lookahead, r2.block_start = r2.strstart, r2.insert = r2.lookahead, r2.lookahead = 0, r2.match_length = r2.prev_length = x - 1, r2.match_available = 0, e2.next_in = o2, e2.input = h3, e2.avail_in = a2, r2.wrap = s2, m;
+          return r2.strstart += r2.lookahead, r2.block_start = r2.strstart, r2.insert = r2.lookahead, r2.lookahead = 0, r2.match_length = r2.prev_length = x - 1, r2.match_available = 0, e2.next_in = o2, e2.input = h3, e2.avail_in = a2, r2.wrap = s3, m;
         }, r.deflateInfo = "pako deflate (from Nodeca project)";
       }, {
         "../utils/common": 41,
@@ -31070,12 +32940,12 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       48: [function(e, t, r) {
         "use strict";
         t.exports = function(e2, t2) {
-          var r2 = e2.state, n = e2.next_in, i, s, a, o, h2, u, l, f, c, d, p2, m, _, g, b, v, y, w, k, x, S, z = e2.input, C;
-          i = n + (e2.avail_in - 5), s = e2.next_out, C = e2.output, a = s - (t2 - e2.avail_out), o = s + (e2.avail_out - 257), h2 = r2.dmax, u = r2.wsize, l = r2.whave, f = r2.wnext, c = r2.window, d = r2.hold, p2 = r2.bits, m = r2.lencode, _ = r2.distcode, g = (1 << r2.lenbits) - 1, b = (1 << r2.distbits) - 1;
+          var r2 = e2.state, n = e2.next_in, i, s2, a, o, h2, u, l, f, c, d, p2, m, _, g, b, v, y, w, k, x, S, z = e2.input, C;
+          i = n + (e2.avail_in - 5), s2 = e2.next_out, C = e2.output, a = s2 - (t2 - e2.avail_out), o = s2 + (e2.avail_out - 257), h2 = r2.dmax, u = r2.wsize, l = r2.whave, f = r2.wnext, c = r2.window, d = r2.hold, p2 = r2.bits, m = r2.lencode, _ = r2.distcode, g = (1 << r2.lenbits) - 1, b = (1 << r2.distbits) - 1;
           e: do {
             p2 < 15 && (d += z[n++] << p2, p2 += 8, d += z[n++] << p2, p2 += 8), v = m[d & g];
             t: for (; ; ) {
-              if (d >>>= y = v >>> 24, p2 -= y, 0 === (y = v >>> 16 & 255)) C[s++] = 65535 & v;
+              if (d >>>= y = v >>> 24, p2 -= y, 0 === (y = v >>> 16 & 255)) C[s2++] = 65535 & v;
               else {
                 if (!(16 & y)) {
                   if (0 == (64 & y)) {
@@ -31103,41 +32973,41 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
                     e2.msg = "invalid distance too far back", r2.mode = 30;
                     break e;
                   }
-                  if (d >>>= y, p2 -= y, (y = s - a) < k) {
+                  if (d >>>= y, p2 -= y, (y = s2 - a) < k) {
                     if (l < (y = k - y) && r2.sane) {
                       e2.msg = "invalid distance too far back", r2.mode = 30;
                       break e;
                     }
                     if (S = c, (x = 0) === f) {
                       if (x += u - y, y < w) {
-                        for (w -= y; C[s++] = c[x++], --y; ) ;
-                        x = s - k, S = C;
+                        for (w -= y; C[s2++] = c[x++], --y; ) ;
+                        x = s2 - k, S = C;
                       }
                     } else if (f < y) {
                       if (x += u + f - y, (y -= f) < w) {
-                        for (w -= y; C[s++] = c[x++], --y; ) ;
+                        for (w -= y; C[s2++] = c[x++], --y; ) ;
                         if (x = 0, f < w) {
-                          for (w -= y = f; C[s++] = c[x++], --y; ) ;
-                          x = s - k, S = C;
+                          for (w -= y = f; C[s2++] = c[x++], --y; ) ;
+                          x = s2 - k, S = C;
                         }
                       }
                     } else if (x += f - y, y < w) {
-                      for (w -= y; C[s++] = c[x++], --y; ) ;
-                      x = s - k, S = C;
+                      for (w -= y; C[s2++] = c[x++], --y; ) ;
+                      x = s2 - k, S = C;
                     }
-                    for (; 2 < w; ) C[s++] = S[x++], C[s++] = S[x++], C[s++] = S[x++], w -= 3;
-                    w && (C[s++] = S[x++], 1 < w && (C[s++] = S[x++]));
+                    for (; 2 < w; ) C[s2++] = S[x++], C[s2++] = S[x++], C[s2++] = S[x++], w -= 3;
+                    w && (C[s2++] = S[x++], 1 < w && (C[s2++] = S[x++]));
                   } else {
-                    for (x = s - k; C[s++] = C[x++], C[s++] = C[x++], C[s++] = C[x++], 2 < (w -= 3); ) ;
-                    w && (C[s++] = C[x++], 1 < w && (C[s++] = C[x++]));
+                    for (x = s2 - k; C[s2++] = C[x++], C[s2++] = C[x++], C[s2++] = C[x++], 2 < (w -= 3); ) ;
+                    w && (C[s2++] = C[x++], 1 < w && (C[s2++] = C[x++]));
                   }
                   break;
                 }
               }
               break;
             }
-          } while (n < i && s < o);
-          n -= w = p2 >> 3, d &= (1 << (p2 -= w << 3)) - 1, e2.next_in = n, e2.next_out = s, e2.avail_in = n < i ? i - n + 5 : 5 - (n - i), e2.avail_out = s < o ? o - s + 257 : 257 - (s - o), r2.hold = d, r2.bits = p2;
+          } while (n < i && s2 < o);
+          n -= w = p2 >> 3, d &= (1 << (p2 -= w << 3)) - 1, e2.next_in = n, e2.next_out = s2, e2.avail_in = n < i ? i - n + 5 : 5 - (n - i), e2.avail_out = s2 < o ? o - s2 + 257 : 257 - (s2 - o), r2.hold = d, r2.bits = p2;
         };
       }, {}],
       49: [function(e, t, r) {
@@ -31146,7 +33016,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         function L(e2) {
           return (e2 >>> 24 & 255) + (e2 >>> 8 & 65280) + ((65280 & e2) << 8) + ((255 & e2) << 24);
         }
-        function s() {
+        function s2() {
           this.mode = 0, this.last = false, this.wrap = 0, this.havedict = false, this.flags = 0, this.dmax = 0, this.check = 0, this.total = 0, this.head = null, this.wbits = 0, this.wsize = 0, this.whave = 0, this.wnext = 0, this.window = null, this.hold = 0, this.bits = 0, this.length = 0, this.offset = 0, this.extra = 0, this.lencode = null, this.distcode = null, this.lenbits = 0, this.distbits = 0, this.ncode = 0, this.nlen = 0, this.ndist = 0, this.have = 0, this.next = null, this.lens = new I.Buf16(320), this.work = new I.Buf16(288), this.lendyn = null, this.distdyn = null, this.sane = 0, this.back = 0, this.was = 0;
         }
         function a(e2) {
@@ -31163,7 +33033,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         }
         function u(e2, t2) {
           var r2, n2;
-          return e2 ? (n2 = new s(), (e2.state = n2).window = null, (r2 = h2(e2, t2)) !== N && (e2.state = null), r2) : U;
+          return e2 ? (n2 = new s2(), (e2.state = n2).window = null, (r2 = h2(e2, t2)) !== N && (e2.state = null), r2) : U;
         }
         var l, f, c = true;
         function j(e2) {
@@ -31179,13 +33049,13 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           e2.lencode = l, e2.lenbits = 9, e2.distcode = f, e2.distbits = 5;
         }
         function Z(e2, t2, r2, n2) {
-          var i2, s2 = e2.state;
-          return null === s2.window && (s2.wsize = 1 << s2.wbits, s2.wnext = 0, s2.whave = 0, s2.window = new I.Buf8(s2.wsize)), n2 >= s2.wsize ? (I.arraySet(s2.window, t2, r2 - s2.wsize, s2.wsize, 0), s2.wnext = 0, s2.whave = s2.wsize) : (n2 < (i2 = s2.wsize - s2.wnext) && (i2 = n2), I.arraySet(s2.window, t2, r2 - n2, i2, s2.wnext), (n2 -= i2) ? (I.arraySet(s2.window, t2, r2 - n2, n2, 0), s2.wnext = n2, s2.whave = s2.wsize) : (s2.wnext += i2, s2.wnext === s2.wsize && (s2.wnext = 0), s2.whave < s2.wsize && (s2.whave += i2))), 0;
+          var i2, s3 = e2.state;
+          return null === s3.window && (s3.wsize = 1 << s3.wbits, s3.wnext = 0, s3.whave = 0, s3.window = new I.Buf8(s3.wsize)), n2 >= s3.wsize ? (I.arraySet(s3.window, t2, r2 - s3.wsize, s3.wsize, 0), s3.wnext = 0, s3.whave = s3.wsize) : (n2 < (i2 = s3.wsize - s3.wnext) && (i2 = n2), I.arraySet(s3.window, t2, r2 - n2, i2, s3.wnext), (n2 -= i2) ? (I.arraySet(s3.window, t2, r2 - n2, n2, 0), s3.wnext = n2, s3.whave = s3.wsize) : (s3.wnext += i2, s3.wnext === s3.wsize && (s3.wnext = 0), s3.whave < s3.wsize && (s3.whave += i2))), 0;
         }
         r.inflateReset = o, r.inflateReset2 = h2, r.inflateResetKeep = a, r.inflateInit = function(e2) {
           return u(e2, 15);
         }, r.inflateInit2 = u, r.inflate = function(e2, t2) {
-          var r2, n2, i2, s2, a2, o2, h3, u2, l2, f2, c2, d, p2, m, _, g, b, v, y, w, k, x, S, z, C = 0, E = new I.Buf8(4), A = [
+          var r2, n2, i2, s3, a2, o2, h3, u2, l2, f2, c2, d, p2, m, _, g, b, v, y, w, k, x, S, z, C = 0, E = new I.Buf8(4), A = [
             16,
             17,
             18,
@@ -31207,7 +33077,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             15
           ];
           if (!e2 || !e2.state || !e2.output || !e2.input && 0 !== e2.avail_in) return U;
-          12 === (r2 = e2.state).mode && (r2.mode = 13), a2 = e2.next_out, i2 = e2.output, h3 = e2.avail_out, s2 = e2.next_in, n2 = e2.input, o2 = e2.avail_in, u2 = r2.hold, l2 = r2.bits, f2 = o2, c2 = h3, x = N;
+          12 === (r2 = e2.state).mode && (r2.mode = 13), a2 = e2.next_out, i2 = e2.output, h3 = e2.avail_out, s3 = e2.next_in, n2 = e2.input, o2 = e2.avail_in, u2 = r2.hold, l2 = r2.bits, f2 = o2, c2 = h3, x = N;
           e: for (; ; ) switch (r2.mode) {
             case P:
               if (0 === r2.wrap) {
@@ -31216,7 +33086,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
               }
               for (; l2 < 16; ) {
                 if (0 === o2) break e;
-                o2--, u2 += n2[s2++] << l2, l2 += 8;
+                o2--, u2 += n2[s3++] << l2, l2 += 8;
               }
               if (2 & r2.wrap && 35615 === u2) {
                 E[r2.check = 0] = 255 & u2, E[1] = u2 >>> 8 & 255, r2.check = B(r2.check, E, 2, 0), l2 = u2 = 0, r2.mode = 2;
@@ -31240,7 +33110,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             case 2:
               for (; l2 < 16; ) {
                 if (0 === o2) break e;
-                o2--, u2 += n2[s2++] << l2, l2 += 8;
+                o2--, u2 += n2[s3++] << l2, l2 += 8;
               }
               if (r2.flags = u2, 8 != (255 & r2.flags)) {
                 e2.msg = "unknown compression method", r2.mode = 30;
@@ -31254,46 +33124,46 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             case 3:
               for (; l2 < 32; ) {
                 if (0 === o2) break e;
-                o2--, u2 += n2[s2++] << l2, l2 += 8;
+                o2--, u2 += n2[s3++] << l2, l2 += 8;
               }
               r2.head && (r2.head.time = u2), 512 & r2.flags && (E[0] = 255 & u2, E[1] = u2 >>> 8 & 255, E[2] = u2 >>> 16 & 255, E[3] = u2 >>> 24 & 255, r2.check = B(r2.check, E, 4, 0)), l2 = u2 = 0, r2.mode = 4;
             case 4:
               for (; l2 < 16; ) {
                 if (0 === o2) break e;
-                o2--, u2 += n2[s2++] << l2, l2 += 8;
+                o2--, u2 += n2[s3++] << l2, l2 += 8;
               }
               r2.head && (r2.head.xflags = 255 & u2, r2.head.os = u2 >> 8), 512 & r2.flags && (E[0] = 255 & u2, E[1] = u2 >>> 8 & 255, r2.check = B(r2.check, E, 2, 0)), l2 = u2 = 0, r2.mode = 5;
             case 5:
               if (1024 & r2.flags) {
                 for (; l2 < 16; ) {
                   if (0 === o2) break e;
-                  o2--, u2 += n2[s2++] << l2, l2 += 8;
+                  o2--, u2 += n2[s3++] << l2, l2 += 8;
                 }
                 r2.length = u2, r2.head && (r2.head.extra_len = u2), 512 & r2.flags && (E[0] = 255 & u2, E[1] = u2 >>> 8 & 255, r2.check = B(r2.check, E, 2, 0)), l2 = u2 = 0;
               } else r2.head && (r2.head.extra = null);
               r2.mode = 6;
             case 6:
-              if (1024 & r2.flags && (o2 < (d = r2.length) && (d = o2), d && (r2.head && (k = r2.head.extra_len - r2.length, r2.head.extra || (r2.head.extra = new Array(r2.head.extra_len)), I.arraySet(r2.head.extra, n2, s2, d, k)), 512 & r2.flags && (r2.check = B(r2.check, n2, d, s2)), o2 -= d, s2 += d, r2.length -= d), r2.length)) break e;
+              if (1024 & r2.flags && (o2 < (d = r2.length) && (d = o2), d && (r2.head && (k = r2.head.extra_len - r2.length, r2.head.extra || (r2.head.extra = new Array(r2.head.extra_len)), I.arraySet(r2.head.extra, n2, s3, d, k)), 512 & r2.flags && (r2.check = B(r2.check, n2, d, s3)), o2 -= d, s3 += d, r2.length -= d), r2.length)) break e;
               r2.length = 0, r2.mode = 7;
             case 7:
               if (2048 & r2.flags) {
                 if (0 === o2) break e;
-                for (d = 0; k = n2[s2 + d++], r2.head && k && r2.length < 65536 && (r2.head.name += String.fromCharCode(k)), k && d < o2; ) ;
-                if (512 & r2.flags && (r2.check = B(r2.check, n2, d, s2)), o2 -= d, s2 += d, k) break e;
+                for (d = 0; k = n2[s3 + d++], r2.head && k && r2.length < 65536 && (r2.head.name += String.fromCharCode(k)), k && d < o2; ) ;
+                if (512 & r2.flags && (r2.check = B(r2.check, n2, d, s3)), o2 -= d, s3 += d, k) break e;
               } else r2.head && (r2.head.name = null);
               r2.length = 0, r2.mode = 8;
             case 8:
               if (4096 & r2.flags) {
                 if (0 === o2) break e;
-                for (d = 0; k = n2[s2 + d++], r2.head && k && r2.length < 65536 && (r2.head.comment += String.fromCharCode(k)), k && d < o2; ) ;
-                if (512 & r2.flags && (r2.check = B(r2.check, n2, d, s2)), o2 -= d, s2 += d, k) break e;
+                for (d = 0; k = n2[s3 + d++], r2.head && k && r2.length < 65536 && (r2.head.comment += String.fromCharCode(k)), k && d < o2; ) ;
+                if (512 & r2.flags && (r2.check = B(r2.check, n2, d, s3)), o2 -= d, s3 += d, k) break e;
               } else r2.head && (r2.head.comment = null);
               r2.mode = 9;
             case 9:
               if (512 & r2.flags) {
                 for (; l2 < 16; ) {
                   if (0 === o2) break e;
-                  o2--, u2 += n2[s2++] << l2, l2 += 8;
+                  o2--, u2 += n2[s3++] << l2, l2 += 8;
                 }
                 if (u2 !== (65535 & r2.check)) {
                   e2.msg = "header crc mismatch", r2.mode = 30;
@@ -31306,11 +33176,11 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             case 10:
               for (; l2 < 32; ) {
                 if (0 === o2) break e;
-                o2--, u2 += n2[s2++] << l2, l2 += 8;
+                o2--, u2 += n2[s3++] << l2, l2 += 8;
               }
               e2.adler = r2.check = L(u2), l2 = u2 = 0, r2.mode = 11;
             case 11:
-              if (0 === r2.havedict) return e2.next_out = a2, e2.avail_out = h3, e2.next_in = s2, e2.avail_in = o2, r2.hold = u2, r2.bits = l2, 2;
+              if (0 === r2.havedict) return e2.next_out = a2, e2.avail_out = h3, e2.next_in = s3, e2.avail_in = o2, r2.hold = u2, r2.bits = l2, 2;
               e2.adler = r2.check = 1, r2.mode = 12;
             case 12:
               if (5 === t2 || 6 === t2) break e;
@@ -31321,7 +33191,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
               }
               for (; l2 < 3; ) {
                 if (0 === o2) break e;
-                o2--, u2 += n2[s2++] << l2, l2 += 8;
+                o2--, u2 += n2[s3++] << l2, l2 += 8;
               }
               switch (r2.last = 1 & u2, l2 -= 1, 3 & (u2 >>>= 1)) {
                 case 0:
@@ -31342,7 +33212,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             case 14:
               for (u2 >>>= 7 & l2, l2 -= 7 & l2; l2 < 32; ) {
                 if (0 === o2) break e;
-                o2--, u2 += n2[s2++] << l2, l2 += 8;
+                o2--, u2 += n2[s3++] << l2, l2 += 8;
               }
               if ((65535 & u2) != (u2 >>> 16 ^ 65535)) {
                 e2.msg = "invalid stored block lengths", r2.mode = 30;
@@ -31354,7 +33224,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             case 16:
               if (d = r2.length) {
                 if (o2 < d && (d = o2), h3 < d && (d = h3), 0 === d) break e;
-                I.arraySet(i2, n2, s2, d, a2), o2 -= d, s2 += d, h3 -= d, a2 += d, r2.length -= d;
+                I.arraySet(i2, n2, s3, d, a2), o2 -= d, s3 += d, h3 -= d, a2 += d, r2.length -= d;
                 break;
               }
               r2.mode = 12;
@@ -31362,7 +33232,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             case 17:
               for (; l2 < 14; ) {
                 if (0 === o2) break e;
-                o2--, u2 += n2[s2++] << l2, l2 += 8;
+                o2--, u2 += n2[s3++] << l2, l2 += 8;
               }
               if (r2.nlen = 257 + (31 & u2), u2 >>>= 5, l2 -= 5, r2.ndist = 1 + (31 & u2), u2 >>>= 5, l2 -= 5, r2.ncode = 4 + (15 & u2), u2 >>>= 4, l2 -= 4, 286 < r2.nlen || 30 < r2.ndist) {
                 e2.msg = "too many length or distance symbols", r2.mode = 30;
@@ -31373,7 +33243,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
               for (; r2.have < r2.ncode; ) {
                 for (; l2 < 3; ) {
                   if (0 === o2) break e;
-                  o2--, u2 += n2[s2++] << l2, l2 += 8;
+                  o2--, u2 += n2[s3++] << l2, l2 += 8;
                 }
                 r2.lens[A[r2.have++]] = 7 & u2, u2 >>>= 3, l2 -= 3;
               }
@@ -31387,14 +33257,14 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
               for (; r2.have < r2.nlen + r2.ndist; ) {
                 for (; g = (C = r2.lencode[u2 & (1 << r2.lenbits) - 1]) >>> 16 & 255, b = 65535 & C, !((_ = C >>> 24) <= l2); ) {
                   if (0 === o2) break e;
-                  o2--, u2 += n2[s2++] << l2, l2 += 8;
+                  o2--, u2 += n2[s3++] << l2, l2 += 8;
                 }
                 if (b < 16) u2 >>>= _, l2 -= _, r2.lens[r2.have++] = b;
                 else {
                   if (16 === b) {
                     for (z = _ + 2; l2 < z; ) {
                       if (0 === o2) break e;
-                      o2--, u2 += n2[s2++] << l2, l2 += 8;
+                      o2--, u2 += n2[s3++] << l2, l2 += 8;
                     }
                     if (u2 >>>= _, l2 -= _, 0 === r2.have) {
                       e2.msg = "invalid bit length repeat", r2.mode = 30;
@@ -31404,13 +33274,13 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
                   } else if (17 === b) {
                     for (z = _ + 3; l2 < z; ) {
                       if (0 === o2) break e;
-                      o2--, u2 += n2[s2++] << l2, l2 += 8;
+                      o2--, u2 += n2[s3++] << l2, l2 += 8;
                     }
                     l2 -= _, k = 0, d = 3 + (7 & (u2 >>>= _)), u2 >>>= 3, l2 -= 3;
                   } else {
                     for (z = _ + 7; l2 < z; ) {
                       if (0 === o2) break e;
-                      o2--, u2 += n2[s2++] << l2, l2 += 8;
+                      o2--, u2 += n2[s3++] << l2, l2 += 8;
                     }
                     l2 -= _, k = 0, d = 11 + (127 & (u2 >>>= _)), u2 >>>= 7, l2 -= 7;
                   }
@@ -31439,17 +33309,17 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
               r2.mode = 21;
             case 21:
               if (6 <= o2 && 258 <= h3) {
-                e2.next_out = a2, e2.avail_out = h3, e2.next_in = s2, e2.avail_in = o2, r2.hold = u2, r2.bits = l2, R(e2, c2), a2 = e2.next_out, i2 = e2.output, h3 = e2.avail_out, s2 = e2.next_in, n2 = e2.input, o2 = e2.avail_in, u2 = r2.hold, l2 = r2.bits, 12 === r2.mode && (r2.back = -1);
+                e2.next_out = a2, e2.avail_out = h3, e2.next_in = s3, e2.avail_in = o2, r2.hold = u2, r2.bits = l2, R(e2, c2), a2 = e2.next_out, i2 = e2.output, h3 = e2.avail_out, s3 = e2.next_in, n2 = e2.input, o2 = e2.avail_in, u2 = r2.hold, l2 = r2.bits, 12 === r2.mode && (r2.back = -1);
                 break;
               }
               for (r2.back = 0; g = (C = r2.lencode[u2 & (1 << r2.lenbits) - 1]) >>> 16 & 255, b = 65535 & C, !((_ = C >>> 24) <= l2); ) {
                 if (0 === o2) break e;
-                o2--, u2 += n2[s2++] << l2, l2 += 8;
+                o2--, u2 += n2[s3++] << l2, l2 += 8;
               }
               if (g && 0 == (240 & g)) {
                 for (v = _, y = g, w = b; g = (C = r2.lencode[w + ((u2 & (1 << v + y) - 1) >> v)]) >>> 16 & 255, b = 65535 & C, !(v + (_ = C >>> 24) <= l2); ) {
                   if (0 === o2) break e;
-                  o2--, u2 += n2[s2++] << l2, l2 += 8;
+                  o2--, u2 += n2[s3++] << l2, l2 += 8;
                 }
                 u2 >>>= v, l2 -= v, r2.back += v;
               }
@@ -31470,7 +33340,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
               if (r2.extra) {
                 for (z = r2.extra; l2 < z; ) {
                   if (0 === o2) break e;
-                  o2--, u2 += n2[s2++] << l2, l2 += 8;
+                  o2--, u2 += n2[s3++] << l2, l2 += 8;
                 }
                 r2.length += u2 & (1 << r2.extra) - 1, u2 >>>= r2.extra, l2 -= r2.extra, r2.back += r2.extra;
               }
@@ -31478,12 +33348,12 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             case 23:
               for (; g = (C = r2.distcode[u2 & (1 << r2.distbits) - 1]) >>> 16 & 255, b = 65535 & C, !((_ = C >>> 24) <= l2); ) {
                 if (0 === o2) break e;
-                o2--, u2 += n2[s2++] << l2, l2 += 8;
+                o2--, u2 += n2[s3++] << l2, l2 += 8;
               }
               if (0 == (240 & g)) {
                 for (v = _, y = g, w = b; g = (C = r2.distcode[w + ((u2 & (1 << v + y) - 1) >> v)]) >>> 16 & 255, b = 65535 & C, !(v + (_ = C >>> 24) <= l2); ) {
                   if (0 === o2) break e;
-                  o2--, u2 += n2[s2++] << l2, l2 += 8;
+                  o2--, u2 += n2[s3++] << l2, l2 += 8;
                 }
                 u2 >>>= v, l2 -= v, r2.back += v;
               }
@@ -31496,7 +33366,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
               if (r2.extra) {
                 for (z = r2.extra; l2 < z; ) {
                   if (0 === o2) break e;
-                  o2--, u2 += n2[s2++] << l2, l2 += 8;
+                  o2--, u2 += n2[s3++] << l2, l2 += 8;
                 }
                 r2.offset += u2 & (1 << r2.extra) - 1, u2 >>>= r2.extra, l2 -= r2.extra, r2.back += r2.extra;
               }
@@ -31525,7 +33395,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
               if (r2.wrap) {
                 for (; l2 < 32; ) {
                   if (0 === o2) break e;
-                  o2--, u2 |= n2[s2++] << l2, l2 += 8;
+                  o2--, u2 |= n2[s3++] << l2, l2 += 8;
                 }
                 if (c2 -= h3, e2.total_out += c2, r2.total += c2, c2 && (e2.adler = r2.check = r2.flags ? B(r2.check, i2, c2, a2 - c2) : O(r2.check, i2, c2, a2 - c2)), c2 = h3, (r2.flags ? u2 : L(u2)) !== r2.check) {
                   e2.msg = "incorrect data check", r2.mode = 30;
@@ -31538,7 +33408,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
               if (r2.wrap && r2.flags) {
                 for (; l2 < 32; ) {
                   if (0 === o2) break e;
-                  o2--, u2 += n2[s2++] << l2, l2 += 8;
+                  o2--, u2 += n2[s3++] << l2, l2 += 8;
                 }
                 if (u2 !== (4294967295 & r2.total)) {
                   e2.msg = "incorrect length check", r2.mode = 30;
@@ -31558,7 +33428,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             default:
               return U;
           }
-          return e2.next_out = a2, e2.avail_out = h3, e2.next_in = s2, e2.avail_in = o2, r2.hold = u2, r2.bits = l2, (r2.wsize || c2 !== e2.avail_out && r2.mode < 30 && (r2.mode < 27 || 4 !== t2)) && Z(e2, e2.output, e2.next_out, c2 - e2.avail_out) ? (r2.mode = 31, -4) : (f2 -= e2.avail_in, c2 -= e2.avail_out, e2.total_in += f2, e2.total_out += c2, r2.total += c2, r2.wrap && c2 && (e2.adler = r2.check = r2.flags ? B(r2.check, i2, c2, e2.next_out - c2) : O(r2.check, i2, c2, e2.next_out - c2)), e2.data_type = r2.bits + (r2.last ? 64 : 0) + (12 === r2.mode ? 128 : 0) + (20 === r2.mode || 15 === r2.mode ? 256 : 0), (0 == f2 && 0 === c2 || 4 === t2) && x === N && (x = -5), x);
+          return e2.next_out = a2, e2.avail_out = h3, e2.next_in = s3, e2.avail_in = o2, r2.hold = u2, r2.bits = l2, (r2.wsize || c2 !== e2.avail_out && r2.mode < 30 && (r2.mode < 27 || 4 !== t2)) && Z(e2, e2.output, e2.next_out, c2 - e2.avail_out) ? (r2.mode = 31, -4) : (f2 -= e2.avail_in, c2 -= e2.avail_out, e2.total_in += f2, e2.total_out += c2, r2.total += c2, r2.wrap && c2 && (e2.adler = r2.check = r2.flags ? B(r2.check, i2, c2, e2.next_out - c2) : O(r2.check, i2, c2, e2.next_out - c2)), e2.data_type = r2.bits + (r2.last ? 64 : 0) + (12 === r2.mode ? 128 : 0) + (20 === r2.mode || 15 === r2.mode ? 256 : 0), (0 == f2 && 0 === c2 || 4 === t2) && x === N && (x = -5), x);
         }, r.inflateEnd = function(e2) {
           if (!e2 || !e2.state) return U;
           var t2 = e2.state;
@@ -31710,18 +33580,18 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           64,
           64
         ];
-        t.exports = function(e2, t2, r2, n, i, s, a, o) {
+        t.exports = function(e2, t2, r2, n, i, s2, a, o) {
           var h2, u, l, f, c, d, p2, m, _, g = o.bits, b = 0, v = 0, y = 0, w = 0, k = 0, x = 0, S = 0, z = 0, C = 0, E = 0, A = null, I = 0, O = new D.Buf16(16), B = new D.Buf16(16), R = null, T = 0;
           for (b = 0; b <= 15; b++) O[b] = 0;
           for (v = 0; v < n; v++) O[t2[r2 + v]]++;
           for (k = g, w = 15; 1 <= w && 0 === O[w]; w--) ;
-          if (w < k && (k = w), 0 === w) return i[s++] = 20971520, i[s++] = 20971520, o.bits = 1, 0;
+          if (w < k && (k = w), 0 === w) return i[s2++] = 20971520, i[s2++] = 20971520, o.bits = 1, 0;
           for (y = 1; y < w && 0 === O[y]; y++) ;
           for (k < y && (k = y), b = z = 1; b <= 15; b++) if (z <<= 1, (z -= O[b]) < 0) return -1;
           if (0 < z && (0 === e2 || 1 !== w)) return -1;
           for (B[1] = 0, b = 1; b < 15; b++) B[b + 1] = B[b] + O[b];
           for (v = 0; v < n; v++) 0 !== t2[r2 + v] && (a[B[t2[r2 + v]]++] = v);
-          if (d = 0 === e2 ? (A = R = a, 19) : 1 === e2 ? (A = F, I -= 257, R = N, T -= 257, 256) : (A = U, R = P, -1), b = y, c = s, S = v = E = 0, l = -1, f = (C = 1 << (x = k)) - 1, 1 === e2 && 852 < C || 2 === e2 && 592 < C) return 1;
+          if (d = 0 === e2 ? (A = R = a, 19) : 1 === e2 ? (A = F, I -= 257, R = N, T -= 257, 256) : (A = U, R = P, -1), b = y, c = s2, S = v = E = 0, l = -1, f = (C = 1 << (x = k)) - 1, 1 === e2 && 852 < C || 2 === e2 && 592 < C) return 1;
           for (; ; ) {
             for (p2 = b - S, _ = a[v] < d ? (m = 0, a[v]) : a[v] > d ? (m = R[T + a[v]], A[I + a[v]]) : (m = 96, 0), h2 = 1 << b - S, y = u = 1 << x; i[c + (E >> S) + (u -= h2)] = p2 << 24 | m << 16 | _ | 0, 0 !== u; ) ;
             for (h2 = 1 << b - 1; E & h2; ) h2 >>= 1;
@@ -31732,7 +33602,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             if (k < b && (E & f) !== l) {
               for (0 === S && (S = k), c += y, z = 1 << (x = b - S); x + S < w && !((z -= O[x + S]) <= 0); ) x++, z <<= 1;
               if (C += 1 << x, 1 === e2 && 852 < C || 2 === e2 && 592 < C) return 1;
-              i[l = E & f] = k << 24 | x << 16 | c - s | 0;
+              i[l = E & f] = k << 24 | x << 16 | c - s2 | 0;
             }
           }
           return 0 !== E && (i[c + E] = b - S << 24 | 4194304), o.bits = k, 0;
@@ -31758,7 +33628,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         function n(e2) {
           for (var t2 = e2.length; 0 <= --t2; ) e2[t2] = 0;
         }
-        var s = 0, a = 29, u = 256, l = u + 1 + a, f = 30, c = 19, _ = 2 * l + 1, g = 15, d = 16, p2 = 7, m = 256, b = 16, v = 17, y = 18, w = [
+        var s2 = 0, a = 29, u = 256, l = u + 1 + a, f = 30, c = 19, _ = 2 * l + 1, g = 15, d = 16, p2 = 7, m = 256, b = 16, v = 17, y = 18, w = [
           0,
           0,
           0,
@@ -31893,11 +33763,11 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           return r2 >>> 1;
         }
         function Z(e2, t2, r2) {
-          var n2, i2, s2 = new Array(g + 1), a2 = 0;
-          for (n2 = 1; n2 <= g; n2++) s2[n2] = a2 = a2 + r2[n2 - 1] << 1;
+          var n2, i2, s3 = new Array(g + 1), a2 = 0;
+          for (n2 = 1; n2 <= g; n2++) s3[n2] = a2 = a2 + r2[n2 - 1] << 1;
           for (i2 = 0; i2 <= t2; i2++) {
             var o2 = e2[2 * i2 + 1];
-            0 !== o2 && (e2[2 * i2] = j(s2[o2]++, o2));
+            0 !== o2 && (e2[2 * i2] = j(s3[o2]++, o2));
           }
         }
         function W(e2) {
@@ -31911,72 +33781,72 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           8 < e2.bi_valid ? U(e2, e2.bi_buf) : 0 < e2.bi_valid && (e2.pending_buf[e2.pending++] = e2.bi_buf), e2.bi_buf = 0, e2.bi_valid = 0;
         }
         function H(e2, t2, r2, n2) {
-          var i2 = 2 * t2, s2 = 2 * r2;
-          return e2[i2] < e2[s2] || e2[i2] === e2[s2] && n2[t2] <= n2[r2];
+          var i2 = 2 * t2, s3 = 2 * r2;
+          return e2[i2] < e2[s3] || e2[i2] === e2[s3] && n2[t2] <= n2[r2];
         }
         function G(e2, t2, r2) {
           for (var n2 = e2.heap[r2], i2 = r2 << 1; i2 <= e2.heap_len && (i2 < e2.heap_len && H(t2, e2.heap[i2 + 1], e2.heap[i2], e2.depth) && i2++, !H(t2, n2, e2.heap[i2], e2.depth)); ) e2.heap[r2] = e2.heap[i2], r2 = i2, i2 <<= 1;
           e2.heap[r2] = n2;
         }
         function K(e2, t2, r2) {
-          var n2, i2, s2, a2, o2 = 0;
-          if (0 !== e2.last_lit) for (; n2 = e2.pending_buf[e2.d_buf + 2 * o2] << 8 | e2.pending_buf[e2.d_buf + 2 * o2 + 1], i2 = e2.pending_buf[e2.l_buf + o2], o2++, 0 === n2 ? L(e2, i2, t2) : (L(e2, (s2 = A[i2]) + u + 1, t2), 0 !== (a2 = w[s2]) && P(e2, i2 -= I[s2], a2), L(e2, s2 = N(--n2), r2), 0 !== (a2 = k[s2]) && P(e2, n2 -= T[s2], a2)), o2 < e2.last_lit; ) ;
+          var n2, i2, s3, a2, o2 = 0;
+          if (0 !== e2.last_lit) for (; n2 = e2.pending_buf[e2.d_buf + 2 * o2] << 8 | e2.pending_buf[e2.d_buf + 2 * o2 + 1], i2 = e2.pending_buf[e2.l_buf + o2], o2++, 0 === n2 ? L(e2, i2, t2) : (L(e2, (s3 = A[i2]) + u + 1, t2), 0 !== (a2 = w[s3]) && P(e2, i2 -= I[s3], a2), L(e2, s3 = N(--n2), r2), 0 !== (a2 = k[s3]) && P(e2, n2 -= T[s3], a2)), o2 < e2.last_lit; ) ;
           L(e2, m, t2);
         }
         function Y(e2, t2) {
-          var r2, n2, i2, s2 = t2.dyn_tree, a2 = t2.stat_desc.static_tree, o2 = t2.stat_desc.has_stree, h3 = t2.stat_desc.elems, u2 = -1;
-          for (e2.heap_len = 0, e2.heap_max = _, r2 = 0; r2 < h3; r2++) 0 !== s2[2 * r2] ? (e2.heap[++e2.heap_len] = u2 = r2, e2.depth[r2] = 0) : s2[2 * r2 + 1] = 0;
-          for (; e2.heap_len < 2; ) s2[2 * (i2 = e2.heap[++e2.heap_len] = u2 < 2 ? ++u2 : 0)] = 1, e2.depth[i2] = 0, e2.opt_len--, o2 && (e2.static_len -= a2[2 * i2 + 1]);
-          for (t2.max_code = u2, r2 = e2.heap_len >> 1; 1 <= r2; r2--) G(e2, s2, r2);
-          for (i2 = h3; r2 = e2.heap[1], e2.heap[1] = e2.heap[e2.heap_len--], G(e2, s2, 1), n2 = e2.heap[1], e2.heap[--e2.heap_max] = r2, e2.heap[--e2.heap_max] = n2, s2[2 * i2] = s2[2 * r2] + s2[2 * n2], e2.depth[i2] = (e2.depth[r2] >= e2.depth[n2] ? e2.depth[r2] : e2.depth[n2]) + 1, s2[2 * r2 + 1] = s2[2 * n2 + 1] = i2, e2.heap[1] = i2++, G(e2, s2, 1), 2 <= e2.heap_len; ) ;
+          var r2, n2, i2, s3 = t2.dyn_tree, a2 = t2.stat_desc.static_tree, o2 = t2.stat_desc.has_stree, h3 = t2.stat_desc.elems, u2 = -1;
+          for (e2.heap_len = 0, e2.heap_max = _, r2 = 0; r2 < h3; r2++) 0 !== s3[2 * r2] ? (e2.heap[++e2.heap_len] = u2 = r2, e2.depth[r2] = 0) : s3[2 * r2 + 1] = 0;
+          for (; e2.heap_len < 2; ) s3[2 * (i2 = e2.heap[++e2.heap_len] = u2 < 2 ? ++u2 : 0)] = 1, e2.depth[i2] = 0, e2.opt_len--, o2 && (e2.static_len -= a2[2 * i2 + 1]);
+          for (t2.max_code = u2, r2 = e2.heap_len >> 1; 1 <= r2; r2--) G(e2, s3, r2);
+          for (i2 = h3; r2 = e2.heap[1], e2.heap[1] = e2.heap[e2.heap_len--], G(e2, s3, 1), n2 = e2.heap[1], e2.heap[--e2.heap_max] = r2, e2.heap[--e2.heap_max] = n2, s3[2 * i2] = s3[2 * r2] + s3[2 * n2], e2.depth[i2] = (e2.depth[r2] >= e2.depth[n2] ? e2.depth[r2] : e2.depth[n2]) + 1, s3[2 * r2 + 1] = s3[2 * n2 + 1] = i2, e2.heap[1] = i2++, G(e2, s3, 1), 2 <= e2.heap_len; ) ;
           e2.heap[--e2.heap_max] = e2.heap[1], (function(e3, t3) {
-            var r3, n3, i3, s3, a3, o3, h4 = t3.dyn_tree, u3 = t3.max_code, l2 = t3.stat_desc.static_tree, f2 = t3.stat_desc.has_stree, c2 = t3.stat_desc.extra_bits, d2 = t3.stat_desc.extra_base, p3 = t3.stat_desc.max_length, m2 = 0;
-            for (s3 = 0; s3 <= g; s3++) e3.bl_count[s3] = 0;
-            for (h4[2 * e3.heap[e3.heap_max] + 1] = 0, r3 = e3.heap_max + 1; r3 < _; r3++) p3 < (s3 = h4[2 * h4[2 * (n3 = e3.heap[r3]) + 1] + 1] + 1) && (s3 = p3, m2++), h4[2 * n3 + 1] = s3, u3 < n3 || (e3.bl_count[s3]++, a3 = 0, d2 <= n3 && (a3 = c2[n3 - d2]), o3 = h4[2 * n3], e3.opt_len += o3 * (s3 + a3), f2 && (e3.static_len += o3 * (l2[2 * n3 + 1] + a3)));
+            var r3, n3, i3, s4, a3, o3, h4 = t3.dyn_tree, u3 = t3.max_code, l2 = t3.stat_desc.static_tree, f2 = t3.stat_desc.has_stree, c2 = t3.stat_desc.extra_bits, d2 = t3.stat_desc.extra_base, p3 = t3.stat_desc.max_length, m2 = 0;
+            for (s4 = 0; s4 <= g; s4++) e3.bl_count[s4] = 0;
+            for (h4[2 * e3.heap[e3.heap_max] + 1] = 0, r3 = e3.heap_max + 1; r3 < _; r3++) p3 < (s4 = h4[2 * h4[2 * (n3 = e3.heap[r3]) + 1] + 1] + 1) && (s4 = p3, m2++), h4[2 * n3 + 1] = s4, u3 < n3 || (e3.bl_count[s4]++, a3 = 0, d2 <= n3 && (a3 = c2[n3 - d2]), o3 = h4[2 * n3], e3.opt_len += o3 * (s4 + a3), f2 && (e3.static_len += o3 * (l2[2 * n3 + 1] + a3)));
             if (0 !== m2) {
               do {
-                for (s3 = p3 - 1; 0 === e3.bl_count[s3]; ) s3--;
-                e3.bl_count[s3]--, e3.bl_count[s3 + 1] += 2, e3.bl_count[p3]--, m2 -= 2;
+                for (s4 = p3 - 1; 0 === e3.bl_count[s4]; ) s4--;
+                e3.bl_count[s4]--, e3.bl_count[s4 + 1] += 2, e3.bl_count[p3]--, m2 -= 2;
               } while (0 < m2);
-              for (s3 = p3; 0 !== s3; s3--) for (n3 = e3.bl_count[s3]; 0 !== n3; ) u3 < (i3 = e3.heap[--r3]) || (h4[2 * i3 + 1] !== s3 && (e3.opt_len += (s3 - h4[2 * i3 + 1]) * h4[2 * i3], h4[2 * i3 + 1] = s3), n3--);
+              for (s4 = p3; 0 !== s4; s4--) for (n3 = e3.bl_count[s4]; 0 !== n3; ) u3 < (i3 = e3.heap[--r3]) || (h4[2 * i3 + 1] !== s4 && (e3.opt_len += (s4 - h4[2 * i3 + 1]) * h4[2 * i3], h4[2 * i3 + 1] = s4), n3--);
             }
-          })(e2, t2), Z(s2, u2, e2.bl_count);
+          })(e2, t2), Z(s3, u2, e2.bl_count);
         }
         function X(e2, t2, r2) {
-          var n2, i2, s2 = -1, a2 = t2[1], o2 = 0, h3 = 7, u2 = 4;
-          for (0 === a2 && (h3 = 138, u2 = 3), t2[2 * (r2 + 1) + 1] = 65535, n2 = 0; n2 <= r2; n2++) i2 = a2, a2 = t2[2 * (n2 + 1) + 1], ++o2 < h3 && i2 === a2 || (o2 < u2 ? e2.bl_tree[2 * i2] += o2 : 0 !== i2 ? (i2 !== s2 && e2.bl_tree[2 * i2]++, e2.bl_tree[2 * b]++) : o2 <= 10 ? e2.bl_tree[2 * v]++ : e2.bl_tree[2 * y]++, s2 = i2, u2 = (o2 = 0) === a2 ? (h3 = 138, 3) : i2 === a2 ? (h3 = 6, 3) : (h3 = 7, 4));
+          var n2, i2, s3 = -1, a2 = t2[1], o2 = 0, h3 = 7, u2 = 4;
+          for (0 === a2 && (h3 = 138, u2 = 3), t2[2 * (r2 + 1) + 1] = 65535, n2 = 0; n2 <= r2; n2++) i2 = a2, a2 = t2[2 * (n2 + 1) + 1], ++o2 < h3 && i2 === a2 || (o2 < u2 ? e2.bl_tree[2 * i2] += o2 : 0 !== i2 ? (i2 !== s3 && e2.bl_tree[2 * i2]++, e2.bl_tree[2 * b]++) : o2 <= 10 ? e2.bl_tree[2 * v]++ : e2.bl_tree[2 * y]++, s3 = i2, u2 = (o2 = 0) === a2 ? (h3 = 138, 3) : i2 === a2 ? (h3 = 6, 3) : (h3 = 7, 4));
         }
         function V(e2, t2, r2) {
-          var n2, i2, s2 = -1, a2 = t2[1], o2 = 0, h3 = 7, u2 = 4;
+          var n2, i2, s3 = -1, a2 = t2[1], o2 = 0, h3 = 7, u2 = 4;
           for (0 === a2 && (h3 = 138, u2 = 3), n2 = 0; n2 <= r2; n2++) if (i2 = a2, a2 = t2[2 * (n2 + 1) + 1], !(++o2 < h3 && i2 === a2)) {
             if (o2 < u2) for (; L(e2, i2, e2.bl_tree), 0 != --o2; ) ;
-            else 0 !== i2 ? (i2 !== s2 && (L(e2, i2, e2.bl_tree), o2--), L(e2, b, e2.bl_tree), P(e2, o2 - 3, 2)) : o2 <= 10 ? (L(e2, v, e2.bl_tree), P(e2, o2 - 3, 3)) : (L(e2, y, e2.bl_tree), P(e2, o2 - 11, 7));
-            s2 = i2, u2 = (o2 = 0) === a2 ? (h3 = 138, 3) : i2 === a2 ? (h3 = 6, 3) : (h3 = 7, 4);
+            else 0 !== i2 ? (i2 !== s3 && (L(e2, i2, e2.bl_tree), o2--), L(e2, b, e2.bl_tree), P(e2, o2 - 3, 2)) : o2 <= 10 ? (L(e2, v, e2.bl_tree), P(e2, o2 - 3, 3)) : (L(e2, y, e2.bl_tree), P(e2, o2 - 11, 7));
+            s3 = i2, u2 = (o2 = 0) === a2 ? (h3 = 138, 3) : i2 === a2 ? (h3 = 6, 3) : (h3 = 7, 4);
           }
         }
         n(T);
         var q = false;
         function J2(e2, t2, r2, n2) {
-          P(e2, (s << 1) + (n2 ? 1 : 0), 3), (function(e3, t3, r3, n3) {
+          P(e2, (s2 << 1) + (n2 ? 1 : 0), 3), (function(e3, t3, r3, n3) {
             M(e3), n3 && (U(e3, r3), U(e3, ~r3)), i.arraySet(e3.pending_buf, e3.window, t3, r3, e3.pending), e3.pending += r3;
           })(e2, t2, r2, true);
         }
         r._tr_init = function(e2) {
           q || ((function() {
-            var e3, t2, r2, n2, i2, s2 = new Array(g + 1);
+            var e3, t2, r2, n2, i2, s3 = new Array(g + 1);
             for (n2 = r2 = 0; n2 < a - 1; n2++) for (I[n2] = r2, e3 = 0; e3 < 1 << w[n2]; e3++) A[r2++] = n2;
             for (A[r2 - 1] = n2, n2 = i2 = 0; n2 < 16; n2++) for (T[n2] = i2, e3 = 0; e3 < 1 << k[n2]; e3++) E[i2++] = n2;
             for (i2 >>= 7; n2 < f; n2++) for (T[n2] = i2 << 7, e3 = 0; e3 < 1 << k[n2] - 7; e3++) E[256 + i2++] = n2;
-            for (t2 = 0; t2 <= g; t2++) s2[t2] = 0;
-            for (e3 = 0; e3 <= 143; ) z[2 * e3 + 1] = 8, e3++, s2[8]++;
-            for (; e3 <= 255; ) z[2 * e3 + 1] = 9, e3++, s2[9]++;
-            for (; e3 <= 279; ) z[2 * e3 + 1] = 7, e3++, s2[7]++;
-            for (; e3 <= 287; ) z[2 * e3 + 1] = 8, e3++, s2[8]++;
-            for (Z(z, l + 1, s2), e3 = 0; e3 < f; e3++) C[2 * e3 + 1] = 5, C[2 * e3] = j(e3, 5);
+            for (t2 = 0; t2 <= g; t2++) s3[t2] = 0;
+            for (e3 = 0; e3 <= 143; ) z[2 * e3 + 1] = 8, e3++, s3[8]++;
+            for (; e3 <= 255; ) z[2 * e3 + 1] = 9, e3++, s3[9]++;
+            for (; e3 <= 279; ) z[2 * e3 + 1] = 7, e3++, s3[7]++;
+            for (; e3 <= 287; ) z[2 * e3 + 1] = 8, e3++, s3[8]++;
+            for (Z(z, l + 1, s3), e3 = 0; e3 < f; e3++) C[2 * e3 + 1] = 5, C[2 * e3] = j(e3, 5);
             O = new D(z, w, u + 1, l, g), B = new D(C, k, 0, f, g), R = new D(new Array(0), x, 0, c, p2);
           })(), q = true), e2.l_desc = new F(e2.dyn_ltree, O), e2.d_desc = new F(e2.dyn_dtree, B), e2.bl_desc = new F(e2.bl_tree, R), e2.bi_buf = 0, e2.bi_valid = 0, W(e2);
         }, r._tr_stored_block = J2, r._tr_flush_block = function(e2, t2, r2, n2) {
-          var i2, s2, a2 = 0;
+          var i2, s3, a2 = 0;
           0 < e2.level ? (2 === e2.strm.data_type && (e2.strm.data_type = (function(e3) {
             var t3, r3 = 4093624447;
             for (t3 = 0; t3 <= 31; t3++, r3 >>>= 1) if (1 & r3 && 0 !== e3.dyn_ltree[2 * t3]) return o;
@@ -31987,7 +33857,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
             var t3;
             for (X(e3, e3.dyn_ltree, e3.l_desc.max_code), X(e3, e3.dyn_dtree, e3.d_desc.max_code), Y(e3, e3.bl_desc), t3 = c - 1; 3 <= t3 && 0 === e3.bl_tree[2 * S[t3] + 1]; t3--) ;
             return e3.opt_len += 3 * (t3 + 1) + 5 + 5 + 4, t3;
-          })(e2), i2 = e2.opt_len + 3 + 7 >>> 3, (s2 = e2.static_len + 3 + 7 >>> 3) <= i2 && (i2 = s2)) : i2 = s2 = r2 + 5, r2 + 4 <= i2 && -1 !== t2 ? J2(e2, t2, r2, n2) : 4 === e2.strategy || s2 === i2 ? (P(e2, 2 + (n2 ? 1 : 0), 3), K(e2, z, C)) : (P(e2, 4 + (n2 ? 1 : 0), 3), (function(e3, t3, r3, n3) {
+          })(e2), i2 = e2.opt_len + 3 + 7 >>> 3, (s3 = e2.static_len + 3 + 7 >>> 3) <= i2 && (i2 = s3)) : i2 = s3 = r2 + 5, r2 + 4 <= i2 && -1 !== t2 ? J2(e2, t2, r2, n2) : 4 === e2.strategy || s3 === i2 ? (P(e2, 2 + (n2 ? 1 : 0), 3), K(e2, z, C)) : (P(e2, 4 + (n2 ? 1 : 0), 3), (function(e3, t3, r3, n3) {
             var i3;
             for (P(e3, t3 - 257, 5), P(e3, r3 - 1, 5), P(e3, n3 - 4, 4), i3 = 0; i3 < n3; i3++) P(e3, e3.bl_tree[2 * S[i3] + 1], 3);
             V(e3, e3.dyn_ltree, t3 - 1), V(e3, e3.dyn_dtree, r3 - 1);
@@ -32011,7 +33881,7 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           (function(r2, n) {
             "use strict";
             if (!r2.setImmediate) {
-              var i, s, t2, a, o = 1, h2 = {}, u = false, l = r2.document, e3 = Object.getPrototypeOf && Object.getPrototypeOf(r2);
+              var i, s2, t2, a, o = 1, h2 = {}, u = false, l = r2.document, e3 = Object.getPrototypeOf && Object.getPrototypeOf(r2);
               e3 = e3 && e3.setTimeout ? e3 : r2, i = "[object process]" === {}.toString.call(r2.process) ? function(e4) {
                 process$1.nextTick(function() {
                   c(e4);
@@ -32029,11 +33899,11 @@ var require_jszip_min = /* @__PURE__ */ __commonJSMin(((exports, module) => {
                 c(e4.data);
               }, function(e4) {
                 t2.port2.postMessage(e4);
-              }) : l && "onreadystatechange" in l.createElement("script") ? (s = l.documentElement, function(e4) {
+              }) : l && "onreadystatechange" in l.createElement("script") ? (s2 = l.documentElement, function(e4) {
                 var t3 = l.createElement("script");
                 t3.onreadystatechange = function() {
-                  c(e4), t3.onreadystatechange = null, s.removeChild(t3), t3 = null;
-                }, s.appendChild(t3);
+                  c(e4), t3.onreadystatechange = null, s2.removeChild(t3), t3 = null;
+                }, s2.appendChild(t3);
               }) : function(e4) {
                 setTimeout(c, 0, e4);
               }, e3.setImmediate = function(e4) {
@@ -32131,7 +34001,7 @@ var require_xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       }
     }
     function add2(value, last) {
-      format(append, resolve4(value, indent, indent ? 1 : 0), last);
+      format(append, resolve5(value, indent, indent ? 1 : 0), last);
     }
     function end() {
       if (stream) {
@@ -32170,12 +34040,12 @@ var require_xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     return output;
   }
   function element() {
-    var self2 = { _elem: resolve4(Array.prototype.slice.call(arguments)) };
+    var self2 = { _elem: resolve5(Array.prototype.slice.call(arguments)) };
     self2.push = function(input) {
       if (!this.append) throw new Error("not assigned to a parent!");
       var that = this;
       var indent = this._elem.indent;
-      format(this.append, resolve4(input, indent, this._elem.icount + (indent ? 1 : 0)), function() {
+      format(this.append, resolve5(input, indent, this._elem.icount + (indent ? 1 : 0)), function() {
         that.append(true);
       });
     };
@@ -32188,17 +34058,17 @@ var require_xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
   function create_indent(character, count) {
     return new Array(count || 0).join(character || "");
   }
-  function resolve4(data, indent, indent_count) {
+  function resolve5(data, indent, indent_count) {
     indent_count = indent_count || 0;
     var indent_spaces = create_indent(indent, indent_count);
-    var name;
+    var name2;
     var values = data;
     var interrupt = false;
     if (typeof data === "object") {
-      name = Object.keys(data)[0];
-      values = data[name];
+      name2 = Object.keys(data)[0];
+      values = data[name2];
       if (values && values._elem) {
-        values._elem.name = name;
+        values._elem.name = name2;
         values._elem.icount = indent_count;
         values._elem.indent = indent;
         values._elem.indents = indent_spaces;
@@ -32209,8 +34079,8 @@ var require_xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     var attributes = [], content = [];
     var isStringContent;
     function get_attributes(obj) {
-      Object.keys(obj).forEach(function(key) {
-        attributes.push(attribute(key, obj[key]));
+      Object.keys(obj).forEach(function(key2) {
+        attributes.push(attribute(key2, obj[key2]));
       });
     }
     switch (typeof values) {
@@ -32224,7 +34094,7 @@ var require_xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
           values.forEach(function(value) {
             if (typeof value == "object") {
               if (Object.keys(value)[0] == "_attr") get_attributes(value._attr);
-              else content.push(resolve4(value, indent, indent_count + 1));
+              else content.push(resolve5(value, indent, indent_count + 1));
             } else {
               content.pop();
               isStringContent = true;
@@ -32238,7 +34108,7 @@ var require_xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         content.push(escapeForXML(values));
     }
     return {
-      name,
+      name: name2,
       interrupt,
       attributes,
       content,
@@ -32274,8 +34144,8 @@ var require_xml = /* @__PURE__ */ __commonJSMin(((exports, module) => {
     if (!len) return append(false, elem.indent ? "\n" : "");
     if (!interrupt(elem)) proceed();
   }
-  function attribute(key, value) {
-    return key + '="' + escapeForXML(value) + '"';
+  function attribute(key2, value) {
+    return key2 + '="' + escapeForXML(value) + '"';
   }
   module.exports = xml;
   module.exports.element = module.exports.Element = element;
@@ -32392,13 +34262,13 @@ var xmlifyPackagePart = (file, part, path, prettify) => {
   const relationships = file.PackageParts.createRelationships(path);
   const data = xmlifyPart(file, content, prettify, relationships);
   const folder = path.slice(0, path.lastIndexOf("/"));
-  const name = path.slice(path.lastIndexOf("/") + 1);
+  const name2 = path.slice(path.lastIndexOf("/") + 1);
   return [{
     data,
     path: `word/${path}`
   }, ...relationships.RelationshipCount > 0 ? [{
     data: xmlifyPart(file, relationships, prettify, relationships, false),
-    path: `word/${folder}/_rels/${name}.rels`
+    path: `word/${folder}/_rels/${name2}.rels`
   }] : []];
 };
 var xmlifyPackageParts = (file, prettify, from = 0) => {
@@ -33045,9 +34915,9 @@ var toJson = (xmlData) => {
     captureSpacesBetweenElements: true
   });
 };
-var createTextElementContents = (text) => {
+var createTextElementContents = (text2) => {
   var _textJson$elements$0$;
-  return (_textJson$elements$0$ = toJson((0, import_xml.default)(formatter$2.format(new Text({ text })))).elements[0].elements) !== null && _textJson$elements$0$ !== void 0 ? _textJson$elements$0$ : [];
+  return (_textJson$elements$0$ = toJson((0, import_xml.default)(formatter$2.format(new Text({ text: text2 })))).elements[0].elements) !== null && _textJson$elements$0$ !== void 0 ? _textJson$elements$0$ : [];
 };
 var patchSpaceAttribute = (element) => _objectSpread2(_objectSpread2({}, element), {}, { attributes: { "xml:space": "preserve" } });
 var getFirstLevelElements = (relationships, id) => {
@@ -33159,8 +35029,8 @@ var findDrawings = (element) => {
   var _element$elements;
   return ((_element$elements = element.elements) !== null && _element$elements !== void 0 ? _element$elements : []).flatMap((child2) => {
     var _child$elements;
-    const name = child2.name === void 0 ? void 0 : DRAWING_PROPERTIES.get(child2.name);
-    const properties = name === void 0 ? void 0 : (_child$elements = child2.elements) === null || _child$elements === void 0 ? void 0 : _child$elements.find((e) => e.name === name);
+    const name2 = child2.name === void 0 ? void 0 : DRAWING_PROPERTIES.get(child2.name);
+    const properties = name2 === void 0 ? void 0 : (_child$elements = child2.elements) === null || _child$elements === void 0 ? void 0 : _child$elements.find((e) => e.name === name2);
     return [...properties ? [{
       element: child2,
       properties
@@ -33169,7 +35039,7 @@ var findDrawings = (element) => {
 };
 var altTextOf = (properties) => {
   var _properties$attribute, _properties$attribute2;
-  return [(_properties$attribute = properties.attributes) === null || _properties$attribute === void 0 ? void 0 : _properties$attribute.descr, (_properties$attribute2 = properties.attributes) === null || _properties$attribute2 === void 0 ? void 0 : _properties$attribute2.title].flatMap((text) => text === void 0 ? [] : [String(text)]);
+  return [(_properties$attribute = properties.attributes) === null || _properties$attribute === void 0 ? void 0 : _properties$attribute.descr, (_properties$attribute2 = properties.attributes) === null || _properties$attribute2 === void 0 ? void 0 : _properties$attribute2.title].flatMap((text2) => text2 === void 0 ? [] : [String(text2)]);
 };
 var relationshipsPathOf = (path) => {
   const slash = path.lastIndexOf("/");
@@ -33214,7 +35084,7 @@ var createTemplatePackage = (parts, binaryParts, file, context) => {
     })();
     if (decoded !== void 0 && has3(decoded)) return decoded;
     const lower = path.toLowerCase();
-    return [...parts.keys(), ...binaryParts.keys()].find((key) => key.toLowerCase() === lower);
+    return [...parts.keys(), ...binaryParts.keys()].find((key2) => key2.toLowerCase() === lower);
   };
   const findRelationship = (from, id) => {
     const relationships = parts.get(relationshipsPathOf(from));
@@ -33268,7 +35138,7 @@ var createTemplatePackage = (parts, binaryParts, file, context) => {
         return id;
       }
       const previous = pathOf(from.path, relationship);
-      relationship.attributes = _objectSpread2(_objectSpread2({}, Object.fromEntries(Object.entries(relationship.attributes).filter(([name]) => name !== "TargetMode"))), {}, {
+      relationship.attributes = _objectSpread2(_objectSpread2({}, Object.fromEntries(Object.entries(relationship.attributes).filter(([name2]) => name2 !== "TargetMode"))), {}, {
         Type: relationshipType,
         Target: target
       });
@@ -33279,13 +35149,13 @@ var createTemplatePackage = (parts, binaryParts, file, context) => {
   };
 };
 var patchDrawings = ({ parts, binaryParts, file, patches, delimiters }, createContext) => {
-  const placeholders = patches.map(([key, patch]) => ({
-    placeholder: `${delimiters.start}${key}${delimiters.end}`,
+  const placeholders = patches.map(([key2, patch]) => ({
+    placeholder: `${delimiters.start}${key2}${delimiters.end}`,
     patch
   }));
   const found = [...parts].filter(([path]) => path.startsWith("word/") && !path.endsWith(".rels")).flatMap(([path, xmlPart]) => findDrawings(xmlPart).flatMap((drawing) => {
     const altText = altTextOf(drawing.properties);
-    const matches = placeholders.filter(({ placeholder }) => altText.some((text) => text.includes(placeholder)));
+    const matches = placeholders.filter(({ placeholder }) => altText.some((text2) => text2.includes(placeholder)));
     if (matches.length > 1) {
       var _drawing$properties$a, _drawing$properties$a2;
       throw new Error(`The drawing "${(_drawing$properties$a = (_drawing$properties$a2 = drawing.properties.attributes) === null || _drawing$properties$a2 === void 0 ? void 0 : _drawing$properties$a2.name) !== null && _drawing$properties$a !== void 0 ? _drawing$properties$a : ""}" in ${path} has the placeholders ${matches.map(({ placeholder }) => placeholder).join(" and ")} in its alt text. A drawing can only be patched once`);
@@ -33385,7 +35255,7 @@ var patchNotesOfKind = (kind, notes, parts, { createContext, addContentTypeOverr
     if (!relationship) createContext(DOCUMENT_PATH).viewWrapper.Relationships.addRelationship(uniqueId(), kind.relationshipType, relativeTarget(DOCUMENT_PATH, path));
     return path;
   };
-  const write = () => {
+  const write2 = () => {
     if (noteOfId.size === 0) return;
     const path = findOrAddPart();
     const context = createContext(path);
@@ -33414,7 +35284,7 @@ var patchNotesOfKind = (kind, notes, parts, { createContext, addContentTypeOverr
   };
   return {
     renumber: (elements) => elements.map(renumber),
-    write
+    write: write2
   };
 };
 var patchNotes = ({ footnotes = {}, endnotes = {} }, parts, helpers) => {
@@ -33435,26 +35305,26 @@ var PARSED = {
   },
   textOf: (element) => {
     var _element$elements;
-    return ((_element$elements = element.elements) !== null && _element$elements !== void 0 ? _element$elements : []).filter(({ type }) => type === "text").map(({ text }) => String(text)).join("");
+    return ((_element$elements = element.elements) !== null && _element$elements !== void 0 ? _element$elements : []).filter(({ type }) => type === "text").map(({ text: text2 }) => String(text2)).join("");
   },
-  textElement: (text) => ({
+  textElement: (text2) => ({
     type: "element",
     name: "w:t",
     attributes: { "xml:space": "preserve" },
     elements: [{
       type: "text",
-      text
+      text: text2
     }]
   }),
   writeClean: (begin, instruction) => {
     var _begin$attributes;
-    if (/^\s*(PAGEREF|TOC)\b/i.test(instruction) && ((_begin$attributes = begin.attributes) === null || _begin$attributes === void 0 ? void 0 : _begin$attributes["w:dirty"]) !== void 0) begin.attributes = Object.fromEntries(Object.entries(begin.attributes).filter(([key]) => key !== "w:dirty"));
+    if (/^\s*(PAGEREF|TOC)\b/i.test(instruction) && ((_begin$attributes = begin.attributes) === null || _begin$attributes === void 0 ? void 0 : _begin$attributes["w:dirty"]) !== void 0) begin.attributes = Object.fromEntries(Object.entries(begin.attributes).filter(([key2]) => key2 !== "w:dirty"));
   },
-  setSimpleFieldResult: (element, text) => {
+  setSimpleFieldResult: (element, text2) => {
     element.elements = [{
       type: "element",
       name: "w:r",
-      elements: [PARSED.textElement(text)]
+      elements: [PARSED.textElement(text2)]
     }];
   }
 };
@@ -33551,10 +35421,10 @@ var findRunElementIndexWithToken = (paragraphElement, token) => {
     if (element.type === "element" && element.name === "w:r") {
       var _element$elements;
       const textElement2 = ((_element$elements = element.elements) !== null && _element$elements !== void 0 ? _element$elements : []).filter((e) => e.type === "element" && e.name === "w:t");
-      for (const text of textElement2) {
+      for (const text2 of textElement2) {
         var _text$elements, _text$elements$0$text;
-        if (!((_text$elements = text.elements) === null || _text$elements === void 0 ? void 0 : _text$elements[0])) continue;
-        if ((_text$elements$0$text = text.elements[0].text) === null || _text$elements$0$text === void 0 ? void 0 : _text$elements$0$text.includes(token)) return i;
+        if (!((_text$elements = text2.elements) === null || _text$elements === void 0 ? void 0 : _text$elements[0])) continue;
+        if ((_text$elements$0$text = text2.elements[0].text) === null || _text$elements$0$text === void 0 ? void 0 : _text$elements$0$text.includes(token)) return i;
       }
     }
   }
@@ -33590,31 +35460,31 @@ var replaceTokenInParagraphElement = ({ paragraphElement, renderedParagraph, ori
   const startIndex = renderedParagraph.text.indexOf(originalText, fromIndex);
   const endIndex = startIndex + originalText.length - 1;
   let replaceMode = ReplaceMode.START;
-  for (const run of renderedParagraph.runs) for (const { text, index, start, end } of run.parts) switch (replaceMode) {
+  for (const run2 of renderedParagraph.runs) for (const { text: text2, index, start, end } of run2.parts) switch (replaceMode) {
     case ReplaceMode.START:
       if (startIndex >= start && startIndex <= end) {
         const offsetStartIndex = startIndex - start;
         const offsetEndIndex = Math.min(endIndex, end) - start;
-        if (text.substring(offsetStartIndex, offsetEndIndex + 1) === "") continue;
-        const firstPart = text.substring(0, offsetStartIndex) + replacementText + text.substring(offsetEndIndex + 1);
-        patchTextElement(paragraphElement.elements[run.index].elements[index], firstPart);
+        if (text2.substring(offsetStartIndex, offsetEndIndex + 1) === "") continue;
+        const firstPart = text2.substring(0, offsetStartIndex) + replacementText + text2.substring(offsetEndIndex + 1);
+        patchTextElement(paragraphElement.elements[run2.index].elements[index], firstPart);
         replaceMode = ReplaceMode.MIDDLE;
         continue;
       }
       break;
     case ReplaceMode.MIDDLE:
       if (endIndex <= end) {
-        const lastPart = text.substring(endIndex - start + 1);
-        patchTextElement(paragraphElement.elements[run.index].elements[index], lastPart);
-        const currentElement = paragraphElement.elements[run.index].elements[index];
-        paragraphElement.elements[run.index].elements[index] = patchSpaceAttribute(currentElement);
+        const lastPart = text2.substring(endIndex - start + 1);
+        patchTextElement(paragraphElement.elements[run2.index].elements[index], lastPart);
+        const currentElement = paragraphElement.elements[run2.index].elements[index];
+        paragraphElement.elements[run2.index].elements[index] = patchSpaceAttribute(currentElement);
         replaceMode = ReplaceMode.END;
-      } else patchTextElement(paragraphElement.elements[run.index].elements[index], "");
+      } else patchTextElement(paragraphElement.elements[run2.index].elements[index], "");
   }
   return paragraphElement;
 };
-var patchTextElement = (element, text) => {
-  element.elements = createTextElementContents(text);
+var patchTextElement = (element, text2) => {
+  element.elements = createTextElementContents(text2);
   return element;
 };
 var renderParagraphNode = (node) => {
@@ -33695,7 +35565,7 @@ var traverse = (node) => {
   }
   return renderedParagraphs;
 };
-var findLocationOfText = (node, text) => traverse(node).filter((p2) => p2.text.includes(text));
+var findLocationOfText = (node, text2) => traverse(node).filter((p2) => p2.text.includes(text2));
 var formatter = new Formatter();
 var SPLIT_TOKEN = "\uFFFF";
 var replacer = ({ json, patch, patchText, context, keepOriginalStyles = true, recursive = true, renumberIds = (elements) => elements }) => {
@@ -33738,7 +35608,7 @@ var replacer = ({ json, patch, patchText, context, keepOriginalStyles = true, re
           index: renderedParagraph.index,
           parent: void 0
         });
-        fromIndex = paragraph.runs.filter((run) => run.index < nextRunIndex).reduce((length, run) => length + run.text.length, 0);
+        fromIndex = paragraph.runs.filter((run2) => run2.index < nextRunIndex).reduce((length, run2) => length + run2.text.length, 0);
       } while (recursive && paragraph.text.includes(patchText, fromIndex));
       break;
     }
@@ -33860,10 +35730,10 @@ var EMPTY = {
   type: PatchType.PARAGRAPH,
   children: []
 };
-var patchTableRows = ({ json, key, patch, delimiters: { start, end }, patchPlaceholder }) => {
-  const fieldStart = `${start}${key}.`;
+var patchTableRows = ({ json, key: key2, patch, delimiters: { start, end }, patchPlaceholder }) => {
+  const fieldStart = `${start}${key2}.`;
   for (const rows of findRowsToRepeat(json, fieldStart)) {
-    const fields = fieldsIn(rows.elements, fieldStart, end);
+    const fields2 = fieldsIn(rows.elements, fieldStart, end);
     const copies = patch.rows.flatMap((row, index) => {
       const copy = {
         type: "element",
@@ -33871,8 +35741,8 @@ var patchTableRows = ({ json, key, patch, delimiters: { start, end }, patchPlace
         elements: [...index === 0 ? rows.elements.map(copyOf) : withoutIds(rows.elements)]
       };
       const fieldPatches = new Map(Object.entries(row).flatMap(([field, p2]) => p2 === void 0 ? [] : [[field, p2]]));
-      for (const [field, fieldPatch] of fieldPatches) patchPlaceholder(copy, `${key}.${field}`, fieldPatch);
-      for (const field of fields.filter((f) => !fieldPatches.has(f))) patchPlaceholder(copy, `${key}.${field}`, EMPTY);
+      for (const [field, fieldPatch] of fieldPatches) patchPlaceholder(copy, `${key2}.${field}`, fieldPatch);
+      for (const field of fields2.filter((f) => !fieldPatches.has(f))) patchPlaceholder(copy, `${key2}.${field}`, EMPTY);
       return copy.elements;
     });
     rows.parent.elements.splice(rows.parent.elements.indexOf(rows.elements[0]), rows.elements.length, ...copies);
@@ -33929,11 +35799,11 @@ var hasRows = (table2) => {
   return ((_table$elements = table2.elements) !== null && _table$elements !== void 0 ? _table$elements : []).some((e) => e.name === "w:tr" || e.name !== "w:tblPr" && e.name !== "w:tblGrid" && hasRows(e));
 };
 var fieldsIn = (elements, fieldStart, end) => {
-  const fields = findLocationOfText({ elements: [...elements] }, fieldStart).flatMap(({ text }) => text.split(fieldStart).slice(1).flatMap((after) => {
+  const fields2 = findLocationOfText({ elements: [...elements] }, fieldStart).flatMap(({ text: text2 }) => text2.split(fieldStart).slice(1).flatMap((after) => {
     const fieldEnd = after.indexOf(end);
     return fieldEnd > 0 ? [after.slice(0, fieldEnd)] : [];
   }));
-  return [...new Set(fields)];
+  return [...new Set(fields2)];
 };
 var copyOf = (element) => JSON.parse(JSON.stringify(element));
 var ATTRIBUTES_TO_REMOVE = ["w14:paraId", "w14:textId"];
@@ -33941,7 +35811,7 @@ var ELEMENTS_TO_REMOVE = ["w:bookmarkStart", "w:bookmarkEnd"];
 var withoutIds = (elements, parent) => elements.filter((e) => {
   var _e$name;
   return !ELEMENTS_TO_REMOVE.includes((_e$name = e.name) !== null && _e$name !== void 0 ? _e$name : "") && !((parent === null || parent === void 0 ? void 0 : parent.name) === "w:sdtPr" && e.name === "w:id");
-}).map((e) => _objectSpread2(_objectSpread2(_objectSpread2({}, e), e.attributes === void 0 ? {} : { attributes: Object.fromEntries(Object.entries(e.attributes).filter(([name]) => !ATTRIBUTES_TO_REMOVE.includes(name))) }), e.elements === void 0 ? {} : { elements: [...withoutIds(e.elements, e)] }));
+}).map((e) => _objectSpread2(_objectSpread2(_objectSpread2({}, e), e.attributes === void 0 ? {} : { attributes: Object.fromEntries(Object.entries(e.attributes).filter(([name2]) => !ATTRIBUTES_TO_REMOVE.includes(name2))) }), e.elements === void 0 ? {} : { elements: [...withoutIds(e.elements, e)] }));
 var THEME_RELATIONSHIP_TYPE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme";
 var COLOR_NAMES = /* @__PURE__ */ new Map([
   ["dk1", "dark1"],
@@ -33961,9 +35831,9 @@ var localName = (element) => {
   var _element$name;
   return (_element$name = element.name) === null || _element$name === void 0 ? void 0 : _element$name.slice(element.name.indexOf(":") + 1);
 };
-var child = (element, name) => {
+var child = (element, name2) => {
   var _element$elements;
-  return element === null || element === void 0 || (_element$elements = element.elements) === null || _element$elements === void 0 ? void 0 : _element$elements.find((item) => localName(item) === name);
+  return element === null || element === void 0 || (_element$elements = element.elements) === null || _element$elements === void 0 ? void 0 : _element$elements.find((item) => localName(item) === name2);
 };
 var hexValue = (color) => {
   var _color$elements;
@@ -34006,9 +35876,9 @@ var readThemeColors = (function() {
     const scheme = child(child(child(theme, "theme"), "themeElements"), "clrScheme");
     const colors = ((_scheme$elements = scheme === null || scheme === void 0 ? void 0 : scheme.elements) !== null && _scheme$elements !== void 0 ? _scheme$elements : []).flatMap((color) => {
       var _localName;
-      const name = COLOR_NAMES.get((_localName = localName(color)) !== null && _localName !== void 0 ? _localName : "");
+      const name2 = COLOR_NAMES.get((_localName = localName(color)) !== null && _localName !== void 0 ? _localName : "");
       const value = hexValue(color);
-      return name && value ? [[name, value]] : [];
+      return name2 && value ? [[name2, value]] : [];
     });
     return themeColorValues(Object.fromEntries(colors));
   });
@@ -34016,15 +35886,15 @@ var readThemeColors = (function() {
     return _ref3.apply(this, arguments);
   };
 })();
-var assertValidPatch = (key, patch, { inTableRow }) => {
+var assertValidPatch = (key2, patch, { inTableRow }) => {
   if ((patch === null || patch === void 0 ? void 0 : patch.type) === PatchType.TABLE_ROWS && Array.isArray(patch.rows)) {
     for (const row of patch.rows) {
-      if (typeof row !== "object" || row === null) throw new Error(`Invalid patch "${key}". Expected each of its rows to be an object of patches, by the name of their field`);
-      for (const [field, fieldPatch] of Object.entries(row)) if (fieldPatch !== void 0) assertValidPatch(`${key}.${field}`, fieldPatch, { inTableRow: true });
+      if (typeof row !== "object" || row === null) throw new Error(`Invalid patch "${key2}". Expected each of its rows to be an object of patches, by the name of their field`);
+      for (const [field, fieldPatch] of Object.entries(row)) if (fieldPatch !== void 0) assertValidPatch(`${key2}.${field}`, fieldPatch, { inTableRow: true });
     }
     return;
   }
-  if (!((patch === null || patch === void 0 ? void 0 : patch.type) === PatchType.DRAWING ? !inTableRow && typeof patch.patch === "function" : (patch === null || patch === void 0 ? void 0 : patch.type) !== PatchType.TABLE_ROWS && Array.isArray(patch === null || patch === void 0 ? void 0 : patch.children))) throw new Error(`Invalid patch "${key}". Expected { type: PatchType.PARAGRAPH or PatchType.DOCUMENT, children: [...] }, ${inTableRow ? "or { type: PatchType.TABLE_ROWS, rows: [...] }" : "{ type: PatchType.TABLE_ROWS, rows: [...] }, or a drawing patch such as ChartDataPatch from docx/charts"}`);
+  if (!((patch === null || patch === void 0 ? void 0 : patch.type) === PatchType.DRAWING ? !inTableRow && typeof patch.patch === "function" : (patch === null || patch === void 0 ? void 0 : patch.type) !== PatchType.TABLE_ROWS && Array.isArray(patch === null || patch === void 0 ? void 0 : patch.children))) throw new Error(`Invalid patch "${key2}". Expected { type: PatchType.PARAGRAPH or PatchType.DOCUMENT, children: [...] }, ${inTableRow ? "or { type: PatchType.TABLE_ROWS, rows: [...] }" : "{ type: PatchType.TABLE_ROWS, rows: [...] }, or a drawing patch such as ChartDataPatch from docx/charts"}`);
 };
 var imageReplacer = new ImageReplacer();
 var UTF16LE = new Uint8Array([255, 254]);
@@ -34058,20 +35928,20 @@ var patchDocument = (function() {
     const binaryContentMap = /* @__PURE__ */ new Map();
     if (!(placeholderDelimiters === null || placeholderDelimiters === void 0 ? void 0 : placeholderDelimiters.start.trim()) || !(placeholderDelimiters === null || placeholderDelimiters === void 0 ? void 0 : placeholderDelimiters.end.trim())) throw new Error("Both start and end delimiters must be non-empty strings.");
     const { start, end } = placeholderDelimiters;
-    for (const [key, patch] of Object.entries(patches)) assertValidPatch(key, patch, { inTableRow: false });
-    for (const [key, value] of Object.entries(zipContent.files)) {
+    for (const [key2, patch] of Object.entries(patches)) assertValidPatch(key2, patch, { inTableRow: false });
+    for (const [key2, value] of Object.entries(zipContent.files)) {
       const binaryValue = yield value.async("uint8array");
       const startBytes = binaryValue.slice(0, 2);
       if (compareByteArrays(startBytes, UTF16LE) || compareByteArrays(startBytes, UTF16BE)) {
-        binaryContentMap.set(key, binaryValue);
+        binaryContentMap.set(key2, binaryValue);
         continue;
       }
-      if (!key.endsWith(".xml") && !key.endsWith(".rels")) {
-        binaryContentMap.set(key, binaryValue);
+      if (!key2.endsWith(".xml") && !key2.endsWith(".rels")) {
+        binaryContentMap.set(key2, binaryValue);
         continue;
       }
       const json = toJson(yield value.async("text"));
-      if (key === "word/document.xml") {
+      if (key2 === "word/document.xml") {
         var _json$elements;
         const document2 = (_json$elements = json.elements) === null || _json$elements === void 0 ? void 0 : _json$elements.find((i) => i.name === "w:document");
         if (document2 && document2.attributes) {
@@ -34085,14 +35955,14 @@ var patchDocument = (function() {
           document2.attributes["mc:Ignorable"] = `${document2.attributes["mc:Ignorable"] || ""} w15`.trim();
         }
       }
-      map.set(key, json);
+      map.set(key2, json);
     }
     const renumberBookmarks = renumberBookmarksAvoiding([...map.values()].flatMap(findBookmarkIds));
-    const createContext = (key) => ({
+    const createContext = (key2) => ({
       file,
       viewWrapper: { Relationships: { addRelationship: (id, type, target, targetMode) => {
         relationshipAdditions.push({
-          key,
+          key: key2,
           id,
           type,
           target,
@@ -34116,18 +35986,18 @@ var patchDocument = (function() {
       parts: map,
       binaryParts: binaryContentMap,
       file,
-      patches: Object.entries(patches).flatMap(([key, patch]) => patch.type === PatchType.DRAWING ? [[key, patch]] : []),
+      patches: Object.entries(patches).flatMap(([key2, patch]) => patch.type === PatchType.DRAWING ? [[key2, patch]] : []),
       delimiters: {
         start,
         end
       }
     }, createContext);
-    const textPatches = Object.entries(patches).flatMap(([key, patch]) => patch.type === PatchType.DRAWING ? [] : [[key, patch]]);
+    const textPatches = Object.entries(patches).flatMap(([key2, patch]) => patch.type === PatchType.DRAWING ? [] : [[key2, patch]]);
     const patchesInOrder = [...textPatches.filter(([, patch]) => patch.type === PatchType.TABLE_ROWS), ...textPatches.filter(([, patch]) => patch.type !== PatchType.TABLE_ROWS)];
-    for (const [key, json] of [...map]) {
-      if (!key.startsWith("word/") || key.endsWith(".xml.rels")) continue;
-      const context = createContext(key);
-      contexts.set(key, context);
+    for (const [key2, json] of [...map]) {
+      if (!key2.startsWith("word/") || key2.endsWith(".xml.rels")) continue;
+      const context = createContext(key2);
+      contexts.set(key2, context);
       const patchPlaceholder = (element, patchKey, patchValue) => {
         if (patchValue.type === PatchType.TABLE_ROWS) {
           patchTableRows({
@@ -34150,7 +36020,7 @@ var patchDocument = (function() {
               const { target, anchor } = externalHyperlinkTarget(child2.options.link);
               const concreteHyperlink = new ConcreteHyperlink(child2.options.children, uniqueId(), anchor, child2.options.link);
               hyperlinkRelationships.push({
-                key,
+                key: key2,
                 id: concreteHyperlink.linkId,
                 type: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink",
                 target,
@@ -34170,33 +36040,33 @@ var patchDocument = (function() {
       for (const [patchKey, patchValue] of patchesInOrder) patchPlaceholder(json, patchKey, patchValue);
     }
     notes.write();
-    for (const [key, json] of map) {
-      if (!key.startsWith("word/") || key.endsWith(".xml.rels")) continue;
+    for (const [key2, json] of map) {
+      if (!key2.startsWith("word/") || key2.endsWith(".xml.rels")) continue;
       const mediaDatas = imageReplacer.getMediaData(JSON.stringify(json), file.Media);
       if (mediaDatas.length > 0) {
         hasMedia = true;
         imageRelationshipAdditions.push({
-          key,
+          key: key2,
           mediaDatas
         });
       }
     }
-    for (const { key, mediaDatas } of imageRelationshipAdditions) {
+    for (const { key: key2, mediaDatas } of imageRelationshipAdditions) {
       var _map$get;
-      const relationshipKey = relationshipsPathOf(key);
+      const relationshipKey = relationshipsPathOf(key2);
       const relationshipsJson = (_map$get = map.get(relationshipKey)) !== null && _map$get !== void 0 ? _map$get : createRelationshipFile();
       map.set(relationshipKey, relationshipsJson);
       const index = getNextRelationshipIndex(relationshipsJson);
-      const newJson = imageReplacer.replace(JSON.stringify(map.get(key)), mediaDatas, index);
-      map.set(key, JSON.parse(newJson));
+      const newJson = imageReplacer.replace(JSON.stringify(map.get(key2)), mediaDatas, index);
+      map.set(key2, JSON.parse(newJson));
       for (let i = 0; i < mediaDatas.length; i++) {
         const { fileName } = mediaDatas[i];
         appendRelationship(relationshipsJson, index + i, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image", `media/${fileName}`);
       }
     }
-    for (const { key, id, type, target, targetMode } of relationshipAdditions) {
+    for (const { key: key2, id, type, target, targetMode } of relationshipAdditions) {
       var _map$get2;
-      const relationshipKey = relationshipsPathOf(key);
+      const relationshipKey = relationshipsPathOf(key2);
       const relationshipsJson = (_map$get2 = map.get(relationshipKey)) !== null && _map$get2 !== void 0 ? _map$get2 : createRelationshipFile();
       map.set(relationshipKey, relationshipsJson);
       appendRelationship(relationshipsJson, id, type, target, targetMode);
@@ -34217,11 +36087,11 @@ var patchDocument = (function() {
       for (const { contentType, partName } of contentTypeOverrides) appendContentTypeOverride(contentTypesJson, contentType, partName);
     }
     const zip = new import_jszip_min.default();
-    for (const [key, value] of map) {
+    for (const [key2, value] of map) {
       const output = toXml(value);
-      zip.file(key, encodeUtf8(output));
+      zip.file(key2, encodeUtf8(output));
     }
-    for (const [key, value] of binaryContentMap) zip.file(key, value);
+    for (const [key2, value] of binaryContentMap) zip.file(key2, value);
     for (const { data: stream, fileName } of file.Media.Array) zip.file(`word/media/${fileName}`, stream);
     for (const { path, data: partData } of packageParts) zip.file(path, typeof partData === "string" ? encodeUtf8(partData) : partData);
     return zip.generateAsync({
@@ -34234,7 +36104,7 @@ var patchDocument = (function() {
     return _ref.apply(this, arguments);
   };
 })();
-var withAmpersandsEscaped = (element) => _objectSpread2(_objectSpread2(_objectSpread2({}, element), element.attributes === void 0 ? {} : { attributes: Object.fromEntries(Object.entries(element.attributes).map(([key, value]) => [key, value === void 0 ? value : String(value).replace(/&/g, "&amp;")])) }), element.elements === void 0 ? {} : { elements: element.elements.map((child2) => child2.type === "text" ? _objectSpread2(_objectSpread2({}, child2), {}, { text: String(child2.text).replace(/&/g, "&amp;") }) : withAmpersandsEscaped(child2)) });
+var withAmpersandsEscaped = (element) => _objectSpread2(_objectSpread2(_objectSpread2({}, element), element.attributes === void 0 ? {} : { attributes: Object.fromEntries(Object.entries(element.attributes).map(([key2, value]) => [key2, value === void 0 ? value : String(value).replace(/&/g, "&amp;")])) }), element.elements === void 0 ? {} : { elements: element.elements.map((child2) => child2.type === "text" ? _objectSpread2(_objectSpread2({}, child2), {}, { text: String(child2.text).replace(/&/g, "&amp;") }) : withAmpersandsEscaped(child2)) });
 var toXml = (jsonObj) => {
   return (0, import_lib.js2xml)(withAmpersandsEscaped(jsonObj), { attributeValueFn: (str2) => String(str2).replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/'/g, "&apos;") });
 };
@@ -34242,11 +36112,11 @@ var patchDetector = (function() {
   var _ref = _asyncToGenerator(function* ({ data }) {
     const zipContent = data instanceof import_jszip_min.default ? data : yield import_jszip_min.default.loadAsync(data);
     const patches = /* @__PURE__ */ new Set();
-    for (const [key, value] of Object.entries(zipContent.files)) {
-      if (!key.endsWith(".xml") && !key.endsWith(".rels")) continue;
-      if (key.startsWith("word/") && !key.endsWith(".xml.rels")) {
+    for (const [key2, value] of Object.entries(zipContent.files)) {
+      if (!key2.endsWith(".xml") && !key2.endsWith(".rels")) continue;
+      if (key2.startsWith("word/") && !key2.endsWith(".xml.rels")) {
         const json = toJson(yield value.async("text"));
-        [...traverse(json).map((p2) => p2.text), ...findDrawings(json).flatMap(({ properties }) => altTextOf(properties))].forEach((text) => findPatchKeys(text).forEach((patch) => patches.add(patch)));
+        [...traverse(json).map((p2) => p2.text), ...findDrawings(json).flatMap(({ properties }) => altTextOf(properties))].forEach((text2) => findPatchKeys(text2).forEach((patch) => patches.add(patch)));
       }
     }
     return Array.from(patches);
@@ -34255,10 +36125,10 @@ var patchDetector = (function() {
     return _ref.apply(this, arguments);
   };
 })();
-var findPatchKeys = (text) => {
+var findPatchKeys = (text2) => {
   var _text$match;
   const pattern = new RegExp("(?<=\\{\\{).+?(?=\\}\\})", "gs");
-  return (_text$match = text.match(pattern)) !== null && _text$match !== void 0 ? _text$match : [];
+  return (_text$match = text2.match(pattern)) !== null && _text$match !== void 0 ? _text$match : [];
 };
 
 // server/export/docx.ts
@@ -34266,26 +36136,26 @@ var FONT = "Arial";
 var border = { style: BorderStyle.SINGLE, size: 4, color: "BFBFBF" };
 var borders = { top: border, bottom: border, left: border, right: border };
 var CONTENT_W = 9360;
-function runs(text, opts = {}) {
+function runs(text2, opts = {}) {
   const out = [];
   const re = /(\*\*[^*]+\*\*|_[^_]+_)/g;
   let last = 0;
-  for (const m of text.matchAll(re)) {
-    if (m.index > last) out.push(new TextRun({ text: text.slice(last, m.index), font: FONT, ...opts }));
+  for (const m of text2.matchAll(re)) {
+    if (m.index > last) out.push(new TextRun({ text: text2.slice(last, m.index), font: FONT, ...opts }));
     const t = m[0];
     if (t.startsWith("**")) out.push(new TextRun({ text: t.slice(2, -2), bold: true, font: FONT, italics: opts.italics }));
     else out.push(new TextRun({ text: t.slice(1, -1), italics: true, font: FONT, bold: opts.bold }));
     last = m.index + t.length;
   }
-  if (last < text.length) out.push(new TextRun({ text: text.slice(last), font: FONT, ...opts }));
+  if (last < text2.length) out.push(new TextRun({ text: text2.slice(last), font: FONT, ...opts }));
   return out;
 }
-var p = (text, opts = {}) => new Paragraph({ children: runs(text, opts), spacing: { after: 80 } });
-var h = (text, level) => new Paragraph({ heading: level, children: [new TextRun({ text, font: FONT })], spacing: { before: 240, after: 120 } });
-var bullet = (text) => new Paragraph({ children: runs(text), bullet: { level: 0 }, spacing: { after: 40 } });
+var p = (text2, opts = {}) => new Paragraph({ children: runs(text2, opts), spacing: { after: 80 } });
+var h = (text2, level) => new Paragraph({ heading: level, children: [new TextRun({ text: text2, font: FONT })], spacing: { before: 240, after: 120 } });
+var bullet = (text2) => new Paragraph({ children: runs(text2), bullet: { level: 0 }, spacing: { after: 40 } });
 function table(header, rows, widths) {
   const w = widths ?? header.map(() => Math.floor(CONTENT_W / header.length));
-  const cell = (t, i, head) => new TableCell({
+  const cell4 = (t, i, head) => new TableCell({
     borders,
     width: { size: w[i], type: WidthType.DXA },
     shading: head ? { fill: "E8EEF7", type: ShadingType.CLEAR, color: "auto" } : void 0,
@@ -34295,7 +36165,7 @@ function table(header, rows, widths) {
   return new Table({
     width: { size: w.reduce((a, b) => a + b, 0), type: WidthType.DXA },
     columnWidths: w,
-    rows: [new TableRow({ tableHeader: true, children: header.map((t, i) => cell(t, i, true)) }), ...rows.map((r) => new TableRow({ children: r.map((t, i) => cell(t, i, false)) }))]
+    rows: [new TableRow({ tableHeader: true, children: header.map((t, i) => cell4(t, i, true)) }), ...rows.map((r) => new TableRow({ children: r.map((t, i) => cell4(t, i, false)) }))]
   });
 }
 function markdownBlocks(md) {
@@ -34326,50 +36196,50 @@ function markdownBlocks(md) {
   }
   return out;
 }
-function useCaseBlocks(u, screenName) {
-  const flow = (f) => `${f.code}. ${f.name} (t\u1EEB b\u01B0\u1EDBc ${f.branchFrom})
-${f.steps.map((s, i) => `  ${i + 1}. ${s}`).join("\n")}`;
+function useCaseBlocks(u, screenName2) {
+  const flow = (f) => `${f.code}. ${f.name} (from step ${f.branchFrom})
+${f.steps.map((s2, i) => `  ${i + 1}. ${s2}`).join("\n")}`;
   const rows = [
-    ["M\xE3", u.code],
-    ["T\xEAn Use Case", u.name],
-    ["T\xE1c nh\xE2n", u.actors.join(", ")],
-    ["M\xF4 t\u1EA3", u.description],
-    ["S\u1EF1 ki\u1EC7n k\xEDch ho\u1EA1t", u.trigger],
-    ["Ti\u1EC1n \u0111i\u1EC1u ki\u1EC7n", u.preconditions.map((x) => `- ${x}`).join("\n")],
-    ["H\u1EADu \u0111i\u1EC1u ki\u1EC7n", u.postconditions.map((x) => `- ${x}`).join("\n")],
-    ["Lu\u1ED3ng ch\xEDnh", u.mainFlow.map((s) => `${s.no}. [${s.actor}] ${s.text}`).join("\n")],
-    ["Lu\u1ED3ng thay th\u1EBF", u.altFlows.map(flow).join("\n") || "-"],
-    ["Ngo\u1EA1i l\u1EC7", u.exceptions.map(flow).join("\n") || "-"],
-    ["Quy t\u1EAFc nghi\u1EC7p v\u1EE5", u.businessRules.map((x) => `- ${x}`).join("\n") || "-"],
-    ["M\xE0n h\xECnh li\xEAn quan", u.screenIds.map(screenName).join(", ") || "-"],
-    ["Gi\u1EA3 \u0111\u1ECBnh (c\u1EA7n BA x\xE1c nh\u1EADn)", u.assumptions.map((x) => `- ${x}`).join("\n") || "-"]
+    ["ID", u.code],
+    ["Use Case Name", u.name],
+    ["Actors", u.actors.join(", ")],
+    ["Description", u.description],
+    ["Trigger", u.trigger],
+    ["Preconditions", u.preconditions.map((x) => `- ${x}`).join("\n")],
+    ["Postconditions", u.postconditions.map((x) => `- ${x}`).join("\n")],
+    ["Main Flow", u.mainFlow.map((s2) => `${s2.no}. [${s2.actor}] ${s2.text}`).join("\n")],
+    ["Alternative Flows", u.altFlows.map(flow).join("\n") || "-"],
+    ["Exception Flows", u.exceptions.map(flow).join("\n") || "-"],
+    ["Business Rules", u.businessRules.map((x) => `- ${x}`).join("\n") || "-"],
+    ["Related Screens", u.screenIds.map(screenName2).join(", ") || "-"],
+    ["Assumptions (to be confirmed by the BA)", u.assumptions.map((x) => `- ${x}`).join("\n") || "-"]
   ];
-  return [h(`${u.code}: ${u.name}`, HeadingLevel.HEADING_2), table(["M\u1EE5c", "N\u1ED9i dung"], rows, [2400, CONTENT_W - 2400]), new Paragraph({ children: [] })];
+  return [h(`${u.code}: ${u.name}`, HeadingLevel.HEADING_2), table(["Item", "Content"], rows, [2400, CONTENT_W - 2400]), new Paragraph({ children: [] })];
 }
-async function buildDocx(project, module, docs, screenName) {
+async function buildDocx(project, module, docs, screenName2) {
   const children = [
-    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 120 }, children: [new TextRun({ text: `T\xC0I LI\u1EC6U PH\xC2N T\xCDCH \u2013 ${module.name.toUpperCase()}`, bold: true, size: 32, font: FONT })] }),
-    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 360 }, children: [new TextRun({ text: `D\u1EF1 \xE1n: ${project.name} \xB7 Tr\u1EA1ng th\xE1i: ${statusVi(module.docsStatus)} \xB7 Xu\u1EA5t ng\xE0y ${(/* @__PURE__ */ new Date()).toLocaleDateString("vi-VN")}`, font: FONT, color: "666666" })] }),
-    new Paragraph({ children: [new TextRun({ text: "B\u1EA3n nh\xE1p do BA Copilot sinh t\u1EF1 \u0111\u1ED9ng \u2013 c\xE1c m\u1EE5c g\u1EAFn nh\xE3n Gi\u1EA3 \u0111\u1ECBnh c\u1EA7n BA x\xE1c nh\u1EADn.", italics: true, font: FONT, color: "8A6D00" })], spacing: { after: 240 } }),
-    h("Ph\u1EA7n A. \u0110\u1EB7c t\u1EA3 Use Case", HeadingLevel.HEADING_1),
+    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 120 }, children: [new TextRun({ text: `ANALYSIS DOCUMENT \u2013 ${module.name.toUpperCase()}`, bold: true, size: 32, font: FONT })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 360 }, children: [new TextRun({ text: `Project: ${project.name} \xB7 Status: ${statusVi(module.docsStatus)} \xB7 Exported on ${(/* @__PURE__ */ new Date()).toLocaleDateString("en-US")}`, font: FONT, color: "666666" })] }),
+    new Paragraph({ children: [new TextRun({ text: "Draft generated automatically by BA Copilot \u2013 items labelled Assumption must be confirmed by the BA.", italics: true, font: FONT, color: "8A6D00" })], spacing: { after: 240 } }),
+    h("Part A. Use Case Specification", HeadingLevel.HEADING_1),
     table(
-      ["M\xE3", "Use Case", "T\xE1c nh\xE2n", "M\xE0n h\xECnh"],
-      docs.useCases.map((u) => [u.code, u.name, u.actors.join(", "), u.screenIds.map(screenName).join(", ")]),
+      ["ID", "Use Case", "Actors", "Screens"],
+      docs.useCases.map((u) => [u.code, u.name, u.actors.join(", "), u.screenIds.map(screenName2).join(", ")]),
       [1100, 4060, 2e3, 2200]
     ),
-    ...docs.useCases.flatMap((u) => useCaseBlocks(u, screenName)),
-    h("Ph\u1EA7n B. \u0110\u1EB7c t\u1EA3 y\xEAu c\u1EA7u ph\u1EA7n m\u1EC1m (SRS)", HeadingLevel.HEADING_1),
-    ...docs.srs?.sections.flatMap((s) => [h(s.title, HeadingLevel.HEADING_2), ...markdownBlocks(s.content)]) ?? [p("Ch\u01B0a c\xF3 SRS")],
-    h("Ph\u1EA7n C. Sequence Diagram (m\xE3 Mermaid)", HeadingLevel.HEADING_1),
-    p("S\u01A1 \u0111\u1ED3 c\xF3 th\u1EC3 xem d\u1EA1ng h\xECnh trong BA Copilot ho\u1EB7c d\xE1n m\xE3 v\xE0o mermaid.live.", { italics: true }),
-    ...docs.sequences.flatMap((s) => [
-      h(s.title, HeadingLevel.HEADING_2),
-      ...s.mermaid.split("\n").map((line) => new Paragraph({ children: [new TextRun({ text: line, font: "Courier New", size: 18 })], spacing: { after: 0 } }))
+    ...docs.useCases.flatMap((u) => useCaseBlocks(u, screenName2)),
+    h("Part B. Software Requirements Specification (SRS)", HeadingLevel.HEADING_1),
+    ...docs.srs?.sections.flatMap((s2) => [h(s2.title, HeadingLevel.HEADING_2), ...markdownBlocks(s2.content)]) ?? [p("No SRS yet")],
+    h("Part C. Sequence Diagrams (Mermaid code)", HeadingLevel.HEADING_1),
+    p("View the diagrams graphically in BA Copilot, or paste the code into mermaid.live.", { italics: true }),
+    ...docs.sequences.flatMap((s2) => [
+      h(s2.title, HeadingLevel.HEADING_2),
+      ...s2.mermaid.split("\n").map((line) => new Paragraph({ children: [new TextRun({ text: line, font: "Courier New", size: 18 })], spacing: { after: 0 } }))
     ])
   ];
   const doc = new File({
     creator: "BA Copilot",
-    title: `T\xE0i li\u1EC7u ${module.name}`,
+    title: `Documents \u2013 ${module.name}`,
     styles: {
       default: { document: { run: { font: FONT, size: 22 } } },
       paragraphStyles: [
@@ -34382,32 +36252,32 @@ async function buildDocx(project, module, docs, screenName) {
   });
   return Packer.toBuffer(doc);
 }
-function statusVi(s) {
-  return { none: "Ch\u01B0a c\xF3", draft: "B\u1EA3n nh\xE1p", approved: "\u0110\xE3 duy\u1EC7t", outdated: "L\u1ED7i th\u1EDDi" }[s] ?? s;
+function statusVi(s2) {
+  return { none: "Not started", draft: "Draft", done: "Done", approved: "Approved", outdated: "Outdated" }[s2] ?? s2;
 }
 
 // server/export/xlsx.ts
 var import_jszip = __toESM(require_lib3(), 1);
-var esc = (s) => s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+var esc = (s2) => s2.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 function colName(i) {
-  let s = "";
+  let s2 = "";
   i++;
   while (i > 0) {
     const m = (i - 1) % 26;
-    s = String.fromCharCode(65 + m) + s;
+    s2 = String.fromCharCode(65 + m) + s2;
     i = Math.floor((i - 1) / 26);
   }
-  return s;
+  return s2;
 }
 function sheetXml(sh) {
-  const cell = (v, r, c, style) => {
-    const ref = `${colName(c)}${r}`;
-    if (typeof v === "number") return `<c r="${ref}" s="${style}"><v>${v}</v></c>`;
-    return `<c r="${ref}" s="${style}" t="inlineStr"><is><t xml:space="preserve">${esc(String(v))}</t></is></c>`;
+  const cell4 = (v, r, c, style) => {
+    const ref2 = `${colName(c)}${r}`;
+    if (typeof v === "number") return `<c r="${ref2}" s="${style}"><v>${v}</v></c>`;
+    return `<c r="${ref2}" s="${style}" t="inlineStr"><is><t xml:space="preserve">${esc(String(v))}</t></is></c>`;
   };
   const rows = [
-    `<row r="1">${sh.header.map((h2, c) => cell(h2, 1, c, 1)).join("")}</row>`,
-    ...sh.rows.map((r, i) => `<row r="${i + 2}">${r.map((v, c) => cell(v, i + 2, c, 2)).join("")}</row>`)
+    `<row r="1">${sh.header.map((h2, c) => cell4(h2, 1, c, 1)).join("")}</row>`,
+    ...sh.rows.map((r, i) => `<row r="${i + 2}">${r.map((v, c) => cell4(v, i + 2, c, 2)).join("")}</row>`)
   ];
   const last = `${colName(sh.header.length - 1)}${sh.rows.length + 1}`;
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -34453,8 +36323,8 @@ ${sheets.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" Co
     "xl/workbook.xml",
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-<sheets>${sheets.map((s, i) => `<sheet name="${esc(s.name.slice(0, 31))}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("")}</sheets>
-<definedNames>${sheets.map((s, i) => `<definedName name="_xlnm._FilterDatabase" localSheetId="${i}" hidden="1">'${esc(s.name.slice(0, 31))}'!$A$1:$${colName(s.header.length - 1)}$${s.rows.length + 1}</definedName>`).join("")}</definedNames>
+<sheets>${sheets.map((s2, i) => `<sheet name="${esc(s2.name.slice(0, 31))}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("")}</sheets>
+<definedNames>${sheets.map((s2, i) => `<definedName name="_xlnm._FilterDatabase" localSheetId="${i}" hidden="1">'${esc(s2.name.slice(0, 31))}'!$A$1:$${colName(s2.header.length - 1)}$${s2.rows.length + 1}</definedName>`).join("")}</definedNames>
 </workbook>`
   );
   zip.file(
@@ -34466,33 +36336,33 @@ ${sheets.map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.open
 </Relationships>`
   );
   zip.file("xl/styles.xml", STYLES);
-  sheets.forEach((s, i) => zip.file(`xl/worksheets/sheet${i + 1}.xml`, sheetXml(s)));
+  sheets.forEach((s2, i) => zip.file(`xl/worksheets/sheet${i + 1}.xml`, sheetXml(s2)));
   return zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 }
-var typeVi = (t) => ({ Positive: "T\xEDch c\u1EF1c", Negative: "Ti\xEAu c\u1EF1c", Boundary: "Gi\xE1 tr\u1ECB bi\xEAn" })[t] ?? t;
-var prioVi = (p2) => ({ High: "Cao", Medium: "Trung b\xECnh", Low: "Th\u1EA5p" })[p2] ?? p2;
-function testWorkbook(tests, trace2, screenName) {
+var typeVi = (t) => ({ Positive: "Positive", Negative: "Negative", Boundary: "Boundary" })[t] ?? t;
+var prioVi = (p2) => ({ High: "High", Medium: "Medium", Low: "Low" })[p2] ?? p2;
+function testWorkbook(tests, trace2, screenName2) {
   return buildXlsx([
     {
       name: "Test case",
-      header: ["M\xE3 TC", "Ti\xEAu \u0111\u1EC1", "Lo\u1EA1i", "\u01AFu ti\xEAn", "Use Case", "Lu\u1ED3ng", "Y\xEAu c\u1EA7u", "Ti\u1EC1n \u0111i\u1EC1u ki\u1EC7n", "D\u1EEF li\u1EC7u test", "C\xE1c b\u01B0\u1EDBc", "K\u1EBFt qu\u1EA3 mong \u0111\u1EE3i", "K\u1EBFt qu\u1EA3 th\u1EF1c t\u1EBF", "Tr\u1EA1ng th\xE1i"],
-      rows: tests.map((t) => [t.code, t.title, typeVi(t.type), prioVi(t.priority), t.useCaseCode, t.flowRef, t.requirementCodes.join(", "), t.preconditions, t.testData, t.steps.map((s, i) => `${i + 1}. ${s}`).join("\n"), t.expected, "", "Ch\u01B0a ch\u1EA1y"]),
+      header: ["TC ID", "Title", "Type", "Priority", "Use Case", "Flow", "Requirements", "Preconditions", "Test Data", "Test Steps", "Expected Result", "Actual Result", "Status"],
+      rows: tests.map((t) => [t.code, t.title, typeVi(t.type), prioVi(t.priority), t.useCaseCode, t.flowRef, t.requirementCodes.join(", "), t.preconditions, t.testData, t.steps.map((s2, i) => `${i + 1}. ${s2}`).join("\n"), t.expected, "", "Not run"]),
       widths: [10, 38, 13, 12, 10, 8, 14, 26, 28, 46, 40, 24, 12]
     },
     {
-      name: "Truy v\u1EBFt",
-      header: ["Y\xEAu c\u1EA7u", "Lo\u1EA1i", "N\u1ED9i dung", "Use Case", "M\xE0n h\xECnh", "Test case", "Bao ph\u1EE7"],
-      rows: trace2.rows.map((r) => [r.requirement.code, r.requirement.type, r.requirement.statement, r.useCases.join(", "), r.screenIds.map(screenName).join(", "), r.tests.join(", "), r.tests.length ? "C\xF3 test" : "CH\u01AFA C\xD3 TEST"]),
+      name: "Traceability",
+      header: ["Requirement", "Type", "Statement", "Use Case", "Screens", "Test Cases", "Coverage"],
+      rows: trace2.rows.map((r) => [r.requirement.code, r.requirement.type, r.requirement.statement, r.useCases.join(", "), r.screenIds.map(screenName2).join(", "), r.tests.join(", "), r.tests.length ? "Covered" : "NOT COVERED"]),
       widths: [10, 8, 60, 16, 24, 36, 16]
     }
   ]);
 }
 
 // server/auth.ts
-import { createHmac, createHash, timingSafeEqual } from "node:crypto";
+import { createHmac as createHmac2, createHash, timingSafeEqual as timingSafeEqual2 } from "node:crypto";
 var COOKIE = "bac_session";
 var TTL_MS = 30 * 24 * 3600 * 1e3;
-var attempts = /* @__PURE__ */ new Map();
+var attempts2 = /* @__PURE__ */ new Map();
 function authEnabled() {
   return Boolean(process.env.APP_PASSWORD?.trim());
 }
@@ -34500,61 +36370,61 @@ function secret() {
   return process.env.SESSION_SECRET?.trim() || createHash("sha256").update("ba-copilot:" + (process.env.APP_PASSWORD ?? "")).digest("hex");
 }
 function sign(payload) {
-  return createHmac("sha256", secret()).update(payload).digest("base64url");
+  return createHmac2("sha256", secret()).update(payload).digest("base64url");
 }
 function safeEq(a, b) {
   const ba = Buffer.from(a);
   const bb = Buffer.from(b);
-  return ba.length === bb.length && timingSafeEqual(ba, bb);
+  return ba.length === bb.length && timingSafeEqual2(ba, bb);
 }
-function readCookie(req, name) {
+function readCookie2(req, name2) {
   for (const part of (req.headers.cookie ?? "").split(";")) {
     const [k, ...v] = part.trim().split("=");
-    if (k === name) return decodeURIComponent(v.join("="));
+    if (k === name2) return decodeURIComponent(v.join("="));
   }
   return null;
 }
 function isAuthenticated(req) {
   if (!authEnabled()) return true;
-  const raw = readCookie(req, COOKIE);
+  const raw = readCookie2(req, COOKIE);
   if (!raw) return false;
   const [exp, sig] = raw.split(".");
   if (!exp || !sig || Number(exp) < Date.now()) return false;
   return safeEq(sig, sign(`v1:${exp}`));
 }
-function isHttps(req) {
+function isHttps2(req) {
   return req.headers["x-forwarded-proto"]?.split(",")[0]?.trim() === "https";
 }
-function clientIp(req) {
+function clientIp2(req) {
   return (req.headers["x-forwarded-for"]?.split(",")[0] ?? req.socket.remoteAddress ?? "?").trim();
 }
-function rateLimited(ip) {
-  const now2 = Date.now();
-  const a = attempts.get(ip);
-  if (!a || a.reset < now2) {
-    attempts.set(ip, { n: 1, reset: now2 + 10 * 6e4 });
+function rateLimited2(ip) {
+  const now3 = Date.now();
+  const a = attempts2.get(ip);
+  if (!a || a.reset < now3) {
+    attempts2.set(ip, { n: 1, reset: now3 + 10 * 6e4 });
     return 0;
   }
   a.n++;
-  return a.n > 10 ? Math.ceil((a.reset - now2) / 1e3) : 0;
+  return a.n > 10 ? Math.ceil((a.reset - now3) / 1e3) : 0;
 }
 function login(req, res, password) {
-  const wait = rateLimited(clientIp(req));
-  if (wait) return { ok: false, status: 429, error: `Th\u1EED sai qu\xE1 nhi\u1EC1u l\u1EA7n. Vui l\xF2ng ch\u1EDD ${Math.ceil(wait / 60)} ph\xFAt.` };
+  const wait = rateLimited2(clientIp2(req));
+  if (wait) return { ok: false, status: 429, error: `Too many failed attempts. Please wait ${Math.ceil(wait / 60)} minute(s).` };
   const expected = process.env.APP_PASSWORD?.trim() ?? "";
-  const h2 = (s) => createHash("sha256").update(s).digest("hex");
-  if (!expected || !safeEq(h2(password), h2(expected))) return { ok: false, status: 401, error: "M\u1EADt kh\u1EA9u kh\xF4ng \u0111\xFAng" };
+  const h2 = (s2) => createHash("sha256").update(s2).digest("hex");
+  if (!expected || !safeEq(h2(password), h2(expected))) return { ok: false, status: 401, error: "Incorrect password" };
   const exp = String(Date.now() + TTL_MS);
-  res.setHeader("set-cookie", `${COOKIE}=${exp}.${sign(`v1:${exp}`)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${TTL_MS / 1e3}${isHttps(req) ? "; Secure" : ""}`);
-  attempts.delete(clientIp(req));
+  res.setHeader("set-cookie", `${COOKIE}=${exp}.${sign(`v1:${exp}`)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${TTL_MS / 1e3}${isHttps2(req) ? "; Secure" : ""}`);
+  attempts2.delete(clientIp2(req));
   return { ok: true };
 }
 function logout(req, res) {
-  res.setHeader("set-cookie", `${COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${isHttps(req) ? "; Secure" : ""}`);
+  res.setHeader("set-cookie", `${COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${isHttps2(req) ? "; Secure" : ""}`);
 }
 var LOGIN_HTML = `<!doctype html>
-<html lang="vi"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>\u0110\u0103ng nh\u1EADp \u2013 BA Copilot</title>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Sign in \u2013 BA Copilot</title>
 <style>
 *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f6f8;font:14px Inter,"Segoe UI",system-ui,-apple-system,Arial,sans-serif;color:#1c2430}
 .card{background:#fff;border:1px solid #e3e6eb;border-radius:12px;padding:28px;width:min(360px,92vw);box-shadow:0 8px 30px rgba(16,24,40,.08)}
@@ -34564,65 +36434,3981 @@ input{width:100%;font:inherit;padding:10px 12px;border:1px solid #cfd4dc;border-
 button{width:100%;font:inherit;font-weight:600;padding:10px;border:0;border-radius:8px;background:#2f5bea;color:#fff;cursor:pointer}
 .err{color:#b42318;min-height:20px;margin-top:10px;font-size:13px}
 </style></head><body>
-<form class="card" id="f"><div class="logo">BA</div><h1>BA Copilot</h1><p>Nh\u1EADp m\u1EADt kh\u1EA9u truy c\u1EADp \u0111\u1EC3 ti\u1EBFp t\u1EE5c.</p>
-<input id="p" type="password" placeholder="M\u1EADt kh\u1EA9u" autocomplete="current-password" autofocus required/>
-<button type="submit">\u0110\u0103ng nh\u1EADp</button><div class="err" id="e"></div></form>
+<form class="card" id="f"><div class="logo">BA</div><h1>BA Copilot</h1><p>Enter the access password to continue.</p>
+<input id="p" type="password" placeholder="Password" autocomplete="current-password" autofocus required/>
+<button type="submit">Sign in</button><div class="err" id="e"></div></form>
 <script>
 document.getElementById('f').addEventListener('submit',async function(ev){ev.preventDefault();var e=document.getElementById('e');e.textContent='';
 var r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:document.getElementById('p').value})});
-if(r.ok){location.reload()}else{var d=await r.json().catch(function(){return{}});e.textContent=d.error||'\u0110\u0103ng nh\u1EADp th\u1EA5t b\u1EA1i'}});
+if(r.ok){location.reload()}else{var d=await r.json().catch(function(){return{}});e.textContent=d.error||'Sign-in failed'}});
 </script></body></html>`;
 
-// server/app.ts
-var routes = [];
-function route(method, path, handler) {
-  const keys = [];
-  const pattern = new RegExp("^" + path.replace(/:(\w+)/g, (_, k) => (keys.push(k), "([^/]+)")) + "$");
-  routes.push({ method, pattern, keys, handler });
-}
-var FileResponse = class {
-  constructor(data, filename, contentType) {
-    this.data = data;
-    this.filename = filename;
-    this.contentType = contentType;
-  }
-  data;
-  filename;
-  contentType;
+// server/files.ts
+import { existsSync as existsSync2, mkdirSync as mkdirSync2, readFileSync as readFileSync2, unlinkSync, writeFileSync } from "node:fs";
+import { dirname as dirname3, extname, join as join2, resolve as resolve2, sep } from "node:path";
+import { randomUUID as randomUUID3 } from "node:crypto";
+var MAX_FILE_BYTES = 10 * 1024 * 1024;
+var EXT_TO_MIME = {
+  ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ".doc": "application/msword",
+  ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ".xls": "application/vnd.ms-excel",
+  ".pdf": "application/pdf",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".gif": "image/gif",
+  ".webp": "image/webp"
 };
-var str = (v, max = 2e4) => typeof v === "string" ? v.slice(0, max) : "";
-var arr = (v) => Array.isArray(v) ? v.map(String) : [];
-route("GET", "/api/settings", () => {
-  const c = aiConfig();
-  return { provider: c.provider, model: c.provider === "mock" ? "rule-based" : c.model, auth: authEnabled() };
+var ALLOWED_EXTS = Object.keys(EXT_TO_MIME);
+var canPreview = (mime) => mime === "application/pdf" || mime.startsWith("image/");
+function dataDir() {
+  return process.env.DATA_DIR ?? dirname3(process.env.DB_FILE ?? "data/ba-copilot.db");
+}
+function filesDir() {
+  const dir = process.env.UPLOAD_DIR ?? join2(dataDir(), "files");
+  mkdirSync2(dir, { recursive: true });
+  return dir;
+}
+function legacyDir() {
+  return process.env.UPLOAD_DIR ? null : join2(dataDir(), "uploads");
+}
+function cleanName(name2) {
+  if (typeof name2 !== "string") throw new BizError("Invalid file name");
+  let s2 = name2.replace(/^.*[/\\]/, "").replace(/[/\\]/g, "");
+  s2 = s2.replace(/["']/g, "").replace(/[\u0000-\u001F\u007F]/g, "").trim();
+  if (s2 === "." || s2 === "..") throw new BizError("Invalid file name");
+  s2 = s2.slice(0, 150).trim();
+  if (!s2) throw new BizError("File name is required");
+  return s2;
+}
+function checkSignature(ext, buf) {
+  const e = ext.toLowerCase();
+  const fail2 = (what) => {
+    throw new BizError(`File content does not match the ${ext} format (missing ${what} signature)`);
+  };
+  if (e === ".docx" || e === ".xlsx") {
+    if (buf.length < 2 || buf[0] !== 80 || buf[1] !== 75) fail2("PK");
+  } else if (e === ".doc" || e === ".xls") {
+    if (buf.length < 4 || buf[0] !== 208 || buf[1] !== 207 || buf[2] !== 17 || buf[3] !== 224) fail2("OLE");
+  } else if (e === ".pdf") {
+    if (buf.length < 4 || buf.toString("ascii", 0, 4) !== "%PDF") fail2("%PDF");
+  } else if (e === ".png") {
+    if (buf.length < 4 || buf[0] !== 137 || buf[1] !== 80 || buf[2] !== 78 || buf[3] !== 71) fail2("PNG");
+  } else if (e === ".jpg" || e === ".jpeg") {
+    if (buf.length < 2 || buf[0] !== 255 || buf[1] !== 216) fail2("JFIF");
+  } else if (e === ".gif") {
+    if (buf.length < 4 || buf.toString("ascii", 0, 4) !== "GIF8") fail2("GIF");
+  } else if (e === ".webp") {
+    if (buf.length < 12 || buf.toString("ascii", 0, 4) !== "RIFF" || buf.toString("ascii", 8, 12) !== "WEBP") fail2("WEBP");
+  }
+  return true;
+}
+function safePath(root3, storedName) {
+  const base = resolve2(root3);
+  const target = resolve2(base, storedName);
+  if (!target.startsWith(base + sep)) throw new BizError("Invalid file path (path traversal)");
+  return target;
+}
+function saveFileToDisk(id, ext, buf) {
+  const storedName = `${id}${ext}`;
+  writeFileSync(safePath(filesDir(), storedName), buf);
+  return storedName;
+}
+function locate(storedName) {
+  for (const root3 of [filesDir(), legacyDir()]) {
+    if (!root3) continue;
+    const p2 = safePath(root3, storedName);
+    if (existsSync2(p2)) return p2;
+  }
+  return null;
+}
+function readFileFromDisk(storedName) {
+  const p2 = locate(storedName);
+  return p2 ? readFileSync2(p2) : null;
+}
+function removeFileFromDisk(storedName) {
+  const p2 = locate(storedName);
+  if (!p2) return;
+  try {
+    unlinkSync(p2);
+  } catch {
+  }
+}
+var has2 = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+function cleanDate(v) {
+  if (v === null || v === void 0 || v === "") return null;
+  const s2 = String(v).trim();
+  const d = /* @__PURE__ */ new Date(`${s2}T00:00:00Z`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s2) || isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== s2) {
+    throw new BizError("Invalid received date (format YYYY-MM-DD)");
+  }
+  return s2;
+}
+function readMeta(body) {
+  const m = {};
+  if (has2(body, "sender")) m.sender = typeof body.sender === "string" ? body.sender.trim().slice(0, 200) : "";
+  if (has2(body, "receivedAt")) m.receivedAt = cleanDate(body.receivedAt);
+  if (has2(body, "note")) m.note = typeof body.note === "string" ? body.note.trim().slice(0, 2e3) : "";
+  return m;
+}
+function memberOrNull(id) {
+  if (!id) return null;
+  return getDb().prepare("SELECT id FROM members WHERE id = ?").get(id) ? id : null;
+}
+function writeMeta(id, m) {
+  const sets = [];
+  const vals = [];
+  const set = (col, v) => (sets.push(`${col} = ?`), vals.push(v));
+  if (m.sender !== void 0) set("sender", m.sender);
+  if (m.receivedAt !== void 0) set("received_at", m.receivedAt);
+  if (m.note !== void 0) set("note", m.note);
+  if (m.uploadedBy !== void 0) set("uploaded_by", memberOrNull(m.uploadedBy));
+  if (sets.length) getDb().prepare(`UPDATE files SET ${sets.join(", ")} WHERE id = ?`).run(...vals, id);
+}
+var toItem = (r) => ({
+  id: r.id,
+  projectId: r.project_id,
+  moduleId: r.module_id ?? null,
+  name: r.name,
+  mime: r.mime,
+  size: Number(r.size),
+  source: r.source,
+  createdAt: r.created_at,
+  sender: r.sender ?? "",
+  receivedAt: r.received_at ?? null,
+  note: r.note ?? "",
+  uploadedBy: r.uploaded_by ?? null
 });
-route("POST", "/api/login", ({ req, res, body }) => {
-  const r = login(req, res, str(body.password, 200));
-  if (!r.ok) throw new BizError(r.error ?? "\u0110\u0103ng nh\u1EADp th\u1EA5t b\u1EA1i", r.status ?? 401);
+var fold = (s2) => s2.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase();
+function getFileItem(id) {
+  const r = getDb().prepare("SELECT * FROM files WHERE id = ?").get(id);
+  return r ? { ...toItem(r), storedName: r.stored_name } : null;
+}
+function listFileItems(projectId, q = {}) {
+  const rows = getDb().prepare("SELECT * FROM files WHERE project_id = ? ORDER BY created_at DESC, rowid DESC").all(projectId);
+  const needle = fold((q.q ?? "").trim());
+  return rows.map(toItem).filter((f) => !q.moduleId || f.moduleId === q.moduleId).filter((f) => !needle || fold(f.name).includes(needle));
+}
+function saveBuffer(projectId, moduleId, name2, buf, source, meta = {}) {
+  const cName = cleanName(name2);
+  const ext = extname(cName).toLowerCase();
+  if (!EXT_TO_MIME[ext]) {
+    throw new BizError(`Unsupported file format: ${ext || "(no extension)"}. Only Word, PDF, Excel and images are accepted (${ALLOWED_EXTS.join(", ")})`);
+  }
+  if (!buf || buf.length === 0) throw new BizError("The file is empty");
+  if (buf.length > MAX_FILE_BYTES) throw new BizError("The file exceeds the 10 MB size limit", 413);
+  checkSignature(ext, buf);
+  const id = randomUUID3();
+  const storedName = saveFileToDisk(id, ext, buf);
+  try {
+    tx(() => {
+      createFile({ id, projectId, moduleId, name: cName, storedName, mime: EXT_TO_MIME[ext], size: buf.length, source, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
+      writeMeta(id, meta);
+    });
+  } catch (e) {
+    removeFileFromDisk(storedName);
+    throw e;
+  }
+  return getFileItem(id);
+}
+function renameKeepExt(oldName, newName) {
+  const oldExt = extname(oldName).toLowerCase();
+  const n = cleanName(newName);
+  const ext = extname(n).toLowerCase();
+  if (ext === oldExt) return n;
+  if (EXT_TO_MIME[ext]) throw new BizError(`The file extension cannot be changed (${oldExt} \u2192 ${ext})`);
+  return cleanName(n + oldExt);
+}
+function updateFileItem(id, body) {
+  const f = getFileItem(id);
+  if (!f) throw new BizError("File not found", 404);
+  const meta = readMeta(body);
+  tx(() => {
+    if (has2(body, "name")) {
+      getDb().prepare("UPDATE files SET name = ? WHERE id = ?").run(renameKeepExt(f.name, String(body.name ?? "")), id);
+    }
+    if (has2(body, "moduleId")) {
+      const mid = body.moduleId ? String(body.moduleId) : null;
+      if (mid) {
+        const mod = getModule(mid);
+        if (!mod || mod.projectId !== f.projectId) throw new BizError("The module does not belong to this project", 400);
+      }
+      getDb().prepare("UPDATE files SET module_id = ? WHERE id = ?").run(mid, id);
+    }
+    writeMeta(id, meta);
+  });
+  return getFileItem(id);
+}
+function deleteFileItem(id) {
+  const f = getFileItem(id);
+  if (!f) throw new BizError("File not found", 404);
+  deleteFileRow(id);
+  removeFileFromDisk(f.storedName);
+}
+function saveExport(projectId, moduleId, name2, buf, _mime) {
+  try {
+    const cName = cleanName(name2);
+    const old = findExportFile(projectId, moduleId, cName);
+    if (old) {
+      removeFileFromDisk(old.storedName);
+      deleteFileRow(old.id);
+    }
+    return saveBuffer(projectId, moduleId, cName, buf, "export");
+  } catch (err) {
+    console.error("Failed to auto-save the exported file to the document repository:", err);
+    return null;
+  }
+}
+
+// server/repo/members.ts
+import { randomUUID as randomUUID4 } from "node:crypto";
+var MEMBER_ROLES = ["BA", "BA_LEAD"];
+var toMember2 = (r) => ({ id: r.id, name: r.name, role: r.role, createdAt: r.created_at });
+function listMembers() {
+  return getDb().prepare("SELECT * FROM members ORDER BY name COLLATE NOCASE, created_at").all().map(toMember2);
+}
+function getMember(id) {
+  const r = getDb().prepare("SELECT * FROM members WHERE id = ?").get(id);
+  return r ? toMember2(r) : null;
+}
+function createMember(input) {
+  const m = { id: randomUUID4(), name: input.name, role: input.role, createdAt: (/* @__PURE__ */ new Date()).toISOString() };
+  getDb().prepare("INSERT INTO members (id, name, role, created_at) VALUES (?, ?, ?, ?)").run(m.id, m.name, m.role, m.createdAt);
+  return m;
+}
+function updateMember(id, patch) {
+  const cols = [];
+  const vals = [];
+  if (patch.name !== void 0) cols.push("name = ?"), vals.push(patch.name);
+  if (patch.role !== void 0) cols.push("role = ?"), vals.push(patch.role);
+  if (cols.length) getDb().prepare(`UPDATE members SET ${cols.join(", ")} WHERE id = ?`).run(...vals, id);
+  return getMember(id);
+}
+function countOpenTasks(memberId) {
+  const r = getDb().prepare("SELECT COUNT(*) AS n FROM tasks WHERE assignee_id = ? AND status NOT IN ('done', 'approved')").get(memberId);
+  return Number(r.n);
+}
+function hasLead() {
+  return !!getDb().prepare("SELECT 1 FROM members WHERE role = 'BA_LEAD' LIMIT 1").get();
+}
+function deleteMember(id) {
+  getDb().prepare("DELETE FROM members WHERE id = ?").run(id);
+}
+function stampVersionAuthor(versionId, member) {
+  getDb().prepare("UPDATE screen_versions SET author = ?, author_id = ? WHERE id = ?").run(member.name, member.id, versionId);
+}
+function currentVersionId(screenId) {
+  const r = getDb().prepare("SELECT current_version_id AS v FROM screens WHERE id = ?").get(screenId);
+  return r?.v ?? null;
+}
+
+// server/routes/members.ts
+var name = (v) => {
+  const n = str(v, 80).trim();
+  if (!n) throw new BizError("Member name is required");
+  return n;
+};
+var role = (v) => {
+  if (!MEMBER_ROLES.includes(v)) throw new BizError("Role must be BA or BA Lead");
+  return v;
+};
+var mustMember = (id) => {
+  const m = getMember(id);
+  if (!m) throw new BizError("Member not found", 404);
+  return m;
+};
+function requireAdmin(ctx) {
+  if (!hasLead()) return;
+  const me = currentMember(ctx);
+  if (!me || me.role !== "BA_LEAD") throw new HttpError("Only a BA Lead can manage members", 403, "FORBIDDEN");
+}
+route("GET", "/api/members", () => listMembers());
+route("POST", "/api/members", (ctx) => {
+  requireAdmin(ctx);
+  return createMember({ name: name(ctx.body.name), role: role(ctx.body.role) });
+});
+route("PATCH", "/api/members/:id", (ctx) => {
+  requireAdmin(ctx);
+  const { params, body } = ctx;
+  mustMember(params.id);
+  return updateMember(params.id, {
+    name: body.name !== void 0 ? name(body.name) : void 0,
+    role: body.role !== void 0 ? role(body.role) : void 0
+  });
+});
+route("DELETE", "/api/members/:id", (ctx) => {
+  requireAdmin(ctx);
+  const m = mustMember(ctx.params.id);
+  const open = countOpenTasks(m.id);
+  if (open) throw new BizError(`${m.name} is assigned to ${open} unfinished task(s). Reassign those tasks before deleting.`, 409);
+  deleteMember(m.id);
   return { ok: true };
 });
-route("POST", "/api/logout", ({ req, res }) => (logout(req, res), { ok: true }));
+route("PATCH", "/api/projects/:id", ({ params, body }) => {
+  if (!getProject(params.id)) throw new BizError("Project not found", 404);
+  if (body.name !== void 0) {
+    const n = str(body.name, 200).trim();
+    if (!n) throw new BizError("Project name is required");
+    getDb().prepare("UPDATE projects SET name = ? WHERE id = ?").run(n, params.id);
+  }
+  if (body.description !== void 0) getDb().prepare("UPDATE projects SET description = ? WHERE id = ?").run(str(body.description, 2e3), params.id);
+  return getProject(params.id);
+});
+on("artifact.drafted", (e) => {
+  if (e.artifact.kind !== "screen" || !e.actorId) return;
+  const m = getMember(e.actorId);
+  const versionId = m && currentVersionId(e.artifact.id);
+  if (m && versionId) stampVersionAuthor(versionId, m);
+});
+
+// server/routes/files.ts
+function mustFile(id) {
+  const f = getFileItem(id);
+  if (!f) throw new BizError("File not found", 404);
+  return f;
+}
+function readContent(f) {
+  const buf = readFileFromDisk(f.storedName);
+  if (!buf) throw new BizError("File not found on disk", 404);
+  return buf;
+}
+route("GET", "/api/projects/:id/files", ({ params, query }) => {
+  if (!getProject(params.id)) throw new BizError("Project not found", 404);
+  return listFileItems(params.id, { moduleId: query.get("moduleId") ?? void 0, q: query.get("q") ?? void 0 });
+});
+route("POST", "/api/projects/:id/files", ({ params, body }) => {
+  if (!getProject(params.id)) throw new BizError("Project not found", 404);
+  if (body.moduleId) {
+    const mod = getModule(str(body.moduleId));
+    if (!mod || mod.projectId !== params.id) throw new BizError("The module does not belong to this project", 400);
+  }
+  const b642 = typeof body.contentBase64 === "string" ? body.contentBase64.trim() : "";
+  if (!b642) throw new BizError("File content (base64) is required");
+  const buf = Buffer.from(b642, "base64");
+  if (!buf.length) throw new BizError("The file is empty");
+  const meta = { ...readMeta(body), uploadedBy: actor(body) ?? null };
+  return saveBuffer(params.id, body.moduleId ? str(body.moduleId) : null, str(body.name), buf, "upload", meta);
+});
+route("GET", "/api/files/:id", ({ params }) => {
+  const { storedName: _, ...f } = mustFile(params.id);
+  return f;
+});
+route("PATCH", "/api/files/:id", ({ params, body }) => updateFileItem(params.id, body));
+route("GET", "/api/files/:id/preview", ({ params }) => {
+  const f = mustFile(params.id);
+  if (!canPreview(f.mime)) throw new BizError("This file type cannot be previewed \u2013 download it to view", 415);
+  return new FileResponse(readContent(f), f.name, f.mime, "inline");
+});
+route("GET", "/api/files/:id/download", ({ params }) => {
+  const f = mustFile(params.id);
+  return new FileResponse(readContent(f), f.name, f.mime, "attachment");
+});
+route("DELETE", "/api/files/:id", ({ params }) => {
+  deleteFileItem(params.id);
+  return { ok: true };
+});
+
+// server/routes/diagram.ts
+var MAX_CODE = 1e5;
+var toDiagram = (r) => ({ moduleId: r.module_id, code: r.code, status: r.status, approvedAt: r.approved_at, updatedAt: r.updated_at });
+function getDiagram(moduleId) {
+  const r = getDb().prepare("SELECT * FROM uc_diagrams WHERE module_id = ?").get(moduleId);
+  return r ? toDiagram(r) : null;
+}
+function write(moduleId, d) {
+  getDb().prepare(
+    `INSERT INTO uc_diagrams (module_id, code, status, approved_at, updated_at) VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(module_id) DO UPDATE SET code = excluded.code, status = excluded.status, approved_at = excluded.approved_at, updated_at = excluded.updated_at`
+  ).run(moduleId, d.code, d.status, d.approvedAt, (/* @__PURE__ */ new Date()).toISOString());
+}
+function diagramEvent(type, moduleId, actorId) {
+  emit({ type, artifact: { kind: "diagram", id: moduleId, moduleId }, actorId });
+}
+function mustModule2(id) {
+  const m = getModule(id);
+  if (!m) throw new BizError("Module not found", 404);
+  return m;
+}
+function saveDraft(moduleId, code, actorId) {
+  return tx(() => {
+    const before = getDiagram(moduleId);
+    write(moduleId, { code, status: "draft", approvedAt: null });
+    if (before?.status === "approved") diagramEvent("artifact.unapproved", moduleId, actorId);
+    diagramEvent("artifact.drafted", moduleId, actorId);
+    return getDiagram(moduleId);
+  });
+}
+route("GET", "/api/modules/:id/diagram", ({ params }) => {
+  mustModule2(params.id);
+  return getDiagram(params.id);
+});
+route("POST", "/api/modules/:id/diagram/generate", async ({ params, body }) => {
+  const m = mustModule2(params.id);
+  const useCases = getDocs(m.id).useCases;
+  if (!useCases.length) throw new BizError("The module has no use cases yet. Generate the documents before drawing the diagram.");
+  const { code } = await generateUcDiagram({ moduleId: m.id, moduleName: m.name, useCases });
+  return saveDraft(m.id, code, actor(body));
+});
+route("PUT", "/api/modules/:id/diagram", ({ params, body }) => {
+  mustModule2(params.id);
+  if (typeof body?.code !== "string") throw new BizError("Missing diagram code (code)");
+  if (body.code.length > MAX_CODE) throw new BizError("Diagram code is too long", 413);
+  const code = str(body.code, MAX_CODE);
+  if (!code.trim()) throw new BizError("Diagram code cannot be empty");
+  return saveDraft(params.id, code, actor(body));
+});
+route("POST", "/api/modules/:id/diagram/approve", ({ params, body }) => {
+  mustModule2(params.id);
+  const approved = body?.approved !== false;
+  return tx(() => {
+    const d = getDiagram(params.id);
+    if (!d) throw new BizError("There is no diagram to approve yet");
+    if (approved && d.status !== "approved") {
+      write(params.id, { code: d.code, status: "approved", approvedAt: (/* @__PURE__ */ new Date()).toISOString() });
+      diagramEvent("artifact.approved", params.id, actor(body));
+    } else if (!approved && d.status === "approved") {
+      write(params.id, { code: d.code, status: "draft", approvedAt: null });
+      diagramEvent("artifact.unapproved", params.id, actor(body));
+    }
+    return getDiagram(params.id);
+  });
+});
+function markDiagramStaleIfUcChanged(moduleId, actorId) {
+  const d = getDiagram(moduleId);
+  if (!d || d.status === "stale") return false;
+  const hash = readSourceHash(d.code);
+  if (hash && hash === ucSourceHash(getDocs(moduleId).useCases)) return false;
+  return tx(() => {
+    write(moduleId, { code: d.code, status: "stale", approvedAt: d.approvedAt });
+    diagramEvent("artifact.stale", moduleId, actorId);
+    return true;
+  });
+}
+on("artifact.drafted", (e) => {
+  if (e.artifact.kind === "docs") markDiagramStaleIfUcChanged(e.artifact.moduleId, e.actorId);
+});
+
+// server/repo/tasks.ts
+import { randomUUID as randomUUID5 } from "node:crypto";
+
+// shared/taskRules.ts
+var normStatus = (s2) => s2 === "redo" ? "doing" : s2;
+function nextTaskState(cur, event) {
+  const s2 = normStatus(cur.status);
+  const rr = cur.revisionRequested || cur.status === "redo";
+  let to = null;
+  switch (event) {
+    case "artifact.drafted":
+      if (s2 !== "doing") to = { status: "doing", revisionRequested: rr };
+      break;
+    case "artifact.done":
+      to = { status: "done", revisionRequested: rr };
+      break;
+    case "artifact.approved":
+      to = { status: "approved", revisionRequested: false };
+      break;
+    case "artifact.revision_requested":
+      to = { status: "doing", revisionRequested: true };
+      break;
+    case "artifact.stale":
+    case "artifact.unapproved":
+      if (s2 === "done" || s2 === "approved") to = { status: "doing", revisionRequested: rr };
+      break;
+  }
+  if (!to && cur.status === "redo") to = { status: "doing", revisionRequested: true };
+  if (!to) return null;
+  return to.status === cur.status && to.revisionRequested === cur.revisionRequested ? null : to;
+}
+function taskMove(from, to) {
+  const f = normStatus(from);
+  const t = normStatus(to);
+  if (f === "todo" && t === "doing") return "start";
+  if (f === "doing" && t === "done") return "done";
+  if (f === "done" && t === "approved") return "approve";
+  if ((f === "done" || f === "approved") && t === "doing") return "request-change";
+  return null;
+}
+var TASK_STATUS_LABEL = { todo: "To do", doing: "In progress", done: "Done", approved: "Approved", redo: "In progress" };
+function moveError(from, to, actor2) {
+  if (normStatus(from) === normStatus(to)) return null;
+  const mv = taskMove(from, to);
+  if (!mv) return `Cannot move directly from \u201C${TASK_STATUS_LABEL[from]}\u201D to \u201C${TASK_STATUS_LABEL[to]}\u201D`;
+  if (mv === "done" && !actor2) return "Select a person in the \u201CActing as\u201D box before marking as done";
+  if (mv === "approve" && actor2?.role !== "BA_LEAD") return "Only a BA Lead can approve";
+  if (mv === "request-change" && actor2?.role !== "BA_LEAD") return "Only a BA Lead can request changes";
+  return null;
+}
+function artifactKindLabel(kind, sub) {
+  switch (kind) {
+    case "screen":
+      return "Screen";
+    case "doc":
+      return `${DOC_KIND_LABEL[sub] ?? sub ?? ""} document`.trim();
+    case "diagram":
+      return `${DIAGRAM_KIND_LABEL[sub || "UC"] ?? sub} diagram`;
+    case "tests":
+      return "Test suite";
+    case "docs":
+      return "Documents (legacy)";
+  }
+}
+function artifactTitle(kind, sub, name2 = "") {
+  const what = artifactKindLabel(kind, sub);
+  if (!name2) return what;
+  return kind === "screen" ? `${what} \u201C${name2}\u201D` : `${what} \u2013 ${name2}`;
+}
+function statusReason(event, kind, name2 = "", sub) {
+  const what = artifactTitle(kind, sub, name2);
+  switch (event) {
+    case "artifact.drafted":
+      return kind === "tests" ? `${what} was generated` : `${what} has a new draft`;
+    case "artifact.done":
+      return `BA marked ${what} as done`;
+    case "artifact.approved":
+      return `BA Lead approved ${what}`;
+    case "artifact.revision_requested":
+      return `BA Lead requested changes to ${what}`;
+    case "artifact.stale":
+      return `${what} became Outdated because a previous step changed`;
+    case "artifact.unapproved":
+      return `${what} approval was withdrawn`;
+  }
+}
+
+// server/repo/tasks.ts
+var now2 = () => (/* @__PURE__ */ new Date()).toISOString();
+var TASK_STATUSES = TASK_STATUSES_V5;
+var TASK_PRIORITIES = ["High", "Medium", "Low"];
+var ARTIFACT_KINDS = ARTIFACT_KINDS_V5;
+var toTask = (r) => ({
+  id: r.id,
+  projectId: r.project_id,
+  moduleId: r.module_id ?? null,
+  title: r.title,
+  description: r.description,
+  assigneeId: r.assignee_id ?? null,
+  dueDate: r.due_date ?? null,
+  priority: r.priority,
+  status: r.status,
+  artifactType: r.artifact_type ?? null,
+  artifactId: r.artifact_id ?? null,
+  artifactSub: r.artifact_sub ?? (r.artifact_type === "diagram" ? "UC" : null),
+  revisionRequested: !!r.revision_requested,
+  createdAt: r.created_at,
+  updatedAt: r.updated_at
+});
+var toEvent = (r) => ({
+  id: r.id,
+  taskId: r.task_id,
+  fromStatus: r.from_status ?? null,
+  toStatus: r.to_status,
+  byMemberId: r.by_member_id ?? null,
+  bySystem: !!r.by_system,
+  reason: r.reason,
+  createdAt: r.created_at
+});
+function getTask(id) {
+  const r = getDb().prepare("SELECT * FROM tasks WHERE id = ?").get(id);
+  return r ? toTask(r) : null;
+}
+function listTasks(projectId, q = {}) {
+  const where = ["project_id = ?"];
+  const vals = [projectId];
+  if (q.assigneeId) where.push("assignee_id = ?"), vals.push(q.assigneeId);
+  if (q.moduleId) where.push("module_id = ?"), vals.push(q.moduleId);
+  return getDb().prepare(`SELECT * FROM tasks WHERE ${where.join(" AND ")} ORDER BY created_at DESC, rowid DESC`).all(...vals).map(toTask);
+}
+function listTasksByArtifact(kind, id, sub) {
+  let sql = "SELECT * FROM tasks WHERE artifact_type = ? AND artifact_id = ?";
+  const vals = [kind, id];
+  if (sub && kind === "doc") {
+    sql += " AND artifact_sub = ?";
+    vals.push(sub);
+  }
+  if (sub && kind === "diagram") {
+    sql += sub === "UC" ? " AND (artifact_sub = ? OR artifact_sub IS NULL)" : " AND artifact_sub = ?";
+    vals.push(sub);
+  }
+  return getDb().prepare(`${sql} ORDER BY created_at DESC, rowid DESC`).all(...vals).map(toTask);
+}
+function listEvents(taskId) {
+  return getDb().prepare("SELECT * FROM task_events WHERE task_id = ? ORDER BY created_at, rowid").all(taskId).map(toEvent);
+}
+function getTaskDetail(id) {
+  const t = getTask(id);
+  return t ? { ...t, events: listEvents(id) } : null;
+}
+function addEvent(taskId, from, to, by, at) {
+  getDb().prepare("INSERT INTO task_events (id, task_id, from_status, to_status, by_member_id, by_system, reason, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").run(randomUUID5(), taskId, from, to, by.byMemberId ?? null, by.bySystem ? 1 : 0, by.reason ?? "", at);
+}
+var subOf = (f) => f.artifactType === "doc" || f.artifactType === "diagram" ? f.artifactSub ?? null : null;
+function createTask(projectId, f, status2 = "todo", by = {}) {
+  return tx(() => {
+    const id = randomUUID5();
+    const at = now2();
+    getDb().prepare(
+      `INSERT INTO tasks (id, project_id, module_id, title, description, assignee_id, due_date, priority, status, artifact_type, artifact_id, artifact_sub, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(id, projectId, f.moduleId, f.title, f.description, f.assigneeId, f.dueDate, f.priority, status2, f.artifactType, f.artifactId, subOf(f), at, at);
+    addEvent(id, null, status2, by, at);
+    return getTask(id);
+  });
+}
+function updateTask(id, f) {
+  getDb().prepare(
+    `UPDATE tasks SET module_id = ?, title = ?, description = ?, assignee_id = ?, due_date = ?, priority = ?, artifact_type = ?, artifact_id = ?, artifact_sub = ?, updated_at = ?
+       WHERE id = ?`
+  ).run(f.moduleId, f.title, f.description, f.assigneeId, f.dueDate, f.priority, f.artifactType, f.artifactId, subOf(f), now2(), id);
+  return getTask(id);
+}
+function setTaskStatus(id, to, by = {}, revisionRequested) {
+  return tx(() => {
+    const t = getTask(id);
+    if (!t) return null;
+    const had = !!t.revisionRequested;
+    const rr = revisionRequested ?? had;
+    if (t.status === to && rr === had) return t;
+    const at = now2();
+    getDb().prepare("UPDATE tasks SET status = ?, revision_requested = ?, updated_at = ? WHERE id = ?").run(to, rr ? 1 : 0, at, id);
+    if (t.status !== to || rr && !had) addEvent(id, t.status, to, by, at);
+    return getTask(id);
+  });
+}
+function deleteTask(id) {
+  getDb().prepare("DELETE FROM tasks WHERE id = ?").run(id);
+}
+function memberExists(id) {
+  return !!getDb().prepare("SELECT 1 FROM members WHERE id = ?").get(id);
+}
+function screenModule(screenId) {
+  const r = getDb().prepare("SELECT s.module_id, m.project_id FROM screens s JOIN modules m ON m.id = s.module_id WHERE s.id = ?").get(screenId);
+  return r ? { moduleId: r.module_id, projectId: r.project_id } : null;
+}
+function listArtifacts(projectId) {
+  const d = getDb();
+  const modules = d.prepare("SELECT id, name, tests_status FROM modules WHERE project_id = ? ORDER BY created_at, rowid").all(projectId);
+  const out = [];
+  for (const m of modules) {
+    const base = { id: m.id, moduleId: m.id, moduleName: m.name };
+    const screens = d.prepare("SELECT id, name, status FROM screens WHERE module_id = ? ORDER BY created_at, rowid").all(m.id);
+    for (const s2 of screens) out.push({ kind: "screen", id: s2.id, moduleId: m.id, moduleName: m.name, label: `Screen ${s2.name}`, status: s2.status });
+    const docs = new Map(d.prepare("SELECT kind, status FROM module_docs WHERE module_id = ?").all(m.id).map((r) => [r.kind, r.status]));
+    for (const k of DOC_KINDS) out.push({ ...base, kind: "doc", sub: k, label: artifactTitle("doc", k, m.name), status: docs.get(k) ?? "none" });
+    const diagrams = new Map(d.prepare("SELECT kind, status FROM module_diagrams WHERE module_id = ?").all(m.id).map((r) => [r.kind, r.status]));
+    for (const k of DIAGRAM_KINDS) out.push({ ...base, kind: "diagram", sub: k, label: artifactTitle("diagram", k, m.name), status: diagrams.get(k) ?? "none" });
+    out.push({ ...base, kind: "tests", label: artifactTitle("tests", null, m.name), status: m.tests_status });
+  }
+  return out;
+}
+
+// server/routes/approval.ts
+function parseArtifactRef(kind, id, sub) {
+  if (!ARTIFACT_KINDS_V5.includes(kind)) throw new HttpError("Invalid artifact type", 400);
+  const s2 = typeof sub === "string" && sub ? sub : void 0;
+  if (kind === "doc" && !(s2 && DOC_KINDS.includes(s2))) throw new HttpError("Missing or invalid document type (sub)", 400);
+  if (kind === "diagram" && s2 && !DIAGRAM_KINDS.includes(s2)) throw new HttpError("Invalid diagram type (sub)", 400);
+  const sv = s2;
+  const moduleId = kind === "screen" ? getDb().prepare("SELECT module_id FROM screens WHERE id = ?").get(id)?.module_id ?? "" : id;
+  return { kind, id, moduleId, ...kind === "doc" || kind === "diagram" ? { sub: sv ?? "UC" } : {} };
+}
+route("GET", "/api/artifacts/:kind/:id/state", (ctx) => {
+  requireMember(ctx);
+  const ref2 = parseArtifactRef(ctx.params.kind, ctx.params.id, ctx.query.get("sub"));
+  const st = getArtifactState(ref2);
+  if (!st) throw new HttpError("Artifact not found", 404);
+  return st;
+});
+var STATUS_LABEL2 = { none: "Not started", draft: "Draft", done: "Done", approved: "Approved", outdated: "Outdated" };
+var FROM = {
+  done: ["draft", "outdated"],
+  approve: ["done"],
+  "request-change": ["done", "approved"]
+};
+var WRONG_STATE = {
+  done: "Only a Draft or Outdated artifact can be marked as done",
+  approve: "Only a Done artifact can be approved",
+  "request-change": "Changes can only be requested on a Done or Approved artifact"
+};
+var forbidden = (msg) => new HttpError(msg, 403, "FORBIDDEN");
+function actorFor(action, ctx) {
+  requireMember(ctx);
+  const m = currentMember(ctx);
+  if (action === "done") {
+    if (!m) throw forbidden("Select a person in the \u201CActing as\u201D box before marking as done");
+    return m;
+  }
+  if (!m || m.role !== "BA_LEAD") throw forbidden(action === "approve" ? "Only a BA Lead can approve" : "Only a BA Lead can request changes");
+  return m;
+}
+function stateFor(action, ref2) {
+  const st = getArtifactState(ref2);
+  if (!st) throw new HttpError("Artifact not found", 404);
+  if (st.status === "none") throw new HttpError("The artifact has no content yet \u2013 generate or write it first", 400);
+  if (!FROM[action].includes(st.status)) throw new HttpError(`${WRONG_STATE[action]} (current: ${STATUS_LABEL2[st.status]})`, 400);
+  if (action !== "request-change") {
+    const reason = artifactBlockReason(ref2, action);
+    if (reason) throw new HttpError(reason, 400);
+  }
+  return st;
+}
+var result = (ref2, git) => ({
+  state: getArtifactState(ref2),
+  tasks: listTasksByArtifact(ref2.kind, ref2.id, ref2.sub),
+  ...git ? { git } : {}
+});
+async function applyApproval(action, ref2, ctx) {
+  const actor2 = actorFor(action, ctx);
+  const st = stateFor(action, ref2);
+  assertRev(st.rev, baseRevOf(ctx.body));
+  if (action === "done") {
+    tx(() => {
+      setArtifactState(ref2, { status: "done" });
+      emit({ type: "artifact.done", artifact: ref2, actorId: actor2.id });
+    });
+    return result(ref2);
+  }
+  if (action === "request-change") {
+    tx(() => {
+      setArtifactState(ref2, { status: "draft", revisionRequested: true });
+      emit({ type: "artifact.revision_requested", artifact: ref2, actorId: actor2.id });
+      cascadeOutdated(ref2.moduleId || ref2.id, actor2.id);
+    });
+    return result(ref2);
+  }
+  let git;
+  try {
+    git = await pushApproved(ref2, actor2.id);
+  } catch (e) {
+    const msg = e?.message || "unknown error";
+    throw new HttpError(`Could not push to GitHub \u2013 not approved. Reason: ${msg}`, e instanceof HttpError && e.status >= 400 && e.status < 500 ? e.status : 502);
+  }
+  tx(() => {
+    const now3 = getArtifactState(ref2);
+    if (!now3 || now3.status !== "done" || now3.rev !== st.rev) throw new HttpError("This version has changed \u2013 reload", 409, "CONFLICT", { rev: now3?.rev ?? 0 });
+    const reason = artifactBlockReason(ref2, "approve");
+    if (reason) throw new HttpError(reason, 400);
+    setArtifactState(ref2, { status: "approved", revisionRequested: false });
+    emit({ type: "artifact.approved", artifact: ref2, actorId: actor2.id });
+  });
+  return result(ref2, git);
+}
+var handler = (action) => (ctx) => applyApproval(action, parseArtifactRef(ctx.params.kind, ctx.params.id, ctx.body?.sub ?? ctx.query.get("sub")), ctx);
+route("POST", "/api/artifacts/:kind/:id/done", handler("done"));
+route("POST", "/api/artifacts/:kind/:id/approve", handler("approve"));
+route("POST", "/api/artifacts/:kind/:id/request-change", handler("request-change"));
+
+// server/routes/tasks.ts
+var mustProject = (id) => {
+  if (!getProject(id)) throw new BizError("Project not found", 404);
+};
+var mustTask = (id) => {
+  const t = getTask(id);
+  if (!t) throw new BizError("Task not found", 404);
+  return t;
+};
+var opt = (v, max = 200) => v === void 0 ? void 0 : v === null ? null : str(v, max).trim() || null;
+var status = (v) => {
+  if (!TASK_STATUSES.includes(v)) throw new BizError("Status must be To do, In progress, Done or Approved");
+  return v;
+};
+var byMember = (body) => {
+  const id = actor(body);
+  return id && memberExists(id) ? id : null;
+};
+function artifactModule(projectId, kind, id) {
+  if (kind === "screen") {
+    const s2 = screenModule(id);
+    return s2 && s2.projectId === projectId ? s2.moduleId : null;
+  }
+  const m = getModule(id);
+  return m && m.projectId === projectId ? m.id : null;
+}
+function artifactSub(kind, v) {
+  const s2 = typeof v === "string" && v ? v : null;
+  if (kind === "doc") {
+    if (!s2 || !DOC_KINDS.includes(s2)) throw new BizError("Choose a document type (BRD, UC Specification, SRS, FRD-NFR, API Spec)");
+    return s2;
+  }
+  if (kind === "diagram") {
+    if (s2 && !DIAGRAM_KINDS.includes(s2)) throw new BizError("Invalid diagram type");
+    return s2 ?? "UC";
+  }
+  return null;
+}
+function fields(projectId, body, base) {
+  const title = body.title !== void 0 ? str(body.title, 300).trim() : base?.title ?? "";
+  if (!title) throw new BizError("Task title is required");
+  const description = body.description !== void 0 ? str(body.description, 2e4) : base?.description ?? "";
+  const priority = body.priority !== void 0 && body.priority !== null ? body.priority : base?.priority ?? "Medium";
+  if (!TASK_PRIORITIES.includes(priority)) throw new BizError("Priority must be High, Medium or Low");
+  const due = opt(body.dueDate, 10);
+  const dueDate = due !== void 0 ? due : base?.dueDate ?? null;
+  if (due && (!/^\d{4}-\d{2}-\d{2}$/.test(due) || isNaN(Date.parse(due)))) throw new BizError("Due date must be in YYYY-MM-DD format");
+  const asg = opt(body.assigneeId, 100);
+  const assigneeId = asg !== void 0 ? asg : base?.assigneeId ?? null;
+  if (asg && !memberExists(asg)) throw new BizError("Assignee does not exist");
+  const mod = opt(body.moduleId, 100);
+  let moduleId = mod !== void 0 ? mod : base?.moduleId ?? null;
+  if (mod) {
+    const m = getModule(mod);
+    if (!m || m.projectId !== projectId) throw new BizError("The module does not belong to this project");
+  }
+  const touchArtifact = body.artifactType !== void 0 || body.artifactId !== void 0 || body.artifactSub !== void 0;
+  const artifactType = touchArtifact ? opt(body.artifactType, 20) ?? null : base?.artifactType ?? null;
+  const artifactId = touchArtifact ? opt(body.artifactId, 100) ?? null : base?.artifactId ?? null;
+  let sub = touchArtifact ? null : base?.artifactSub ?? null;
+  if (!!artifactType !== !!artifactId) throw new BizError("Artifact type and linked artifact must both be set or both be empty");
+  if (artifactType && touchArtifact) {
+    if (!ARTIFACT_KINDS.includes(artifactType)) throw new BizError("Artifact type must be screen, document, diagram or test suite");
+    sub = artifactSub(artifactType, body.artifactSub);
+    const am = artifactModule(projectId, artifactType, artifactId);
+    if (!am) throw new BizError("The linked artifact does not belong to this project");
+    if (mod === void 0 && !moduleId) moduleId = am;
+    if (moduleId !== am) throw new BizError("The linked artifact must belong to the task's module");
+  } else if (artifactType && mod !== void 0) {
+    const am = artifactModule(projectId, artifactType, artifactId);
+    if (am && am !== moduleId) throw new BizError("The linked artifact must belong to the task's module");
+  }
+  return { moduleId, title, description, assigneeId, dueDate, priority, artifactType, artifactId, artifactSub: sub };
+}
+route("GET", "/api/projects/:id/tasks", ({ params, query }) => {
+  mustProject(params.id);
+  return listTasks(params.id, { assigneeId: query.get("assigneeId") || void 0, moduleId: query.get("moduleId") || void 0 });
+});
+route("POST", "/api/projects/:id/tasks", ({ params, body }) => {
+  mustProject(params.id);
+  const st = body.status === void 0 || body.status === null ? "todo" : status(body.status);
+  if (st !== "todo" && st !== "doing") throw new BizError("A new task can only be To do or In progress");
+  return createTask(params.id, fields(params.id, body), st, { byMemberId: byMember(body) });
+});
+route("GET", "/api/projects/:id/artifacts", ({ params }) => {
+  mustProject(params.id);
+  return listArtifacts(params.id);
+});
+route("GET", "/api/tasks/:id", ({ params }) => {
+  mustTask(params.id);
+  return getTaskDetail(params.id);
+});
+route("PATCH", "/api/tasks/:id", ({ params, body }) => {
+  const t = mustTask(params.id);
+  if (body.status !== void 0) throw new BizError("Status cannot be changed here \u2013 drag the card to another column (PATCH /api/tasks/:id/status)");
+  return updateTask(t.id, fields(t.projectId, body, t));
+});
+route("DELETE", "/api/tasks/:id", ({ params }) => {
+  mustTask(params.id);
+  deleteTask(params.id);
+  return { ok: true };
+});
+route("PATCH", "/api/tasks/:id/status", async (ctx) => {
+  const { params, body } = ctx;
+  const t = mustTask(params.id);
+  const to = status(body.status);
+  if (t.status === to) return t;
+  const me = currentMember(ctx);
+  const mv = taskMove(t.status, to);
+  const err = moveError(t.status, to, me);
+  if (err) throw new HttpError(err, mv ? 403 : 400, mv ? "FORBIDDEN" : void 0);
+  const by = { byMemberId: me?.id ?? byMember(body), bySystem: false };
+  if (mv !== "start" && t.artifactType && t.artifactType !== "docs" && t.artifactId) {
+    const ref2 = parseArtifactRef(t.artifactType, t.artifactId, t.artifactSub ?? void 0);
+    const st = getArtifactState(ref2);
+    if (st && st.status !== "none") {
+      const target = mv === "done" ? "done" : mv === "approve" ? "approved" : "draft";
+      const alreadyThere = st.status === target && (mv !== "request-change" || st.revisionRequested);
+      if (!alreadyThere) {
+        await applyApproval(mv, ref2, { req: ctx.req, query: ctx.query, body: { actorId: body.actorId } });
+        const after = getTask(t.id);
+        if (after.status === to) return after;
+      }
+    }
+  }
+  return setTaskStatus(t.id, to, by, mv === "request-change" ? true : mv === "approve" ? false : void 0);
+});
+route("GET", "/api/artifacts/:kind/:id/tasks", ({ params, query }) => {
+  if (!ARTIFACT_KINDS.includes(params.kind) && params.kind !== "docs") throw new BizError("Invalid artifact type");
+  return listTasksByArtifact(params.kind, params.id, query.get("sub") || void 0);
+});
+
+// server/repo/stories.ts
+import { randomUUID as randomUUID6 } from "node:crypto";
+var STORY_PRIORITIES = ["High", "Medium", "Low"];
+var NO_MODULE = "none";
+var MAX_TEXT = 2e3;
+var MAX_CRITERIA = 50;
+function parseCriteria(raw) {
+  try {
+    const v = JSON.parse(String(raw ?? "[]"));
+    return Array.isArray(v) ? v.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+var toStory = (r) => ({
+  id: r.id,
+  projectId: r.project_id,
+  moduleId: r.module_id ?? null,
+  code: r.code,
+  asA: r.as_a ?? "",
+  iWant: r.i_want ?? "",
+  soThat: r.so_that ?? "",
+  acceptanceCriteria: parseCriteria(r.acceptance_criteria),
+  priority: r.priority,
+  order: Number(r.ord),
+  rev: Number(r.rev),
+  createdAt: r.created_at,
+  updatedBy: r.updated_by ?? null,
+  updatedAt: r.updated_at ?? null
+});
+var ORDER_BY = "ORDER BY ord, created_at, code";
+function listStories(projectId, moduleId) {
+  const d = getDb();
+  const rows = !moduleId ? d.prepare(`SELECT * FROM user_stories WHERE project_id = ? ${ORDER_BY}`).all(projectId) : moduleId === NO_MODULE ? d.prepare(`SELECT * FROM user_stories WHERE project_id = ? AND module_id IS NULL ${ORDER_BY}`).all(projectId) : d.prepare(`SELECT * FROM user_stories WHERE project_id = ? AND module_id = ? ${ORDER_BY}`).all(projectId, moduleId);
+  return rows.map(toStory);
+}
+function moduleStories(moduleId) {
+  return getDb().prepare(`SELECT * FROM user_stories WHERE module_id = ? ${ORDER_BY}`).all(moduleId).map(toStory);
+}
+function getStory(id) {
+  const r = getDb().prepare("SELECT * FROM user_stories WHERE id = ?").get(id);
+  return r ? toStory(r) : null;
+}
+var isBlankStory = (s2) => !s2.asA.trim() && !s2.iWant.trim() && !s2.soThat.trim();
+var text = (v) => typeof v === "string" ? v.trim().slice(0, MAX_TEXT) : "";
+function criteriaOf(v) {
+  if (!Array.isArray(v)) throw new HttpError("Acceptance criteria must be a list", 400);
+  return v.map((x) => typeof x === "string" ? x.trim().slice(0, MAX_TEXT) : "").filter(Boolean).slice(0, MAX_CRITERIA);
+}
+function priorityOf(v) {
+  if (!STORY_PRIORITIES.includes(v)) throw new HttpError("Priority must be High, Medium or Low", 400);
+  return v;
+}
+function moduleOf(projectId, v) {
+  if (v === null || v === void 0 || typeof v === "string" && !v.trim()) {
+    const has3 = getDb().prepare("SELECT 1 FROM modules WHERE project_id = ? LIMIT 1").get(projectId);
+    throw new HttpError(
+      has3 ? "No module selected \u2013 every user story must belong to a module of the project" : "The project has no modules \u2013 create a module before adding user stories",
+      400
+    );
+  }
+  const id = String(v);
+  if (!getDb().prepare("SELECT 1 FROM modules WHERE id = ? AND project_id = ?").get(id, projectId)) {
+    throw new HttpError("The module does not exist or does not belong to this project", 400);
+  }
+  return id;
+}
+function memberOrNull2(id) {
+  return id && getDb().prepare("SELECT 1 FROM members WHERE id = ?").get(id) ? id : null;
+}
+function markModuleDocsOutdated(moduleId, actorId) {
+  if (!moduleId) return [];
+  const d = getDb();
+  const rows = d.prepare("SELECT kind FROM module_docs WHERE module_id = ? AND status IN ('draft','done','approved')").all(moduleId);
+  const kinds = DOC_KINDS.filter((k) => rows.some((r) => r.kind === k));
+  for (const kind of kinds) {
+    d.prepare("UPDATE module_docs SET status = 'outdated' WHERE module_id = ? AND kind = ?").run(moduleId, kind);
+    emit({ type: "artifact.stale", artifact: { kind: "doc", id: moduleId, moduleId, sub: kind }, actorId: actorId ?? void 0 });
+  }
+  return kinds;
+}
+function createStory(projectId, input, actorId) {
+  const d = getDb();
+  if (!d.prepare("SELECT 1 FROM projects WHERE id = ?").get(projectId)) throw new HttpError("Project not found", 404);
+  const moduleId = moduleOf(projectId, input.moduleId);
+  const priority = input.priority === void 0 ? "Medium" : priorityOf(input.priority);
+  const criteria = input.acceptanceCriteria === void 0 ? [] : criteriaOf(input.acceptanceCriteria);
+  return tx(() => {
+    const id = randomUUID6();
+    const at = (/* @__PURE__ */ new Date()).toISOString();
+    const code = storyCode(nextStoryNumber(d, projectId));
+    const ord = Number(d.prepare("SELECT COALESCE(MAX(ord), 0) AS n FROM user_stories WHERE project_id = ?").get(projectId).n) + 1;
+    d.prepare(
+      `INSERT INTO user_stories (id, project_id, module_id, code, as_a, i_want, so_that, acceptance_criteria, priority, ord, rev, created_at, updated_by, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`
+    ).run(id, projectId, moduleId, code, text(input.asA), text(input.iWant), text(input.soThat), JSON.stringify(criteria), priority, ord, at, memberOrNull2(actorId), at);
+    const story = getStory(id);
+    if (!isBlankStory(story)) markModuleDocsOutdated(moduleId, actorId);
+    return { story, modules: [moduleId] };
+  });
+}
+var sameList = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
+function updateStory(id, input, baseRev, actorId) {
+  return tx(() => {
+    const cur = getStory(id);
+    if (!cur) throw new HttpError("User story not found", 404);
+    assertRev(cur.rev, baseRev);
+    const next = {
+      ...cur,
+      moduleId: input.moduleId === void 0 ? cur.moduleId : moduleOf(cur.projectId, input.moduleId),
+      asA: input.asA === void 0 ? cur.asA : text(input.asA),
+      iWant: input.iWant === void 0 ? cur.iWant : text(input.iWant),
+      soThat: input.soThat === void 0 ? cur.soThat : text(input.soThat),
+      acceptanceCriteria: input.acceptanceCriteria === void 0 ? cur.acceptanceCriteria : criteriaOf(input.acceptanceCriteria),
+      priority: input.priority === void 0 ? cur.priority : priorityOf(input.priority)
+    };
+    const changed = next.moduleId !== cur.moduleId || next.asA !== cur.asA || next.iWant !== cur.iWant || next.soThat !== cur.soThat || next.priority !== cur.priority || !sameList(next.acceptanceCriteria, cur.acceptanceCriteria);
+    if (!changed) return { story: cur, modules: [] };
+    getDb().prepare(
+      `UPDATE user_stories SET module_id = ?, as_a = ?, i_want = ?, so_that = ?, acceptance_criteria = ?, priority = ?,
+           rev = rev + 1, updated_by = ?, updated_at = ? WHERE id = ?`
+    ).run(next.moduleId, next.asA, next.iWant, next.soThat, JSON.stringify(next.acceptanceCriteria), next.priority, memberOrNull2(actorId), (/* @__PURE__ */ new Date()).toISOString(), id);
+    const modules = [...new Set([cur.moduleId, next.moduleId].filter((m) => !!m))];
+    for (const m of modules) markModuleDocsOutdated(m, actorId);
+    return { story: getStory(id), modules };
+  });
+}
+function deleteStory(id, baseRev, actorId) {
+  return tx(() => {
+    const cur = getStory(id);
+    if (!cur) throw new HttpError("User story not found", 404);
+    assertRev(cur.rev, baseRev);
+    getDb().prepare("DELETE FROM user_stories WHERE id = ?").run(id);
+    if (!isBlankStory(cur)) markModuleDocsOutdated(cur.moduleId, actorId);
+    return { projectId: cur.projectId, modules: cur.moduleId ? [cur.moduleId] : [] };
+  });
+}
+function reorderStories(projectId, ids) {
+  const all = listStories(projectId);
+  const known = new Set(all.map((s2) => s2.id));
+  const uniq2 = [...new Set(ids.map(String))];
+  const bad = uniq2.find((id) => !known.has(id));
+  if (bad) throw new HttpError("The ordering list contains user stories that do not belong to the project", 400);
+  const picked = new Set(uniq2);
+  const ordered = [...uniq2, ...all.filter((s2) => !picked.has(s2.id)).map((s2) => s2.id)];
+  tx(() => {
+    const upd = getDb().prepare("UPDATE user_stories SET ord = ? WHERE id = ?");
+    ordered.forEach((id, i) => upd.run(i + 1, id));
+  });
+  return listStories(projectId);
+}
+
+// server/routes/qus.ts
+function othersOf(m) {
+  return listModules(m.projectId).filter((x) => x.id !== m.id).map((x) => ({ moduleName: x.name, stories: moduleStories(x.id).filter((s2) => !isBlankStructured(s2)).map(storySentence) }));
+}
+function scoreModule(m) {
+  return scoreStructured(moduleStories(m.id), { others: othersOf(m) });
+}
+function saveModuleQus(moduleId) {
+  const m = getModule(moduleId);
+  if (!m) return null;
+  const result2 = scoreModule(m);
+  const score = result2.stories.length ? result2.total : null;
+  getDb().prepare("UPDATE modules SET qus_score = ?, qus_checked_at = ? WHERE id = ?").run(score, score === null ? null : (/* @__PURE__ */ new Date()).toISOString(), moduleId);
+  return score;
+}
+function saveProjectQus(projectId) {
+  for (const m of listModules(projectId)) saveModuleQus(m.id);
+}
+route("GET", "/api/modules/:id/qus", ({ params }) => {
+  const m = getModule(params.id);
+  if (!m) throw new BizError("Module not found", 404);
+  const saved = getDb().prepare("SELECT qus_score, qus_checked_at FROM modules WHERE id = ?").get(m.id);
+  return {
+    moduleId: m.id,
+    score: saved?.qus_score ?? null,
+    checkedAt: saved?.qus_checked_at ?? null,
+    result: scoreModule(m)
+  };
+});
+
+// shared/suggest.ts
+var COVERAGE_THRESHOLD = 0.6;
+var STOPWORDS = new Set(
+  [
+    "he thong",
+    "nguoi dung",
+    "cho phep",
+    "co the",
+    "phai",
+    "duoc",
+    "can",
+    "cua",
+    "cho",
+    "voi",
+    "va",
+    "hoac",
+    "cac",
+    "nhung",
+    "mot",
+    "la",
+    "toi",
+    "muon",
+    "de",
+    "khi",
+    "theo",
+    "trong",
+    "tren",
+    "tu",
+    "den",
+    "vao",
+    "ra",
+    "nay",
+    "do",
+    "the",
+    "system",
+    "user",
+    "shall",
+    "should",
+    "must",
+    "can",
+    "the",
+    "a",
+    "an",
+    "to",
+    "of",
+    "for",
+    "and",
+    "or",
+    "with",
+    "in",
+    "on",
+    "by",
+    "be",
+    "i",
+    "my"
+  ].flatMap((w) => w.split(" "))
+);
+function storyKey(story) {
+  let h2 = 2166136261;
+  for (const ch of slug(story)) {
+    h2 ^= ch.charCodeAt(0);
+    h2 = Math.imul(h2, 16777619) >>> 0;
+  }
+  return `story:${h2.toString(36)}`;
+}
+function keywords(text2) {
+  return [...new Set(slug(text2).split("_").filter((t) => t.length > 1 && !STOPWORDS.has(t)))];
+}
+function screenVocabulary(s2) {
+  const parts = [
+    s2.screenName,
+    s2.title,
+    ...s2.headings,
+    ...s2.actions.map((a) => a.label),
+    ...s2.fields.map((f) => f.label),
+    ...s2.links.map((l) => l.text),
+    ...s2.displays.flatMap((d) => [d.title, ...d.columns, ...d.rowActions]),
+    ...s2.forms.map((f) => f.title)
+  ];
+  return new Set(parts.flatMap((p2) => slug(p2).split("_")).filter(Boolean));
+}
+function isCovered(text2, vocabularies) {
+  const kw = keywords(text2);
+  if (!kw.length) return true;
+  return vocabularies.some((v) => kw.filter((k) => v.has(k)).length / kw.length >= COVERAGE_THRESHOLD);
+}
+var VALIDATION_FR = /^(?:(?:hệ thống|the system)\s+(?:phải|shall|must|should)\s+)?(?:kiểm tra|validate)\s*:/iu;
+var LEAD = /^(?:hệ thống|the system)\s+(?:phải|shall|must|should)\s+(?:cho phép\s+(?:\S+\s+){0,4}?thực hiện\s+|allow\s+(?:\S+\s+){0,3}?to\s+)?/iu;
+var CLAUSE_WORDS = /* @__PURE__ */ new Set(["\u0111\u1EC3", "nh\u1EB1m", "theo", "khi", "trong", "cho", "when", "for", "by", "so", "via"]);
+var TRAILING_WORDS = /* @__PURE__ */ new Set(["v\xE0", "ho\u1EB7c", "c\u1EE7a", "c\xE1c", "v\u1EDBi", "and", "or", "of", "the", "a", "an", "to", "with"]);
+var MAX_NAME_WORDS = 8;
+function screenName(text2) {
+  const quoted = text2.match(/["“]([^"”]+)["”]/u)?.[1];
+  let words2 = [];
+  if (quoted) {
+    words2 = quoted.trim().replace(/^(?:mở màn hình|open(?: the)? screen)\s+/iu, "").replace(/\s*\(([^)]+)\)\s*$/u, " \u2013 $1").split(/\s+/);
+  } else {
+    const core = text2.replace(/\s*[(（][^)）]*[)）]?/gu, " ").replace(/[.。!?]+$/u, "").trim().replace(LEAD, "");
+    for (const w of core.split(/\s+/)) {
+      if (words2.length && CLAUSE_WORDS.has(w.toLowerCase())) break;
+      words2.push(w);
+    }
+  }
+  words2 = words2.slice(0, MAX_NAME_WORDS);
+  while (words2.length > 1 && TRAILING_WORDS.has(words2[words2.length - 1].toLowerCase())) words2.pop();
+  const name2 = words2.join(" ").replace(/[\s:;,–-]+$/u, "");
+  return name2.charAt(0).toUpperCase() + name2.slice(1);
+}
+function knownNames(model) {
+  return new Set(model.screens.flatMap((s2) => [slug(s2.screenName), slug(s2.title)]).filter(Boolean));
+}
+function brokenLinks(model, known) {
+  const out = [];
+  for (const s2 of model.screens) {
+    const targets = [
+      ...s2.actions.map((a) => ({ nodeId: a.nodeId, label: a.label, to: a.navigateTo })),
+      ...s2.links.map((l) => ({ nodeId: l.nodeId, label: l.text, to: l.navigateTo }))
+    ];
+    for (const t of targets) {
+      if (!t.to.trim() || known.has(slug(t.to))) continue;
+      const name2 = t.to.trim();
+      out.push({
+        key: `link:${s2.screenId}:${t.nodeId}`,
+        kind: "broken-link",
+        name: name2,
+        reason: `Button "${t.label}" on screen ${s2.screenName} has no target`,
+        source: `${s2.screenName} \u203A ${t.label}`,
+        prompt: `Screen ${name2}. Users reach this screen by clicking "${t.label}" on screen ${s2.screenName}.`
+      });
+    }
+  }
+  return out;
+}
+function suggestNextScreens(input) {
+  const { model, requirements, stories } = input;
+  const dismissed = new Set(input.dismissed ?? []);
+  const vocabularies = model.screens.map(screenVocabulary);
+  const known = knownNames(model);
+  const uncovered = (text2, name2) => !known.has(slug(name2)) && !isCovered(text2, vocabularies);
+  const all = brokenLinks(model, known);
+  const frs = requirements.filter((r) => r.type === "FR" && !VALIDATION_FR.test(r.statement.trim()));
+  if (frs.length) {
+    for (const r of frs) {
+      const name2 = screenName(r.statement);
+      if (!uncovered(r.statement, name2)) continue;
+      all.push({
+        key: `fr:${r.code}`,
+        kind: "uncovered-fr",
+        name: name2,
+        reason: `${r.code} is not covered by any screen`,
+        source: r.code,
+        prompt: `Screen ${name2} satisfying ${r.code}: ${r.statement}`
+      });
+    }
+  } else {
+    for (const item of stories) {
+      if (typeof item !== "string" && isBlankStructured(item)) continue;
+      const story = typeof item === "string" ? item : storySentence(item);
+      const code = typeof item === "string" ? void 0 : item.code;
+      const means = parseStory(story).means ?? story;
+      const name2 = screenName(means);
+      if (!uncovered(means, name2)) continue;
+      all.push({
+        key: storyKey(story),
+        kind: "uncovered-story",
+        name: name2,
+        reason: code ? `User story ${code} is not covered by any screen` : "User story is not covered by any screen",
+        source: code ?? story,
+        prompt: `Screen ${name2} satisfying user story${code ? ` ${code}` : ""}: ${story}`
+      });
+    }
+  }
+  const seen = /* @__PURE__ */ new Set();
+  return all.filter((s2) => {
+    const k = slug(s2.name);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  }).filter((s2) => !dismissed.has(s2.key));
+}
+
+// server/routes/suggest.ts
+var KEY_RE = /^(link|fr|story):\S.{0,299}$/;
+function requireModule(id) {
+  const m = getModule(id);
+  if (!m) throw new BizError("Module not found", 404);
+  return m;
+}
+function requireKey(key2) {
+  if (!KEY_RE.test(key2)) throw new BizError("Invalid suggestion key");
+  return key2;
+}
+function listDismissed(moduleId) {
+  return getDb().prepare("SELECT key FROM suggestion_dismissals WHERE module_id = ? ORDER BY created_at").all(moduleId).map((r) => r.key);
+}
+function getScreenSuggestions(moduleId) {
+  const m = requireModule(moduleId);
+  const input = {
+    model: extractModel(listScreens(m.id).filter((s2) => s2.tree).map((s2) => ({ id: s2.id, name: s2.name, tree: s2.tree }))),
+    requirements: getDocs(m.id).requirements,
+    stories: splitStories(m.requirementInput)
+  };
+  const dismissedKeys = listDismissed(m.id);
+  const keys = new Set(dismissedKeys);
+  return {
+    items: suggestNextScreens({ ...input, dismissed: dismissedKeys }),
+    // Chỉ trả các gợi ý bị bỏ qua mà vẫn còn là khoảng trống; khoá cũ đã được phủ thì không hiện để khôi phục.
+    dismissed: suggestNextScreens({ ...input, dismissed: [] }).filter((s2) => keys.has(s2.key))
+  };
+}
+route("GET", "/api/modules/:id/suggestions", ({ params }) => getScreenSuggestions(params.id));
+route("POST", "/api/modules/:id/suggestions/:key/dismiss", ({ params }) => {
+  requireModule(params.id);
+  getDb().prepare("INSERT OR IGNORE INTO suggestion_dismissals (module_id, key, created_at) VALUES (?, ?, ?)").run(params.id, requireKey(params.key), (/* @__PURE__ */ new Date()).toISOString());
+  return { ok: true };
+});
+route("DELETE", "/api/modules/:id/suggestions/:key/dismiss", ({ params }) => {
+  requireModule(params.id);
+  getDb().prepare("DELETE FROM suggestion_dismissals WHERE module_id = ? AND key = ?").run(params.id, requireKey(params.key));
+  return { ok: true };
+});
+
+// server/routes/stories.ts
+var actorOf = (ctx) => requireMember(ctx)?.id ?? currentMember(ctx)?.id ?? null;
+function inputOf(body) {
+  const b = body ?? {};
+  const out = {};
+  if ("moduleId" in b) out.moduleId = b.moduleId === null ? null : String(b.moduleId ?? "");
+  for (const k of ["asA", "iWant", "soThat"]) if (k in b) out[k] = typeof b[k] === "string" ? b[k] : "";
+  if ("acceptanceCriteria" in b) out.acceptanceCriteria = b.acceptanceCriteria;
+  if ("priority" in b) out.priority = b.priority;
+  return out;
+}
+route("GET", "/api/projects/:id/stories", (ctx) => {
+  requireMember(ctx);
+  return listStories(ctx.params.id, ctx.query.get("moduleId") || void 0);
+});
+route("POST", "/api/projects/:id/stories", (ctx) => {
+  const actorId = actorOf(ctx);
+  const { story } = createStory(ctx.params.id, inputOf(ctx.body), actorId);
+  saveProjectQus(story.projectId);
+  return story;
+});
+route("POST", "/api/projects/:id/stories/reorder", (ctx) => {
+  requireMember(ctx);
+  if (!Array.isArray(ctx.body?.ids)) throw new HttpError("Missing ids list", 400);
+  return reorderStories(ctx.params.id, arr(ctx.body.ids));
+});
+route("GET", "/api/stories/:id", (ctx) => {
+  requireMember(ctx);
+  const s2 = getStory(ctx.params.id);
+  if (!s2) throw new HttpError("User story not found", 404);
+  return s2;
+});
+route("PATCH", "/api/stories/:id", (ctx) => {
+  const actorId = actorOf(ctx);
+  const { story, modules } = updateStory(ctx.params.id, inputOf(ctx.body), baseRevOf(ctx.body, ctx.query), actorId);
+  if (modules.length) saveProjectQus(story.projectId);
+  return story;
+});
+route("DELETE", "/api/stories/:id", (ctx) => {
+  const actorId = actorOf(ctx);
+  const { projectId } = deleteStory(ctx.params.id, baseRevOf(ctx.body, ctx.query), actorId);
+  saveProjectQus(projectId);
+  return { ok: true };
+});
+
+// server/repo/docs.ts
+var parseData = (s2) => {
+  if (!s2) return null;
+  try {
+    const v = JSON.parse(s2);
+    return v && typeof v === "object" ? v : null;
+  } catch {
+    return null;
+  }
+};
+var toDoc = (r) => ({
+  moduleId: r.module_id,
+  kind: r.kind,
+  content: r.content ?? "",
+  data: parseData(r.data),
+  status: r.status,
+  revisionRequested: !!r.revision_requested,
+  rev: Number(r.rev),
+  updatedBy: r.updated_by ?? null,
+  updatedAt: r.updated_at ?? null
+});
+var emptyDoc = (moduleId, kind) => ({
+  moduleId,
+  kind,
+  content: "",
+  data: null,
+  status: "none",
+  revisionRequested: false,
+  rev: 0,
+  updatedBy: null,
+  updatedAt: null
+});
+var isDocKind = (k) => typeof k === "string" && DOC_KINDS.includes(k);
+var docRef = (moduleId, kind) => ({ kind: "doc", id: moduleId, moduleId, sub: kind });
+function getModuleInfo(moduleId) {
+  const r = getDb().prepare("SELECT id, project_id, name FROM modules WHERE id = ?").get(moduleId);
+  return r ? { id: r.id, projectId: r.project_id, name: r.name } : null;
+}
+function getDoc(moduleId, kind) {
+  const r = getDb().prepare("SELECT * FROM module_docs WHERE module_id = ? AND kind = ?").get(moduleId, kind);
+  return r ? toDoc(r) : emptyDoc(moduleId, kind);
+}
+function listDocs(moduleId) {
+  const rows = getDb().prepare("SELECT * FROM module_docs WHERE module_id = ?").all(moduleId);
+  const by = new Map(rows.map((r) => [r.kind, toDoc(r)]));
+  return DOC_KINDS.map((k) => by.get(k) ?? emptyDoc(moduleId, k));
+}
+function writeDocContent(moduleId, kind, content, data) {
+  const d = getDb();
+  const json = data ? JSON.stringify(data) : null;
+  const at = (/* @__PURE__ */ new Date()).toISOString();
+  const exists = d.prepare("SELECT 1 FROM module_docs WHERE module_id = ? AND kind = ?").get(moduleId, kind);
+  if (exists) d.prepare("UPDATE module_docs SET content = ?, data = ?, updated_at = ? WHERE module_id = ? AND kind = ?").run(content, json, at, moduleId, kind);
+  else d.prepare("INSERT INTO module_docs (module_id, kind, content, data, status, revision_requested, rev, updated_at) VALUES (?, ?, ?, ?, 'draft', 0, 0, ?)").run(moduleId, kind, content, json, at);
+}
+var toStory2 = (r) => {
+  let ac = [];
+  try {
+    const v = JSON.parse(r.acceptance_criteria || "[]");
+    if (Array.isArray(v)) ac = v.map(String).filter((x) => x.trim());
+  } catch {
+    ac = [];
+  }
+  return {
+    id: r.id,
+    projectId: r.project_id,
+    moduleId: r.module_id,
+    code: r.code,
+    asA: r.as_a ?? "",
+    iWant: r.i_want ?? "",
+    soThat: r.so_that ?? "",
+    acceptanceCriteria: ac,
+    priority: r.priority,
+    order: Number(r.ord),
+    createdAt: r.created_at,
+    rev: Number(r.rev),
+    updatedBy: r.updated_by ?? null,
+    updatedAt: r.updated_at ?? null
+  };
+};
+function listModuleStories2(moduleId) {
+  const rows = getDb().prepare("SELECT * FROM user_stories WHERE module_id = ? ORDER BY ord, code").all(moduleId);
+  return rows.map(toStory2).filter((s2) => s2.iWant.trim() || s2.asA.trim() || s2.soThat.trim());
+}
+function storiesText(stories) {
+  return stories.map((s2) => {
+    const head = `- ${s2.code} [${s2.priority}]: As a ${s2.asA || "\u2026"}, I want ${s2.iWant || "\u2026"}${s2.soThat ? `, so that ${s2.soThat}` : ""}`;
+    const ac = s2.acceptanceCriteria.map((a) => `    - AC: ${a}`);
+    return [head, ...ac].join("\n");
+  }).join("\n");
+}
+
+// server/ai/docsPipelines.ts
+var SYSTEM2 = `You are a Senior Business Analyst in the BA Copilot system.
+Principles:
+- Write ALL content in English: clear, concise, using standard business analysis terminology (BABOK, IEEE 830 / ISO/IEC/IEEE 29148).
+- Rely only on the input data. Anything you have to infer must be clearly marked as an assumption for the BA to confirm \u2013 NEVER present it as fact.
+- Markdown: section headings use "## ", sub-sections "### ", lists "- ", tables "| \u2026 |". Do NOT use \`\`\` code blocks and do NOT use "#### " headings.
+- Always return the result by calling exactly the requested tool.`;
+var MAX_CTX = 3e4;
+var clip2 = (s2, n = MAX_CTX) => s2.length > n ? s2.slice(0, n) + "\n\u2026(truncated)" : s2;
+var SYSTEM_ACTOR2 = "System";
+var isSystem = (a) => /^(?:system|the system|hệ thống)$/i.test(a.trim());
+var cap2 = (s2) => s2 ? s2.charAt(0).toUpperCase() + s2.slice(1) : s2;
+var low = (s2) => !s2 || /^(?:I\b|[A-Z]{2})/.test(s2) ? s2 : s2.charAt(0).toLowerCase() + s2.slice(1);
+var tidy = (s2) => s2.trim().replace(/\s+/g, " ").replace(/[.;,]+$/, "");
+var pad2 = (n) => String(n).padStart(2, "0");
+var cell2 = (s2) => String(s2 ?? "").replace(/\|/g, "/").replace(/\r?\n/g, " ");
+function slugify(s2, maxWords = 5) {
+  const ascii = s2.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase();
+  const words2 = ascii.split(/[^a-z0-9]+/).filter(Boolean);
+  return words2.slice(0, maxWords).join("-") || "resource";
+}
+var actorOf2 = (s2) => cap2(tidy(s2.asA)) || "User";
+var featureOf = (s2) => cap2(tidy(s2.iWant).slice(0, 90)) || `Feature ${s2.code}`;
+var READ_RE = /xem|tra cứu|tìm|danh sách|liệt kê|báo cáo|thống kê|lọc|theo dõi|\b(?:view|see|search|find|look up|list|browse|report|statistic|filter|track)/i;
+var DELETE_RE = /xoá|xóa|huỷ|hủy|\b(?:delete|remove|cancel)/i;
+var UPDATE_RE = /sửa|cập nhật|chỉnh|thay đổi|đổi|\b(?:edit|update|change|modify)/i;
+var DETAIL_RE = /chi tiết|\bdetail/i;
+function splitSections(md) {
+  const lines = md.replace(/\r\n/g, "\n").split("\n");
+  const pre = [];
+  const sections = [];
+  let fence = false;
+  for (const line of lines) {
+    if (/^\s*```/.test(line)) fence = !fence;
+    const m = !fence && /^## (.+)$/.exec(line);
+    if (m) sections.push({ title: m[1].trim(), lines: [line] });
+    else if (sections.length) sections[sections.length - 1].lines.push(line);
+    else pre.push(line);
+  }
+  return { preamble: pre.join("\n"), sections: sections.map((s2) => ({ title: s2.title, text: s2.lines.join("\n").replace(/\s+$/, "") })) };
+}
+function replaceSection(md, title, next) {
+  const { preamble, sections } = splitSections(md);
+  const parts = sections.map((s2) => s2.title === title ? next.trim() : s2.text);
+  return [preamble.trim(), ...parts].filter(Boolean).join("\n\n") + "\n";
+}
+function ucMarkdown2(ucs, moduleName) {
+  const out = [`# UC Specification \u2013 ${moduleName}`, ""];
+  for (const uc of ucs) {
+    out.push(`## ${uc.code} \u2013 ${uc.name}`, "");
+    if (uc.actors.length) out.push(`**Actor:** ${uc.actors.join(", ")}`, "");
+    if (uc.storyCodes?.length) out.push(`**Source stories:** ${uc.storyCodes.join(", ")}`, "");
+    if (uc.description) out.push(`**Description:** ${uc.description}`, "");
+    if (uc.trigger) out.push(`**Trigger:** ${uc.trigger}`, "");
+    const list = (title, items) => items.length ? out.push(`**${title}:**`, ...items.map((x) => `- ${x}`), "") : 0;
+    list("Preconditions", uc.preconditions);
+    list("Postconditions", uc.postconditions);
+    if (uc.mainFlow.length) out.push("**Main flow:**", ...uc.mainFlow.map((s2, i) => `${s2.no || i + 1}. ${s2.actor ? `${s2.actor}: ` : ""}${s2.text}`), "");
+    for (const f of [...uc.altFlows, ...uc.exceptions]) out.push(`**${f.code} \u2013 ${f.name}** (branches from step ${f.branchFrom}):`, ...f.steps.map((s2, i) => `${i + 1}. ${s2}`), "");
+    list("Business rules", uc.businessRules);
+    list("Assumptions", uc.assumptions);
+  }
+  return out.join("\n").trim() + "\n";
+}
+function reqMarkdown2(reqs, moduleName) {
+  const table2 = (type) => {
+    const rows = reqs.filter((r) => r.type === type);
+    return [
+      `## ${type === "FR" ? "Functional Requirements (FR)" : "Non-functional Requirements (NFR)"}`,
+      "",
+      ...rows.length ? [
+        "| ID | Requirement | Priority | Use case | Source |",
+        "|---|---|---|---|---|",
+        ...rows.map((r) => `| ${cell2(r.code)} | ${cell2(r.statement)}${r.isAssumption ? " _(assumption)_" : ""} | ${cell2(r.priority)} | ${cell2(r.useCaseCodes.join(", "))} | ${cell2(r.source)} |`)
+      ] : ["- (none yet)"],
+      ""
+    ];
+  };
+  return [`# FRD-NFR \u2013 ${moduleName}`, "", ...table2("FR"), ...table2("NFR")].join("\n").trim() + "\n";
+}
+function srsMarkdown2(srs, moduleName) {
+  return [`# SRS \u2013 ${moduleName}`, "", ...srs.sections.flatMap((s2) => [`## ${s2.title}`, "", s2.content.trim(), ""])].join("\n").trim() + "\n";
+}
+var FLOW_RE = /^\*\*([AE]\d+)\s*[–-]\s*(.+?)\*\*\s*(?:\((?:rẽ từ bước|branches from step)\s*(\d+)\))?:?\s*$/i;
+var FIELD_RE = /^\*\*(.+?):\*\*\s*(.*)$/;
+var UC_FIELD = {
+  actor: "actor",
+  actors: "actor",
+  "source stories": "stories",
+  "story ngu\u1ED3n": "stories",
+  description: "description",
+  "m\xF4 t\u1EA3": "description",
+  trigger: "trigger",
+  "k\xEDch ho\u1EA1t": "trigger",
+  preconditions: "pre",
+  "ti\u1EC1n \u0111i\u1EC1u ki\u1EC7n": "pre",
+  postconditions: "post",
+  "h\u1EADu \u0111i\u1EC1u ki\u1EC7n": "post",
+  "main flow": "main",
+  "lu\u1ED3ng ch\xEDnh": "main",
+  "business rules": "rules",
+  "quy t\u1EAFc nghi\u1EC7p v\u1EE5": "rules",
+  assumptions: "assume",
+  "gi\u1EA3 \u0111\u1ECBnh": "assume"
+};
+var ASSUMPTION_TAG = /_\((?:giả định|assumption)\)_|\((?:giả định|assumption)\)/i;
+var ASSUMPTION_STRIP = /\s*_?\((?:giả định|assumption)\)_?/i;
+function parseUcMarkdown(md, prev = []) {
+  const out = [];
+  for (const sec of splitSections(md).sections) {
+    const h2 = /^(UC-\d+)\s*[–-]\s*(.*)$/.exec(sec.title);
+    if (!h2) continue;
+    const old = prev.find((u) => u.code === h2[1]);
+    const uc = {
+      code: h2[1],
+      name: h2[2].trim(),
+      actors: [],
+      description: "",
+      trigger: "",
+      preconditions: [],
+      postconditions: [],
+      mainFlow: [],
+      altFlows: [],
+      exceptions: [],
+      businessRules: [],
+      screenIds: old?.screenIds ?? [],
+      assumptions: [],
+      ...old?.storyCodes ? { storyCodes: old.storyCodes } : {}
+    };
+    let mode = null;
+    let flow = null;
+    for (const raw of sec.text.split("\n").slice(1)) {
+      const line = raw.trim();
+      if (!line) continue;
+      const fm = FLOW_RE.exec(line);
+      if (fm) {
+        flow = { code: fm[1], name: fm[2].trim(), branchFrom: Number(fm[3] ?? 1), steps: [] };
+        (fm[1].startsWith("E") ? uc.exceptions : uc.altFlows).push(flow);
+        mode = "flow";
+        continue;
+      }
+      const f = FIELD_RE.exec(line);
+      if (f) {
+        const [key2, val] = [UC_FIELD[f[1].trim().toLowerCase()], f[2].trim()];
+        mode = null;
+        if (key2 === "actor") uc.actors = val.split(",").map((x) => x.trim()).filter(Boolean);
+        else if (key2 === "stories") uc.storyCodes = val.split(/[,\s]+/).filter((x) => /^US-\d+/.test(x));
+        else if (key2 === "description") uc.description = val;
+        else if (key2 === "trigger") uc.trigger = val;
+        else if (key2 === "pre" || key2 === "post" || key2 === "main" || key2 === "rules" || key2 === "assume") mode = key2;
+        continue;
+      }
+      const bullet2 = /^[-*]\s+(.*)$/.exec(line)?.[1];
+      const num3 = /^\d+[.)]\s+(.*)$/.exec(line)?.[1];
+      const item = bullet2 ?? num3;
+      if (item === void 0) continue;
+      if (mode === "pre") uc.preconditions.push(item);
+      else if (mode === "post") uc.postconditions.push(item);
+      else if (mode === "rules") uc.businessRules.push(item);
+      else if (mode === "assume") uc.assumptions.push(item);
+      else if (mode === "flow" && flow) flow.steps.push(item);
+      else if (mode === "main") {
+        const am = /^([^:]{1,40}):\s+(.+)$/.exec(item);
+        const i = uc.mainFlow.length;
+        const keep = old?.mainFlow[i];
+        const step2 = { no: i + 1, actor: am ? am[1].trim() : "", text: am ? am[2].trim() : item };
+        if (keep?.screenId) step2.screenId = keep.screenId;
+        if (keep?.nodeId) step2.nodeId = keep.nodeId;
+        uc.mainFlow.push(step2);
+      }
+    }
+    out.push(uc);
+  }
+  return out;
+}
+function parseReqMarkdown(md) {
+  const out = [];
+  for (const raw of md.split("\n")) {
+    const line = raw.trim();
+    if (!line.startsWith("|")) continue;
+    const cells = line.replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+    const code = /^(N?FR-\d+)/.exec(cells[0] ?? "")?.[1];
+    if (!code) continue;
+    const st = cells[1] ?? "";
+    const isAssumption = ASSUMPTION_TAG.test(st);
+    const pr = cells[2] ?? "";
+    out.push({
+      code,
+      type: code.startsWith("NFR") ? "NFR" : "FR",
+      statement: st.replace(ASSUMPTION_STRIP, "").trim(),
+      priority: pr === "High" || pr === "Low" ? pr : "Medium",
+      useCaseCodes: (cells[3] ?? "").split(/[,\s]+/).filter((x) => /^UC-\d+$/.test(x)),
+      source: cells[4] ?? "",
+      isAssumption
+    });
+  }
+  return out;
+}
+var SRS_KEYS = [
+  [/giới thiệu|introduction/i, "intro"],
+  [/tổng quan|overall description|overview/i, "overview"],
+  [/phi chức năng|non-functional|nonfunctional/i, "nonfunctional"],
+  [/chức năng|functional/i, "functional"],
+  [/giao diện|interface/i, "interfaces"],
+  [/dữ liệu|data/i, "data"],
+  [/giả định|vấn đề mở|assumption|open issue/i, "assumptions"]
+];
+function parseSrsMarkdown(md, prev) {
+  const sections = splitSections(md).sections.map((s2, i) => {
+    const old = prev?.sections.find((x) => x.title === s2.title);
+    const key2 = old?.key ?? SRS_KEYS.find(([re]) => re.test(s2.title))?.[1] ?? `s${i + 1}`;
+    return { key: key2, title: s2.title, content: s2.text.split("\n").slice(1).join("\n").trim() };
+  });
+  return { sections };
+}
+function deriveDocData(kind, content, prev) {
+  if (kind === "UC_SPEC") return { useCases: parseUcMarkdown(content, prev?.useCases ?? []) };
+  if (kind === "FRD_NFR") return { requirements: parseReqMarkdown(content) };
+  if (kind === "SRS") return { srs: parseSrsMarkdown(content, prev?.srs) };
+  return null;
+}
+var strs = (x) => Array.isArray(x) ? x.map((v) => String(v)).filter((v) => v.trim()) : [];
+var flows = (x) => Array.isArray(x) ? x.map((f) => ({ code: String(f?.code ?? ""), name: String(f?.name ?? ""), branchFrom: Number(f?.branchFrom ?? 1) || 1, steps: strs(f?.steps) })) : [];
+function coerceDocUseCase(u) {
+  return {
+    code: String(u?.code ?? ""),
+    name: String(u?.name ?? ""),
+    actors: strs(u?.actors),
+    description: String(u?.description ?? ""),
+    trigger: String(u?.trigger ?? ""),
+    preconditions: strs(u?.preconditions),
+    postconditions: strs(u?.postconditions),
+    mainFlow: (Array.isArray(u?.mainFlow) ? u.mainFlow : []).map((s2, i) => ({ no: Number(s2?.no ?? i + 1) || i + 1, actor: String(s2?.actor ?? ""), text: String(s2?.text ?? "") })),
+    altFlows: flows(u?.altFlows),
+    exceptions: flows(u?.exceptions),
+    businessRules: strs(u?.businessRules),
+    screenIds: strs(u?.screenIds),
+    assumptions: strs(u?.assumptions),
+    ...Array.isArray(u?.storyCodes) ? { storyCodes: strs(u.storyCodes) } : {}
+  };
+}
+function coerceDocRequirement(r) {
+  return {
+    code: String(r?.code ?? ""),
+    type: r?.type === "NFR" ? "NFR" : "FR",
+    statement: String(r?.statement ?? ""),
+    priority: r?.priority === "High" || r?.priority === "Low" ? r.priority : "Medium",
+    useCaseCodes: strs(r?.useCaseCodes),
+    source: String(r?.source ?? ""),
+    isAssumption: Boolean(r?.isAssumption)
+  };
+}
+var FLOW_DEF2 = {
+  type: "object",
+  properties: { code: { type: "string" }, name: { type: "string" }, branchFrom: { type: "integer" }, steps: { type: "array", items: { type: "string" } } },
+  required: ["code", "name", "branchFrom", "steps"]
+};
+var UC_SCHEMA2 = {
+  type: "object",
+  properties: {
+    code: { type: "string", description: "UC-01, UC-02\u2026" },
+    name: { type: "string" },
+    actors: { type: "array", items: { type: "string" } },
+    storyCodes: { type: "array", items: { type: "string" }, description: "Source user story IDs (US-xx)" },
+    description: { type: "string" },
+    trigger: { type: "string" },
+    preconditions: { type: "array", items: { type: "string" } },
+    postconditions: { type: "array", items: { type: "string" } },
+    mainFlow: {
+      type: "array",
+      items: { type: "object", properties: { no: { type: "integer" }, actor: { type: "string" }, text: { type: "string" } }, required: ["no", "actor", "text"] }
+    },
+    altFlows: { type: "array", items: FLOW_DEF2 },
+    exceptions: { type: "array", items: FLOW_DEF2 },
+    businessRules: { type: "array", items: { type: "string" } },
+    assumptions: { type: "array", items: { type: "string" } }
+  },
+  required: ["code", "name", "actors", "storyCodes", "description", "mainFlow", "altFlows", "exceptions", "businessRules"]
+};
+var REQ_SCHEMA2 = {
+  type: "object",
+  properties: {
+    code: { type: "string", description: "FR-01\u2026 or NFR-01\u2026" },
+    type: { type: "string", enum: ["FR", "NFR"] },
+    statement: { type: "string" },
+    priority: { type: "string", enum: ["High", "Medium", "Low"] },
+    useCaseCodes: { type: "array", items: { type: "string" } },
+    source: { type: "string" },
+    isAssumption: { type: "boolean" }
+  },
+  required: ["code", "type", "statement", "priority", "useCaseCodes", "source", "isAssumption"]
+};
+var MARKDOWN_TOOL = (name2, description) => ({
+  name: name2,
+  description,
+  input_schema: { type: "object", properties: { markdown: { type: "string", description: "The full Markdown content" } }, required: ["markdown"] }
+});
+function checkMarkdown(raw, minSections) {
+  const md = String(raw?.markdown ?? "").trim();
+  if (!md) return { errors: ["Missing markdown"] };
+  const n = splitSections(md).sections.length;
+  if (n < minSections) return { errors: [`At least ${minSections} "## " sections are required, found ${n}`] };
+  return { value: md + "\n" };
+}
+async function generateDoc(kind, input) {
+  switch (kind) {
+    case "BRD":
+      return { content: await generateBrd(input), data: null };
+    case "UC_SPEC": {
+      const useCases = await generateUcSpec(input);
+      return { content: ucMarkdown2(useCases, input.moduleName), data: { useCases } };
+    }
+    case "SRS": {
+      const srs = await generateSrsDoc(input);
+      return { content: srsMarkdown2(srs, input.moduleName), data: { srs } };
+    }
+    case "FRD_NFR": {
+      const requirements = await generateFrd(input);
+      return { content: reqMarkdown2(requirements, input.moduleName), data: { requirements } };
+    }
+    case "API_SPEC":
+      return { content: await generateApiSpec(input), data: null };
+  }
+}
+async function generateBrd(input) {
+  const prompt = `Write a BRD (Business Requirements Document) for module "${input.moduleName}" from the user stories below.
+Start with the line "# BRD \u2013 ${input.moduleName}". Required sections (use "## "):
+## 1. Background and Objectives
+## 2. Scope (### In Scope / ### Out of Scope)
+## 3. Stakeholders (table | Stakeholder | Role | Related stories |)
+## 4. Business Requirements (table | ID | Business requirement | Benefit | Priority | Story |, IDs BR-01, BR-02\u2026)
+## 5. Acceptance Criteria (### per story, bullet list)
+## 6. Assumptions and Constraints
+
+## Module user stories
+${clip2(input.storiesText)}`;
+  return runAI({
+    type: "generate_doc_brd",
+    moduleId: input.moduleId,
+    system: SYSTEM2,
+    prompt,
+    tool: MARKDOWN_TOOL("submit_brd", "Return the whole BRD as Markdown"),
+    maxTokens: 12e3,
+    parse: (raw) => checkMarkdown(raw, 5),
+    mock: () => mockBrd(input)
+  });
+}
+function mockBrd(input) {
+  const st = input.stories;
+  const actors = [...new Set(st.map(actorOf2))];
+  const L = [`# BRD \u2013 ${input.moduleName}`, ""];
+  L.push("## 1. Background and Objectives", "");
+  L.push(`Module **${input.moduleName}** is built to satisfy ${st.length} user ${st.length === 1 ? "story" : "stories"} from: ${actors.join(", ")}.`, "");
+  L.push("Business objectives:");
+  for (const s2 of st) L.push(`- ${s2.soThat.trim() ? cap2(tidy(s2.soThat)) : `${actorOf2(s2)} can ${low(featureOf(s2))}`} (${s2.code})`);
+  L.push("", "## 2. Scope", "", "### In Scope");
+  for (const s2 of st) L.push(`- ${featureOf(s2)} (${s2.code})`);
+  L.push("", "### Out of Scope", "- Features not listed in the module's user stories (any addition must be confirmed by the BA).", "- Integration with external systems that have not been described.", "");
+  L.push("## 3. Stakeholders", "", "| Stakeholder | Role | Related stories |", "|---|---|---|");
+  for (const a of actors) L.push(`| ${cell2(a)} | Direct user of the feature | ${st.filter((s2) => actorOf2(s2) === a).map((s2) => s2.code).join(", ")} |`);
+  L.push("| BA Lead / Product Owner | Approves requirements and performs acceptance | All |", "");
+  L.push("## 4. Business Requirements", "", "| ID | Business requirement | Benefit | Priority | Story |", "|---|---|---|---|---|");
+  st.forEach((s2, i) => L.push(`| BR-${pad2(i + 1)} | ${cell2(`${actorOf2(s2)} can ${low(featureOf(s2))}`)} | ${cell2(s2.soThat.trim() ? cap2(tidy(s2.soThat)) : "(not stated \u2013 to be completed by the BA)")} | ${s2.priority} | ${s2.code} |`));
+  L.push("", "## 5. Acceptance Criteria", "");
+  for (const s2 of st) {
+    L.push(`### ${s2.code} \u2013 ${featureOf(s2)}`);
+    if (s2.acceptanceCriteria.length) for (const a of s2.acceptanceCriteria) L.push(`- ${a}`);
+    else L.push("- No acceptance criteria yet \u2013 to be completed by the BA.");
+    L.push("");
+  }
+  L.push("## 6. Assumptions and Constraints", "");
+  L.push("- Users have been given an account and the appropriate permissions before using the feature.");
+  L.push("- Content is derived from the user stories; unclear points must be confirmed by the BA with the stakeholders.");
+  if (st.some((s2) => !s2.acceptanceCriteria.length)) L.push(`- Stories without acceptance criteria: ${st.filter((s2) => !s2.acceptanceCriteria.length).map((s2) => s2.code).join(", ")}.`);
+  return L.join("\n").trim() + "\n";
+}
+async function generateUcSpec(input) {
+  const storyCodes = new Set(input.stories.map((s2) => s2.code));
+  const prompt = `Write the use case specifications for module "${input.moduleName}" from the BRD and user stories below.
+- Use case IDs: UC-01, UC-02\u2026; each use case is one business goal of an actor (do not split per minor button).
+- storyCodes: source user story IDs (only IDs from the list). Every story must belong to at least one use case.
+- Main flow: each step names its actor (an actor name or "System"). Alternative flows use IDs A1, A2\u2026; exception flows E1, E2\u2026 (branchFrom = the step they branch from).
+- businessRules: taken from the acceptance criteria and business requirements. Anything inferred goes into assumptions.
+
+## BRD
+${clip2(input.brd ?? "")}
+
+## User stories
+${clip2(input.storiesText, 15e3)}`;
+  return runAI({
+    type: "generate_doc_uc_spec",
+    moduleId: input.moduleId,
+    system: SYSTEM2,
+    prompt,
+    tool: { name: "submit_use_cases", description: "Return the list of use cases", input_schema: { type: "object", properties: { useCases: { type: "array", items: UC_SCHEMA2 } }, required: ["useCases"] } },
+    maxTokens: 16e3,
+    parse: (raw) => {
+      if (!Array.isArray(raw?.useCases) || !raw.useCases.length) return { errors: ["useCases is empty"] };
+      const ucs = raw.useCases.map(coerceDocUseCase);
+      const errors = [];
+      if (new Set(ucs.map((u) => u.code)).size !== ucs.length) errors.push("Duplicate use case ID");
+      for (const u of ucs) {
+        if (!/^UC-\d+$/.test(u.code)) errors.push(`Malformed use case ID: ${u.code}`);
+        if (!u.mainFlow.length) errors.push(`${u.code} has no main flow`);
+        u.storyCodes = (u.storyCodes ?? []).filter((c) => storyCodes.has(c));
+      }
+      return errors.length ? { errors } : { value: ucs };
+    },
+    mock: () => mockUcSpec(input)
+  });
+}
+function mockUcSpec(input) {
+  return input.stories.map((s2, i) => {
+    const actor2 = actorOf2(s2);
+    const name2 = featureOf(s2);
+    const read = READ_RE.test(s2.iWant);
+    const goal = s2.soThat.trim() ? tidy(s2.soThat) : "";
+    const mainFlow = read ? [
+      { no: 1, actor: actor2, text: `Selects the "${name2}" function` },
+      { no: 2, actor: SYSTEM_ACTOR2, text: "Displays the data list and the filter fields" },
+      { no: 3, actor: actor2, text: "Enters or selects the search criteria" },
+      { no: 4, actor: SYSTEM_ACTOR2, text: "Filters and displays the matching results" }
+    ] : [
+      { no: 1, actor: actor2, text: `Selects the "${name2}" function` },
+      { no: 2, actor: SYSTEM_ACTOR2, text: "Displays the corresponding screen / form" },
+      { no: 3, actor: actor2, text: "Enters or selects the required information and confirms" },
+      { no: 4, actor: SYSTEM_ACTOR2, text: "Validates the data against the business rules" },
+      { no: 5, actor: SYSTEM_ACTOR2, text: "Saves the result and shows a success message" }
+    ];
+    return {
+      code: `UC-${pad2(i + 1)}`,
+      name: name2,
+      actors: [actor2],
+      storyCodes: [s2.code],
+      description: `${actor2} wants to ${low(name2)}${goal ? ` so that ${low(goal)}` : ""}.`,
+      trigger: `${actor2} selects the "${name2}" function`,
+      preconditions: [`${actor2} is signed in and has permission to use the function`],
+      postconditions: [goal ? `Goal achieved: ${low(goal)}` : `The "${name2}" request is recorded by the system`],
+      mainFlow,
+      altFlows: [{ code: "A1", name: "User cancels the operation", branchFrom: 3, steps: [`${actor2} selects Cancel`, "System closes the screen without saving changes"] }],
+      exceptions: read ? [{ code: "E1", name: "No matching data", branchFrom: 4, steps: ['System displays the message "No matching data found"'] }] : [
+        { code: "E1", name: "Invalid data", branchFrom: 4, steps: ["System shows an error on the invalid field", "Return to step 3"] },
+        { code: "E2", name: "System error while saving", branchFrom: 5, steps: ["System reports that saving failed and keeps the entered data"] }
+      ],
+      businessRules: [...s2.acceptanceCriteria],
+      screenIds: [],
+      assumptions: s2.acceptanceCriteria.length ? [] : ["The story has no acceptance criteria \u2013 business rules must be completed by the BA"]
+    };
+  });
+}
+var SRS_NEED = [
+  ["intro", "1. Introduction"],
+  ["overview", "2. Overall Description"],
+  ["functional", "3. Functional Requirements"],
+  ["nonfunctional", "4. Non-functional Requirements"],
+  ["interfaces", "5. User Interfaces"],
+  ["data", "6. Data Requirements"],
+  ["assumptions", "7. Assumptions and Open Issues"]
+];
+async function generateSrsDoc(input) {
+  const prompt = `Write an SRS following the ISO/IEC/IEEE 29148 structure for module "${input.moduleName}" from the UC Specification below.
+Required sections (key \u2013 title):
+${SRS_NEED.map(([k, t]) => `- ${k} \u2013 ${t}`).join("\n")}
+Each section's content is Markdown (### sub-headings, bullet lists, tables); do NOT use "## " inside a section.
+The functional section describes each use case (inputs, processing, outputs, rules). Any non-functional requirement you add must be marked "(Assumption \u2013 to be confirmed)".
+
+## UC Specification
+${clip2(input.ucSpec?.content ?? "")}`;
+  return runAI({
+    type: "generate_doc_srs",
+    moduleId: input.moduleId,
+    system: SYSTEM2,
+    prompt,
+    tool: {
+      name: "submit_srs",
+      description: "Return the SRS sections",
+      input_schema: {
+        type: "object",
+        properties: { sections: { type: "array", items: { type: "object", properties: { key: { type: "string" }, title: { type: "string" }, content: { type: "string" } }, required: ["key", "title", "content"] } } },
+        required: ["sections"]
+      }
+    },
+    maxTokens: 16e3,
+    parse: (raw) => {
+      const sections = Array.isArray(raw?.sections) ? raw.sections.map((s2) => ({ key: String(s2?.key ?? ""), title: String(s2?.title ?? ""), content: String(s2?.content ?? "") })) : [];
+      const missing = SRS_NEED.map(([k]) => k).filter((k) => !sections.some((s2) => s2.key === k));
+      return missing.length ? { errors: [`Missing sections: ${missing.join(", ")}`] } : { value: { sections } };
+    },
+    mock: () => mockSrsDoc(input)
+  });
+}
+function mockSrsDoc(input) {
+  const ucs = input.ucSpec?.useCases ?? [];
+  const actors = [...new Set(ucs.flatMap((u) => u.actors))];
+  const body = {
+    intro: [
+      "### 1.1 Purpose",
+      `Software requirements specification for module **${input.moduleName}**, serving as the basis for design, development and testing.`,
+      "### 1.2 Scope",
+      ...ucs.map((u) => `- ${u.code} \u2013 ${u.name}`),
+      "### 1.3 References",
+      "- Module BRD",
+      "- Module UC Specification"
+    ],
+    overview: [
+      "### 2.1 Actors",
+      "| Actor | Use case |",
+      "|---|---|",
+      ...actors.map((a) => `| ${cell2(a)} | ${ucs.filter((u) => u.actors.includes(a)).map((u) => u.code).join(", ")} |`),
+      "### 2.2 General Constraints",
+      "- Every function requires the user to be signed in with the appropriate permissions.",
+      "- The user interface and messages are displayed in English."
+    ],
+    functional: ucs.flatMap((u) => [
+      `### ${u.code} \u2013 ${u.name}`,
+      u.description,
+      `- **Actors:** ${u.actors.join(", ")}`,
+      `- **Inputs:** ${u.mainFlow.filter((s2) => !isSystem(s2.actor)).map((s2) => s2.text).join("; ") || "(none)"}`,
+      `- **Processing:** ${u.mainFlow.filter((s2) => isSystem(s2.actor)).map((s2) => s2.text).join("; ") || "(none)"}`,
+      `- **Outputs:** ${u.postconditions.join("; ") || "(none)"}`,
+      ...u.businessRules.map((r) => `- **Rule:** ${r}`),
+      ...u.exceptions.map((e) => `- **Exception ${e.code}:** ${e.name}`)
+    ]),
+    nonfunctional: [
+      "- Performance: main operations respond within 2 seconds with 100 concurrent users (Assumption \u2013 to be confirmed).",
+      "- Security: user authentication and role-based access control for every function (Assumption \u2013 to be confirmed).",
+      "- Audit: record who performed each data-changing operation and when (Assumption \u2013 to be confirmed).",
+      "- Availability: 99.5% uptime during business hours (Assumption \u2013 to be confirmed)."
+    ],
+    interfaces: [
+      "| Use case | Proposed screen | Main actions |",
+      "|---|---|---|",
+      ...ucs.map((u) => `| ${u.code} | ${cell2(u.name)} | ${cell2(u.mainFlow.filter((s2) => !isSystem(s2.actor)).map((s2) => s2.text).join("; "))} |`)
+    ],
+    data: ["| Data | Description | Use case |", "|---|---|---|", ...ucs.map((u) => `| ${cell2(`${cap2(u.name)} information`)} | Data created/read in ${u.code} | ${u.code} |`)],
+    assumptions: [
+      ...ucs.flatMap((u) => u.assumptions.map((a) => `- ${u.code}: ${a}`)),
+      "- Field-level details will be clarified once the screen design (prototype) is available."
+    ]
+  };
+  return { sections: SRS_NEED.map(([key2, title]) => ({ key: key2, title, content: body[key2].filter((x) => x !== void 0).join("\n") })) };
+}
+async function generateFrd(input) {
+  const ucCodes = new Set((input.ucSpec?.useCases ?? []).map((u) => u.code));
+  const prompt = `List the functional (FR) and non-functional (NFR) requirements for module "${input.moduleName}" from the SRS and use cases below.
+- IDs FR-01\u2026, NFR-01\u2026; every use case has at least 1 FR; every important business rule becomes 1 validation FR.
+- useCaseCodes may only use use case IDs from the list. Self-proposed NFRs have isAssumption = true.
+- source: where the requirement comes from (e.g. "UC-01 main flow", "SRS section 4").
+
+## SRS
+${clip2(input.srs?.content ?? "", 2e4)}
+
+## Use cases (ID \u2013 name)
+${(input.ucSpec?.useCases ?? []).map((u) => `- ${u.code} \u2013 ${u.name}`).join("\n")}`;
+  return runAI({
+    type: "generate_doc_frd_nfr",
+    moduleId: input.moduleId,
+    system: SYSTEM2,
+    prompt,
+    tool: { name: "submit_requirements", description: "Return the list of FR/NFR requirements", input_schema: { type: "object", properties: { requirements: { type: "array", items: REQ_SCHEMA2 } }, required: ["requirements"] } },
+    maxTokens: 12e3,
+    parse: (raw) => {
+      if (!Array.isArray(raw?.requirements) || !raw.requirements.length) return { errors: ["requirements is empty"] };
+      const reqs = raw.requirements.map(coerceDocRequirement);
+      const errors = [];
+      if (new Set(reqs.map((r) => r.code)).size !== reqs.length) errors.push("Duplicate requirement ID");
+      if (!reqs.some((r) => r.type === "FR")) errors.push("There is no FR");
+      for (const r of reqs) for (const c of r.useCaseCodes) if (!ucCodes.has(c)) errors.push(`${r.code} references a use case that does not exist: ${c}`);
+      return errors.length ? { errors } : { value: reqs };
+    },
+    mock: () => mockFrd(input)
+  });
+}
+function mockFrd(input) {
+  const ucs = input.ucSpec?.useCases ?? [];
+  const prio = (u) => input.stories.find((s2) => u.storyCodes?.includes(s2.code))?.priority ?? "Medium";
+  const out = [];
+  let fr = 0;
+  const frCode = () => `FR-${pad2(++fr)}`;
+  for (const u of ucs) {
+    out.push({ code: frCode(), type: "FR", statement: `The system shall allow ${u.actors.join(", ") || "the user"} to ${low(u.name)}.`, priority: prio(u), useCaseCodes: [u.code], source: `${u.code} main flow`, isAssumption: false });
+    for (const r of u.businessRules) out.push({ code: frCode(), type: "FR", statement: `The system shall ensure that: ${tidy(r)}.`, priority: "Medium", useCaseCodes: [u.code], source: `${u.code} business rule`, isAssumption: false });
+    const bad = u.exceptions.find((e) => /không hợp lệ|invalid/i.test(e.name));
+    if (bad) out.push({ code: frCode(), type: "FR", statement: `The system shall validate the input data of "${u.name}" and show a clear error on each invalid field.`, priority: "Medium", useCaseCodes: [u.code], source: `${u.code} ${bad.code}`, isAssumption: false });
+  }
+  const all = ucs.map((u) => u.code);
+  const nfr = [
+    ["Main operations shall respond within 2 seconds with 100 concurrent users.", "Medium"],
+    ["Every function shall require authentication and role-based authorisation.", "High"],
+    ["The system shall log who performed each data-changing operation and when.", "Medium"],
+    ["The system shall be available 99.5% of the time during business hours.", "Low"]
+  ];
+  nfr.forEach(([s2, p2], i) => out.push({ code: `NFR-${pad2(i + 1)}`, type: "NFR", statement: s2, priority: p2, useCaseCodes: all, source: "SRS section 4 \u2013 default suggestion", isAssumption: true }));
+  return out;
+}
+async function generateApiSpec(input) {
+  const prompt = `Write the API specification (REST, JSON) for module "${input.moduleName}" from the FRD-NFR and use cases below.
+Start with "# API Spec \u2013 ${input.moduleName}"; the first section is "## General Conventions" (base URL, authentication, error format).
+One section per endpoint "## <METHOD> <path>" containing: description, related use case and FRs, a Request table (| Field | Type | Required | Description |),
+a Response table (| Field | Type | Description |), an Error codes table (| HTTP status | Error code | When |). Do not use code blocks; mark anything inferred with "(Assumption)".
+
+## FRD-NFR
+${clip2(input.frd?.content ?? "", 15e3)}
+
+## UC Specification
+${clip2(input.ucSpec?.content ?? "", 15e3)}`;
+  return runAI({
+    type: "generate_doc_api_spec",
+    moduleId: input.moduleId,
+    system: SYSTEM2 + "\nWhen writing the API specification you also act as a Solution Architect.",
+    prompt,
+    tool: MARKDOWN_TOOL("submit_api_spec", "Return the API specification as Markdown"),
+    maxTokens: 16e3,
+    parse: (raw) => {
+      const r = checkMarkdown(raw, 2);
+      if (r.value && !/\b(GET|POST|PUT|PATCH|DELETE)\b/.test(r.value)) return { errors: ["There are no endpoints (GET/POST/PUT/PATCH/DELETE)"] };
+      return r;
+    },
+    mock: () => mockApiSpec(input)
+  });
+}
+var FIELD_HINTS = [
+  [/email/i, "email", "string", "Email address"],
+  [/mật khẩu|password/i, "password", "string", "Password"],
+  [/tên đăng nhập|tài khoản|username|account/i, "username", "string", "Username"],
+  [/họ tên|tên khách|tên người|full name|customer name/i, "fullName", "string", "Full name"],
+  [/điện thoại|sđt|phone/i, "phone", "string", "Phone number"],
+  [/địa chỉ|address/i, "address", "string", "Address"],
+  [/ngày|thời gian|hạn|\bdate\b|deadline|\bdue\b/i, "date", "string (YYYY-MM-DD)", "Date"],
+  [/số lượng|quantity/i, "quantity", "number", "Quantity"],
+  [/giá|tiền|thanh toán|price|amount|payment|\bpay\b/i, "amount", "number", "Amount"],
+  [/trạng thái|status/i, "status", "string", "Status"],
+  [/mô tả|ghi chú|nội dung|lý do|description|note|comment|reason/i, "note", "string", "Note / content"],
+  [/tệp|file|ảnh|tài liệu|image|photo|document|attachment/i, "fileId", "string", "Attachment file ID"]
+];
+function mockApiSpec(input) {
+  const ucs = input.ucSpec?.useCases ?? [];
+  const reqs = input.frd?.requirements ?? [];
+  const L = [`# API Spec \u2013 ${input.moduleName}`, ""];
+  L.push("## General Conventions", "");
+  L.push("- Base URL: `/api/v1` (Assumption \u2013 to be confirmed)");
+  L.push("- Format: JSON, UTF-8 encoded; timestamps in ISO 8601.");
+  L.push("- Authentication: Bearer token in the `Authorization` header (Assumption \u2013 to be confirmed).");
+  L.push('- Errors are returned as `{ "code": "<ERROR_CODE>", "message": "<human-readable message>" }`.', "");
+  const used = /* @__PURE__ */ new Set();
+  for (const u of ucs) {
+    const text2 = `${u.name} ${u.description} ${u.businessRules.join(" ")}`;
+    const method = READ_RE.test(u.name) ? "GET" : DELETE_RE.test(u.name) ? "DELETE" : UPDATE_RE.test(u.name) ? "PUT" : "POST";
+    let base = slugify(u.name);
+    if (used.has(`${method} ${base}`)) base = `${base}-${u.code.toLowerCase()}`;
+    used.add(`${method} ${base}`);
+    const path = `/api/v1/${base}${method === "PUT" || method === "DELETE" || method === "GET" && DETAIL_RE.test(u.name) ? "/{id}" : ""}`;
+    const frs = reqs.filter((r) => r.type === "FR" && r.useCaseCodes.includes(u.code)).map((r) => r.code);
+    L.push(`## ${method} ${path}`, "");
+    L.push(`**Description:** ${u.description || u.name}`, "");
+    L.push(`**Use case:** ${u.code} \u2013 ${u.name}${frs.length ? ` \xB7 **Requirements:** ${frs.join(", ")}` : ""}`, "");
+    L.push(method === "GET" ? "**Request (query)**" : "**Request (body)**", "", "| Field | Type | Required | Description |", "|---|---|---|---|");
+    if (path.endsWith("{id}")) L.push("| id (path) | string | Yes | Record ID |");
+    if (method === "GET") {
+      L.push("| keyword | string | No | Search keyword |", "| page | number | No | Page (default 1) |", "| pageSize | number | No | Rows per page (default 20) |");
+    } else if (method !== "DELETE") {
+      const fields2 = FIELD_HINTS.filter(([re]) => re.test(text2));
+      if (fields2.length) for (const [, f, t, d] of fields2) L.push(`| ${f} | ${t} | Yes | ${d} (Assumption) |`);
+      else L.push(`| data | object | Yes | ${cap2(u.name)} details \u2013 field-level details to be added once the prototype exists (Assumption) |`);
+    }
+    L.push("", `**Response ${method === "POST" ? "201" : "200"}**`, "", "| Field | Type | Description |", "|---|---|---|");
+    if (method === "GET") L.push("| items | array | Result list |", "| total | number | Total number of records |");
+    else if (method === "DELETE") L.push("| ok | boolean | true when deleted successfully |");
+    else L.push("| id | string | Record ID |", "| updatedAt | string | Last updated time |");
+    L.push("", "**Error codes**", "", "| HTTP status | Error code | When |", "|---|---|---|");
+    for (const e of u.exceptions) {
+      const [http, code] = /không có dữ liệu|không tìm thấy|no matching|not found/i.test(e.name) ? ["404", "NOT_FOUND"] : /hệ thống|system/i.test(e.name) ? ["500", "INTERNAL_ERROR"] : /không hợp lệ|sai|invalid/i.test(e.name) ? ["400", "INVALID_INPUT"] : ["409", slugify(e.name).toUpperCase().replace(/-/g, "_")];
+      L.push(`| ${http} | ${code} | ${cell2(`${e.code} \u2013 ${e.name}`)} |`);
+    }
+    L.push("| 401 | UNAUTHORIZED | Not signed in or the session has expired |", "| 403 | FORBIDDEN | Not permitted to perform the action |", "");
+  }
+  if (!ucs.length) L.push("## Endpoint", "", "- There are no use cases to derive endpoints from yet.");
+  return L.join("\n").trim() + "\n";
+}
+async function refineDocSection(args) {
+  const label3 = DOC_KIND_LABEL[args.kind];
+  const ucCode = args.kind === "UC_SPEC" && args.section ? /^(UC-\d+)/.exec(args.section)?.[1] : void 0;
+  const scope = args.section ? `section "${args.section}"` : "the whole document";
+  const prompt = `Refine ${scope} of the ${label3} document (module "${args.moduleName}") according to the BA's request.
+Keep the existing Markdown format, keep all IDs (UC-xx, FR-xx, BR-xx\u2026) and all unrelated parts unchanged.
+${args.section ? `Return the whole section, keeping the first line "## ${args.section}" unchanged.` : "Return the whole document."}
+
+## Refinement request
+${args.instruction}
+
+## Current content
+${clip2(args.markdown)}
+
+## Context
+${clip2(args.context, 8e3)}`;
+  return runAI({
+    type: `refine_doc_${args.kind.toLowerCase()}`,
+    moduleId: args.moduleId,
+    system: SYSTEM2,
+    prompt,
+    tool: MARKDOWN_TOOL("submit_markdown", "Return the refined Markdown"),
+    maxTokens: 16e3,
+    parse: (raw) => {
+      let md = String(raw?.markdown ?? "").trim();
+      if (!md) return { errors: ["Missing markdown"] };
+      if (args.section && !md.startsWith("## ")) md = `## ${args.section}
+
+${md}`;
+      if (ucCode) {
+        const ucs = parseUcMarkdown(md);
+        if (ucs.length !== 1 || ucs[0].code !== ucCode) return { errors: [`The section must be exactly one use case ${ucCode} in the existing format`] };
+        if (!ucs[0].mainFlow.length) return { errors: [`${ucCode} has no main flow`] };
+      }
+      return { value: md + "\n" };
+    },
+    mock: () => mockRefine(args)
+  });
+}
+function mockRefine(args) {
+  const note = `BA refinement request: ${tidy(args.instruction)} (rule-based mode cannot apply this automatically \u2013 edit manually)`;
+  const md = args.markdown.replace(/\s+$/, "");
+  if (args.kind === "UC_SPEC" && args.section && /^UC-\d+/.test(args.section)) {
+    const lines = md.split("\n");
+    const at = lines.findIndex((l) => /^\*\*(?:Assumptions|Giả định):\*\*$/i.test(l.trim()));
+    if (at >= 0) {
+      let end = at + 1;
+      while (end < lines.length && /^\s*[-*]\s+/.test(lines[end])) end++;
+      lines.splice(end, 0, `- ${note}`);
+      return lines.join("\n") + "\n";
+    }
+    return `${md}
+
+**Assumptions:**
+- ${note}
+`;
+  }
+  return `${md}
+
+> **Refinement note (BA):** ${tidy(args.instruction)}
+`;
+}
+
+// server/routes/docs.ts
+var MAX_CONTENT = 4e5;
+var LIVE = (s2) => s2 !== "none" && s2 !== "outdated";
+function mustModule3(id) {
+  const m = getModuleInfo(id);
+  if (!m) throw new HttpError("Module not found", 404);
+  return m;
+}
+function mustKind(k) {
+  if (!isDocKind(k)) throw new HttpError(`Invalid document type: ${k} (expected one of ${DOC_KINDS.join(", ")})`, 400);
+  return k;
+}
+var label2 = (k) => DOC_KIND_LABEL[k];
+var prevKind = (k) => DOC_KINDS[DOC_KINDS.indexOf(k) - 1] ?? null;
+function generateBlockReason(moduleId, kind) {
+  return prereqBlockReason(
+    { kind: "doc", sub: kind },
+    { docStatus: (k) => getDoc(moduleId, k).status, storyCount: prevKind(kind) ? void 0 : listModuleStories2(moduleId).length },
+    "generate"
+  );
+}
+function commit(moduleId, kind, content, data, opts) {
+  return tx(() => {
+    const ref2 = docRef(moduleId, kind);
+    const before = getArtifactState(ref2);
+    assertRev(before.rev, opts.baseRev);
+    opts.check?.();
+    writeDocContent(moduleId, kind, content, data);
+    bumpRev(ref2, opts.actorId);
+    if ((opts.mode === "generate" || before.status !== "outdated") && before.status !== "draft") setArtifactState(ref2, { status: "draft" });
+    emit({ type: "artifact.drafted", artifact: ref2, actorId: opts.actorId });
+    for (const k of DOC_KINDS.slice(DOC_KINDS.indexOf(kind) + 1)) {
+      const r = docRef(moduleId, k);
+      const s2 = getArtifactState(r);
+      if (s2 && LIVE(s2.status)) {
+        setArtifactState(r, { status: "outdated" });
+        emit({ type: "artifact.stale", artifact: r, actorId: opts.actorId });
+      }
+    }
+    if (DOC_KINDS.indexOf(kind) <= DOC_KINDS.indexOf("FRD_NFR")) {
+      const tr = { kind: "tests", id: moduleId, moduleId };
+      const ts = getArtifactState(tr);
+      if (ts && LIVE(ts.status)) {
+        setArtifactState(tr, { status: "outdated" });
+        emit({ type: "artifact.stale", artifact: tr, actorId: opts.actorId });
+      }
+    }
+    return getDoc(moduleId, kind);
+  });
+}
+function genInput(m) {
+  const stories = listModuleStories2(m.id);
+  const get = (k) => getDoc(m.id, k);
+  const uc = get("UC_SPEC");
+  const srs = get("SRS");
+  const frd = get("FRD_NFR");
+  return {
+    moduleId: m.id,
+    moduleName: m.name,
+    stories,
+    storiesText: storiesText(stories),
+    brd: get("BRD").content,
+    ucSpec: { content: uc.content, useCases: uc.data?.useCases ?? deriveDocData("UC_SPEC", uc.content, null)?.useCases ?? [] },
+    srs: { content: srs.content, srs: srs.data?.srs ?? null },
+    frd: { content: frd.content, requirements: frd.data?.requirements ?? deriveDocData("FRD_NFR", frd.content, null)?.requirements ?? [] }
+  };
+}
+route("GET", "/api/modules/:id/docs", (ctx) => {
+  requireMember(ctx);
+  mustModule3(ctx.params.id);
+  return listDocs(ctx.params.id);
+});
+route("GET", "/api/modules/:id/docs/:kind", (ctx) => {
+  requireMember(ctx);
+  mustModule3(ctx.params.id);
+  return getDoc(ctx.params.id, mustKind(ctx.params.kind));
+});
+route("PUT", "/api/modules/:id/docs/:kind", (ctx) => {
+  requireMember(ctx);
+  const m = mustModule3(ctx.params.id);
+  const kind = mustKind(ctx.params.kind);
+  const body = ctx.body ?? {};
+  if (typeof body.content !== "string" && !body.data) throw new HttpError("Missing document content (content)", 400);
+  if (typeof body.content === "string" && body.content.length > MAX_CONTENT) throw new HttpError("The document is too long", 413);
+  let content = str(body.content, MAX_CONTENT);
+  const prev = getDoc(m.id, kind);
+  let data;
+  if (kind === "UC_SPEC" && Array.isArray(body.data?.useCases)) {
+    const useCases = body.data.useCases.map(coerceDocUseCase);
+    data = { useCases };
+    if (!content.trim()) content = ucMarkdown2(useCases, m.name);
+  } else if (kind === "FRD_NFR" && Array.isArray(body.data?.requirements)) {
+    const requirements = body.data.requirements.map(coerceDocRequirement);
+    data = { requirements };
+    if (!content.trim()) content = reqMarkdown2(requirements, m.name);
+  } else data = deriveDocData(kind, content, prev.data);
+  if (!content.trim()) throw new HttpError("Document content cannot be empty", 400);
+  return commit(m.id, kind, content, data, { actorId: actor(body), baseRev: baseRevOf(body), mode: "edit" });
+});
+route("POST", "/api/modules/:id/docs/:kind/generate", async (ctx) => {
+  requireMember(ctx);
+  const m = mustModule3(ctx.params.id);
+  const kind = mustKind(ctx.params.kind);
+  const body = ctx.body ?? {};
+  const rev0 = getDoc(m.id, kind).rev;
+  const baseRev = baseRevOf(body);
+  assertRev(rev0, baseRev);
+  const reason = generateBlockReason(m.id, kind);
+  if (reason) throw new HttpError(reason, 400);
+  const { content, data } = await generateDoc(kind, genInput(m));
+  return commit(m.id, kind, content, data, {
+    actorId: actor(body),
+    baseRev: baseRev ?? rev0,
+    mode: "generate",
+    check: () => {
+      const r = generateBlockReason(m.id, kind);
+      if (r) throw new HttpError(r, 400);
+    }
+  });
+});
+route("POST", "/api/modules/:id/docs/:kind/refine", async (ctx) => {
+  requireMember(ctx);
+  const m = mustModule3(ctx.params.id);
+  const kind = mustKind(ctx.params.kind);
+  const body = ctx.body ?? {};
+  const instruction = str(body.instruction, 4e3).trim();
+  if (!instruction) throw new HttpError("Enter a refinement instruction", 400);
+  const baseRev = baseRevOf(body);
+  const doc = getDoc(m.id, kind);
+  if (doc.status === "none" || !doc.content.trim()) throw new HttpError(`There is no ${label2(kind)} to refine yet \u2013 generate the document first`, 400);
+  assertRev(doc.rev, baseRev);
+  const section = str(body.section, 300).trim() || null;
+  const target = section ? splitSections(doc.content).sections.find((s2) => s2.title === section) : null;
+  if (section && !target) throw new HttpError(`Section "${section}" not found in ${label2(kind)}`, 400);
+  const ucList = genInput(m).ucSpec?.useCases.map((u) => `${u.code} \u2013 ${u.name}`).join("; ");
+  const next = await refineDocSection({
+    moduleId: m.id,
+    moduleName: m.name,
+    kind,
+    section,
+    markdown: target ? target.text : doc.content,
+    instruction,
+    context: `Module ${m.name}. Use cases: ${ucList || "(none yet)"}`
+  });
+  const content = target ? replaceSection(doc.content, target.title, next) : next;
+  return commit(m.id, kind, content, deriveDocData(kind, content, doc.data), { actorId: actor(body), baseRev: baseRev ?? doc.rev, mode: "edit" });
+});
+
+// server/ai/diagramPipelines.ts
+var SYSTEM3 = `You are a Senior Business Analyst / Solution Architect in the BA Copilot system, drawing business analysis diagrams.
+Principles:
+- Write ALL labels in English, short (about 6\u20138 words per label at most).
+- Rely only on the input data; do not invent actors, systems or entities without evidence.
+- Labels must not contain the characters " ; # : < >.
+- Always return the result by calling exactly the requested tool.`;
+var clip3 = (s2, n) => s2.length > n ? s2.slice(0, n) + "\n\u2026(truncated)" : s2;
+var cap3 = (s2) => s2 ? s2[0].toUpperCase() + s2.slice(1) : s2;
+var short = (s2, n = 40) => mmLabel(s2, n);
+var key = (s2) => mmLabel(s2, 200).toLowerCase();
+var SYSTEM_ACTOR3 = /^(?:hệ thống|system|the system)$/i;
+var SYSTEM_LANE = "System";
+function uniq(names) {
+  const out = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const n of names) {
+    const v = mmLabel(n, 50);
+    if (!v || SYSTEM_ACTOR3.test(v) || seen.has(v.toLowerCase())) continue;
+    seen.add(v.toLowerCase());
+    out.push(v);
+  }
+  return out;
+}
+var storyLines2 = (src) => src.stories.map((s2) => `- ${s2.code}: As a ${s2.asA}, I want ${s2.iWant}${s2.soThat ? `, so that ${s2.soThat}` : ""}`).join("\n");
+var ucCompact = (ucs) => JSON.stringify(
+  ucs.map((u) => ({
+    code: u.code,
+    name: u.name,
+    actors: u.actors,
+    mainFlow: (u.mainFlow ?? []).map((s2) => `${s2.actor}: ${s2.text}`),
+    altFlows: (u.altFlows ?? []).map((f) => f.name),
+    exceptions: (u.exceptions ?? []).map((f) => ({ name: f.name, steps: f.steps }))
+  }))
+);
+var reqLines = (reqs) => reqs.map((r) => `- ${r.code} (${r.type}): ${r.statement}`).join("\n");
+function mdSections(md) {
+  const out = [{ heading: "", lines: [] }];
+  for (const raw of String(md ?? "").split(/\r?\n/)) {
+    const h2 = raw.match(/^#{1,6}\s+(.*)$/);
+    if (h2) out.push({ heading: h2[1].trim(), lines: [] });
+    else out[out.length - 1].lines.push(raw);
+  }
+  return out;
+}
+var HEADER_CELL = /^(stt|#|tên|vai trò|bên liên quan|tác nhân|mô tả|hệ thống|ghi chú|actor|stakeholder|name|role|description|system|note|no\.?)$/i;
+function listNames(lines) {
+  const out = [];
+  for (const raw of lines) {
+    const l = raw.trim();
+    let item = "";
+    const li = l.match(/^(?:[-*+]|\d+[.)])\s+(.*)$/);
+    if (li) item = li[1];
+    else if (l.startsWith("|")) {
+      const cells = l.split("|").map((c) => c.trim()).filter(Boolean);
+      if (!cells.length || cells.every((c) => /^:?-{2,}:?$/.test(c))) continue;
+      item = cells.find((c) => !/^\d+$/.test(c)) ?? "";
+      if (HEADER_CELL.test(item.replace(/\*/g, "").trim())) continue;
+    } else continue;
+    const name2 = item.replace(/\*\*|__|`/g, "").split(/\s*[:(]\s*|\s+[–—-]\s+/)[0].trim();
+    if (name2 && name2.length <= 50 && name2.split(/\s+/).length <= 7) out.push(name2);
+  }
+  return out;
+}
+var ACTOR_HEAD = /(bên liên quan|stakeholder|tác nhân|actor|người dùng|người sử dụng|đối tượng|vai trò|user|role)/i;
+var EXTERNAL_HEAD = /(hệ thống (ngoài|bên ngoài|liên quan|liên kết|tích hợp)|tích hợp|external|giao tiếp|interface|kết nối|integration)/i;
+var EXTERNAL_KEYWORDS = [
+  [/thanh toán|payment|ví điện tử|e-wallet|vnpay|momo/i, "Payment gateway", "Payment request", "Payment result"],
+  [/email|thư điện tử/i, "Email service", "Send notification email", "Delivery status"],
+  [/\bsms\b|otp|tin nhắn|text message/i, "SMS/OTP service", "Send SMS / OTP", "Delivery status"],
+  [/ngân hàng|\bbank/i, "Banking system", "Transaction order", "Transaction result"],
+  [/\bsso\b|ldap|active directory|định danh|vneid|identity provider/i, "Authentication system (SSO)", "Authentication request", "Authentication result"],
+  [/bản đồ|\bmap\b|định vị|gps|location/i, "Map service", "Location query", "Map data"],
+  [/\berp\b/i, "ERP system", "Data synchronisation", "ERP data"],
+  [/\bcrm\b/i, "CRM system", "Customer synchronisation", "Customer data"],
+  [/hoá đơn điện tử|hóa đơn điện tử|thuế|e-invoice|\btax\b/i, "E-invoicing system", "Issue invoice", "Issuance result"],
+  [/zalo/i, "Zalo OA", "Send Zalo message", "Delivery status"],
+  [/vận chuyển|giao hàng|shipping|delivery|courier/i, "Shipping carrier", "Create shipment", "Delivery status"]
+];
+function sourceActors(src) {
+  const fromBrd = [];
+  for (const s2 of mdSections(src.brd)) if (ACTOR_HEAD.test(s2.heading) && !EXTERNAL_HEAD.test(s2.heading)) fromBrd.push(...listNames(s2.lines));
+  const fromUc = src.useCases.flatMap((u) => u.actors ?? []);
+  const fromStories = src.stories.map((s2) => cap3(s2.asA.replace(/^(một|a|an)\s+/i, "").trim()));
+  return uniq([...fromBrd, ...fromUc, ...fromStories]);
+}
+function mockContext(src) {
+  const actors = sourceActors(src);
+  if (!actors.length) actors.push("User");
+  const externals = actors.map((name2) => ({ name: name2, kind: "actor" }));
+  const flows2 = [];
+  for (const a of actors) {
+    const k = a.toLowerCase();
+    const story = src.stories.find((s2) => key(s2.asA).includes(k) || k.includes(key(s2.asA)));
+    const uc = src.useCases.find((u) => (u.actors ?? []).some((x) => key(x) === k));
+    flows2.push({ from: a, to: CONTEXT_SYSTEM, label: story ? short(story.iWant, 40) : uc ? short(uc.name, 40) : "Requests, input data" });
+    flows2.push({ from: CONTEXT_SYSTEM, to: a, label: "Results, notifications" });
+  }
+  const brdExternal = [];
+  for (const s2 of mdSections(src.brd)) if (EXTERNAL_HEAD.test(s2.heading)) brdExternal.push(...listNames(s2.lines));
+  const text2 = [src.brd, ...src.stories.map((s2) => `${s2.iWant} ${s2.soThat}`), ...src.useCases.map((u) => u.name)].join("\n");
+  const known = new Set(actors.map((a) => a.toLowerCase()));
+  const addSystem = (name2, out, back) => {
+    if (known.has(name2.toLowerCase())) return;
+    known.add(name2.toLowerCase());
+    externals.push({ name: name2, kind: "system" });
+    flows2.push({ from: CONTEXT_SYSTEM, to: name2, label: out }, { from: name2, to: CONTEXT_SYSTEM, label: back });
+  };
+  for (const n of uniq(brdExternal)) {
+    const kw = EXTERNAL_KEYWORDS.find(([re]) => re.test(n));
+    addSystem(n, kw?.[2] ?? "Send data", kw?.[3] ?? "Response");
+  }
+  for (const [re, name2, out, back] of EXTERNAL_KEYWORDS) {
+    if (re.test(text2) && !brdExternal.some((n) => re.test(n))) addSystem(name2, out, back);
+  }
+  return { system: src.moduleName || src.projectName || "System", externals, flows: flows2 };
+}
+function mockUc(src) {
+  return buildUcMermaid(src.useCases, uniq(src.useCases.flatMap((u) => u.actors ?? [])));
+}
+var TOUCH_DB = /lưu|xử lý|cập nhật|tạo|ghi|lọc|tìm|tra cứu|truy vấn|tải|lấy|hiển thị danh sách|xoá|xóa|\b(?:save|saves|process|update|create|record|filter|search|find|query|load|retrieve|fetch|delete|store|display(?:s)? the (?:data )?list)/i;
+var VALIDATE = /kiểm tra|xác thực|xác nhận|đối chiếu|\b(?:validat|verif|check|authenticat)/i;
+function mockSequenceInput(uc, screenName2) {
+  const ui = (uc.screenIds ?? []).map(screenName2).find(Boolean) ?? "User interface";
+  const participants = [
+    { id: "A", label: uc.actors?.find((a) => !SYSTEM_ACTOR3.test(a)) ?? "User", actor: true },
+    { id: "UI", label: ui },
+    { id: "API", label: "API Server" },
+    { id: "DB", label: "Database" }
+  ];
+  const messages = [];
+  for (const s2 of uc.mainFlow ?? []) {
+    if (!SYSTEM_ACTOR3.test(String(s2.actor ?? "").trim())) messages.push({ from: "A", to: "UI", text: s2.text });
+    else if (VALIDATE.test(s2.text)) messages.push({ from: "UI", to: "API", text: "Send request" }, { from: "API", to: "API", text: s2.text });
+    else if (TOUCH_DB.test(s2.text))
+      messages.push(
+        { from: "API", to: "DB", text: "Query / update data" },
+        { from: "DB", to: "API", text: "Result", reply: true },
+        { from: "API", to: "UI", text: "Response", reply: true },
+        { from: "UI", to: "A", text: s2.text, reply: true }
+      );
+    else messages.push({ from: "UI", to: "A", text: s2.text, reply: true });
+  }
+  if (!messages.length) messages.push({ from: "A", to: "UI", text: uc.name }, { from: "UI", to: "API", text: "Send request" }, { from: "API", to: "UI", text: "Response", reply: true });
+  const alts = (uc.exceptions ?? []).slice(0, 3).map((e) => ({
+    condition: e.name,
+    messages: (e.steps?.length ? e.steps : ["Show an error to the user"]).slice(0, 4).map((t) => ({ from: "UI", to: "A", text: t, reply: true }))
+  }));
+  return { participants, messages, alts };
+}
+function mockSequenceParts(src) {
+  const name2 = (id) => src.screenNames[id];
+  return src.useCases.map((u) => ({ key: u.code, title: `${u.code} \u2013 ${u.name}`, code: buildSequenceMermaid(mockSequenceInput(u, name2)) }));
+}
+function mockBpmn(src) {
+  const sysLane = SYSTEM_LANE;
+  const ucs = src.useCases.slice(0, 8);
+  const laneOf = (u) => u.actors?.find((a) => !SYSTEM_ACTOR3.test(a)) ?? sourceActors(src)[0] ?? "User";
+  const firstLane = ucs.length ? laneOf(ucs[0]) : sourceActors(src)[0] ?? "User";
+  const nodes = [{ id: "start", lane: firstLane, type: "start", label: "Start" }];
+  const edges = [];
+  let prev = "start";
+  let pendingLabel = "";
+  const link = (to) => {
+    edges.push({ from: prev, to, label: pendingLabel || void 0 });
+    pendingLabel = "";
+  };
+  ucs.forEach((u, i) => {
+    const t = `t${i}`;
+    nodes.push({ id: t, lane: laneOf(u), type: "task", label: u.name });
+    link(t);
+    const sysStep2 = (u.mainFlow ?? []).find((s3) => SYSTEM_ACTOR3.test(String(s3.actor ?? "").trim()))?.text ?? `Process ${u.name.toLowerCase()}`;
+    const s2 = `s${i}`;
+    nodes.push({ id: s2, lane: sysLane, type: "task", label: short(sysStep2, 50) });
+    edges.push({ from: t, to: s2 });
+    prev = s2;
+    const ex = (u.exceptions ?? [])[0];
+    if (ex) {
+      const g = `g${i}`;
+      nodes.push({ id: g, lane: sysLane, type: "gateway", label: "Valid?" });
+      edges.push({ from: s2, to: g }, { from: g, to: t, label: short(`No \u2013 ${ex.name}`, 40) });
+      prev = g;
+      pendingLabel = "Yes";
+    }
+  });
+  if (!ucs.length) {
+    nodes.push({ id: "t0", lane: firstLane, type: "task", label: src.moduleName || "Perform business task" });
+    link("t0");
+    prev = "t0";
+  }
+  nodes.push({ id: "end", lane: ucs.length ? laneOf(ucs[ucs.length - 1]) : firstLane, type: "end", label: "End" });
+  link("end");
+  const lanes = uniq(nodes.map((n) => n.lane));
+  if (nodes.some((n) => n.lane === sysLane)) lanes.push(sysLane);
+  return { lanes, nodes, edges };
+}
+var ENTITY_VERBS = new RegExp("(?<!\\p{L})(?:qu\u1EA3n l\xFD|th\xEAm m\u1EDBi|th\xEAm|t\u1EA1o m\u1EDBi|t\u1EA1o|c\u1EADp nh\u1EADt|ch\u1EC9nh s\u1EEDa|s\u1EEDa|xo\xE1|x\xF3a|xem|tra c\u1EE9u|t\xECm ki\u1EBFm|l\u01B0u|ph\xEA duy\u1EC7t|duy\u1EC7t|\u0111\u1EB7t|hu\u1EF7|h\u1EE7y|xu\u1EA5t|\u0111\u0103ng k\xFD|theo d\xF5i|thanh to\xE1n|ph\xE2n c\xF4ng|g\xE1n|manages?|add|adds|creates?|updates?|edits?|deletes?|removes?|views?|search(?:es)? for|search(?:es)?|finds?|saves?|approves?|places?|books?|cancels?|exports?|registers?|tracks?|pays? for|assigns?)\\s+([^.,;:\\n()]+)", "giu");
+var ENTITY_PREFIX = /^(danh sách|thông tin|chi tiết|toàn bộ|tất cả|các|những|một|mới|lại|the|a|an|all|list of|details of|my|their|his|her|new|existing|each|every)\s+/i;
+var ENTITY_STOP = new Set(
+  "c\u1EE7a cho theo v\u1EDBi khi v\xE0 \u0111\u1EC3 trong t\u1EEB tr\xEAn t\u1EA1i v\xE0o ra b\u1EB1ng \u0111\u01B0\u1EE3c \u0111\xE3 \u0111ang s\u1EBD ho\u1EB7c n\u1EBFu th\xEC l\xE0 c\xF3 kh\xF4ng sau tr\u01B0\u1EDBc qua v\u1EC1 n\xE0y \u0111\xF3 l\xEAn xu\u1ED1ng m\xECnh m\u1EDBi b\u1ECB c\u1EA7n ph\u1EA3i \u1EDF nh\u01B0 m\xE0 nh\u01B0ng of for with by to and in on at from into as is are be when that this which or if so than then via".split(" ")
+);
+var ENTITY_BLACK = /^(email|mật khẩu|dữ liệu|kết quả|hệ thống|màn hình|trang|thông báo|lỗi|form|biểu mẫu|nút|giao diện|trạng thái|báo cáo|nội dung|lựa chọn|tài liệu|yêu cầu|thao tác|chức năng|người dùng|thông tin|password|data|result|results|system|screen|page|notification|notifications|error|errors|button|interface|status|report|reports|content|option|options|document|documents|request|requests|action|actions|function|user|users|information|details|it|them)$/i;
+function entityCandidates(text2) {
+  const out = [];
+  for (const m of String(text2 ?? "").matchAll(ENTITY_VERBS)) {
+    let rest = m[1].trim().toLowerCase();
+    for (let i = 0; i < 3 && ENTITY_PREFIX.test(rest); i++) rest = rest.replace(ENTITY_PREFIX, "");
+    const words2 = [];
+    for (const w of rest.split(/\s+/)) {
+      if (!new RegExp("^\\p{L}+$", "u").test(w) || ENTITY_STOP.has(w)) break;
+      words2.push(w);
+      if (words2.length === 2) break;
+    }
+    const name2 = words2.join(" ");
+    if (!name2 || name2.length < 3 || ENTITY_BLACK.test(name2)) continue;
+    out.push(cap3(name2));
+  }
+  return out;
+}
+var FIELD_LIST = /(?:gồm|bao gồm|các trường|các thông tin|thông tin|including|includes|consisting of|consists of|with fields|fields)\s*:?\s*([^.\n]+)/i;
+function mockErd(src) {
+  const texts = [
+    src.moduleName,
+    ...src.requirements.map((r) => r.statement),
+    ...src.useCases.flatMap((u) => [u.name, ...(u.mainFlow ?? []).map((s2) => s2.text)]),
+    ...src.srs.split(/\r?\n/)
+  ].filter(Boolean);
+  const count = /* @__PURE__ */ new Map();
+  texts.forEach((t, i) => {
+    for (const c of entityCandidates(t)) {
+      const k = c.toLowerCase();
+      const cur = count.get(k);
+      if (cur) cur.n++;
+      else count.set(k, { name: c, n: 1, first: i });
+    }
+  });
+  const all = [...count.values()];
+  const within = (a, b) => a !== b && ` ${b} `.includes(` ${a} `);
+  let names = all.filter((x) => !all.some((y) => within(x.name.toLowerCase(), y.name.toLowerCase()))).sort((a, b) => b.n - a.n || a.first - b.first).slice(0, 6).sort((a, b) => a.first - b.first).map((x) => x.name);
+  if (!names.length) names = ["Record"];
+  const lowerNames = names.map((n) => n.toLowerCase());
+  const user = "User";
+  const entities = [
+    {
+      name: user,
+      attributes: [
+        { name: "id", type: "uuid", key: "PK", comment: "Identifier" },
+        { name: "full_name", type: "string", comment: "Full name" },
+        { name: "email", type: "string", key: "UK", comment: "Email" },
+        { name: "role", type: "string", comment: "Role" }
+      ]
+    }
+  ];
+  const fields2 = /* @__PURE__ */ new Map();
+  const containRel = [];
+  for (const t of texts) {
+    const m = t.match(FIELD_LIST);
+    if (!m || m.index === void 0) continue;
+    const before = t.slice(0, m.index).toLowerCase();
+    const owner = lowerNames.map((n, i) => ({ i, at: before.lastIndexOf(n) })).filter((x) => x.at >= 0).sort((a, b) => b.at - a.at)[0];
+    if (!owner) continue;
+    const list = fields2.get(names[owner.i]) ?? [];
+    for (const f of m[1].split(/,|;|\s+và\s+|\s+hoặc\s+|\s+and\s+|\s+or\s+/)) {
+      const v = f.trim().toLowerCase().replace(/^(các|những|the|a|an)\s+/i, "");
+      if (!v || !/^[\p{L}\s]+$/u.test(v) || v.split(/\s+/).length > 4) continue;
+      const other = lowerNames.indexOf(v);
+      if (other >= 0 && other !== owner.i) containRel.push([names[owner.i], names[other]]);
+      else if (other < 0 && !list.includes(v)) list.push(v);
+    }
+    fields2.set(names[owner.i], list);
+  }
+  for (const name2 of names) {
+    const k = name2.toLowerCase();
+    const extra = fields2.get(name2) ?? [];
+    entities.push({
+      name: name2,
+      attributes: [
+        { name: "id", type: "uuid", key: "PK", comment: "Identifier" },
+        { name: "code", type: "string", key: "UK", comment: `${cap3(k)} code` },
+        ...extra.length ? extra.slice(0, 5).map((f) => ({ name: f, type: "string", comment: cap3(f) })) : [{ name: "name", type: "string", comment: "Name" }],
+        { name: "status", type: "string", comment: "Status" },
+        { name: "created_by_id", type: "uuid", key: "FK", comment: "Created by" },
+        { name: "created_at", type: "datetime", comment: "Created at" }
+      ]
+    });
+  }
+  const relations = names.map((n) => ({ from: user, to: n, cardinality: "1-n", label: "creates" }));
+  const pairs = /* @__PURE__ */ new Set();
+  for (const [a, b] of containRel) {
+    if (pairs.has(`${a}|${b}`)) continue;
+    pairs.add(`${a}|${b}`);
+    relations.push({ from: a, to: b, cardinality: "n-n", label: "contains" });
+  }
+  for (const t of texts) {
+    const lower = t.toLowerCase();
+    const hit = names.filter((n) => lower.includes(n.toLowerCase()));
+    for (let i = 0; i + 1 < hit.length && pairs.size < 6; i++) {
+      const p2 = `${hit[i]}|${hit[i + 1]}`;
+      if (pairs.has(p2) || pairs.has(`${hit[i + 1]}|${hit[i]}`)) continue;
+      pairs.add(p2);
+      relations.push({ from: hit[i], to: hit[i + 1], cardinality: "1-n", label: "contains" });
+    }
+  }
+  return { entities, relations };
+}
+var fail = (errors) => ({ errors });
+function ok(kind, r) {
+  const errors = checkDiagram(kind, r);
+  return errors.length ? { errors } : { value: r };
+}
+var single = (code) => ({ code, parts: [] });
+async function aiContext(src) {
+  const prompt = `Build the context diagram for system/module "${src.moduleName}" (project "${src.projectName}").
+- system: name of the system in the centre.
+- externals: actors (kind "actor": people, organisations) and external systems (kind "system") that interact with the system.
+- flows: data flows between the system and each external party; from/to is a name from externals or "${CONTEXT_SYSTEM}" (the system in the centre). Every external party has at least 1 flow.
+
+## BRD
+${clip3(src.brd, 12e3)}
+
+## User stories
+${clip3(storyLines2(src), 4e3)}`;
+  return runAI({
+    type: "generate_diagram_context",
+    moduleId: src.moduleId,
+    system: SYSTEM3,
+    prompt,
+    tool: {
+      name: "submit_context_diagram",
+      description: "Return the elements of the context diagram",
+      input_schema: {
+        type: "object",
+        properties: {
+          system: { type: "string" },
+          externals: { type: "array", items: { type: "object", properties: { name: { type: "string" }, kind: { type: "string", enum: ["actor", "system"] } }, required: ["name", "kind"] } },
+          flows: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, label: { type: "string" } }, required: ["from", "to", "label"] } }
+        },
+        required: ["system", "externals", "flows"]
+      }
+    },
+    parse: (raw) => {
+      const externals = Array.isArray(raw?.externals) ? raw.externals.map((e) => ({ name: String(e?.name ?? ""), kind: e?.kind === "system" ? "system" : "actor" })) : [];
+      if (!externals.length) return fail(["At least one actor or external system is required"]);
+      const flows2 = Array.isArray(raw?.flows) ? raw.flows.map((f) => ({ from: String(f?.from ?? ""), to: String(f?.to ?? ""), label: String(f?.label ?? "") })) : [];
+      const names = /* @__PURE__ */ new Set([CONTEXT_SYSTEM.toLowerCase(), key(String(raw?.system ?? "")), ...externals.map((e) => key(e.name))]);
+      const bad = flows2.filter((f) => !names.has(key(f.from)) || !names.has(key(f.to))).map((f) => `Flow references an unknown name: ${f.from} \u2192 ${f.to}`);
+      if (bad.length) return fail(bad);
+      return ok("CONTEXT", single(buildContextMermaid({ system: String(raw?.system ?? src.moduleName), externals, flows: flows2 })));
+    },
+    mock: () => single(buildContextMermaid(mockContext(src)))
+  });
+}
+async function aiUc(src) {
+  const codes = new Set(src.useCases.map((u) => u.code));
+  const prompt = `Build the use case diagram for module "${src.moduleName}" from the use cases below.
+- actors: actors outside the system (do not list "System").
+- relations: relationships between use cases, using only use case IDs from the list. "include": from is the base use case, to is the use case that is always invoked. "extend": from is the extending use case (only happens under specific conditions), to is the base use case.
+- If no relationship is clear, return an empty relations list.
+
+## Use cases
+${clip3(ucCompact(src.useCases), 16e3)}`;
+  return runAI({
+    type: "generate_diagram_uc",
+    moduleId: src.moduleId,
+    system: SYSTEM3,
+    prompt,
+    tool: {
+      name: "submit_uc_diagram",
+      description: "Return the actors and include/extend relationships of the use case diagram",
+      input_schema: {
+        type: "object",
+        properties: {
+          actors: { type: "array", items: { type: "string" } },
+          relations: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, type: { type: "string", enum: ["include", "extend"] } }, required: ["from", "to", "type"] } }
+        },
+        required: ["actors", "relations"]
+      }
+    },
+    parse: (raw) => {
+      const relations = Array.isArray(raw?.relations) ? raw.relations.map((r) => ({ from: String(r?.from ?? ""), to: String(r?.to ?? ""), type: r?.type === "extend" ? "extend" : "include" })) : [];
+      const bad = relations.filter((r) => !codes.has(r.from) || !codes.has(r.to)).map((r) => `Relationship references a use case that does not exist: ${r.from} \u2192 ${r.to}`);
+      if (bad.length) return fail(bad);
+      const actors = Array.isArray(raw?.actors) ? raw.actors.map(String) : [];
+      return ok("UC", single(buildUcMermaid(src.useCases, actors, relations)));
+    },
+    mock: () => single(mockUc(src))
+  });
+}
+var MSG_SCHEMA = {
+  type: "object",
+  properties: { from: { type: "string" }, to: { type: "string" }, text: { type: "string" }, reply: { type: "boolean" } },
+  required: ["from", "to", "text"]
+};
+var toMsgs = (v) => Array.isArray(v) ? v.map((m) => ({ from: String(m?.from ?? ""), to: String(m?.to ?? ""), text: String(m?.text ?? ""), reply: !!m?.reply })) : [];
+async function aiSequence(src) {
+  const withScreens = src.useCases.map((u) => ({ ...u, screens: (u.screenIds ?? []).map((id) => src.screenNames[id]).filter(Boolean) }));
+  const prompt = `Draw a sequence diagram for EACH use case below (one diagram per use case).
+- participants: short ASCII id (e.g. A, UI, API, DB) + English label; human actors have actor = true. Usually actor \u2192 user interface (screen name) \u2192 API Server \u2192 Database.
+- messages: the main flow in order; from/to are participant ids; reply = true for responses.
+- alts: one branch per important exception (condition + messages).
+
+## Use cases
+${clip3(JSON.stringify(withScreens.map((u) => ({ code: u.code, name: u.name, actors: u.actors, screens: u.screens, mainFlow: u.mainFlow, exceptions: u.exceptions }))), 2e4)}`;
+  const mockParts = () => mockSequenceParts(src);
+  return runAI({
+    type: "generate_diagram_sequence",
+    moduleId: src.moduleId,
+    system: SYSTEM3,
+    prompt,
+    maxTokens: 16e3,
+    tool: {
+      name: "submit_sequences",
+      description: "Return a sequence diagram for each use case",
+      input_schema: {
+        type: "object",
+        properties: {
+          sequences: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                useCaseCode: { type: "string" },
+                participants: { type: "array", items: { type: "object", properties: { id: { type: "string" }, label: { type: "string" }, actor: { type: "boolean" } }, required: ["id", "label"] } },
+                messages: { type: "array", items: MSG_SCHEMA },
+                alts: { type: "array", items: { type: "object", properties: { condition: { type: "string" }, messages: { type: "array", items: MSG_SCHEMA } }, required: ["condition", "messages"] } }
+              },
+              required: ["useCaseCode", "participants", "messages"]
+            }
+          }
+        },
+        required: ["sequences"]
+      }
+    },
+    parse: (raw) => {
+      const seqs = Array.isArray(raw?.sequences) ? raw.sequences : [];
+      const parts = [];
+      for (const u of src.useCases) {
+        const s2 = seqs.find((x) => String(x?.useCaseCode ?? "") === u.code);
+        if (!s2) continue;
+        const participants = Array.isArray(s2.participants) ? s2.participants.map((p2) => ({ id: String(p2?.id ?? ""), label: String(p2?.label ?? ""), actor: !!p2?.actor })) : [];
+        const alts = Array.isArray(s2.alts) ? s2.alts.map((a) => ({ condition: String(a?.condition ?? ""), messages: toMsgs(a?.messages) })) : [];
+        const messages = toMsgs(s2.messages);
+        if (!messages.length) continue;
+        parts.push({ key: u.code, title: `${u.code} \u2013 ${u.name}`, code: buildSequenceMermaid({ participants, messages, alts }) });
+      }
+      const missing = src.useCases.filter((u) => !parts.some((p2) => p2.key === u.code)).map((u) => u.code);
+      if (missing.length) return fail([`Missing diagrams (or messages) for: ${missing.join(", ")}`]);
+      return ok("SEQUENCE", { code: "", parts });
+    },
+    mock: () => ({ code: "", parts: mockParts() })
+  });
+}
+async function aiBpmn(src) {
+  const prompt = `Build a BPMN-style business process diagram for module "${src.moduleName}" (it will be simulated with a Mermaid flowchart).
+- lanes: one lane per actor, plus a "System" lane for automated system steps.
+- nodes: short ASCII id, lane (lane name), type: "start" (exactly 1), "end" (at least 1), "task" (activity, label starts with a verb), "gateway" (decision, label is a question, e.g. "Valid?").
+- edges: from/to are node ids; edges leaving a gateway have a label (e.g. "Yes", "No").
+- Every node must be reachable from start; follow the business order in the BRD and the use cases.
+
+## BRD
+${clip3(src.brd, 1e4)}
+
+## Use cases
+${clip3(ucCompact(src.useCases), 12e3)}`;
+  return runAI({
+    type: "generate_diagram_bpmn",
+    moduleId: src.moduleId,
+    system: SYSTEM3,
+    prompt,
+    tool: {
+      name: "submit_bpmn",
+      description: "Return the lanes, nodes and edges of the BPMN process",
+      input_schema: {
+        type: "object",
+        properties: {
+          lanes: { type: "array", items: { type: "string" } },
+          nodes: { type: "array", items: { type: "object", properties: { id: { type: "string" }, lane: { type: "string" }, type: { type: "string", enum: ["start", "end", "task", "gateway"] }, label: { type: "string" } }, required: ["id", "lane", "type", "label"] } },
+          edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, label: { type: "string" } }, required: ["from", "to"] } }
+        },
+        required: ["lanes", "nodes", "edges"]
+      }
+    },
+    parse: (raw) => {
+      const types = /* @__PURE__ */ new Set(["start", "end", "task", "gateway"]);
+      const nodes = Array.isArray(raw?.nodes) ? raw.nodes.map((n) => ({ id: String(n?.id ?? ""), lane: String(n?.lane ?? ""), type: types.has(n?.type) ? n.type : "task", label: String(n?.label ?? "") })) : [];
+      const edges = Array.isArray(raw?.edges) ? raw.edges.map((e) => ({ from: String(e?.from ?? ""), to: String(e?.to ?? ""), label: e?.label ? String(e.label) : void 0 })) : [];
+      const errors = [];
+      if (!nodes.some((n) => n.type === "start")) errors.push('Missing start event (type "start")');
+      if (!nodes.some((n) => n.type === "end")) errors.push('Missing end event (type "end")');
+      const ids = new Set(nodes.map((n) => n.id));
+      for (const e of edges) if (!ids.has(e.from) || !ids.has(e.to)) errors.push(`Edge references an unknown node: ${e.from} \u2192 ${e.to}`);
+      if (errors.length) return fail(errors);
+      const lanes = Array.isArray(raw?.lanes) ? raw.lanes.map(String) : [];
+      return ok("BPMN", single(buildBpmnMermaid({ lanes, nodes, edges })));
+    },
+    mock: () => single(buildBpmnMermaid(mockBpmn(src)))
+  });
+}
+async function aiErd(src) {
+  const prompt = `Build the ERD (entity\u2013relationship diagram) for module "${src.moduleName}".
+- entities: name (English, e.g. "Order"), key attributes (ASCII snake_case name, type \u2208 string|text|int|decimal|boolean|date|datetime|uuid, key PK/FK/UK when applicable, English comment). Each entity has exactly 1 PK.
+- relations: from/to are entity names, cardinality \u2208 "1-1" | "1-n" | "n-n" | "1-0..1", label is a short verb.
+- Only include entities supported by the requirements; do not create technical tables (logs, sessions) unless the requirements mention them.
+
+## FRD-NFR
+${clip3(reqLines(src.requirements), 1e4)}
+
+## SRS
+${clip3(src.srs, 1e4)}
+
+## Use cases (names)
+${src.useCases.map((u) => `- ${u.code}: ${u.name}`).join("\n")}`;
+  return runAI({
+    type: "generate_diagram_erd",
+    moduleId: src.moduleId,
+    system: SYSTEM3,
+    prompt,
+    tool: {
+      name: "submit_erd",
+      description: "Return the entities, attributes and relationships",
+      input_schema: {
+        type: "object",
+        properties: {
+          entities: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                attributes: { type: "array", items: { type: "object", properties: { name: { type: "string" }, type: { type: "string" }, key: { type: "string", enum: ["PK", "FK", "UK", ""] }, comment: { type: "string" } }, required: ["name", "type"] } }
+              },
+              required: ["name", "attributes"]
+            }
+          },
+          relations: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, cardinality: { type: "string", enum: ["1-1", "1-n", "n-n", "1-0..1"] }, label: { type: "string" } }, required: ["from", "to", "cardinality", "label"] } }
+        },
+        required: ["entities", "relations"]
+      }
+    },
+    parse: (raw) => {
+      const entities = Array.isArray(raw?.entities) ? raw.entities.map((e) => ({
+        name: String(e?.name ?? ""),
+        attributes: Array.isArray(e?.attributes) ? e.attributes.map((a) => ({ name: String(a?.name ?? ""), type: String(a?.type ?? "string"), key: ["PK", "FK", "UK"].includes(a?.key) ? a.key : "", comment: String(a?.comment ?? "") })) : []
+      })) : [];
+      if (!entities.length) return fail(["At least one entity is required"]);
+      const names = new Set(entities.map((e) => key(e.name)));
+      const relations = Array.isArray(raw?.relations) ? raw.relations.map((r) => ({ from: String(r?.from ?? ""), to: String(r?.to ?? ""), cardinality: ["1-1", "1-n", "n-n", "1-0..1"].includes(r?.cardinality) ? r.cardinality : "1-n", label: String(r?.label ?? "") })) : [];
+      const bad = relations.filter((r) => !names.has(key(r.from)) || !names.has(key(r.to))).map((r) => `Relationship references an unknown entity: ${r.from} \u2192 ${r.to}`);
+      if (bad.length) return fail(bad);
+      return ok("ERD", single(buildErdMermaid({ entities, relations })));
+    },
+    mock: () => single(buildErdMermaid(mockErd(src)))
+  });
+}
+function generateDiagram(kind, src) {
+  switch (kind) {
+    case "CONTEXT":
+      return aiContext(src);
+    case "UC":
+      return aiUc(src);
+    case "SEQUENCE":
+      return aiSequence(src);
+    case "BPMN":
+      return aiBpmn(src);
+    case "ERD":
+      return aiErd(src);
+  }
+}
+
+// server/routes/diagrams.ts
+var parseJson2 = (s2, fallback) => {
+  if (!s2) return fallback;
+  try {
+    return JSON.parse(s2);
+  } catch {
+    return fallback;
+  }
+};
+var toDiagram2 = (r) => ({
+  moduleId: r.module_id,
+  kind: r.kind,
+  code: r.code ?? "",
+  parts: parseJson2(r.parts, []),
+  status: r.status,
+  revisionRequested: !!r.revision_requested,
+  rev: Number(r.rev),
+  updatedBy: r.updated_by ?? null,
+  updatedAt: r.updated_at ?? null
+});
+var emptyDiagram = (moduleId, kind) => ({ moduleId, kind, code: "", parts: [], status: "none", revisionRequested: false, rev: 0, updatedBy: null, updatedAt: null });
+var ref = (moduleId, kind) => ({ kind: "diagram", id: moduleId, moduleId, sub: kind });
+function mustModule4(id) {
+  const m = getDb().prepare("SELECT id, name, project_id FROM modules WHERE id = ?").get(id);
+  if (!m) throw new HttpError("Module not found", 404);
+  return m;
+}
+function parseKind(raw) {
+  const k = String(raw ?? "").toUpperCase();
+  if (!DIAGRAM_KINDS.includes(k)) throw new HttpError(`Invalid diagram type: ${raw}. Choose one of ${DIAGRAM_KINDS.join(", ")}`, 400);
+  return k;
+}
+function getModuleDiagram(moduleId, kind) {
+  const r = getDb().prepare("SELECT * FROM module_diagrams WHERE module_id = ? AND kind = ?").get(moduleId, kind);
+  return r ? toDiagram2(r) : emptyDiagram(moduleId, kind);
+}
+function listModuleDiagrams(moduleId) {
+  return DIAGRAM_KINDS.map((k) => getModuleDiagram(moduleId, k));
+}
+function readDocs(moduleId) {
+  const rows = getDb().prepare("SELECT kind, content, data, status FROM module_docs WHERE module_id = ?").all(moduleId);
+  return new Map(rows.map((r) => [r.kind, r]));
+}
+function generateBlockReason2(moduleId, kind, docs = readDocs(moduleId)) {
+  return diagramBlockReason(kind, (k) => docs.get(k)?.status ?? "none");
+}
+function useCasesOf(d) {
+  const v = parseJson2(d?.data, null);
+  const list = Array.isArray(v) ? v : Array.isArray(v?.useCases) ? v.useCases : [];
+  return list.filter((u) => u && typeof u.code === "string");
+}
+function requirementsOf(d) {
+  const v = parseJson2(d?.data, null);
+  const list = Array.isArray(v) ? v : Array.isArray(v?.requirements) ? v.requirements : [];
+  return list.filter((r) => r && typeof r.statement === "string");
+}
+function srsTextOf(d) {
+  if (d?.content?.trim()) return d.content;
+  const v = parseJson2(d?.data, null);
+  const srs = v?.srs ?? (Array.isArray(v?.sections) ? v : null);
+  return srs?.sections ? srs.sections.map((s2) => `## ${s2.title}
+${s2.content}`).join("\n\n") : "";
+}
+function loadSources(moduleId) {
+  const d = getDb();
+  const m = mustModule4(moduleId);
+  const docs = readDocs(moduleId);
+  const project = d.prepare("SELECT name FROM projects WHERE id = ?").get(m.project_id);
+  const stories = d.prepare("SELECT code, as_a, i_want, so_that FROM user_stories WHERE module_id = ? ORDER BY ord").all(moduleId);
+  const screens = d.prepare("SELECT id, name FROM screens WHERE module_id = ?").all(moduleId);
+  return {
+    moduleId,
+    moduleName: m.name,
+    projectName: project?.name ?? "",
+    brd: docs.get("BRD")?.content ?? "",
+    useCases: useCasesOf(docs.get("UC_SPEC")),
+    requirements: requirementsOf(docs.get("FRD_NFR")),
+    srs: srsTextOf(docs.get("SRS")),
+    stories: stories.map((s2) => ({ code: s2.code, asA: s2.as_a ?? "", iWant: s2.i_want ?? "", soThat: s2.so_that ?? "" })),
+    screenNames: Object.fromEntries(screens.map((s2) => [s2.id, s2.name]))
+  };
+}
+function writeDiagram(moduleId, kind, content, baseRev, actorId, check) {
+  return tx(() => {
+    const r = ref(moduleId, kind);
+    const cur = getArtifactState(r);
+    if (!cur) throw new HttpError("Module not found", 404);
+    assertRev(cur.rev, baseRev);
+    check?.();
+    const d = getDb();
+    const exists = !!d.prepare("SELECT 1 FROM module_diagrams WHERE module_id = ? AND kind = ?").get(moduleId, kind);
+    if (!exists) {
+      d.prepare("INSERT INTO module_diagrams (module_id, kind, code, parts, status, revision_requested, rev, updated_at) VALUES (?, ?, ?, ?, 'draft', 0, 0, ?)").run(
+        moduleId,
+        kind,
+        content.code,
+        JSON.stringify(content.parts),
+        (/* @__PURE__ */ new Date()).toISOString()
+      );
+    } else {
+      d.prepare("UPDATE module_diagrams SET code = ?, parts = ? WHERE module_id = ? AND kind = ?").run(content.code, JSON.stringify(content.parts), moduleId, kind);
+      if (cur.status !== "draft") setArtifactState(r, { status: "draft" });
+    }
+    bumpRev(r, actorId);
+    emit({ type: "artifact.drafted", artifact: r, actorId });
+    return getModuleDiagram(moduleId, kind);
+  });
+}
+function markDiagramsOutdated(moduleId, doc, actorId) {
+  const changed = [];
+  for (const kind of DIAGRAM_KINDS) {
+    if (!DIAGRAM_SOURCES[kind].includes(doc)) continue;
+    const r = ref(moduleId, kind);
+    const s2 = getArtifactState(r);
+    if (!s2 || s2.status === "none" || s2.status === "outdated") continue;
+    setArtifactState(r, { status: "outdated" });
+    emit({ type: "artifact.stale", artifact: r, actorId });
+    changed.push(kind);
+  }
+  return changed;
+}
+on("artifact.drafted", (e) => {
+  if (e.artifact.kind !== "doc" || !e.artifact.sub) return;
+  const doc = e.artifact.sub;
+  if (!Object.values(DIAGRAM_SOURCES).some((list) => list.includes(doc))) return;
+  tx(() => markDiagramsOutdated(e.artifact.id, doc, e.actorId));
+});
+var actorOf3 = (ctx) => requireMember(ctx)?.id ?? actor(ctx.body);
+route("GET", "/api/modules/:id/diagrams", (ctx) => {
+  requireMember(ctx);
+  mustModule4(ctx.params.id);
+  return listModuleDiagrams(ctx.params.id);
+});
+route("GET", "/api/modules/:id/diagrams/:kind", (ctx) => {
+  requireMember(ctx);
+  const kind = parseKind(ctx.params.kind);
+  mustModule4(ctx.params.id);
+  return getModuleDiagram(ctx.params.id, kind);
+});
+route("PUT", "/api/modules/:id/diagrams/:kind", (ctx) => {
+  const actorId = actorOf3(ctx);
+  const kind = parseKind(ctx.params.kind);
+  mustModule4(ctx.params.id);
+  const body = ctx.body ?? {};
+  if (typeof body.code === "string" && body.code.length > MAX_DIAGRAM_CODE) throw new HttpError("Diagram code is too long", 413);
+  if (kind !== "SEQUENCE" && typeof body.code !== "string") throw new HttpError("Missing diagram code (code)", 400);
+  const code = kind === "SEQUENCE" ? "" : String(body.code);
+  const parts = kind === "SEQUENCE" ? normalizeParts(body.parts) : [];
+  const errors = checkDiagram(kind, { code, parts });
+  if (errors.length) throw new HttpError(`Invalid Mermaid code \u2013 ${errors[0]}`, 400, void 0, { details: errors });
+  return writeDiagram(ctx.params.id, kind, { code, parts }, baseRevOf(body), actorId);
+});
+route("POST", "/api/modules/:id/diagrams/:kind/generate", async (ctx) => {
+  const actorId = actorOf3(ctx);
+  const kind = parseKind(ctx.params.kind);
+  const moduleId = ctx.params.id;
+  mustModule4(moduleId);
+  const reason = generateBlockReason2(moduleId, kind);
+  if (reason) throw new HttpError(reason, 400);
+  const baseRev = baseRevOf(ctx.body);
+  assertRev(getArtifactState(ref(moduleId, kind))?.rev ?? 0, baseRev);
+  const src = loadSources(moduleId);
+  if ((kind === "UC" || kind === "SEQUENCE" || kind === "BPMN") && !src.useCases.length) throw new HttpError("The UC Specification has no use cases \u2013 regenerate the UC Specification", 400);
+  const result2 = await generateDiagram(kind, src);
+  const errors = checkDiagram(kind, result2);
+  if (errors.length) throw new HttpError(`The AI returned an invalid diagram \u2013 ${errors[0]}`, 502, void 0, { details: errors });
+  return writeDiagram(moduleId, kind, result2, baseRev, actorId, () => {
+    const r = generateBlockReason2(moduleId, kind);
+    if (r) throw new HttpError(r, 400);
+  });
+});
+
+// server/github.ts
+import { randomUUID as randomUUID7 } from "node:crypto";
+
+// server/gitExport.ts
+import { readFileSync as readFileSync3 } from "node:fs";
+import { dirname as dirname4, join as join3 } from "node:path";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
+
+// shared/exportHtml.ts
+var esc2 = (v) => String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+var s = (v, d = "") => v === void 0 || v === null ? d : String(v);
+var cls = (v, d) => s(v, d).replace(/[^a-zA-Z0-9_-]/g, "-");
+var num2 = (v, d, min = 0, max = 2e3) => {
+  const n = Number(v ?? d);
+  return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : d;
+};
+var norm2 = (x) => x.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase().trim();
+function navHref(ctx, target) {
+  if (!target) return null;
+  return ctx.links.get(norm2(String(target))) ?? null;
+}
+function render(n, ctx) {
+  const p2 = n.props ?? {};
+  const kids = (n.children ?? []).map((c) => render(c, ctx)).join("");
+  const at = `data-node-id="${esc2(n.id)}"`;
+  const req = p2.required ? '<span class="ds-req">*</span>' : "";
+  const label3 = () => `<div class="ds-label">${esc2(s(p2.label))}${req}</div>`;
+  switch (n.type) {
+    case "Page":
+      return `<div ${at} class="ds-page">${kids}</div>`;
+    case "Header":
+      return `<header ${at} class="ds-header">${p2.title ? `<div class="ds-header-title">${esc2(p2.title)}</div>` : ""}${kids ? `<div class="ds-header-kids">${kids}</div>` : ""}</header>`;
+    case "Sidebar":
+      return `<aside ${at} class="ds-sidebar">${kids}</aside>`;
+    case "Section":
+      return `<section ${at} class="ds-section">${p2.title ? `<h3 class="ds-section-title">${esc2(p2.title)}</h3>` : ""}${kids}</section>`;
+    case "Card":
+      return `<div ${at} class="ds-card">${p2.title ? `<div class="ds-card-title">${esc2(p2.title)}</div>` : ""}${kids}</div>`;
+    case "Row":
+      return `<div ${at} class="ds-row ds-align-${cls(p2.align, "start")}" style="gap:${num2(p2.gap, 12, 0, 200)}px">${kids}</div>`;
+    case "Column":
+      return `<div ${at} class="ds-col ds-w-${cls(s(p2.width, "auto").replace("/", "-"), "auto")}" style="gap:${num2(p2.gap, 12, 0, 200)}px">${kids}</div>`;
+    case "Form":
+      return `<form ${at} class="ds-form">${p2.title ? `<div class="ds-form-title">${esc2(p2.title)}</div>` : ""}${kids}</form>`;
+    case "List":
+      return `<div ${at} class="ds-list">${p2.title ? `<div class="ds-card-title">${esc2(p2.title)}</div>` : ""}${kids}</div>`;
+    case "Modal":
+      return `<div ${at} class="ds-modal"><div class="ds-modal-head">${esc2(s(p2.title, "Dialog"))}</div>${kids}</div>`;
+    case "Heading": {
+      const lvl = Math.min(3, Math.max(1, Math.round(num2(p2.level, 2, 1, 3))));
+      return `<h${lvl} ${at} class="ds-h ds-h${lvl}">${esc2(p2.text)}</h${lvl}>`;
+    }
+    case "Text":
+      return `<p ${at} class="ds-text${p2.tone === "muted" ? " ds-muted" : ""}">${esc2(p2.text)}</p>`;
+    case "Button": {
+      const href = navHref(ctx, p2.navigateTo);
+      const title = p2.navigateTo ? ` title="&#8594; ${esc2(p2.navigateTo)}"` : "";
+      const c = `ds-btn ds-btn-${cls(p2.variant, "primary")}`;
+      const text2 = esc2(s(p2.label, "Button"));
+      return href ? `<a ${at} href="${esc2(href)}" class="${c}"${title}>${text2}</a>` : `<span ${at} role="button" class="${c}"${title}>${text2}</span>`;
+    }
+    case "Link": {
+      const href = navHref(ctx, p2.navigateTo) ?? "#";
+      return `<a ${at} href="${esc2(href)}" class="ds-link"${p2.navigateTo ? ` title="&#8594; ${esc2(p2.navigateTo)}"` : ""}>${esc2(p2.text)}</a>`;
+    }
+    case "Input":
+    case "DatePicker": {
+      const ph = n.type === "DatePicker" ? "dd/mm/yyyy" : p2.inputType === "password" ? "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" : s(p2.placeholder);
+      return `<div ${at} class="ds-field">${label3()}<div class="ds-input"><span class="ds-ph">${esc2(ph)}</span>${n.type === "DatePicker" ? '<span class="ds-ico">&#9638;</span>' : ""}</div></div>`;
+    }
+    case "Textarea":
+      return `<div ${at} class="ds-field">${label3()}<div class="ds-input ds-textarea"><span class="ds-ph">${esc2(p2.placeholder)}</span></div></div>`;
+    case "Select": {
+      const first = Array.isArray(p2.options) && p2.options.length ? String(p2.options[0]) : "";
+      return `<div ${at} class="ds-field">${label3()}<div class="ds-input"><span>${esc2(first)}</span><span class="ds-ico">&#9662;</span></div></div>`;
+    }
+    case "Checkbox":
+      return `<div ${at} class="ds-check"><span class="ds-box"></span>${esc2(p2.label)}</div>`;
+    case "Radio": {
+      const opts = (Array.isArray(p2.options) ? p2.options : []).map((o, i) => `<span class="ds-check"><span class="ds-radio${i === 0 ? " on" : ""}"></span>${esc2(o)}</span>`).join("");
+      return `<div ${at} class="ds-field">${label3()}<div class="ds-radios">${opts}</div></div>`;
+    }
+    case "Table": {
+      const cols = Array.isArray(p2.columns) ? p2.columns.map(String) : [];
+      const rows = Array.isArray(p2.rows) ? p2.rows : [];
+      const acts = Array.isArray(p2.rowActions) ? p2.rowActions.map(String) : [];
+      const head = cols.map((c) => `<th>${esc2(c)}</th>`).join("") + (acts.length ? "<th>Actions</th>" : "");
+      const body = (rows.length ? rows : [cols.map(() => "\u2014")]).map((r) => {
+        const cells = cols.map((_, j) => `<td>${esc2((Array.isArray(r) ? r : [])[j] ?? "")}</td>`).join("");
+        const a = acts.length ? `<td><span class="ds-row-acts">${acts.map((x) => `<span class="ds-link">${esc2(x)}</span>`).join("")}</span></td>` : "";
+        return `<tr>${cells}${a}</tr>`;
+      }).join("");
+      return `<div ${at} class="ds-table-wrap"><table class="ds-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
+    }
+    case "Image":
+      return `<div ${at} class="ds-image" style="height:${num2(p2.height, 140, 20, 1200)}px"><span>${esc2(s(p2.alt, "Image"))}</span></div>`;
+    case "Badge":
+      return `<span ${at} class="ds-badge ds-tone-${cls(p2.tone, "info")}">${esc2(p2.text)}</span>`;
+    case "Alert":
+      return `<div ${at} class="ds-alert ds-tone-${cls(p2.tone, "info")}">${esc2(p2.text)}</div>`;
+    case "Stat":
+      return `<div ${at} class="ds-stat"><div class="ds-stat-label">${esc2(p2.label)}</div><div class="ds-stat-value">${esc2(p2.value)}</div></div>`;
+    case "Avatar": {
+      const ch = s(p2.name, "?").trim().split(/\s+/).slice(-1)[0]?.[0]?.toUpperCase() ?? "?";
+      return `<span ${at} class="ds-avatar" title="${esc2(p2.name)}">${esc2(ch)}</span>`;
+    }
+    case "Divider":
+      return `<hr ${at} class="ds-divider">`;
+    case "Pagination": {
+      const k = Math.round(num2(p2.pages, 3, 1, 7));
+      const pages = Array.from({ length: k }, (_, i) => `<span${i === 0 ? ' class="on"' : ""}>${i + 1}</span>`).join("");
+      return `<div ${at} class="ds-pagination"><span>&#8249;</span>${pages}<span>&#8250;</span></div>`;
+    }
+    default:
+      return `<div ${at} class="ds-unknown">${esc2(n.type)}${kids}</div>`;
+  }
+}
+var PROTOTYPE_CSS = `
+*{box-sizing:border-box}
+body{margin:0;background:#eef0f3;font-family:Inter,"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;color:#1f2937}
+.pt-shell{max-width:1280px;margin:24px auto;padding:0 16px}
+.pt-frame{background:#fff;border:1px solid #d9dde3;border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(15,23,42,.08)}
+.pt-bar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:#f3f4f6;border-bottom:1px solid #e5e7eb;font-size:12px;color:#6b7280}
+.pt-dot{width:10px;height:10px;border-radius:50%;background:#d1d5db}
+.pt-url{margin-left:10px}
+.pt-nav{display:flex;gap:12px;align-items:center;margin-bottom:10px;font-size:13px}
+.pt-nav a{color:#2f5bea}
+.pt-foot{margin-top:10px;font-size:12px;color:#6b7280;text-align:center}
+.pt-index{max-width:720px;margin:40px auto;padding:0 16px}
+.pt-index h1{font-size:24px;margin:0 0 16px}
+.pt-index ul{list-style:none;padding:0;margin:0;background:#fff;border:1px solid #e5e7eb;border-radius:10px}
+.pt-index li{border-top:1px solid #f0f1f3}
+.pt-index li:first-child{border-top:0}
+.pt-index li a{display:block;padding:12px 16px;color:#1f2937;text-decoration:none}
+.pt-index li a:hover{background:#f9fafb;color:#2f5bea}
+a.ds-btn{text-decoration:none}
+.ds-page{padding:24px;display:flex;flex-direction:column;gap:16px;font-size:14px;color:#1f2937}
+.ds-header{display:flex;align-items:center;gap:16px;padding:12px 16px;border-bottom:1px solid #e5e7eb;margin:-24px -24px 0;background:#fafafa}
+.ds-header-title{font-weight:700;font-size:17px}
+.ds-header-kids{display:flex;gap:12px;margin-left:auto;align-items:center}
+.ds-sidebar{display:flex;flex-direction:column;gap:8px;padding:12px;background:#f8fafc;border-radius:8px;min-width:180px}
+.ds-section{display:flex;flex-direction:column;gap:12px}
+.ds-section-title{font-size:15px;font-weight:600;margin:0}
+.ds-card{border:1px solid #e5e7eb;border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:14px;max-width:100%;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.ds-page>.ds-card:only-child{width:420px;margin:24px auto}
+.ds-card-title,.ds-form-title{font-weight:700;font-size:16px}
+.ds-row{display:flex;flex-wrap:wrap;align-items:flex-end}
+.ds-row>.ds-field{min-width:180px;flex:1}
+.ds-row>.ds-stat{flex:1}
+.ds-align-center{justify-content:center}
+.ds-align-end{justify-content:flex-end}
+.ds-align-between{justify-content:space-between}
+.ds-col{display:flex;flex-direction:column;flex:1}
+.ds-w-1-3{flex:0 0 33%}
+.ds-w-1-2{flex:0 0 50%}
+.ds-w-2-3{flex:0 0 66%}
+.ds-form{display:flex;flex-direction:column;gap:14px}
+.ds-list{display:flex;flex-direction:column;gap:8px}
+.ds-modal{border:1px solid #d1d5db;border-radius:12px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.12);display:flex;flex-direction:column;gap:12px}
+.ds-modal-head{font-weight:700}
+.ds-h{margin:0}
+.ds-h1{font-size:24px}
+.ds-h2{font-size:19px}
+.ds-h3{font-size:16px}
+.ds-text{margin:0;line-height:1.5}
+.ds-muted{color:#6b7280}
+.ds-btn{display:inline-flex;align-items:center;justify-content:center;padding:9px 16px;border-radius:8px;font-weight:600;background:#2f5bea;color:#fff;user-select:none;align-self:flex-start}
+.ds-form>.ds-btn{align-self:stretch}
+.ds-btn-secondary{background:#fff;color:#1f2937;border:1px solid #d1d5db}
+.ds-btn-ghost{background:transparent;color:#2f5bea}
+.ds-btn-danger{background:#d92d20}
+.ds-link{color:#2f5bea;font-size:13px}
+.ds-row-acts{display:flex;gap:10px}
+.ds-field{display:flex;flex-direction:column;gap:6px}
+.ds-label{font-size:13px;font-weight:600}
+.ds-req{color:#d92d20;margin-left:2px}
+.ds-input{border:1px solid #d1d5db;border-radius:8px;padding:9px 12px;min-height:38px;display:flex;justify-content:space-between;align-items:center;background:#fff}
+.ds-textarea{min-height:80px;align-items:flex-start}
+.ds-ph{color:#9ca3af}
+.ds-ico{color:#9ca3af}
+.ds-check{display:flex;align-items:center;gap:8px;font-size:13px}
+.ds-box{width:16px;height:16px;border:1.5px solid #9ca3af;border-radius:4px}
+.ds-radio{width:16px;height:16px;border:1.5px solid #9ca3af;border-radius:50%}
+.ds-radio.on{border:5px solid #2f5bea}
+.ds-radios{display:flex;gap:16px}
+.ds-table-wrap{border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}
+.ds-table{width:100%;border-collapse:collapse;font-size:13px}
+.ds-table th{background:#f9fafb;text-align:left;padding:10px 12px;color:#6b7280;font-weight:600}
+.ds-table td{padding:10px 12px;border-top:1px solid #f0f1f3}
+.ds-image{background:repeating-linear-gradient(45deg,#f3f4f6 0 10px,#e5e7eb 10px 20px);border-radius:8px;display:grid;place-items:center;color:#6b7280}
+.ds-badge{font-size:12px;padding:2px 10px;border-radius:999px;align-self:flex-start}
+.ds-alert{padding:10px 14px;border-radius:8px;font-size:13px}
+.ds-tone-info{background:#eff4ff;color:#2846b8}
+.ds-tone-success{background:#e7f6ee;color:#0f6b40}
+.ds-tone-warning{background:#fff4dc;color:#8a5a00}
+.ds-tone-danger{background:#fdecea;color:#b42318}
+.ds-stat{border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;min-width:150px}
+.ds-stat-label{font-size:12px;color:#6b7280}
+.ds-stat-value{font-size:22px;font-weight:700;margin-top:4px}
+.ds-avatar{width:32px;height:32px;border-radius:50%;background:#c7d2fe;color:#3730a3;display:grid;place-items:center;font-weight:700;font-size:13px}
+.ds-divider{border:0;border-top:1px solid #e5e7eb;margin:4px 0;width:100%}
+.ds-pagination{display:flex;gap:6px;justify-content:flex-end}
+.ds-pagination span{min-width:30px;height:30px;border:1px solid #e5e7eb;border-radius:6px;display:grid;place-items:center;font-size:13px}
+.ds-pagination span.on{background:#2f5bea;color:#fff;border-color:#2f5bea}
+.ds-unknown{border:1px dashed #d92d20;padding:8px;color:#d92d20}
+@media (max-width:640px){.ds-page>.ds-card:only-child{width:auto;margin:8px 0}.ds-w-1-3,.ds-w-1-2,.ds-w-2-3{flex:1 1 100%}.pt-shell{margin:8px auto;padding:0 8px}}
+`;
+function page(title, body) {
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="BA Copilot">
+<title>${esc2(title)}</title>
+<style>${PROTOTYPE_CSS}</style>
+</head>
+<body>
+${body}
+</body>
+</html>
+`;
+}
+function screenToHtml(tree, opts = {}) {
+  const title = opts.title || s(tree?.props?.title, "Screen");
+  const links = new Map(Object.entries(opts.links ?? {}).map(([k, v]) => [norm2(k), v]));
+  const content = tree ? render(tree, { links }) : "";
+  const nav = opts.backHref ? `<div class="pt-nav"><a href="${esc2(opts.backHref)}">&#8592; Screen list</a></div>` : "";
+  const foot = opts.footer ? `<div class="pt-foot">${esc2(opts.footer)}</div>` : "";
+  const body = `<div class="pt-shell">${nav}<div class="pt-frame"><div class="pt-bar"><span class="pt-dot"></span><span class="pt-dot"></span><span class="pt-dot"></span><span class="pt-url">${esc2(title)}</span></div>${content}</div>${foot}</div>`;
+  return page(title, body);
+}
+
+// server/gitExport.ts
+function slugify2(text2, fallback = "item") {
+  const s2 = (text2 ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[đĐ]/g, "d").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60).replace(/-+$/g, "");
+  return s2 || fallback;
+}
+var DOC_FILE = {
+  BRD: "01-BRD.md",
+  UC_SPEC: "02-UC-Specification.md",
+  SRS: "03-SRS.md",
+  FRD_NFR: "04-FRD-NFR.md",
+  API_SPEC: "05-API-Spec.md"
+};
+var diagramFile = (kind) => DIAGRAM_FILE[kind];
+function moduleRow(moduleId) {
+  const m = getDb().prepare("SELECT id, project_id, name FROM modules WHERE id = ?").get(moduleId);
+  if (!m) throw new Error("The artifact's module was not found");
+  return m;
+}
+function moduleDir(moduleId) {
+  const m = moduleRow(moduleId);
+  const slug2 = slugify2(m.name, "module");
+  const others = getDb().prepare("SELECT id, name FROM modules WHERE project_id = ? AND id <> ?").all(m.project_id, m.id);
+  return others.some((o) => slugify2(o.name, "module") === slug2) ? `${slug2}-${slugify2(m.id).slice(0, 8)}` : slug2;
+}
+function moduleScreens(moduleId) {
+  return getDb().prepare(
+    `SELECT s.id, s.name, s.status, v.tree AS tree FROM screens s LEFT JOIN screen_versions v ON v.id = s.current_version_id
+       WHERE s.module_id = ? ORDER BY s.created_at, s.id`
+  ).all(moduleId);
+}
+function screenFiles(screens) {
+  const count = /* @__PURE__ */ new Map();
+  for (const s2 of screens) count.set(slugify2(s2.name, "man"), (count.get(slugify2(s2.name, "man")) ?? 0) + 1);
+  const out = /* @__PURE__ */ new Map();
+  for (const s2 of screens) {
+    const slug2 = slugify2(s2.name, "man");
+    const name2 = slug2 === "index" || (count.get(slug2) ?? 0) > 1 ? `${slug2}-${slugify2(s2.id).slice(0, 8)}` : slug2;
+    out.set(s2.id, `${name2}.html`);
+  }
+  return out;
+}
+var esc3 = (s2) => s2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+function screenHtml(name2, tree, moduleName) {
+  if (!tree) {
+    return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${esc3(name2)} \u2013 ${esc3(moduleName)}</title></head>
+<body><p style="padding:24px">This screen has no design yet.</p></body></html>
+`;
+  }
+  return screenToHtml(tree, { title: `${name2} \u2013 ${moduleName}`, backHref: "index.html", footer: `Exported from BA Copilot \u2013 ${moduleName}` });
+}
+function prototypeIndex(moduleName, items) {
+  const list = items.length ? items.map((s2) => `<li><a href="${esc3(s2.file)}">${esc3(s2.name)}</a></li>`).join("\n") : "<li>No screens have been approved yet.</li>";
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prototype \u2013 ${esc3(moduleName)}</title>
+<style>body{margin:0;padding:32px;font-family:Inter,system-ui,sans-serif;color:#1c2a30;background:#fff}h1{font-size:24px}li{margin:6px 0}a{color:#0f5a6e}</style>
+</head><body>
+<h1>Prototype \u2013 ${esc3(moduleName)}</h1>
+<p>Screens approved by the BA Lead:</p>
+<ul>
+${list}
+</ul>
+</body></html>
+`;
+}
+var cell3 = (s2) => String(s2 ?? "").replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+function parseJson3(raw, fallback) {
+  try {
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+function testsMarkdown(moduleName, cases) {
+  const lines = [`# Test case \u2013 ${moduleName}`, ""];
+  if (!cases.length) return lines.concat("_(No test cases yet)_", "").join("\n");
+  lines.push(`Total: ${cases.length} test case(s).`, "", "| ID | Title | Type | Priority | Use case | Requirements |", "|---|---|---|---|---|---|");
+  for (const c of cases) lines.push(`| ${cell3(c.code)} | ${cell3(c.title)} | ${cell3(c.type)} | ${cell3(c.priority)} | ${cell3(c.useCaseCode)} | ${cell3((c.requirementCodes ?? []).join(", "))} |`);
+  for (const c of cases) {
+    lines.push("", `## ${c.code} \u2013 ${c.title}`, "");
+    lines.push(`- **Type:** ${c.type} \xB7 **Priority:** ${c.priority} \xB7 **Use case:** ${c.useCaseCode || "\u2014"}${c.flowRef ? ` (${c.flowRef})` : ""}`);
+    if (c.requirementCodes?.length) lines.push(`- **Requirements:** ${c.requirementCodes.join(", ")}`);
+    if (c.preconditions) lines.push(`- **Preconditions:** ${c.preconditions}`);
+    if (c.testData) lines.push(`- **Test data:** ${c.testData}`);
+    if (c.steps?.length) lines.push("", "**Test steps:**", "", ...c.steps.map((s2, i) => `${i + 1}. ${s2}`));
+    if (c.expected) lines.push("", `**Expected result:** ${c.expected}`);
+  }
+  return lines.join("\n") + "\n";
+}
+function refModuleId(ref2) {
+  if (ref2.kind !== "screen") return ref2.id;
+  if (ref2.moduleId) return ref2.moduleId;
+  const r = getDb().prepare("SELECT module_id FROM screens WHERE id = ?").get(ref2.id);
+  if (!r) throw new Error("Screen not found");
+  return r.module_id;
+}
+function artifactLabel(ref2) {
+  switch (ref2.kind) {
+    case "screen": {
+      const r = getDb().prepare("SELECT name FROM screens WHERE id = ?").get(ref2.id);
+      return `Screen ${r?.name ?? ref2.id}`;
+    }
+    case "doc":
+      return `${DOC_KIND_LABEL[ref2.sub ?? "BRD"] ?? ref2.sub} document`;
+    case "diagram":
+      return `${DIAGRAM_KIND_LABEL[ref2.sub ?? "UC"] ?? ref2.sub} diagram`;
+    case "tests":
+      return "Test case";
+    default:
+      return "Documents";
+  }
+}
+function buildExport(ref2) {
+  const d = getDb();
+  const moduleId = refModuleId(ref2);
+  const m = moduleRow(moduleId);
+  const dir = moduleDir(moduleId);
+  const files = [];
+  switch (ref2.kind) {
+    case "doc": {
+      const kind = ref2.sub;
+      if (!DOC_KINDS.includes(kind)) throw new Error("Missing document type");
+      const r = d.prepare("SELECT content FROM module_docs WHERE module_id = ? AND kind = ?").get(moduleId, kind);
+      const content = r?.content?.trim() ? r.content : `# ${DOC_KIND_LABEL[kind]} \u2013 ${m.name}
+
+_(No content yet)_`;
+      files.push({ path: `${dir}/docs/${DOC_FILE[kind]}`, content: content.endsWith("\n") ? content : content + "\n" });
+      break;
+    }
+    case "diagram": {
+      const kind = ref2.sub ?? "UC";
+      const r = d.prepare("SELECT code, parts FROM module_diagrams WHERE module_id = ? AND kind = ?").get(moduleId, kind);
+      files.push({ path: `${dir}/diagrams/${diagramFile(kind)}`, content: diagramMarkdown({ kind, code: r?.code ?? "", parts: parseJson3(r?.parts, []) }, m.name) });
+      break;
+    }
+    case "screen": {
+      const screens = moduleScreens(moduleId);
+      const names = screenFiles(screens);
+      const me = screens.find((s2) => s2.id === ref2.id);
+      if (!me) throw new Error("Screen not found");
+      files.push({ path: `${dir}/prototype/${names.get(me.id)}`, content: screenHtml(me.name, parseJson3(me.tree, null), m.name) });
+      const approved = screens.filter((s2) => s2.id === me.id || s2.status === "approved").map((s2) => ({ name: s2.name, file: names.get(s2.id) }));
+      files.push({ path: `${dir}/prototype/index.html`, content: prototypeIndex(m.name, approved) });
+      break;
+    }
+    case "tests": {
+      const rows = d.prepare("SELECT data FROM test_cases WHERE module_id = ? ORDER BY ord").all(moduleId);
+      const cases = rows.map((r) => parseJson3(r.data, null)).filter((c) => !!c);
+      files.push({ path: `${dir}/tests/test-cases.md`, content: testsMarkdown(m.name, cases) });
+      break;
+    }
+    default:
+      throw new Error("This artifact type cannot be pushed to GitHub");
+  }
+  return { projectId: m.project_id, moduleId, moduleName: m.name, moduleDir: dir, label: artifactLabel(ref2), files };
+}
+
+// server/github.ts
+var fetchImpl = null;
+var doFetch = (url, init) => (fetchImpl ?? globalThis.fetch)(url, init);
+var API = () => (process.env.GITHUB_API_URL || "https://api.github.com").replace(/\/+$/, "");
+var GitHubError = class extends HttpError {
+  constructor(message, githubStatus) {
+    super(message, 502);
+    this.githubStatus = githubStatus;
+    this.name = "GitHubError";
+  }
+  githubStatus;
+};
+function translateError(status2, ghMessage, repoName, rateLimited3 = false) {
+  const msg = (ghMessage || "").toLowerCase();
+  if (status2 === 401) return "The GitHub token is invalid or has expired \u2013 the BA Lead must update it in GitHub Settings.";
+  if (status2 === 403 && (rateLimited3 || msg.includes("rate limit"))) return "GitHub is temporarily rate-limiting requests \u2013 try again in a few minutes.";
+  if (status2 === 403 || status2 === 404 && msg.includes("resource not accessible"))
+    return `The token cannot write to repository ${repoName} \u2013 it needs the "Contents: Read and write" permission (or the "repo" scope).`;
+  if (status2 === 404) return `Repository ${repoName} not found \u2013 check the repository link, or the token has not been granted access to it.`;
+  if (status2 === 409) return `Repository ${repoName} is empty or the branch has a conflict \u2013 try again.`;
+  if (status2 === 422) return `GitHub rejected the submitted data${ghMessage ? ` (${ghMessage})` : ""}.`;
+  if (status2 >= 500) return `GitHub is having problems (code ${status2}) \u2013 try again later.`;
+  return `GitHub returned an error (code ${status2})${ghMessage ? `: ${ghMessage}` : ""}.`;
+}
+var NETWORK_ERROR = "Could not connect to GitHub \u2013 check the server's network connection and try again.";
+function parseRepo(input) {
+  let s2 = (input ?? "").trim();
+  if (!s2) return null;
+  s2 = s2.replace(/^git@github\.com:/i, "").replace(/^(https?:\/\/)?(www\.)?github\.com\//i, "");
+  s2 = s2.replace(/[?#].*$/, "").replace(/\/+$/, "").replace(/\.git$/i, "");
+  const parts = s2.split("/");
+  if (parts.length < 2) return null;
+  const [owner, name2] = parts;
+  const ok2 = (x) => /^[A-Za-z0-9_.-]+$/.test(x) && x !== "." && x !== "..";
+  if (!ok2(owner) || !ok2(name2)) return null;
+  if (/^https?:\/\//i.test(s2)) return null;
+  return { owner, name: name2 };
+}
+var repoFull = (r) => `${r.owner}/${r.name}`;
+var repoHtmlUrl = (r) => `https://github.com/${repoFull(r)}`;
+function validBranch(b) {
+  return !!b && b.length <= 200 && !/[\s~^:?*\[\\]/.test(b) && !b.includes("..") && !b.includes("@{") && !b.startsWith("/") && !b.endsWith("/") && !b.endsWith(".") && !b.endsWith(".lock") && !b.startsWith("-") && !b.includes("//");
+}
+var encPath = (p2) => p2.split("/").map(encodeURIComponent).join("/");
+var GitHubClient = class {
+  constructor(repo, token) {
+    this.repo = repo;
+    this.token = token;
+  }
+  repo;
+  token;
+  /** Gọi API; trả `{ status, data }`. Lỗi mạng → GitHubError(0). Trạng thái lỗi trả về cho nơi gọi tự quyết, trừ khi `strict`. */
+  async call(method, path, body) {
+    const headers = {
+      accept: "application/vnd.github+json",
+      "x-github-api-version": "2022-11-28",
+      "user-agent": "ba-copilot"
+    };
+    if (this.token) headers.authorization = `Bearer ${this.token}`;
+    if (body !== void 0) headers["content-type"] = "application/json";
+    let res;
+    try {
+      res = await doFetch(`${API()}/repos/${repoFull(this.repo)}${path}`, { method, headers, body: body === void 0 ? void 0 : JSON.stringify(body) });
+    } catch {
+      throw new GitHubError(NETWORK_ERROR, 0);
+    }
+    let data = null;
+    try {
+      const text2 = await res.text();
+      data = text2 ? JSON.parse(text2) : null;
+    } catch {
+      data = null;
+    }
+    return { status: res.status, data, rateLimited: res.headers.get("x-ratelimit-remaining") === "0" };
+  }
+  /** Như `call` nhưng ném GitHubError (tiếng Việt) khi không phải 2xx. */
+  async req(method, path, body) {
+    const r = await this.call(method, path, body);
+    if (r.status >= 200 && r.status < 300) return r.data;
+    throw this.error(r);
+  }
+  error(r) {
+    return new GitHubError(translateError(r.status, String(r.data?.message ?? ""), repoFull(this.repo), r.rateLimited), r.status);
+  }
+  /** Thông tin repo (nhánh mặc định, quyền của token). */
+  repoInfo() {
+    return this.req("GET", "");
+  }
+  /** SHA commit đầu nhánh; null khi nhánh chưa có hoặc repo rỗng. */
+  async branchSha(branch) {
+    const r = await this.call("GET", `/git/ref/heads/${encPath(branch)}`);
+    if (r.status === 200 && r.data?.object?.sha && !Array.isArray(r.data)) return String(r.data.object.sha);
+    if (r.status === 404 || r.status === 409 || r.status === 200 && Array.isArray(r.data)) return null;
+    throw this.error(r);
+  }
+};
+async function commitFiles(gh, branch, files, message) {
+  if (!files.length) throw new GitHubError("The artifact has no files to push.", 400);
+  for (let attempt = 0; ; attempt++) {
+    let parent = await gh.branchSha(branch);
+    let createBranch = false;
+    if (!parent) {
+      createBranch = true;
+      const info = await gh.repoInfo();
+      const def = info.default_branch || "main";
+      parent = await gh.branchSha(def);
+      if (!parent) {
+        await gh.req("PUT", `/contents/README.md`, {
+          message: "Initialise repository for BA Copilot",
+          content: Buffer.from(`# ${gh.repo.name}
+
+Documents, diagrams, prototypes and test cases approved by the BA Lead in BA Copilot.
+`, "utf8").toString("base64")
+        });
+        parent = await gh.branchSha(def);
+        if (!parent) throw new GitHubError("Could not initialise the empty repository on GitHub \u2013 try again.", 409);
+        if (def === branch) createBranch = false;
+      }
+    }
+    const parentCommit = await gh.req("GET", `/git/commits/${parent}`);
+    const baseTree = String(parentCommit?.tree?.sha ?? "");
+    const entries = [];
+    for (const f of files) {
+      const blob = await gh.req("POST", `/git/blobs`, { content: Buffer.from(f.content, "utf8").toString("base64"), encoding: "base64" });
+      entries.push({ path: f.path, mode: "100644", type: "blob", sha: String(blob.sha) });
+    }
+    const tree = await gh.req("POST", `/git/trees`, { base_tree: baseTree, tree: entries });
+    const commit2 = await gh.req("POST", `/git/commits`, { message, tree: String(tree.sha), parents: [parent] });
+    const sha = String(commit2.sha);
+    const r = createBranch ? await gh.call("POST", `/git/refs`, { ref: `refs/heads/${branch}`, sha }) : await gh.call("PATCH", `/git/refs/heads/${encPath(branch)}`, { sha, force: false });
+    if (r.status >= 200 && r.status < 300) {
+      return { sha, url: String(commit2.html_url || `${repoHtmlUrl(gh.repo)}/commit/${sha}`), branch, createdBranch: createBranch };
+    }
+    if (r.status === 422 && attempt === 0) continue;
+    throw gh.error(r);
+  }
+}
+async function listCommits(gh, branch, limit = 30) {
+  const r = await gh.call("GET", `/commits?sha=${encodeURIComponent(branch)}&per_page=${limit}`);
+  if (r.status === 404 || r.status === 409) {
+    if (r.status === 404) await gh.repoInfo();
+    return [];
+  }
+  if (r.status < 200 || r.status >= 300) throw gh.error(r);
+  return (Array.isArray(r.data) ? r.data : []).map((c) => ({
+    sha: String(c.sha ?? ""),
+    message: String(c.commit?.message ?? ""),
+    author: String(c.commit?.author?.name ?? c.author?.login ?? ""),
+    date: String(c.commit?.author?.date ?? c.commit?.committer?.date ?? ""),
+    url: String(c.html_url ?? `${repoHtmlUrl(gh.repo)}/commit/${c.sha}`)
+  }));
+}
+async function testConnection(repoLink, token, branch) {
+  const repo = parseRepo(repoLink);
+  if (!repo) return { ok: false, message: "Invalid repository link \u2013 paste it as https://github.com/<organization>/<repo>." };
+  if (!token) return { ok: false, message: "No GitHub token yet \u2013 the BA Lead must paste the project's token and try again." };
+  if (!validBranch(branch)) return { ok: false, message: `Invalid branch name "${branch}".` };
+  const gh = new GitHubClient(repo, token);
+  try {
+    const info = await gh.repoInfo();
+    const defaultBranch = info.default_branch || void 0;
+    if (info.permissions && !info.permissions.push && !info.permissions.admin) {
+      return { ok: false, message: `The token is read-only and cannot write to repository ${repoFull(repo)} \u2013 it needs the "Contents: Read and write" permission.`, defaultBranch };
+    }
+    const branchExists = !!await gh.branchSha(branch);
+    return {
+      ok: true,
+      message: branchExists ? `Connected to repository ${repoFull(repo)} with write access. Branch "${branch}" exists.` : `Connected to repository ${repoFull(repo)} with write access. Branch "${branch}" does not exist yet \u2013 the app will create it on the first approval.`,
+      branchExists,
+      defaultBranch
+    };
+  } catch (e) {
+    return { ok: false, message: e instanceof GitHubError ? e.message : NETWORK_ERROR };
+  }
+}
+var envToken = () => (process.env.GITHUB_TOKEN ?? "").trim();
+var gitRow = (projectId) => getDb().prepare("SELECT * FROM project_git WHERE project_id = ?").get(projectId);
+function toProjectGit(r) {
+  return { projectId: r.project_id, repo: r.repo, branch: r.branch || "main", hasToken: !!(r.token || envToken()), updatedBy: r.updated_by, updatedAt: r.updated_at };
+}
+function getProjectGit(projectId) {
+  const r = gitRow(projectId);
+  return r ? toProjectGit(r) : null;
+}
+function resolveGitConfig(projectId) {
+  const r = gitRow(projectId);
+  const repo = r ? parseRepo(r.repo) : null;
+  const token = (r?.token || envToken()).trim();
+  if (!r || !repo || !token) return null;
+  return { repo, token, branch: r.branch || "main" };
+}
+function storedToken(projectId) {
+  return (gitRow(projectId)?.token || envToken()).trim();
+}
+function saveProjectGit(projectId, input, actorId) {
+  const d = getDb();
+  const old = gitRow(projectId);
+  const repo = typeof input.repo === "string" ? input.repo.trim() : old?.repo ?? "";
+  const branch = typeof input.branch === "string" && input.branch.trim() || "main";
+  let token = old?.token ?? "";
+  if (typeof input.token === "string") {
+    if (input.token === "") token = "";
+    else if (input.token.trim()) token = input.token.trim();
+  }
+  const by = actorId && d.prepare("SELECT 1 FROM members WHERE id = ?").get(actorId) ? actorId : null;
+  d.prepare(
+    `INSERT INTO project_git (project_id, repo, token, branch, updated_by, updated_at) VALUES (?, ?, ?, ?, ?, ?)
+     ON CONFLICT(project_id) DO UPDATE SET repo = excluded.repo, token = excluded.token, branch = excluded.branch,
+       updated_by = excluded.updated_by, updated_at = excluded.updated_at`
+  ).run(projectId, repo, token, branch, by, (/* @__PURE__ */ new Date()).toISOString());
+  return toProjectGit(gitRow(projectId));
+}
+var toPush = (r) => ({
+  id: r.id,
+  projectId: r.project_id,
+  artifact: { kind: r.artifact_kind, id: r.artifact_id, moduleId: r.module_id ?? "", ...r.artifact_sub ? { sub: r.artifact_sub } : {} },
+  taskId: r.task_id,
+  branch: r.branch,
+  commitSha: r.commit_sha,
+  commitUrl: r.commit_url,
+  message: r.message,
+  files: (() => {
+    try {
+      return JSON.parse(r.files);
+    } catch {
+      return [];
+    }
+  })(),
+  byMemberId: r.by_member_id,
+  createdAt: r.created_at
+});
+function listPushes(projectId, limit = 100) {
+  return getDb().prepare("SELECT * FROM git_pushes WHERE project_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?").all(projectId, limit).map(toPush);
+}
+var memberName = (id) => id ? getDb().prepare("SELECT name FROM members WHERE id = ?").get(id)?.name ?? null : null;
+function lastEditor(ref2, moduleId) {
+  const d = getDb();
+  let by = null;
+  let author = null;
+  if (ref2.kind === "screen") {
+    const r = d.prepare("SELECT s.updated_by AS by, v.author AS author, v.author_id AS author_id FROM screens s LEFT JOIN screen_versions v ON v.id = s.current_version_id WHERE s.id = ?").get(ref2.id);
+    by = r?.by ?? r?.author_id ?? null;
+    author = r?.author ?? null;
+  } else if (ref2.kind === "doc") {
+    by = d.prepare("SELECT updated_by AS by FROM module_docs WHERE module_id = ? AND kind = ?").get(moduleId, ref2.sub ?? "")?.by ?? null;
+  } else if (ref2.kind === "diagram") {
+    by = d.prepare("SELECT updated_by AS by FROM module_diagrams WHERE module_id = ? AND kind = ?").get(moduleId, ref2.sub ?? "UC")?.by ?? null;
+  } else if (ref2.kind === "tests") {
+    by = d.prepare("SELECT tests_updated_by AS by FROM modules WHERE id = ?").get(moduleId)?.by ?? null;
+  }
+  return memberName(by) ?? author;
+}
+function taskOf(ref2, projectId) {
+  const r = getDb().prepare(
+    `SELECT id FROM tasks WHERE project_id = ? AND artifact_type = ? AND artifact_id = ?
+         AND (? IS NULL OR artifact_sub IS NULL OR artifact_sub = ?) ORDER BY updated_at DESC LIMIT 1`
+  ).get(projectId, ref2.kind, ref2.id, ref2.sub ?? null, ref2.sub ?? null);
+  return r?.id ?? null;
+}
+var NOT_CONFIGURED = "GitHub is not configured \u2013 nothing was pushed";
+async function pushApprovedToGitHub(ref2, actorId) {
+  const exp = buildExport(ref2);
+  const cfg = resolveGitConfig(exp.projectId);
+  if (!cfg) return { pushed: false, message: NOT_CONFIGURED };
+  const editor = lastEditor(ref2, exp.moduleId) ?? "unknown";
+  const lead = memberName(actorId) ?? "BA Lead";
+  const message = `Approved: ${exp.label} \u2013 ${exp.moduleName} \xB7 BA ${editor} \xB7 approved by ${lead}`;
+  const gh = new GitHubClient(cfg.repo, cfg.token);
+  const res = await commitFiles(gh, cfg.branch, exp.files, message);
+  const d = getDb();
+  const by = actorId && d.prepare("SELECT 1 FROM members WHERE id = ?").get(actorId) ? actorId : null;
+  d.prepare(
+    `INSERT INTO git_pushes (id, project_id, module_id, artifact_kind, artifact_id, artifact_sub, task_id, branch, commit_sha, commit_url, message, files, by_member_id, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    randomUUID7(),
+    exp.projectId,
+    exp.moduleId,
+    ref2.kind,
+    ref2.id,
+    ref2.kind === "doc" || ref2.kind === "diagram" ? ref2.sub ?? (ref2.kind === "diagram" ? "UC" : null) : null,
+    taskOf(ref2, exp.projectId),
+    res.branch,
+    res.sha,
+    res.url,
+    message,
+    JSON.stringify(exp.files.map((f) => f.path)),
+    by,
+    (/* @__PURE__ */ new Date()).toISOString()
+  );
+  return {
+    pushed: true,
+    message: `Pushed ${exp.files.length} file(s) to GitHub (branch ${res.branch}${res.createdBranch ? ", newly created" : ""}, commit ${res.sha.slice(0, 7)}).`,
+    commitSha: res.sha,
+    commitUrl: res.url
+  };
+}
+registerApprovedPusher(pushApprovedToGitHub);
+
+// server/routes/git.ts
+function assertProject(id) {
+  if (!getDb().prepare("SELECT 1 FROM projects WHERE id = ?").get(id)) throw new HttpError("Project not found", 404);
+}
+function strictLead(ctx) {
+  const m = requireMember(ctx);
+  if (!m || m.role !== "BA_LEAD") throw new HttpError("Only a BA Lead can configure GitHub for the project", 403, "FORBIDDEN");
+  return m.id;
+}
+route("GET", "/api/projects/:id/git", (ctx) => {
+  requireMember(ctx);
+  assertProject(ctx.params.id);
+  return getProjectGit(ctx.params.id);
+});
+route("PUT", "/api/projects/:id/git", (ctx) => {
+  const by = strictLead(ctx);
+  assertProject(ctx.params.id);
+  const b = ctx.body ?? {};
+  const repo = typeof b.repo === "string" ? b.repo.trim() : "";
+  if (repo && !parseRepo(repo)) throw new HttpError("Invalid repository link \u2013 paste it as https://github.com/<organization>/<repo>", 400);
+  const branch = typeof b.branch === "string" && b.branch.trim() ? b.branch.trim() : "main";
+  if (!validBranch(branch)) throw new HttpError(`Invalid branch name "${branch}"`, 400);
+  if (b.token !== void 0 && b.token !== null && typeof b.token !== "string") throw new HttpError("Invalid token", 400);
+  return saveProjectGit(ctx.params.id, { repo, branch, token: typeof b.token === "string" ? b.token : void 0 }, by);
+});
+route("POST", "/api/projects/:id/git/test", async (ctx) => {
+  strictLead(ctx);
+  assertProject(ctx.params.id);
+  const b = ctx.body ?? {};
+  const saved = getProjectGit(ctx.params.id);
+  const repo = typeof b.repo === "string" && b.repo.trim() ? b.repo.trim() : saved?.repo ?? "";
+  const branch = typeof b.branch === "string" && b.branch.trim() ? b.branch.trim() : saved?.branch ?? "main";
+  const token = typeof b.token === "string" && b.token.trim() ? b.token.trim() : storedToken(ctx.params.id);
+  return testConnection(repo, token, branch);
+});
+route("GET", "/api/projects/:id/git/history", async (ctx) => {
+  requireMember(ctx);
+  assertProject(ctx.params.id);
+  const saved = getProjectGit(ctx.params.id);
+  const cfg = resolveGitConfig(ctx.params.id);
+  const out = {
+    configured: !!cfg,
+    repo: saved?.repo ?? "",
+    branch: saved?.branch ?? "main",
+    commits: [],
+    pushes: listPushes(ctx.params.id)
+  };
+  if (cfg) {
+    try {
+      out.commits = await listCommits(new GitHubClient(cfg.repo, cfg.token), cfg.branch);
+    } catch (e) {
+      out.commitsError = e instanceof GitHubError ? e.message : "Could not read the commit history from GitHub.";
+    }
+  }
+  return out;
+});
+
+// server/routes/prototype.ts
+function fileSafe(s2) {
+  return s2.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").replace(/[^\w-]+/g, "_").slice(0, 60) || "screen";
+}
+route("GET", "/api/screens/:id/export/html", (ctx) => {
+  requireMember(ctx);
+  const s2 = getScreen(ctx.params.id);
+  const v = s2?.currentVersionId ? getVersion(s2.currentVersionId) : null;
+  if (!s2 || !v) throw new BizError("Screen not found", 404);
+  const html = screenToHtml(v.tree, { title: s2.name, footer: `${s2.name} \u2013 version v${v.number} \xB7 exported from BA Copilot` });
+  return new FileResponse(Buffer.from(html, "utf8"), `${fileSafe(s2.name)}.html`, "text/html; charset=utf-8", ctx.query.get("inline") === "1" ? "inline" : "attachment");
+});
+route("POST", "/api/modules/:id/tests/generate", (ctx) => {
+  requireMember(ctx);
+  return generateTests2(ctx.params.id, actor(ctx.body), baseRevOf(ctx.body));
+});
+route("GET", "/api/modules/:id/tests/readiness", (ctx) => {
+  requireMember(ctx);
+  return testsReadiness(ctx.params.id);
+});
+
+// server/taskAutomation.ts
+function applyArtifactEvent(event) {
+  const { kind, id } = event.artifact;
+  const sub = kind === "diagram" ? event.artifact.sub ?? "UC" : kind === "doc" ? event.artifact.sub ?? null : null;
+  if (kind === "doc" && !sub) return [];
+  const tasks = listTasksByArtifact(kind, id, sub).reverse();
+  if (!tasks.length) return [];
+  const reason = statusReason(event.type, kind, artifactName(kind, id), sub);
+  const byMemberId = event.actorId && memberExists(event.actorId) ? event.actorId : null;
+  const changes = [];
+  for (const t of tasks) {
+    const next = nextTaskState({ status: t.status, revisionRequested: !!t.revisionRequested }, event.type);
+    if (!next) continue;
+    setTaskStatus(t.id, next.status, { bySystem: true, byMemberId, reason }, next.revisionRequested);
+    changes.push({ taskId: t.id, from: t.status, to: next.status, revisionRequested: next.revisionRequested, reason });
+  }
+  return changes;
+}
+function artifactName(kind, id) {
+  const sql = kind === "screen" ? "SELECT name FROM screens WHERE id = ?" : "SELECT name FROM modules WHERE id = ?";
+  return getDb().prepare(sql).get(id)?.name ?? "";
+}
+var offs = [];
+function registerTaskAutomation() {
+  unregisterTaskAutomation();
+  offs = EVENT_TYPES.map((type) => on(type, (e) => void applyArtifactEvent(e)));
+  return unregisterTaskAutomation;
+}
+function unregisterTaskAutomation() {
+  for (const off of offs) off();
+  offs = [];
+}
+
+// server/presence.ts
+var PRESENCE_TTL_MS = 9e4;
+var PRESENCE_KINDS = ["screen", "doc", "diagram", "tests", "story"];
+var store = /* @__PURE__ */ new Map();
+var keyOf = (t) => `${t.kind}:${t.id}:${t.sub ?? ""}`;
+var toEntry = (e) => ({ memberId: e.memberId, name: e.name, since: new Date(e.since).toISOString(), lastSeen: new Date(e.lastSeen).toISOString() });
+function prune(key2, now3) {
+  const m = store.get(key2);
+  if (!m) return void 0;
+  for (const [id, e] of m) if (now3 - e.lastSeen > PRESENCE_TTL_MS) m.delete(id);
+  if (!m.size) store.delete(key2);
+  return m.size ? m : void 0;
+}
+function touchPresence(t, member, now3 = Date.now()) {
+  const key2 = keyOf(t);
+  prune(key2, now3);
+  const m = store.get(key2) ?? /* @__PURE__ */ new Map();
+  const old = m.get(member.id);
+  m.set(member.id, { memberId: member.id, name: member.name, since: old?.since ?? now3, lastSeen: now3 });
+  store.set(key2, m);
+}
+function listPresence(t, excludeMemberId, now3 = Date.now()) {
+  const m = prune(keyOf(t), now3);
+  if (!m) return [];
+  return [...m.values()].filter((e) => e.memberId !== excludeMemberId).sort((a, b) => a.since - b.since).map(toEntry);
+}
+function leavePresence(t, memberId) {
+  const m = store.get(keyOf(t));
+  m?.delete(memberId);
+  if (m && !m.size) store.delete(keyOf(t));
+}
+
+// server/app.ts
+route("GET", "/api/settings", () => {
+  const c = aiConfig();
+  return { provider: c.provider, model: c.provider === "mock" ? "rule-based" : c.model, auth: authEnabled(), memberAuth: memberAuthEnabled() };
+});
+route("POST", "/api/login", ({ req, res, body }) => {
+  if (typeof body.memberId === "string" || typeof body.name === "string") {
+    const member = loginMember(req, res, { memberId: str(body.memberId, 100) || void 0, name: str(body.name, 200), password: str(body.password, 200) });
+    return { ok: true, member };
+  }
+  const r = login(req, res, str(body.password, 200));
+  if (!r.ok) throw new BizError(r.error ?? "Sign-in failed", r.status ?? 401);
+  return { ok: true };
+});
+route("POST", "/api/logout", ({ req, res }) => {
+  logout(req, res);
+  const appCookie = res.getHeader("set-cookie");
+  res.setHeader("set-cookie", [...appCookie ? [String(appCookie)] : [], logoutMemberCookie(req)]);
+  return { ok: true };
+});
+route("GET", "/api/me", (ctx) => ({ member: currentMember(ctx), mode: memberAuthEnabled() ? "member" : "demo", appAuth: authEnabled() }));
+route("PUT", "/api/members/:id/password", (ctx) => {
+  const me = requireMember(ctx);
+  if (!me || me.id !== ctx.params.id) requireLead(ctx);
+  const pw = ctx.body.password;
+  return setMemberPassword(ctx.params.id, typeof pw === "string" && pw ? str(pw, 200) : null);
+});
+function presenceTarget(src) {
+  const kind = String(src.kind ?? "");
+  const id = str(src.id, 200);
+  if (!PRESENCE_KINDS.includes(kind) || !id) throw new HttpError("Invalid kind/id", 400);
+  const sub = str(src.sub, 40);
+  return { kind, id, ...sub ? { sub } : {} };
+}
+route("POST", "/api/presence", (ctx) => {
+  const t = presenceTarget(ctx.body);
+  const me = requireMember(ctx);
+  if (me) touchPresence(t, me);
+  return listPresence(t, me?.id);
+});
+route("GET", "/api/presence", (ctx) => {
+  const t = presenceTarget({ kind: ctx.query.get("kind"), id: ctx.query.get("id"), sub: ctx.query.get("sub") });
+  return listPresence(t, requireMember(ctx)?.id);
+});
+route("DELETE", "/api/presence", (ctx) => {
+  const t = presenceTarget(ctx.body);
+  const me = requireMember(ctx);
+  if (me) leavePresence(t, me.id);
+  return { ok: true };
+});
 route("GET", "/api/projects", () => listProjects());
 route("POST", "/api/projects", ({ body }) => {
-  const name = str(body.name, 200).trim();
-  if (!name) throw new BizError("T\xEAn d\u1EF1 \xE1n kh\xF4ng \u0111\u01B0\u1EE3c \u0111\u1EC3 tr\u1ED1ng");
-  return createProject(name, str(body.description, 2e3));
+  const name2 = str(body.name, 200).trim();
+  if (!name2) throw new BizError("Project name is required");
+  return createProject(name2, str(body.description, 2e3));
 });
 route("GET", "/api/projects/:id", ({ params }) => {
   const p2 = getProject(params.id);
-  if (!p2) throw new BizError("Kh\xF4ng t\xECm th\u1EA5y d\u1EF1 \xE1n", 404);
+  if (!p2) throw new BizError("Project not found", 404);
   return { ...p2, modules: listModules(p2.id) };
 });
 route("DELETE", "/api/projects/:id", ({ params }) => (deleteProject(params.id), { ok: true }));
 route("POST", "/api/projects/:id/modules", ({ params, body }) => {
-  if (!getProject(params.id)) throw new BizError("Kh\xF4ng t\xECm th\u1EA5y d\u1EF1 \xE1n", 404);
-  const name = str(body.name, 200).trim();
-  if (!name) throw new BizError("T\xEAn module kh\xF4ng \u0111\u01B0\u1EE3c \u0111\u1EC3 tr\u1ED1ng");
-  return createModule(params.id, name, str(body.requirementInput, 5e4));
+  if (!getProject(params.id)) throw new BizError("Project not found", 404);
+  const name2 = str(body.name, 200).trim();
+  if (!name2) throw new BizError("Module name is required");
+  const m = createModule(params.id, name2, str(body.requirementInput, 5e4));
+  saveModuleQus(m.id);
+  return getModule(m.id);
 });
 route("GET", "/api/modules/:id", ({ params }) => {
   const m = getModuleDetail(params.id);
-  if (!m) throw new BizError("Kh\xF4ng t\xECm th\u1EA5y module", 404);
+  if (!m) throw new BizError("Module not found", 404);
   return m;
 });
 route("PATCH", "/api/modules/:id", ({ params, body }) => {
@@ -34630,40 +40416,76 @@ route("PATCH", "/api/modules/:id", ({ params, body }) => {
     ...typeof body.name === "string" ? { name: str(body.name, 200) } : {},
     ...typeof body.requirementInput === "string" ? { requirementInput: str(body.requirementInput, 5e4) } : {}
   });
+  if (typeof body.requirementInput === "string") saveModuleQus(params.id);
   return getModule(params.id);
 });
 route("DELETE", "/api/modules/:id", ({ params }) => (deleteModule(params.id), { ok: true }));
 route("GET", "/api/modules/:id/model", ({ params }) => getDesignModel(params.id));
 route("GET", "/api/modules/:id/runs", ({ params }) => listRuns(params.id));
-route("POST", "/api/modules/:id/screens", ({ params, body }) => createScreenFromPrompt(params.id, str(body.prompt), str(body.name, 120)));
-route("PATCH", "/api/screens/:id", ({ params, body }) => (updateScreen(params.id, { name: str(body.name, 120) }), getScreen(params.id)));
+route("GET", "/api/projects/:id/runs", ({ params, query }) => {
+  if (!getProject(params.id)) throw new BizError("Project not found", 404);
+  const only = query.get("moduleId");
+  const runs2 = listModules(params.id).filter((m) => !only || m.id === only).flatMap((m) => listRuns(m.id));
+  return runs2.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+});
+async function screenWrite(ctx, fn) {
+  const ref2 = { kind: "screen", id: ctx.params.id, moduleId: "" };
+  const st = getArtifactState(ref2);
+  if (st) assertRev(st.rev, baseRevOf(ctx.body));
+  const out = await fn();
+  if (st) bumpRev(ref2, actor(ctx.body));
+  return out;
+}
+route("POST", "/api/modules/:id/screens", ({ params, body }) => createScreenFromPrompt(params.id, str(body.prompt), str(body.name, 120), actor(body)));
+route("PATCH", "/api/screens/:id", (ctx) => screenWrite(ctx, () => (updateScreen(ctx.params.id, { name: str(ctx.body.name, 120) }), getScreen(ctx.params.id))));
 route("DELETE", "/api/screens/:id", ({ params }) => (deleteScreen(params.id), { ok: true }));
 route("GET", "/api/screens/:id/versions", ({ params }) => listVersions(params.id));
-route("POST", "/api/screens/:id/edit", ({ params, body }) => editScreenWithPrompt(params.id, { prompt: str(body.prompt), nodeIds: arr(body.nodeIds), annotationIds: arr(body.annotationIds) }));
-route("POST", "/api/screens/:id/revert", ({ params, body }) => revertScreen(params.id, str(body.versionId)));
-route("POST", "/api/screens/:id/approve", ({ params, body }) => setScreenApproval(params.id, body.approved !== false));
+route(
+  "POST",
+  "/api/screens/:id/edit",
+  (ctx) => screenWrite(ctx, () => editScreenWithPrompt(ctx.params.id, { prompt: str(ctx.body.prompt), nodeIds: arr(ctx.body.nodeIds), annotationIds: arr(ctx.body.annotationIds) }, actor(ctx.body)))
+);
+route("POST", "/api/screens/:id/revert", (ctx) => screenWrite(ctx, () => revertScreen(ctx.params.id, str(ctx.body.versionId), actor(ctx.body))));
+route("POST", "/api/screens/:id/approve", ({ params, body }) => setScreenApproval(params.id, body.approved !== false, actor(body)));
 route("POST", "/api/screens/:id/annotations", ({ params, body }) => {
-  const s = getScreen(params.id);
-  if (!s || !s.currentVersionId) throw new BizError("Kh\xF4ng t\xECm th\u1EA5y m\xE0n h\xECnh", 404);
+  const s2 = getScreen(params.id);
+  if (!s2 || !s2.currentVersionId) throw new BizError("Screen not found", 404);
   const comment = str(body.comment, 4e3).trim();
-  if (!comment) throw new BizError("B\xECnh lu\u1EADn kh\xF4ng \u0111\u01B0\u1EE3c \u0111\u1EC3 tr\u1ED1ng");
+  if (!comment) throw new BizError("Comment cannot be empty");
   const b = body.bbox;
   const bbox = b && typeof b === "object" ? { x: Number(b.x) || 0, y: Number(b.y) || 0, w: Number(b.w) || 0, h: Number(b.h) || 0 } : null;
-  return createAnnotation({ screenId: s.id, versionId: s.currentVersionId, nodeIds: arr(body.nodeIds), bbox, comment, author: str(body.author, 60) || "BA" });
+  const id = actor(body);
+  const member = id ? getMember(id) : null;
+  return createAnnotation({ screenId: s2.id, versionId: s2.currentVersionId, nodeIds: arr(body.nodeIds), bbox, comment, author: member?.name ?? (str(body.author, 60) || "BA"), authorId: member?.id ?? null });
 });
 route("PATCH", "/api/annotations/:id", ({ params, body }) => {
   const st = body.status;
-  if (!["open", "sent", "resolved"].includes(st)) throw new BizError("Tr\u1EA1ng th\xE1i kh\xF4ng h\u1EE3p l\u1EC7");
+  if (!["open", "sent", "resolved"].includes(st)) throw new BizError("Invalid status");
   setAnnotationStatus([params.id], st);
   return getAnnotation(params.id);
 });
 route("DELETE", "/api/annotations/:id", ({ params }) => (deleteAnnotation(params.id), { ok: true }));
-route("GET", "/api/screens/:id/suggestions", ({ params, query }) => screenSuggestions(params.id, (query.get("nodeIds") ?? "").split(",").filter(Boolean)));
+route("POST", "/api/screens/:id/suggestions", ({ params, body }) => {
+  const layout = body.layout && typeof body.layout === "object" ? body.layout : void 0;
+  const boxes = {};
+  for (const [k, v] of Object.entries(layout?.boxes ?? {})) if (Array.isArray(v) && v.length === 4 && v.every((x) => Number.isFinite(x))) boxes[String(k).slice(0, 120)] = v.map(Number);
+  return layoutSuggestions(params.id, { layout: layout ? { pageWidth: Number(layout.pageWidth) || 0, boxes } : void 0, nodeIds: arr(body.nodeIds), mode: body.mode === "complete" ? "complete" : "next" });
+});
+route("POST", "/api/screens/:id/layout/accept", (ctx) => {
+  const { params, body } = ctx;
+  const items = (Array.isArray(body.items) ? body.items : []).slice(0, 100).map((x) => ({ ref: str(x?.ref, 60), parentId: str(x?.parentId, 120), index: Math.max(0, Math.floor(Number(x?.index) || 0)), type: str(x?.type, 30) }));
+  return screenWrite(ctx, () => acceptLayout(params.id, { versionId: str(body.versionId, 100), items }, actor(body)));
+});
+route("POST", "/api/screens/:id/manual", (ctx) => {
+  const { params, body } = ctx;
+  if (!["remove", "up", "down"].includes(body.op)) throw new BizError("Invalid operation");
+  return screenWrite(ctx, () => manualEdit(params.id, { op: body.op, id: str(body.id, 120) }, actor(body)));
+});
 route("POST", "/api/suggestions/events", ({ body }) => {
   const action = body.action;
-  if (!["shown", "applied", "dismissed"].includes(action)) throw new BizError("action kh\xF4ng h\u1EE3p l\u1EC7");
+  if (!["shown", "applied", "dismissed"].includes(action)) throw new BizError("Invalid action");
   const screenId = str(body.screenId, 100);
-  if (!getScreen(screenId)) throw new BizError("Kh\xF4ng t\xECm th\u1EA5y m\xE0n h\xECnh", 404);
+  if (!getScreen(screenId)) throw new BizError("Screen not found", 404);
   logSuggestionEvent({
     screenId,
     versionId: str(body.versionId, 100) || null,
@@ -34676,129 +40498,143 @@ route("POST", "/api/suggestions/events", ({ body }) => {
   return { ok: true };
 });
 route("GET", "/api/modules/:id/suggestion-stats", ({ params }) => suggestionStats(params.id));
-route("POST", "/api/modules/:id/docs/generate", ({ params }) => generateDocs(params.id));
-route("POST", "/api/modules/:id/docs/refine", ({ params, body }) => refineDoc(params.id, str(body.target, 100), str(body.instruction)));
-route("POST", "/api/modules/:id/docs/approve", ({ params, body }) => approveDocs(params.id, body.approved !== false));
+route("POST", "/api/modules/:id/docs/generate", ({ params, body }) => generateDocs(params.id, actor(body)));
+route("POST", "/api/modules/:id/docs/refine", ({ params, body }) => refineDoc(params.id, str(body.target, 100), str(body.instruction), actor(body)));
+route("POST", "/api/modules/:id/docs/approve", ({ params, body }) => approveDocs(params.id, body.approved !== false, actor(body)));
 route("PUT", "/api/modules/:id/requirements", ({ params, body }) => updateRequirements(params.id, Array.isArray(body.requirements) ? body.requirements : []));
-route("POST", "/api/modules/:id/tests/generate", ({ params }) => generateTests2(params.id));
 route("GET", "/api/modules/:id/trace", ({ params }) => trace(params.id));
 route("GET", "/api/modules/:id/export/docx", async ({ params }) => {
   const m = getModuleDetail(params.id);
-  if (!m) throw new BizError("Kh\xF4ng t\xECm th\u1EA5y module", 404);
-  if (!m.docs.useCases.length) throw new BizError("Ch\u01B0a c\xF3 t\xE0i li\u1EC7u \u0111\u1EC3 xu\u1EA5t");
-  const names = new Map(m.screens.map((s) => [s.id, s.name]));
+  if (!m) throw new BizError("Module not found", 404);
+  if (!m.docs.useCases.length) throw new BizError("There are no documents to export yet");
+  const names = new Map(m.screens.map((s2) => [s2.id, s2.name]));
   const buf = await buildDocx(m.project, m, m.docs, (id) => names.get(id) ?? id);
-  return new FileResponse(buf, `${fileSafe(m.name)}_UC_SRS_Sequence.docx`, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+  const filename = `${fileSafe2(m.name)}_UC_SRS_Sequence.docx`;
+  const mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  saveExport(m.projectId, m.id, filename, buf, mime);
+  return new FileResponse(buf, filename, mime);
 });
 route("GET", "/api/modules/:id/export/xlsx", async ({ params }) => {
   const m = getModuleDetail(params.id);
-  if (!m) throw new BizError("Kh\xF4ng t\xECm th\u1EA5y module", 404);
-  if (!m.tests.length) throw new BizError("Ch\u01B0a c\xF3 test case \u0111\u1EC3 xu\u1EA5t");
-  const names = new Map(m.screens.map((s) => [s.id, s.name]));
+  if (!m) throw new BizError("Module not found", 404);
+  if (!m.tests.length) throw new BizError("There are no test cases to export yet");
+  const names = new Map(m.screens.map((s2) => [s2.id, s2.name]));
   const buf = await testWorkbook(m.tests, buildTrace(m.docs.useCases, m.docs.requirements, m.tests), (id) => names.get(id) ?? id);
-  return new FileResponse(buf, `${fileSafe(m.name)}_TestCase.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+  const filename = `${fileSafe2(m.name)}_TestCase.xlsx`;
+  const mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  saveExport(m.projectId, m.id, filename, buf, mime);
+  return new FileResponse(buf, filename, mime);
 });
 route("GET", "/api/screens/:id/export/json", ({ params }) => {
-  const s = getScreen(params.id);
-  const v = s?.currentVersionId ? getVersion(s.currentVersionId) : null;
-  if (!s || !v) throw new BizError("Kh\xF4ng t\xECm th\u1EA5y m\xE0n h\xECnh", 404);
-  return new FileResponse(Buffer.from(JSON.stringify(v.tree, null, 2)), `${fileSafe(s.name)}.json`, "application/json");
+  const s2 = getScreen(params.id);
+  const v = s2?.currentVersionId ? getVersion(s2.currentVersionId) : null;
+  if (!s2 || !v) throw new BizError("Screen not found", 404);
+  return new FileResponse(Buffer.from(JSON.stringify(v.tree, null, 2)), `${fileSafe2(s2.name)}.json`, "application/json");
 });
-function fileSafe(s) {
-  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").replace(/[^\w-]+/g, "_").slice(0, 60) || "export";
+function fileSafe2(s2) {
+  return s2.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").replace(/[^\w-]+/g, "_").slice(0, 60) || "export";
 }
+var PUBLIC_API = /* @__PURE__ */ new Set(["/api/login", "/api/logout", "/api/me", "/api/settings"]);
 async function readBody(req) {
   if (req.method === "GET" || req.method === "HEAD") return {};
+  const isUpload = req.method === "POST" && /^\/api\/projects\/[^/]+\/files(\?.*)?$/.test(req.url ?? "");
+  const limit = isUpload ? 15e6 : 5e6;
   const chunks = [];
   let size = 0;
   for await (const c of req) {
     size += c.length;
-    if (size > 5e6) throw new BizError("D\u1EEF li\u1EC7u g\u1EEDi l\xEAn qu\xE1 l\u1EDBn", 413);
+    if (size > limit) throw new BizError("Request payload is too large", 413);
     chunks.push(c);
   }
   if (!chunks.length) return {};
   try {
     return JSON.parse(Buffer.concat(chunks).toString("utf8"));
   } catch {
-    throw new BizError("JSON kh\xF4ng h\u1EE3p l\u1EC7");
+    throw new BizError("Invalid JSON");
   }
 }
-function send(res, status, data) {
-  res.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+function asciiFilename(name2) {
+  return name2.normalize("NFD").replace(new RegExp("\\p{M}", "gu"), "").replace(/đ/g, "d").replace(/Đ/g, "D").replace(/[^\x20-\x7e]|["\\;]/g, "_");
+}
+function send(res, status2, data) {
+  res.writeHead(status2, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
   res.end(JSON.stringify(data));
 }
 var MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".json": "application/json", ".map": "application/json", ".ico": "image/x-icon" };
 function createApp(opts) {
+  registerTaskAutomation();
   const require2 = createRequire(import.meta.url);
   let mermaidPath = "";
   try {
-    mermaidPath = join2(resolve2(require2.resolve("mermaid/package.json"), ".."), "dist", "mermaid.min.js");
+    mermaidPath = join4(resolve3(require2.resolve("mermaid/package.json"), ".."), "dist", "mermaid.min.js");
   } catch {
   }
   return createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", "http://localhost");
     try {
       if (url.pathname === "/health") return send(res, 200, { ok: true });
-      if (!isAuthenticated(req) && url.pathname !== "/api/login") {
-        if (url.pathname.startsWith("/api/")) return send(res, 401, { error: "Ch\u01B0a \u0111\u0103ng nh\u1EADp" });
+      const member = sessionMember(req);
+      if (!isAuthenticated(req) && !member && url.pathname !== "/api/login") {
+        if (url.pathname.startsWith("/api/")) return send(res, 401, { error: "Not signed in", code: "UNAUTHENTICATED", mode: "app" });
         res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" });
         return res.end(LOGIN_HTML);
       }
       if (url.pathname.startsWith("/api/")) {
-        for (const r of routes) {
-          if (r.method !== req.method) continue;
-          const m = url.pathname.match(r.pattern);
-          if (!m) continue;
-          const params = {};
-          r.keys.forEach((k, i) => params[k] = decodeURIComponent(m[i + 1]));
-          const body = await readBody(req);
-          const out = await r.handler({ req, res, params, body, query: url.searchParams });
-          if (out instanceof FileResponse) {
-            res.writeHead(200, { "content-type": out.contentType, "content-disposition": `attachment; filename="${out.filename}"; filename*=UTF-8''${encodeURIComponent(out.filename)}` });
-            res.end(out.data);
-          } else send(res, 200, out ?? { ok: true });
-          return;
-        }
-        return send(res, 404, { error: "API kh\xF4ng t\u1ED3n t\u1EA1i" });
+        if (!member && !PUBLIC_API.has(url.pathname) && memberAuthEnabled()) return send(res, 401, { error: "Not signed in", code: "UNAUTHENTICATED", mode: "member" });
+        const hit = matchRoute(req.method ?? "GET", url.pathname);
+        if (!hit) return send(res, 404, { error: "API not found" });
+        const body = await readBody(req);
+        if (member && body && typeof body === "object" && !Array.isArray(body)) body.actorId = member.id;
+        const out = await hit.route.handler({ req, res, params: hit.params, body, query: url.searchParams });
+        if (out instanceof FileResponse) {
+          res.writeHead(200, {
+            "content-type": out.contentType,
+            "content-disposition": `${out.disposition}; filename="${asciiFilename(out.filename)}"; filename*=UTF-8''${encodeURIComponent(out.filename)}`,
+            "x-content-type-options": "nosniff"
+          });
+          res.end(out.data);
+        } else send(res, 200, out === void 0 ? { ok: true } : out);
+        return;
       }
       if (url.pathname === "/vendor/mermaid.min.js" && mermaidPath) return serveFile(res, mermaidPath);
-      const safePath = url.pathname === "/" ? "/index.html" : url.pathname;
-      const file = resolve2(opts.publicDir, "." + safePath);
-      if (!file.startsWith(resolve2(opts.publicDir))) return send(res, 403, { error: "Forbidden" });
+      const safePath2 = url.pathname === "/" ? "/index.html" : url.pathname;
+      const file = resolve3(opts.publicDir, "." + safePath2);
+      if (!file.startsWith(resolve3(opts.publicDir))) return send(res, 403, { error: "Forbidden" });
       const st = await stat(file).catch(() => null);
       if (st?.isFile()) return serveFile(res, file);
-      return serveFile(res, join2(opts.publicDir, "index.html"));
+      return serveFile(res, join4(opts.publicDir, "index.html"));
     } catch (e) {
+      if (e instanceof HttpError) return send(res, e.status, { error: e.message, ...e.code ? { code: e.code } : {}, ...e.data ?? {} });
       if (e instanceof BizError) return send(res, e.status, { error: e.message });
       if (e instanceof AIError) return send(res, 502, { error: e.message, details: e.details });
       console.error(e);
-      return send(res, 500, { error: `L\u1ED7i m\xE1y ch\u1EE7: ${e.message}` });
+      return send(res, 500, { error: `Server error: ${e.message}` });
     }
   });
 }
 async function serveFile(res, file) {
   const data = await readFile(file);
-  res.writeHead(200, { "content-type": MIME[extname(file)] ?? "application/octet-stream", "cache-control": extname(file) === ".html" ? "no-store" : "public, max-age=60" });
+  res.writeHead(200, { "content-type": MIME[extname2(file)] ?? "application/octet-stream", "cache-control": extname2(file) === ".html" ? "no-store" : "public, max-age=60" });
   res.end(data);
 }
 
 // server/index.ts
-var root2 = resolve3(dirname3(fileURLToPath2(import.meta.url)), "..");
-var envFile = join3(root2, ".env");
-if (existsSync2(envFile)) {
-  for (const line of readFileSync2(envFile, "utf8").split(/\r?\n/)) {
+var root2 = resolve4(dirname5(fileURLToPath3(import.meta.url)), "..");
+var envFile = join5(root2, ".env");
+if (existsSync3(envFile)) {
+  for (const line of readFileSync4(envFile, "utf8").split(/\r?\n/)) {
     const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
     if (m && process.env[m[1]] === void 0) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
   }
 }
 var port = Number(process.env.PORT ?? 3e3);
-openDb(process.env.DB_FILE ?? join3(root2, "data", "ba-copilot.db"));
-var server = createApp({ publicDir: join3(root2, "public") });
+openDb(process.env.DB_FILE ?? join5(root2, "data", "ba-copilot.db"));
+var server = createApp({ publicDir: join5(root2, "public") });
 server.listen(port, () => {
   const c = aiConfig();
   console.log(`
-  BA Copilot \u0111ang ch\u1EA1y: http://localhost:${port}`);
-  console.log(`  AI: ${c.provider === "claude" ? `Claude API (${c.model})` : "Ch\u1EBF \u0111\u1ED9 Mock (rule-based) \u2013 \u0111\u1EB7t ANTHROPIC_API_KEY trong .env \u0111\u1EC3 d\xF9ng Claude"}
+  BA Copilot is running: http://localhost:${port}`);
+  console.log(`  AI: ${c.provider === "claude" ? `Claude API (${c.model})` : "Mock mode (rule-based) \u2013 set ANTHROPIC_API_KEY or ANTHROPIC_AUTH_TOKEN in .env to use Claude"}
 `);
 });
 /*! Bundled license information:

@@ -34,6 +34,7 @@ if (existsSync(envFile))
 if (process.env.SEED_AI?.trim().toLowerCase() !== "claude") {
   process.env.AI_MODE = "mock";
   delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.ANTHROPIC_AUTH_TOKEN;
 }
 delete process.env.APP_PASSWORD; // app trong tiến trình seed không cần cổng mật khẩu
 openDb(process.env.DB_FILE ?? join(root, "data", "ba-copilot.db"));

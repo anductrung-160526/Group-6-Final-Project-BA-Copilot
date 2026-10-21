@@ -101,7 +101,7 @@ export function TopBar() {
         )}
       </label>
       {settings && (
-        <span className={`ai-pill ${settings.provider === "claude" ? "on" : ""}`} title={settings.provider === "claude" ? "Using the Claude API" : "No ANTHROPIC_API_KEY – running the rule-based generator"}>
+        <span className={`ai-pill ${settings.provider === "claude" ? "on" : ""}`} title={settings.provider === "claude" ? "Using the Claude API" : "No Claude key (ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN) – running the rule-based generator"}>
           {settings.provider === "claude" ? `Claude · ${settings.model}` : "Mock mode (rule-based)"}
         </span>
       )}

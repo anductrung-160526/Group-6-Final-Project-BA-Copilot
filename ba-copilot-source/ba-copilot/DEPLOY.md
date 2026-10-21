@@ -1,51 +1,62 @@
 # Deploy BA Copilot lên Railway
 
-Kết quả sau khi làm xong: một đường link `https://….up.railway.app`. Người mở link phải nhập mật khẩu mới vào được. Dữ liệu được lưu trên volume nên không mất khi deploy lại.
+Kết quả: một đường link `https://….up.railway.app`. Dữ liệu nằm trên volume nên không mất khi deploy lại. Lần chạy đầu, web có sẵn dữ liệu của bản xuất `database/ba-copilot.db` (dự án mẫu *Electronics Store (sample)*).
 
 ## Đã chuẩn bị sẵn trong code
 
-| File | Vai trò |
+| Tệp / biến | Vai trò |
 | --- | --- |
-| `Dockerfile` | Image `node:22-slim` chạy bản đã đóng gói `dist/server.mjs`. Không cần chạy `npm install` khi build. |
-| `railway.json` | Railway tự build bằng Dockerfile, kiểm tra tình trạng server qua `/health` và tự khởi động lại khi lỗi. |
-| `APP_PASSWORD` | Khi đặt biến này, mọi trang và API đều yêu cầu đăng nhập. Phiên đăng nhập lưu bằng cookie HttpOnly có ký, hạn 30 ngày. Sai mật khẩu quá 10 lần trong 10 phút thì bị chặn tạm. |
-| `MAX_AI_CALLS_PER_DAY` | Giới hạn số lượt gọi Claude mỗi ngày để tránh phát sinh chi phí ngoài ý muốn. |
+| `Dockerfile` | Image `node:22-slim` chạy bản đã đóng gói `dist/server.mjs`, không cần `npm install` khi build. Volume còn trống thì chép `database/ba-copilot.db` làm dữ liệu ban đầu. |
+| `railway.json` | Railway build bằng Dockerfile, kiểm tra tình trạng qua `/health`, tự khởi động lại khi lỗi. |
+| `APP_PASSWORD` | Đặt biến này thì mọi trang và API đều yêu cầu mật khẩu. Phiên đăng nhập lưu bằng cookie có ký, hạn 30 ngày. Sai quá 10 lần trong 10 phút thì bị chặn tạm. |
+| `MAX_AI_CALLS_PER_DAY` | Giới hạn số lượt gọi Claude mỗi ngày, tránh phát sinh chi phí ngoài ý muốn. |
 
-## Bước 1 – Đưa code lên GitHub (repo private)
+Tệp `.env` (chứa khoá Claude) nằm trong `.gitignore` và không được Dockerfile chép vào image, nên khoá **không** lên GitHub và **không** nằm trong bản deploy. Trên Railway, khoá được nhập ở mục *Variables*.
 
-Chọn một trong hai cách:
+## Bước 0 – Chuẩn bị bản code
 
-- **Nhờ Claude đẩy giúp:** kết nối GitHub với Claude (Settings → Connectors → GitHub), rồi nhắn "đẩy code lên GitHub".
-- **Tự làm:** cài GitHub Desktop, chọn *Add Local Repository*, trỏ tới `Documents/ba-copilot`, rồi *Publish repository* và tick **Private**.
+```bash
+npm run bundle      # cập nhật dist/ và public/app.js
+npm run export-db   # cập nhật database/ (dữ liệu ban đầu của bản deploy)
+```
 
-File `.env` (chứa API key) đã nằm trong `.gitignore`, nên sẽ **không** bị đưa lên GitHub.
+Commit rồi đẩy lên GitHub (repo `db_ba_final`), nhánh muốn deploy.
 
-## Bước 2 – Tạo dịch vụ trên Railway
+## Bước 1 – Tạo dịch vụ trên Railway
 
-1. Vào [railway.com](https://railway.com) và đăng nhập bằng GitHub.
-2. Chọn **New Project → Deploy from GitHub repo**, rồi chọn repo `ba-copilot`. Railway sẽ tự nhận `Dockerfile`.
-3. **Thêm volume:** chuột phải vào service (hoặc dùng *Command palette*), chọn **Add Volume**, đặt **Mount path** là `/data`.
-4. **Variables:** thêm các biến sau.
+1. Vào [railway.com](https://railway.com), đăng nhập bằng GitHub.
+2. **New Project → Deploy from GitHub repo** → chọn `db_ba_final`.
+3. Vào service → **Settings**:
+   - **Source → Root Directory**: `ba-copilot-source/ba-copilot` (phần mềm nằm trong thư mục con, không ở gốc repo).
+   - **Source → Branch**: nhánh đã đẩy ở bước 0.
+4. **Thêm volume**: chuột phải vào service (hoặc *Command palette*) → **Add Volume**, **Mount path** `/data`.
+5. **Variables**:
 
    | Biến | Giá trị |
    | --- | --- |
-   | `ANTHROPIC_API_KEY` | key lấy từ platform.claude.com |
-   | `ANTHROPIC_MODEL` | `claude-sonnet-4-5` (hoặc model mới hơn) |
-   | `APP_PASSWORD` | mật khẩu đủ dài để chia sẻ cho giảng viên hoặc hội đồng |
+   | `ANTHROPIC_AUTH_TOKEN` | khoá Claude của cổng trung gian (gửi dạng `Authorization: Bearer`) |
+   | `ANTHROPIC_BASE_URL` | địa chỉ cổng, ví dụ `https://ten-cong.example.com` |
+   | `ANTHROPIC_MODEL` | tên model cổng hỗ trợ |
+   | `APP_PASSWORD` | mật khẩu đủ dài để chia sẻ cho giảng viên, hội đồng |
    | `MAX_AI_CALLS_PER_DAY` | ví dụ `200` |
-   | `GITHUB_TOKEN` | (tuỳ chọn) token GitHub mặc định khi dự án chưa nhập token trong *Lịch sử GitHub → Cài đặt* |
+   | `GITHUB_TOKEN` | (tuỳ chọn) token GitHub mặc định khi dự án chưa nhập token ở *GitHub History → Settings* |
 
-   Railway tự cấp biến `PORT`, cậu không cần đặt. `DB_FILE=/data/ba-copilot.db` đã được khai báo sẵn trong Dockerfile.
-5. Vào **Settings → Networking → Generate Domain** để lấy link công khai.
-6. Mở link, nhập `APP_PASSWORD` là dùng được.
+   Gọi thẳng Anthropic thì thay hai biến đầu bằng `ANTHROPIC_API_KEY` (lấy ở platform.claude.com) và bỏ `ANTHROPIC_BASE_URL`.
+   Railway tự cấp `PORT`. `DB_FILE=/data/ba-copilot.db` đã khai báo sẵn trong Dockerfile.
+6. **Settings → Networking → Generate Domain** để lấy link công khai.
+7. Mở link, nhập `APP_PASSWORD` là dùng được.
 
 ## Cập nhật bản mới
 
-Sau khi sửa code: chạy `npm run bundle` để cập nhật `dist/` và `public/app.js`, rồi commit và push lên GitHub. Railway sẽ tự deploy lại.
+Sửa code → `npm run bundle` → commit, push. Railway tự deploy lại. Dữ liệu trên volume được giữ; `database/ba-copilot.db` chỉ dùng khi volume còn trống.
+
+Muốn web quay về đúng dữ liệu bản xuất: xoá tệp `/data/ba-copilot.db` trên volume (hoặc tạo volume mới) rồi deploy lại.
 
 ## Kiểm tra nhanh khi có lỗi
 
-- Mở `https://<domain>/health` phải thấy `{"ok":true}`.
-- Mục *Deployments → Logs* trên Railway phải có dòng `BA Copilot đang chạy` và dòng `AI: Claude API (…)`.
-- Nếu dữ liệu mất sau mỗi lần deploy, kiểm tra lại volume đã mount đúng `/data` chưa.
-- Chi phí: Railway tính theo mức dùng tài nguyên, xem bảng giá hiện hành tại railway.com/pricing. Chi phí Claude xem ở tab *Nhật ký AI* trong ứng dụng và trong Claude Console.
+- `https://<domain>/health` phải trả `{"ok":true}`.
+- *Deployments → Logs* phải có dòng `BA Copilot is running` và dòng `AI: Claude API (…)`. Thấy `Mock mode` nghĩa là chưa nhập khoá.
+- Lỗi `Claude API error 401/403` trong *AI Log* của web: khoá sai, hoặc nhầm `ANTHROPIC_API_KEY` với `ANTHROPIC_AUTH_TOKEN`.
+- Dữ liệu mất sau mỗi lần deploy: kiểm tra volume đã mount đúng `/data`.
+- Build báo thiếu `database/ba-copilot.db`: chưa chạy `npm run export-db` hoặc chưa commit thư mục `database/`.
+- Chi phí: Railway tính theo tài nguyên dùng (railway.com/pricing). Chi phí Claude xem ở tab *AI Log* trong web.

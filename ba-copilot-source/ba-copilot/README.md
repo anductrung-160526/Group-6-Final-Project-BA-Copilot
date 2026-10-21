@@ -2,51 +2,67 @@
 
 Hệ thống web hỗ trợ Business Analyst đi trọn luồng **Prompt → Thiết kế UI → Tài liệu (UC, SRS, Sequence) → Test case → Truy vết**. Đây là sản phẩm của luận án; mọi đầu ra AI là *bản nháp* để BA duyệt.
 
-## 1. Chạy thử trên máy (macOS)
+**Bản chạy trên web:** _(dán link Railway vào đây sau khi deploy – xem [DEPLOY.md](DEPLOY.md))_
 
-Yêu cầu: **Node.js 22.13 trở lên** (khuyên dùng bản LTS 22 hoặc 24 tại nodejs.org). Kiểm tra bằng `node -v`.
+## 1. Chạy trên máy
+
+Yêu cầu: **Node.js 22.13 trở lên** (bản LTS 22 hoặc 24 tại nodejs.org). Kiểm tra bằng `node -v`. Chạy được trên Windows, macOS, Linux. Mọi lệnh chạy trong thư mục `ba-copilot-source/ba-copilot`.
 
 ```bash
-cd ~/Documents/ba-copilot
-npm install                 # cài thư viện (cần Internet)
-cp .env.example .env        # rồi mở .env, dán ANTHROPIC_API_KEY
-npm start                   # build giao diện + chạy server
+npm install        # cài thư viện (cần Internet, chạy một lần)
+npm run seed       # tạo dự án mẫu "Electronics Store (sample)" và 3 thành viên
+npm start          # build giao diện + chạy server
 ```
 
-Mở trình duyệt tại **http://localhost:3000**.
+Mở trình duyệt tại **http://localhost:3000**, chọn tên ở ô *Select your name…* trên thanh trên (ví dụ **Lan Nguyen**, vai BA Lead).
 
-- Không có API key thì hệ thống chạy **Chế độ Mock**, tức bộ sinh rule-based. Mock vẫn đi trọn luồng nên dùng được để demo offline, và cũng là baseline khi so sánh với LLM trong chương thực nghiệm.
-- `npm run seed` tạo sẵn dự án mẫu gồm 3 màn hình đã duyệt, tài liệu và test case.
+- Muốn dùng đúng dữ liệu đã nộp thay vì dữ liệu mẫu mới: bỏ bước `npm run seed`, chép `database/ba-copilot.db` vào `data/ba-copilot.db` (và `database/files/` vào `data/files/`) rồi `npm start`.
+- **Gắn Claude:** chép `.env.example` thành `.env` rồi điền khoá (xem mục 6). Không có khoá thì hệ thống chạy **Chế độ Mock** (bộ sinh rule-based): vẫn đi trọn luồng, dùng được để demo offline, và là baseline khi so sánh với LLM trong chương thực nghiệm. Thanh trên hiện *Claude · tên model* hoặc *Mock mode*.
 - `npm run dev` chạy chế độ phát triển, tự build lại khi sửa code.
 
-## 2. Cách dùng (đợt 5)
+## 2. Cơ sở dữ liệu
 
-Không có màn đăng nhập: chọn tên mình ở ô **"Tôi là…"** trên thanh trên. Quyền BA Lead (Duyệt, Yêu cầu sửa, Quản trị hệ thống, cài đặt GitHub) xét theo người đang chọn.
+Phần mềm dùng **SQLite** tích hợp sẵn trong Node (`node:sqlite`), không cần cài máy chủ CSDL. Dữ liệu khi chạy nằm ở `data/` (không đưa lên Git). Bản nộp kèm mã nguồn nằm ở **`database/`**:
 
-1. **Trang chủ** – danh sách dự án. **Quản trị hệ thống** (chỉ BA Lead): thành viên và vai BA / BA Lead.
+| Tệp | Nội dung |
+| --- | --- |
+| `database/ba-copilot.db` | Toàn bộ dữ liệu, một tệp SQLite |
+| `database/ba-copilot.sql` | Cùng dữ liệu dạng lệnh SQL (cấu trúc + `INSERT`), mở bằng trình soạn thảo bất kỳ |
+| `database/files/` | Tệp của Kho tài liệu |
+| `database/ERD.md`, `ERD.png`, `ERD-day-du.png` | Sơ đồ quan hệ thực thể: bản tổng quan và bản đầy đủ, danh sách bảng kèm số dòng |
+
+**Xem dữ liệu:** cài [DB Browser for SQLite](https://sqlitebrowser.org/dl/) (miễn phí) → *Open Database* → chọn `database/ba-copilot.db` → tab *Browse Data*. Chi tiết và truy vấn mẫu: [database/README.md](database/README.md).
+
+**Cập nhật bản nộp** sau khi dùng thử: `npm run export-db`. Lệnh chụp DB thành một tệp (chạy được cả khi server đang mở), xuất `.sql`, chép tệp Kho tài liệu, vẽ lại ERD. Bản xuất **xoá** token GitHub, mật khẩu thành viên và khoá ký phiên. `npm run erd` chỉ vẽ lại ERD từ cấu trúc bảng.
+
+## 3. Cách dùng
+
+Không có màn đăng nhập: chọn tên mình ở ô **Select your name…** trên thanh trên. Quyền BA Lead (Approve, Request changes, Administration, cài đặt GitHub) xét theo người đang chọn.
+
+1. **Projects** – danh sách dự án. **Administration** (chỉ BA Lead): thành viên và vai BA / BA Lead.
 2. Bấm vào dự án → khung dự án với **menu trái**:
-   - **Quản lý công việc** – Kanban 4 cột *Cần làm → Đang làm → Xong → Đã duyệt*, tag *Yêu cầu sửa*.
-   - **Yêu cầu nghiệp vụ** – mỗi user story một dòng: mã US-xx, *As a / I want / So that*, tiêu chí chấp nhận, ưu tiên; nút *+ Thêm user story*; chấm QUS theo từng dòng.
-   - **Thực hiện công việc** (chọn module ở đầu trang):
-     1. *Tài liệu*: BRD → UC Specification → SRS → FRD-NFR → API Spec (bước sau mở khi bước trước *Xong*).
-     2. *Sơ đồ*: Context → Use Case → Sequence → BPMN (mô phỏng bằng Mermaid) → ERD.
+   - **Task Board** – Kanban 4 cột *To do → In progress → Done → Approved*, tag *Changes requested*.
+   - **Business Requirements** – mỗi user story một dòng: mã US-xx, *As a / I want / So that*, tiêu chí chấp nhận, ưu tiên; chấm QUS theo từng dòng. Phải có module trước khi tạo story.
+   - **Deliverables** (chọn module ở đầu trang):
+     1. *Documents*: BRD → UC Specification → SRS → FRD-NFR → API Spec (bước sau mở khi bước trước *Done*).
+     2. *Diagrams*: Context → Use Case → Sequence → BPMN (mô phỏng bằng Mermaid) → ERD.
      3. *Prototype*: Design Studio (khoanh vùng, bình luận, phiên bản, gợi ý bố cục, xuất HTML).
-     4. *Test case*, 5. *Truy vết* (Story → UC → FR → Màn → TC).
-   - **Kho tài liệu**, **Nhật ký AI**, **Lịch sử GitHub**.
-3. **Trạng thái và duyệt** – trên mọi sản phẩm: BA bấm **Xong**; BA Lead bấm **Duyệt** hoặc **Yêu cầu sửa** (không cần lý do – góp ý bằng bình luận trên prototype). Yêu cầu sửa → sản phẩm và task về *Đang làm* + tag. Sửa nội dung sản phẩm đã Xong/Đã duyệt → về *Đang làm*.
-4. **GitHub** – BA Lead nhập link repo, token và tên nhánh (mặc định `main`) ở trang *Lịch sử GitHub → Cài đặt*. Mỗi lần **Duyệt**, app commit đúng các tệp của sản phẩm đó (`.md`, prototype `.html`) lên nhánh; Dev/Tester đọc từ repo. *Xong* không đụng GitHub.
-5. **Chống ghi đè** – hai người cùng sửa một sản phẩm: người lưu sau nhận "Bản đã thay đổi – tải lại"; màn đang có người sửa hiện "Đang được sửa bởi …".
+     4. *Test Cases*, 5. *Traceability* (Story → UC → FR → Màn → TC).
+   - **Document Repository**, **AI Log**, **GitHub History**.
+3. **Trạng thái và duyệt** – trên mọi sản phẩm: BA bấm **Done**; BA Lead bấm **Approve** hoặc **Request changes** (không cần lý do – góp ý bằng bình luận trên prototype). Request changes → sản phẩm và task về *In progress* + tag. Sửa nội dung sản phẩm đã Done/Approved → về *In progress*. Không bấm Done được khi bước trước chưa Done.
+4. **GitHub** – BA Lead nhập link repo, token và tên nhánh (mặc định `main`) ở *GitHub History → Settings*. Mỗi lần **Approve**, app commit đúng các tệp của sản phẩm đó (`.md`, prototype `.html`) lên nhánh; Dev/Tester đọc từ repo. *Done* không đụng GitHub.
+5. **Chống ghi đè** – hai người cùng sửa một sản phẩm: người lưu sau được báo bản đã thay đổi và phải tải lại; màn đang có người sửa hiện tên người đó.
 
 ### Quy tắc nghiệp vụ được cài đặt
 
 | Mã | Quy tắc |
 | --- | --- |
 | BR-01 | *(Bỏ ở đợt 5)* Tài liệu sinh từ user story, không cần màn hình đã duyệt. Bước tài liệu sau chỉ sinh khi bước trước *Xong*. |
-| BR-02 | Khi sửa, khôi phục hoặc bỏ duyệt một thiết kế đã duyệt, tài liệu và test hiện có chuyển sang *Bản cũ*. |
+| BR-02 | Khi sửa, khôi phục hoặc bỏ duyệt một thiết kế đã duyệt, tài liệu và test hiện có chuyển sang *Outdated*. |
 | BR-03 | Nội dung AI phải suy diễn được gắn nhãn *Giả định* (trường `assumptions`, `isAssumption`). |
 | BR-04 | Mỗi test case phải tham chiếu ít nhất 1 yêu cầu. Kết quả AI vi phạm quy tắc này sẽ bị trả về để AI tự sửa. |
 
-## 3. Kiến trúc
+## 4. Kiến trúc
 
 ```
 client/            Giao diện React (đóng gói bằng esbuild → public/)
@@ -63,10 +79,15 @@ server/
   app.ts           REST API (Node http, không framework)
   service.ts       Tầng nghiệp vụ (BR-01..04, điều phối pipeline)
   repo.ts, db.ts   Lưu trữ SQLite tích hợp sẵn trong Node (node:sqlite)
-  ai/client.ts     Gọi Claude API: tool use bắt JSON theo schema, tự sửa 1 lần, ghi log
+  ai/client.ts     Gọi Claude API (API key hoặc Bearer qua cổng): tool use bắt JSON theo schema, tự sửa 1 lần, ghi log
   ai/pipelines.ts  Prompt + schema cho từng tác vụ
   ai/mock.ts       Bộ sinh rule-based (Mock / baseline)
   export/          Xuất DOCX (thư viện docx) và XLSX (OOXML + JSZip)
+scripts/
+  seed.ts          Dữ liệu mẫu (npm run seed)
+  export-db.ts     Xuất DB ra database/ (npm run export-db)
+  erd.ts           Vẽ ERD từ cấu trúc bảng thật (npm run erd)
+database/          Bản xuất DB nộp kèm mã nguồn: .db, .sql, tệp Kho tài liệu, ERD
 tests/             Unit + integration (node:test)
 e2e/               Kiểm thử trình duyệt toàn luồng (Playwright)
 ```
@@ -240,31 +261,38 @@ Thay cho WebSight và dữ liệu tổng hợp từ Mock. Đặc tả chi tiết
 - **Sinh mẫu:** `npm run dataset:samples -- --reviews kq1.json,kq2.json,...` tạo mẫu từ các màn được chấp nhận. Mỗi mẫu gồm `requirement`, `partialTree`, `targetContainerId`, `acceptedPatch`, `completedTree`, `review`. Có 4 kiểu: thiếu 1 phần tử, thiếu 1 cụm, thiếu 1 cặp, và màn đủ (đáp án rỗng; với màn giới hạn quyền thì là mẫu bẫy). Tập train/val/test được chia theo màn gốc.
 - **Huấn luyện:** `npm run dataset:export && python3 scripts/train_transformer.py --samples data/dataset/tf --epochs 30`.
 
-## 4. Kiểm thử
+## 5. Kiểm thử
 
 ```bash
-npm test                          # 30 test unit + tích hợp (gồm giả lập Claude API, đối chiếu Recursive TS ↔ PyTorch)
+npm test                          # 243 test unit + tích hợp (gồm giả lập Claude API, đối chiếu Recursive TS ↔ PyTorch)
 npx playwright install chromium   # chỉ cần chạy lần đầu
 npm run e2e                       # chạy trình duyệt qua toàn luồng, ảnh chụp lưu ở e2e/screenshots/
 ```
 
-## 5. Biến môi trường
+## 6. Biến môi trường
+
+Đặt trong tệp `.env` (chép từ `.env.example`; `.env` không bị đưa lên Git) hoặc trong *Variables* của Railway.
 
 | Biến | Ý nghĩa |
 | --- | --- |
-| `ANTHROPIC_API_KEY` | API key Claude. Để trống thì chạy Mock. |
-| `ANTHROPIC_MODEL` | Model sử dụng, mặc định `claude-sonnet-4-5`. Đổi sang model mới nhất có trong Anthropic Console. |
-| `AI_MODE=mock` | Ép chạy rule-based dù đã có key. |
+| `ANTHROPIC_API_KEY` | API key Claude, gọi thẳng Anthropic (gửi qua header `x-api-key`). |
+| `ANTHROPIC_AUTH_TOKEN` | Khoá dạng Bearer, dùng khi đi qua cổng trung gian (gửi qua `Authorization: Bearer`). Thay cho `ANTHROPIC_API_KEY`. Không có cả hai thì chạy Mock. |
+| `ANTHROPIC_BASE_URL` | Địa chỉ cổng gọi Claude, mặc định `https://api.anthropic.com`. |
+| `ANTHROPIC_MODEL` | Model sử dụng, mặc định `claude-sonnet-4-5`. |
+| `MAX_AI_CALLS_PER_DAY` | Giới hạn số lượt gọi Claude mỗi ngày (0 = không giới hạn). |
+| `APP_PASSWORD` | Đặt khi deploy công khai: mọi trang và API yêu cầu mật khẩu. |
+| `AI_MODE=mock` | Ép chạy rule-based dù đã có khoá. |
 | `PORT` | Cổng server, mặc định 3000. |
 | `DB_FILE` | Đường dẫn file SQLite, mặc định `data/ba-copilot.db`. |
+| `DATA_DIR` | Thư mục chứa tệp Kho tài liệu (`files/`), mặc định là thư mục của `DB_FILE`. |
 | `RECURSIVE_FILE` | Đường dẫn mô hình gợi ý bố cục, mặc định `model/recursive-layout.json`. |
 | `GITHUB_TOKEN` | (Tuỳ chọn) Token GitHub mặc định cho dự án chưa nhập token riêng. Nên dùng token chỉ có quyền ghi đúng repo. |
 | `GITHUB_API_URL` | (Tuỳ chọn) Địa chỉ API GitHub, mặc định `https://api.github.com`. |
 
-## 6. Chưa làm trong bản MVP (theo lộ trình)
+## 7. Chưa làm trong bản MVP (theo lộ trình)
 
-- Đăng nhập thật (đợt 5 chọn người dùng bằng ô "Tôi là…"; mã đăng nhập thành viên đã có ở server nhưng chưa bật giao diện).
+- Đăng nhập thật cho từng thành viên (hiện chọn người dùng ở ô *Select your name…*; mã đăng nhập thành viên đã có ở server nhưng chưa bật giao diện). Bản deploy chỉ có một mật khẩu chung `APP_PASSWORD`.
 - Bình luận trực tiếp trên tài liệu (như Google Docs).
-- Mã hoá token GitHub lưu trong DB.
-- Chuyển sang PostgreSQL để deploy. Tầng `repo.ts` đã tách riêng nên chỉ cần thay phần này.
+- Mã hoá token GitHub lưu trong DB (bản xuất `database/` đã xoá token).
+- Chuyển sang PostgreSQL khi cần nhiều máy chủ cùng lúc. Hiện dùng SQLite trên volume của Railway; tầng `repo.ts` đã tách riêng nên chỉ cần thay phần này.
 - Xuất sang Figma và sinh script Playwright từ test case.

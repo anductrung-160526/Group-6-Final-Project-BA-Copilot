@@ -7,19 +7,31 @@ export interface AIConfig {
   provider: "claude" | "mock";
   model: string;
   apiKey: string;
+  /** Khoá kiểu Bearer (ANTHROPIC_AUTH_TOKEN), dùng khi đi qua cổng trung gian thay cho API key. */
+  authToken: string;
   baseUrl: string;
 }
 
 export function aiConfig(): AIConfig {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim() ?? "";
+  const authToken = process.env.ANTHROPIC_AUTH_TOKEN?.trim() ?? "";
   const forced = process.env.AI_MODE?.trim().toLowerCase();
-  const provider = forced === "mock" || !apiKey ? "mock" : "claude";
+  const provider = forced === "mock" || (!apiKey && !authToken) ? "mock" : "claude";
   return {
     provider,
     model: process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-4-5",
     apiKey,
-    baseUrl: process.env.ANTHROPIC_BASE_URL?.trim() || "https://api.anthropic.com",
+    authToken,
+    baseUrl: (process.env.ANTHROPIC_BASE_URL?.trim() || "https://api.anthropic.com").replace(/\/+$/, ""),
   };
+}
+
+/** Header xác thực: API key → x-api-key, auth token → Authorization: Bearer (cùng quy ước với SDK Anthropic). */
+function authHeaders(cfg: AIConfig): Record<string, string> {
+  const h: Record<string, string> = {};
+  if (cfg.apiKey) h["x-api-key"] = cfg.apiKey;
+  if (cfg.authToken) h.authorization = `Bearer ${cfg.authToken}`;
+  return h;
 }
 
 export interface ToolSpec {
@@ -91,7 +103,7 @@ export async function runAI<T>(opts: RunAIOptions<T>): Promise<T> {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-api-key": cfg.apiKey,
+          ...authHeaders(cfg),
           "anthropic-version": "2023-06-01",
         },
         body: JSON.stringify({

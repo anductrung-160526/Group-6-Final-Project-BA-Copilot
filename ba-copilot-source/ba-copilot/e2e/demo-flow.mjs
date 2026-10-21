@@ -65,7 +65,7 @@ if (!process.env.E2E_BASE) {
   const tsx = join(APP, "node_modules", "tsx", "dist", "cli.mjs");
   server = spawn(process.execPath, [tsx, "server/index.ts"], {
     cwd: APP,
-    env: { ...process.env, PORT, DB_FILE: join(tmp, "e2e.db"), DATA_DIR: tmp, AI_MODE: "mock", APP_PASSWORD: "", ANTHROPIC_API_KEY: "", GITHUB_TOKEN: "" },
+    env: { ...process.env, PORT, DB_FILE: join(tmp, "e2e.db"), DATA_DIR: tmp, AI_MODE: "mock", APP_PASSWORD: "", ANTHROPIC_API_KEY: "", ANTHROPIC_AUTH_TOKEN: "", GITHUB_TOKEN: "" },
     stdio: ["ignore", "inherit", "inherit"],
   });
   let up = false;

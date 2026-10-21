@@ -22,5 +22,5 @@ const server = createApp({ publicDir: join(root, "public") });
 server.listen(port, () => {
   const c = aiConfig();
   console.log(`\n  BA Copilot is running: http://localhost:${port}`);
-  console.log(`  AI: ${c.provider === "claude" ? `Claude API (${c.model})` : "Mock mode (rule-based) – set ANTHROPIC_API_KEY in .env to use Claude"}\n`);
+  console.log(`  AI: ${c.provider === "claude" ? `Claude API (${c.model})` : "Mock mode (rule-based) – set ANTHROPIC_API_KEY or ANTHROPIC_AUTH_TOKEN in .env to use Claude"}\n`);
 });
