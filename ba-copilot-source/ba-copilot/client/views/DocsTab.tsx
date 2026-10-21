@@ -130,7 +130,7 @@ export function DocsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise<
                 (seq ? (
                   <article className="paper">
                     <h2>{seq.title}</h2>
-                    <Mermaid code={seq.mermaid} name={seq.useCaseCode} />
+                    <Mermaid code={seq.mermaid} name={seq.useCaseCode} title={`Sequence diagram – ${seq.useCaseCode}`} />
                     <details>
                       <summary className="muted small">Mermaid code</summary>
                       <pre className="code">{seq.mermaid}</pre>

@@ -6,7 +6,7 @@ import type { DesignModel } from "../../shared/extract.ts";
 import type { Requirement, SequenceDiagram, SrsDoc, SrsSection, TestCase, UseCase } from "../../shared/types.ts";
 import { runAI } from "./client.ts";
 import { mockEditOps, mockScreen, mockSequence, mockSrs, mockTests, mockUseCases } from "./mock.ts";
-import { mockMissingScreens, mockUcDiagram } from "./mock.ts";
+import { isAcceptancePhrase, mockMissingScreens, mockUcDiagram } from "./mock.ts";
 import type { MissingScreen, SuggestSource } from "../../shared/suggest.ts";
 import { buildUcMermaid, type UcRelation } from "../../shared/ucDiagram.ts";
 
@@ -562,6 +562,7 @@ export async function suggestMissingScreens(args: { moduleId: string; moduleName
 Rules:
 - A source is covered when an existing screen lets the user do what it asks (its fields, actions, tables or links), even if the wording differs.
 - Do not propose a screen for a source that is only a validation rule, a field constraint or a small action that belongs on an existing screen.
+- Business rules and acceptance criteria ("ensure that …", "verify …", Given/When/Then) are not screens: skip them; never start a screen name with such words.
 - Screen name: short noun phrase in English Title Case, at most 8 words, e.g. "Order History", "Add Product". Do not reuse the name of an existing screen.
 - reason: one sentence saying what the user cannot do yet on the existing screens.
 - Use only the source refs below (S1, S2…). Return an empty list when every source is covered.
@@ -604,6 +605,7 @@ ${screens.length ? JSON.stringify(screens) : "(none)"}`;
         const name = String(x?.name ?? "").trim().replace(/\s+/g, " ");
         if (!src) errors.push(`Unknown sourceRef: ${x?.sourceRef}`);
         else if (!name || name.length > 120) errors.push(`${x.sourceRef}: invalid name`);
+        else if (isAcceptancePhrase(name)) continue; // tên lấy từ câu quy tắc / tiêu chí chấp nhận ("Ensure that: …") – bỏ
         else if (!seen.has(src.key)) {
           seen.add(src.key);
           out.push({ key: src.key, name, reason: String(x?.reason ?? "").trim().slice(0, 300) || undefined });

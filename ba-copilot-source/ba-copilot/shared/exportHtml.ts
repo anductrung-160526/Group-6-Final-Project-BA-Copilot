@@ -47,7 +47,7 @@ export function screenFileName(name: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 60);
-  return `${base || "man-hinh"}.html`;
+  return `${base || "screen"}.html`;
 }
 
 interface Ctx {

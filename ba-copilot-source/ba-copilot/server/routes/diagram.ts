@@ -102,7 +102,7 @@ route("POST", "/api/modules/:id/diagram/approve", (ctx) => {
 });
 
 // FN-14: UC đổi (sinh lại / chỉnh tài liệu phát `drafted` docs) → sơ đồ Nháp/Đã duyệt thành Bản cũ.
-// Sơ đồ mang dòng "%% nguon-uc: <mã băm>" của UC lúc vẽ; mã băm còn khớp (vd chỉ chỉnh SRS, Sequence) thì giữ nguyên.
+// Sơ đồ mang dòng "%% uc-source: <mã băm>" (bản cũ: "%% nguon-uc:") của UC lúc vẽ; mã băm còn khớp (vd chỉ chỉnh SRS, Sequence) thì giữ nguyên.
 // BA xoá dòng đó thì không so được → coi như UC đã đổi.
 export function markDiagramStaleIfUcChanged(moduleId: string, actorId?: string): boolean {
   const d = getDiagram(moduleId);

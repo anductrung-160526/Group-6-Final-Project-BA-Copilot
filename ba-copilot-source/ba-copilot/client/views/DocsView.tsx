@@ -67,7 +67,29 @@ function downloadMd(kind: DocKind, content: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
+/** Liên kết sâu tới loại tài liệu không có (#/…/docs/XYZ) → báo "không tìm thấy" thay vì lặng lẽ mở BRD. */
+export function DocsView(props: WorkStepProps) {
+  const sub = props.params[0];
+  if (sub && !isDocKind(sub))
+    return (
+      <div className="page" data-testid="docs-view">
+        <Empty
+          title="Document not found"
+          testId="doc-kind-not-found"
+          action={
+            <Btn kind="primary" onClick={() => (window.location.hash = stepHref(props.projectId, props.moduleId, "BRD"))} data-testid="back-to-docs">
+              Back to Documents
+            </Btn>
+          }
+        >
+          There is no "{sub}" document. The documents are {DOC_KINDS.map((k) => DOC_KIND_LABEL[k]).join(", ")}.
+        </Empty>
+      </div>
+    );
+  return <DocsStep {...props} />;
+}
+
+function DocsStep({ projectId, moduleId, params }: WorkStepProps) {
   const kind: DocKind = isDocKind(params[0]) ? params[0] : "BRD";
   const label = DOC_KIND_LABEL[kind];
   const idx = DOC_KINDS.indexOf(kind);

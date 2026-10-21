@@ -7,7 +7,7 @@ import type { UINode } from "../shared/design.ts";
 import type { Requirement, ScreenSuggestions } from "../shared/types.ts";
 import { splitStories, type StructuredStory } from "../shared/qus.ts";
 import { storyKey, suggestionSources, suggestNextScreens, toSuggestion } from "../shared/suggest.ts";
-import { mockMissingScreens } from "../server/ai/mock.ts";
+import { isAcceptancePhrase, mockMissingScreens } from "../server/ai/mock.ts";
 import { createServer } from "node:http";
 import { openDb } from "../server/db.ts";
 import { createApp } from "../server/app.ts";
@@ -144,6 +144,48 @@ test("(d2) tên màn đề xuất gọn, không cắt giữa cụm; FR kiểm tr
 - Là kế toán, tôi muốn xuất danh sách đơn hàng ra Excel (ví dụ theo tháng) để đối soát.`);
   const names = withMock({ model, requirements: [], stories }).map((s) => s.name);
   assert.deepEqual(names.slice(1), ["Xem danh sách các đơn hàng", "Tạo đơn hàng và in hóa đơn", "Xuất danh sách đơn hàng ra excel"]);
+});
+
+test("(d3) quy tắc nghiệp vụ / tiêu chí chấp nhận (Ensure that, Verify, Given/When/Then) không thành tên màn", () => {
+  const res = withMock({
+    model,
+    requirements: [
+      fr("FR-01", "The system shall allow Customer to pay by card."),
+      fr("FR-02", "The system shall ensure that: Card is tokenized."),
+      fr("FR-03", "The system shall verify that the card has not expired."),
+      fr("FR-04", "Ensure that: Payment receipt is emailed."),
+      fr("FR-05", "Given a saved card, when the customer pays, then no card number is shown."),
+      fr("FR-06", "Verify: the order total is recalculated."),
+      fr("FR-07", "Hệ thống phải đảm bảo: Mật khẩu được mã hoá."),
+      fr("FR-08", "The system shall export the monthly revenue report."),
+      fr("FR-09", 'The system shall validate the input data of "Add product" and show a clear error on each invalid field.'),
+      fr("FR-10", "The system shall allow Customer to confirm the order."),
+    ],
+    stories: [],
+  });
+  const names = res.filter((s) => s.kind === "uncovered-fr").map((s) => [s.source, s.name]);
+  assert.deepEqual(names, [
+    ["FR-01", "Pay"],
+    ["FR-08", "Export the monthly revenue report"],
+    ["FR-10", "Confirm the order"],
+  ]);
+  assert.ok(!names.some(([, n]) => /^(ensure|verify|given)\b/i.test(n)));
+
+  // Story mà phần "I want" là tiêu chí chấp nhận bị bỏ qua; thao tác thật bắt đầu bằng "verify" thì vẫn gợi ý
+  const fromStory = withMock({
+    model,
+    requirements: [],
+    stories: ["As a customer, I want ensure that: card data is masked so that it stays private.", "As a customer, I want to verify my email address so that I can sign in."],
+  });
+  assert.deepEqual(fromStory.filter((s) => s.kind === "uncovered-story").map((s) => s.name), ["Verify my email address"]);
+
+  // Tên màn Claude trả về: bỏ tên dạng quy tắc, giữ tên màn thật
+  assert.equal(isAcceptancePhrase("Ensure that: Card is tokenized"), true);
+  assert.equal(isAcceptancePhrase("Verify that the card is valid"), true);
+  assert.equal(isAcceptancePhrase("Given a saved card"), true);
+  assert.equal(isAcceptancePhrase("Verify Email"), false);
+  assert.equal(isAcceptancePhrase("Order Confirmation"), false);
+  assert.equal(isAcceptancePhrase("Checkout"), false);
 });
 
 test("(e) gợi ý đã bị bỏ qua thì không hiện lại", () => {

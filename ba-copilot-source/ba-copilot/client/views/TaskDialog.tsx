@@ -17,7 +17,7 @@ import {
   updateTask,
   type TaskInput,
 } from "../api.ts";
-import { ApprovalBar, Badge, Btn, Drawer, Field, Icon, MemberPicker, RevisionTag, RowActions, Select, StatusBadge, fmtTime, useUI, type BadgeTone, type IconName } from "../components/ui.tsx";
+import { ApprovalBar, Badge, Btn, Drawer, Field, Icon, MemberPicker, RevisionTag, RowActions, Select, StatusBadge, fmtDate as fmtDay, fmtTime, useUI, type BadgeTone, type IconName } from "../components/ui.tsx";
 import { ROLE_LABEL, useCurrentMember } from "../currentMember.ts";
 import { workHref } from "../projectMenu.ts";
 import { loadDoneBlockReason } from "../prereq.ts";
@@ -81,12 +81,8 @@ export function artifactHref(projectId: string, t: Pick<Task, "artifactType" | "
   }
 }
 
-/** "2026-10-30" → "30/10/2026". */
-/** Ngày YYYY-MM-DD → MM/DD/YYYY (en-US). */
-export const fmtDate = (d: string) => {
-  const [y, m, day] = d.split("-");
-  return m && day ? `${m}/${day}/${y}` : d;
-};
+/** Hạn YYYY-MM-DD → "Oct 30, 2026" (fmtDate dùng chung trong ui.tsx). */
+export const fmtDate = (d: string) => fmtDay(d);
 export const isOverdue = (t: Pick<Task, "dueDate" | "status">) => !!t.dueDate && t.status !== "done" && t.status !== "approved" && t.dueDate < new Date().toLocaleDateString("sv-SE");
 
 type V5Kind = Exclude<ArtifactKind, "docs">;

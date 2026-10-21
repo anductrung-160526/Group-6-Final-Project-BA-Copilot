@@ -29,6 +29,7 @@ import {
   SuggestionCard,
   Tabs,
   ToastItem,
+  fmtDate,
   fmtTime,
   useUI,
   type ApprovalStatus,
@@ -37,6 +38,7 @@ import {
   type MemberOption,
   type SideNavItem,
 } from "../components/ui.tsx";
+import { Mermaid } from "../components/Mermaid.tsx";
 
 const MINT = [
   ["mint-grad", "180°", "var(--color-mint-grad)"],
@@ -54,6 +56,14 @@ const NEUTRAL = [
   ["border", "#E3EAEC", "var(--color-border)"],
   ["bg-sub", "#F6FBFB", "var(--color-bg-sub)"],
 ];
+// Sơ đồ rất rộng (kiểu BPMN nhiều bước) để soát xem trước: không nhỏ quá 60%, cuộn ngang, "View full size" (Modal size="full").
+const WIDE_DIAGRAM = `flowchart LR
+  S((Start)) --> A[Customer adds items to the cart] --> B[Customer enters the delivery address] --> C{Address valid?}
+  C -->|No| B
+  C -->|Yes| D[Customer chooses a payment method] --> E[Payment gateway authorises the card] --> F{Authorised?}
+  F -->|No| D
+  F -->|Yes| G[System creates the order] --> H[Warehouse picks and packs the items] --> I[Courier delivers the parcel] --> X((End))`;
+
 const TONES: BadgeTone[] = ["gray", "blue", "mint", "green", "amber", "orange", "red", "violet", "flag"];
 const MEMBERS: MemberOption[] = [
   { id: "m1", name: "Chi Hoang", role: "BA" },
@@ -513,6 +523,16 @@ export function Gallery() {
         </Section>
         <Section title="Empty state">
           <Empty title="No modules yet">Click "+ New module" to get started.</Empty>
+          <Empty
+            title="Diagram not found"
+            action={
+              <Btn kind="primary" onClick={() => toast("Back to Diagrams")}>
+                Back to Diagrams
+              </Btn>
+            }
+          >
+            Empty with action – e.g. a deep link to an unknown document or diagram.
+          </Empty>
         </Section>
       </div>
 
@@ -575,6 +595,21 @@ export function Gallery() {
         </Section>
       </div>
 
+      <Section title="Diagram preview (Mermaid)">
+        <div className="split-2">
+          <div className="box">
+            <div className="box-title">Behaviour</div>
+            <div className="muted small">
+              The preview fits the column but never shrinks below 60% of the real size, so text stays readable; a wide diagram (BPMN, Context) scrolls sideways. "View full size" opens a full-screen Modal (size="full") with Zoom out / Zoom in, Fit to width and Actual size.
+            </div>
+          </div>
+          <div className="box">
+            <div className="box-title">Preview</div>
+            <Mermaid code={WIDE_DIAGRAM} name="gallery-wide-diagram" title="BPMN diagram" />
+          </div>
+        </div>
+      </Section>
+
       <Section title="2-column layout (.split-2)">
         <div className="split-2">
           <div className="box">
@@ -622,7 +657,7 @@ export function Gallery() {
         >
           <div className="box">
             <div className="box-title">Source</div>
-            <div>Exported from the Authentication module · 10/20/2026</div>
+            <div>Exported from the Authentication module · {fmtDate("2026-10-20")}</div>
           </div>
           <Empty title="No preview available" />
         </Drawer>

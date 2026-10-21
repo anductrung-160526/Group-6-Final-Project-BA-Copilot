@@ -149,15 +149,23 @@ export function mockFromPrompt(prompt: string, name: string): UINode | null {
   }
 
   // nút: "nút Lưu và Hủy", "Save and Cancel buttons", "buttons Approve and Reject", "Add new button", "export to Excel"
-  const addButtons = (index: number, raw: string) => {
-    for (const lb of splitList(raw.replace(/\s+(vào|ở|bên|phía|cuối|dưới|trên|at|on|in|below|above)\s.*$/i, ""))) {
+  const SEARCH_BOX = /^(?:ô tìm kiếm|search\s+(?:box|bar|field|input))$/iu; // vi-keep: "ô tìm kiếm" tiếng Việt cũ
+  // exact: nhãn trong ngoặc kép – giữ nguyên, không tách "and" / bỏ cụm vị trí ("Sign in with Google" không thành "Sign")
+  const addButtons = (index: number, raw: string, exact = false) => {
+    for (const lb of exact ? [raw.trim()] : splitList(raw.replace(/\s+(vào|ở|bên|phía|cuối|dưới|trên|at|on|in|below|above)\s.*$/i, ""))) {
       const label = cap(stripArticle(lb));
+      if (SEARCH_BOX.test(label)) continue; // ô tìm kiếm – đã có Input "Search" ở thanh công cụ
       if (label && !buttons.some((b) => String(b.node.props.label).toLowerCase() === label.toLowerCase())) buttons.push({ at: index, node: { type: "Button", props: { label } } });
     }
   };
   for (const m of text.matchAll(/nút\s+([^.;:\n]+?)(?=$|[.;:\n]|,\s*(?:có|bảng|phân trang|link|liên kết)\b)/giu)) addButtons(m.index!, m[1]);
   for (const m of text.matchAll(/\bbuttons?\s*(?::\s*|(?=["“]))([^.;:\n]+?)(?=$|[.;:\n]|,\s*(?:with|table|pagination|link|has)\b)/gi)) addButtons(m.index!, m[1]);
-  for (const m of text.matchAll(/(?:^|[,.;:\n]|\bwith\b)\s*([^,.;:\n]+?)\s+buttons?\b/gi)) addButtons(m.index!, m[1]);
+  // nhãn trong ngoặc kép giữ nguyên, kể cả có "with" ('a "Sign in with Google" button')
+  for (const m of text.matchAll(/["“]([^"”\n]+)["”]\s+buttons?\b/gi)) addButtons(m.index!, m[1], true);
+  // nhãn không vượt qua "with" ("Screen with a search bar and an Add new button" → chỉ "a search bar and an Add new")
+  // số ngoặc kép lẻ = mẩu của nhãn trong ngoặc (vd 'Google"' của "Sign in with Google") – đã lấy ở vòng trên, bỏ qua
+  for (const m of text.matchAll(/(?:^|[,.;:\n]|\bwith\b)\s*((?:(?!\bwith\b)[^,.;:\n])+?)\s+buttons?\b/gi))
+    if ((m[1].match(/["“”]/g) ?? []).length % 2 === 0) addButtons(m.index!, m[1].replace(/["“”]/g, ""));
   if (/xuất excel|export (?:to )?excel/.test(p) && !buttons.some((b) => /xuất|export/i.test(String(b.node.props.label)))) buttons.push({ at: at(/xuất excel|export (?:to )?excel/), node: { type: "Button", props: { label: "Export Excel" } } });
 
   // liên kết
@@ -414,7 +422,8 @@ export function mockEditOps(tree: UINode, selectedIds: string[], instruction: st
     ? null
     : text.match(/thêm\s+(?:ô|trường|field)(?:\s+nhập)?\s*["“]?([^"”\n,.(]+?)["”]?(?=\s*[(,.]|\s+vào|$)/i) ??
       text.match(/\badd\s+(?:an?\s+)?(?:new\s+)?(?:field|input)\s*["“]?([^"”\n,.(]+?)["”]?(?=\s*[(,.]|\s+(?:to|into|in)\b|$)/i) ??
-      text.match(/\badd\s+(?:an?\s+|the\s+)?["“]?([^"”\n,.(]+?)["”]?\s+(?:field|input)\b/i);
+      text.match(/\badd\s+(?:an?\s+|the\s+)?["“]?([^"”\n,.(]+?)["”]?\s+(?:field|input)\b/i) ??
+      text.match(/\badd\s+(?:an?\s+|the\s+)?["“]?(search)\s+(?:box|bar)\b(?!["”]?\s+buttons?\b)/i); // "Add a search box" = ô tìm kiếm (ghi rõ "button" thì vẫn là nút)
   // "Thêm bộ lọc (Select) "Khách hàng"", "Add pagination (Pagination)", "Add a Select to the Row"
   const addCols = text.match(/(?:thêm|add)\s+(?:các\s+|the\s+)?(?:cột|columns?)\s+["“]?([^"”\n.]+?)["”]?(?=\s+(?:vào|to)\b|\s*[.]|$)/i)?.[1];
   const addRowActs = text.match(/(?:thêm|add)\s+(?:các\s+|the\s+)?(?:thao tác|(?:row\s+)?actions?)\s+([^\n.]+?)(?=\s+(?:vào|cho|to|for)\b|\s*[.]|$)/i)?.[1];
@@ -863,8 +872,17 @@ function isCovered(text: string, vocabularies: Set<string>[]): boolean {
 }
 
 // FR kiểm tra dữ liệu ("Hệ thống phải kiểm tra: Tên là bắt buộc") là quy tắc của trường trên màn đã có, không phải màn mới.
+// Cùng loại: quy tắc nghiệp vụ / tiêu chí chấp nhận ("The system shall ensure that: Card is tokenized", "… shall validate the
+// input data of …", "Verify that…", "Given … When … Then …") – mô tả điều kiện phải đúng trên màn đã có, không phải một màn
+// mới; đặt tên màn theo câu đó sẽ ra tên vô nghĩa kiểu "Ensure that: Card is tokenized" nên bỏ qua.
+// RULE_FR chỉ áp cho FR (câu "The system shall verify …" luôn là quy tắc); story và tên màn dùng RULE_PHRASE chặt hơn để
+// không bỏ nhầm thao tác thật ("I want to verify my email", màn "Verify Email").
 // vi-keep-start: mẫu câu FR tiếng Việt cũ trong DB, song song tiếng Anh
 const VALIDATION_FR = /^(?:(?:hệ thống|the system)\s+(?:phải|shall|must|should)\s+)?(?:kiểm tra|validate)\s*:/iu;
+const RULE_FR =
+  /^(?:(?:hệ thống|the system)\s+(?:phải|shall|must|should)\s+)?(?:(?:check|confirm|đảm bảo|bảo đảm)(?:\s+that)?\s*:|(?:ensure|verify|validate)\b)/iu;
+const ACCEPTANCE = /^(?:(?:given|when|then)\s+\S|(?:acceptance criteria|ac\s*\d+)\s*[:.-])/iu;
+const RULE_PHRASE = /^(?:(?:ensure|verify|validate|check|confirm|đảm bảo|bảo đảm)(?:\s+that)?\s*:|(?:ensure|verify|validate|check|confirm)\s+that\b)/iu;
 // Phần mở đầu không mang tên màn: "Hệ thống phải (cho phép <vai trò> thực hiện)", "The system shall (allow <role> to)".
 const LEAD = /^(?:hệ thống|the system)\s+(?:phải|shall|must|should)\s+(?:cho phép\s+(?:\S+\s+){0,4}?thực hiện\s+|allow\s+(?:\S+\s+){0,3}?to\s+)?/iu;
 // Từ mở đầu mệnh đề phụ: tên màn dừng trước chúng ("… theo trạng thái", "… để xử lý").
@@ -883,7 +901,7 @@ export function mockScreenName(text: string): string {
     words = quoted.trim().replace(/^(?:mở màn hình|open(?: the)? screen)\s+/iu, "").replace(/\s*\(([^)]+)\)\s*$/u, " – $1").split(/\s+/); // vi-keep: FR tiếng Việt cũ
   } else {
     // Bỏ chú thích trong ngoặc ("… ra Excel (ví dụ theo tháng)"), kể cả ngoặc chưa đóng
-    const core = text.replace(/\s*[(（][^)）]*[)）]?/gu, " ").replace(/[.。!?]+$/u, "").trim().replace(LEAD, "");
+    const core = text.replace(/\s*[(（][^)）]*[)）]?/gu, " ").replace(/[.。!?]+$/u, "").trim().replace(LEAD, "").replace(/^to\s+/iu, ""); // "I want to verify …" → "verify …"
     for (const w of core.split(/\s+/)) {
       if (words.length && CLAUSE_WORDS.has(w.toLowerCase())) break;
       words.push(w);
@@ -895,13 +913,22 @@ export function mockScreenName(text: string): string {
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
+/**
+ * Câu / tên là quy tắc hoặc tiêu chí chấp nhận ("Ensure that: …", "Verify that …", "Validate: …", Given/When/Then…),
+ * không dùng làm tên màn. Dùng cho phần "I want" của story và tên màn Claude trả về.
+ */
+export function isAcceptancePhrase(text: string): boolean {
+  const t = text.trim().replace(/^[-*•\s]+/u, "");
+  return RULE_PHRASE.test(t) || VALIDATION_FR.test(t) || ACCEPTANCE.test(t);
+}
+
 export function mockMissingScreens(model: DesignModel, sources: SuggestSource[]): MissingScreen[] {
   const vocabularies = model.screens.map(screenVocabulary);
   const out: MissingScreen[] = [];
   for (const src of sources) {
-    if (src.kind === "fr" && VALIDATION_FR.test(src.text)) continue;
+    if (src.kind === "fr" && (VALIDATION_FR.test(src.text) || RULE_FR.test(src.text))) continue;
     const text = src.kind === "story" ? parseStory(src.text).means ?? src.text : src.text;
-    if (isCovered(text, vocabularies)) continue;
+    if (isAcceptancePhrase(text) || isCovered(text, vocabularies)) continue;
     out.push({ key: src.key, name: mockScreenName(text) });
   }
   return out;

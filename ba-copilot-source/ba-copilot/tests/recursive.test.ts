@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { ALL_TYPES, UINode } from "../shared/design.ts";
-import { Box, completeLayout, loadRecursive, nextElements, nextInContainer, predictChildren } from "../shared/recursive.ts";
+import { Box, candidateShares, completeLayout, fmtPct, loadRecursive, nextElements, nextInContainer, predictChildren } from "../shared/recursive.ts";
 
 const dir = join(import.meta.dirname, "..", "model");
 type PNode = { c: number; t: number; b: number[]; k?: PNode[] };
@@ -60,4 +60,28 @@ test("Phần tử tiếp theo (top-3) và Hoàn thành bố cục khớp PyTorch
     const got = completeLayout(m, ui, boxes);
     assert.deepEqual(got.map((g) => [g.parentId, g.type, g.leaf, ...g.box]), p.complete.map((c) => [c.parent, ALL_TYPES[c.c], c.t === 1, ...c.box]));
   }
+});
+
+test("fmtPct: 0 → 0%, rất nhỏ → <1%, còn lại làm tròn", () => {
+  assert.equal(fmtPct(0), "0%");
+  assert.equal(fmtPct(0.0004), "<1%");
+  assert.equal(fmtPct(0.004), "<1%");
+  assert.equal(fmtPct(0.005), "1%");
+  assert.equal(fmtPct(0.374), "37%");
+  assert.equal(fmtPct(1), "100%");
+  assert.equal(fmtPct(Number.NaN), "0%");
+});
+
+test("candidateShares: EOS áp đảo → tỉ lệ giữa các ứng viên (tổng 100%), không còn toàn 0%", () => {
+  const s = candidateShares([
+    { type: "Link", p: 0.0006 },
+    { type: "Button", p: 0.0003 },
+    { type: "Row", p: 0.0001 },
+  ]);
+  assert.deepEqual(s.map((c) => fmtPct(c.share)), ["60%", "30%", "10%"]);
+  assert.ok(Math.abs(s.reduce((a, c) => a + c.share, 0) - 1) < 1e-9);
+  assert.equal(s[0].type, "Link");
+  assert.equal(s[0].p, 0.0006);
+  // tổng bằng 0 → chia đều
+  assert.deepEqual(candidateShares([{ type: "A", p: 0 }, { type: "B", p: 0 }]).map((c) => c.share), [0.5, 0.5]);
 });

@@ -213,6 +213,24 @@ export function predictChildren(m: RecursiveModel, tree: UINode, boxes: Record<s
 
 // ------------------------------------------------------------------ dùng cho tính năng gợi ý bố cục (layout auto-completion)
 export interface Candidate { type: string; p: number }
+
+/** Phần trăm hiển thị cho người dùng: 0 → "0%", lớn hơn 0 mà làm tròn ra 0 → "<1%", còn lại làm tròn ("37%"). */
+export function fmtPct(p: number): string {
+  const v = Number.isFinite(p) ? Math.max(0, Math.min(1, p)) : 0;
+  const r = Math.round(v * 100);
+  return r === 0 && v > 0 ? "<1%" : `${r}%`;
+}
+
+/**
+ * Tỉ lệ của từng ứng viên so với nhau (chia lại trong nhóm ứng viên, bỏ phần xác suất EOS "vùng đã đủ").
+ * Dùng khi EOS áp đảo: xác suất tuyệt đối của mọi ứng viên gần 0 nên hiện "0% / 0% / 0%" là vô nghĩa.
+ * Tổng bằng 0 (hoặc không hợp lệ) → chia đều.
+ */
+export function candidateShares<T extends Candidate>(cands: T[]): (T & { share: number })[] {
+  const ps = cands.map((c) => (Number.isFinite(c.p) && c.p > 0 ? c.p : 0));
+  const sum = ps.reduce((a, b) => a + b, 0);
+  return cands.map((c, i) => ({ ...c, share: sum > 0 ? ps[i] / sum : 1 / cands.length }));
+}
 export interface NextElement {
   parentId: string;
   /** vị trí chèn giữa các con đã có, theo thứ tự đọc của khung bao dự đoán */

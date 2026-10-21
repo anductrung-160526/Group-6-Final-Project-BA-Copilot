@@ -129,3 +129,26 @@ test("validateMermaid bắt lỗi cú pháp thường gặp", () => {
   assert.ok(validateMermaid("sequenceDiagram\n  alt x\n  A->>B: y").some((e) => e.includes("end")));
   assert.deepEqual(validateMermaid("sequenceDiagram\n  actor A as Người dùng\n  A->>UI: Mở\n  UI-->>A: OK"), []);
 });
+
+// Q-P3: "search box / search bar" là ô tìm kiếm, không phải nút; nhãn nút không nuốt cả "Screen with …" trước "with"
+test("mock: ô tìm kiếm không thành nút; nhãn nút không lấy phần trước \"with\"", () => {
+  const controls = (t: ReturnType<typeof mockScreen>) => {
+    const out: string[] = [];
+    const walk = (n: typeof t) => {
+      if (n.type === "Button" || n.type === "Input") out.push(`${n.type}:${n.props.label}`);
+      (n.children ?? []).forEach(walk);
+    };
+    walk(t);
+    return out;
+  };
+  assert.deepEqual(controls(mockScreen("Category list with a Search box button and a table", "X")), ["Input:Search"]);
+  assert.deepEqual(controls(mockScreen("Screen with a search bar and an Add new button", "X")), ["Input:Search", "Button:Add new"]);
+  assert.deepEqual(controls(mockScreen("Order screen with Approve and Reject buttons", "X")), ["Button:Approve", "Button:Reject"]);
+  assert.ok(controls(mockScreen('Sign-in screen with email, password and a "Sign in with Google" button', "X")).includes("Button:Sign in with Google"));
+
+  const tree = { id: "root", type: "Page", props: { title: "P" }, children: [{ id: "f", type: "Form", props: { title: "F" }, children: [] }] } as Parameters<typeof mockEditOps>[0];
+  const added = (instruction: string) => mockEditOps(tree, ["f"], instruction).ops.flatMap((o) => { const n = (o as { node?: { type: string; props: Record<string, unknown> } }).node; return o.op === "insert" && n ? [`${n.type}:${n.props.label}:${n.props.name ?? ""}`] : []; });
+  assert.deepEqual(added("Add a Search box"), ["Input:Search:keyword"]);
+  assert.deepEqual(added("Add a search bar to the form"), ["Input:Search:keyword"]);
+  assert.deepEqual(added("Add a Search box button"), ["Button:Search box:"]);
+});

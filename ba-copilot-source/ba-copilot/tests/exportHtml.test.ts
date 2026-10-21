@@ -82,7 +82,7 @@ test("prototypeFiles: mỗi màn một tệp + index.html, nối điều hướn
 
 test("screenFileName và mọi loại component của bản mock đều xuất được", () => {
   assert.equal(screenFileName("Quản lý Sản phẩm / Đơn hàng"), "quan-ly-san-pham-don-hang.html");
-  assert.equal(screenFileName("!!!"), "man-hinh.html");
+  assert.equal(screenFileName("!!!"), "screen.html");
   for (const prompt of ["Dashboard tổng quan: chỉ số doanh thu, bảng đơn hàng, phân trang", "Form thêm sản phẩm: tên, giá, ngày nhập, mô tả, ảnh; nút Lưu", "Màn hình đăng nhập"]) {
     const html = screenToHtml(mockScreen(prompt, "Mẫu"));
     assert.ok(html.length > 500);

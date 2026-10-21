@@ -113,6 +113,16 @@ describe("buildUcMermaid", () => {
     assert.equal(readSourceHash("flowchart LR\n  A --- B"), null);
   });
 
+  test("dòng mã băm dùng dấu tiếng Anh %% uc-source:, vẫn đọc được dấu cũ %% nguon-uc: của sơ đồ đã lưu", () => {
+    const code = buildUcMermaid(SAMPLE);
+    const hash = ucSourceHash(SAMPLE);
+    assert.ok(code.split("\n").includes(`  %% uc-source: ${hash}`));
+    assert.ok(!code.includes("nguon-uc"));
+    assert.equal(readSourceHash(`flowchart LR\n  %% nguon-uc: ${hash}\n  A --- B`), hash);
+    assert.equal(readSourceHash(`flowchart LR\n%% uc-source:${hash}`), hash);
+    assert.equal(readSourceHash("flowchart LR\n  %% uc-source: not-a-hash"), null);
+  });
+
   test("checkUcMermaid bắt lỗi thường gặp", () => {
     assert.deepEqual(checkUcMermaid(""), ["Diagram code is empty"]);
     assert.ok(checkUcMermaid("sequenceDiagram\n A->>B: x").some((e) => e.includes("first line")));
@@ -260,9 +270,18 @@ describe("API sơ đồ UC (Mock)", () => {
     await api("POST", `/api/modules/${mid}/docs/refine`, { target: first.code, instruction: "Lần nữa" });
     assert.deepEqual(diagramEvents(), ["stale"]);
 
+    // Sơ đồ lưu từ trước đợt 6 (dấu cũ "%% nguon-uc:") với mã băm còn khớp → chỉnh SRS vẫn không thành Bản cũ
+    await api("POST", `/api/modules/${mid}/diagram/generate`, {});
+    const legacy = (await api("GET", `/api/modules/${mid}/diagram`)).data.code.replace("%% uc-source:", "%% nguon-uc:");
+    await api("PUT", `/api/modules/${mid}/diagram`, { code: legacy });
+    events.length = 0;
+    assert.equal((await api("POST", `/api/modules/${mid}/docs/refine`, { target: `SRS:${srs}`, instruction: "Ngắn hơn nữa" })).status, 200);
+    assert.equal((await api("GET", `/api/modules/${mid}/diagram`)).data.status, "draft");
+    assert.deepEqual(diagramEvents(), []);
+
     // Sinh lại sơ đồ → Nháp; BA xoá dòng mã băm rồi lưu → lần sinh lại tài liệu sau coi như UC đổi
     await api("POST", `/api/modules/${mid}/diagram/generate`, {});
-    const noHash = (await api("GET", `/api/modules/${mid}/diagram`)).data.code.replace(/^.*nguon-uc.*$/m, "");
+    const noHash = (await api("GET", `/api/modules/${mid}/diagram`)).data.code.replace(/^.*uc-source.*$/m, "");
     await api("PUT", `/api/modules/${mid}/diagram`, { code: noHash });
     events.length = 0;
     assert.equal((await api("POST", `/api/modules/${mid}/docs/generate`, {})).status, 200);

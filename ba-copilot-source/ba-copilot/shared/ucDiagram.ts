@@ -90,12 +90,15 @@ export function ucSourceHash(useCases: UcDiagramInput[]): string {
   return (h >>> 0).toString(16).padStart(8, "0");
 }
 
-/** Dòng chú thích ghi mã băm nguồn UC trong mã Mermaid. */
-export const SOURCE_MARK = "%% nguon-uc:";
+/** Dòng chú thích ghi mã băm nguồn UC trong mã Mermaid (BA nhìn thấy trong ô soạn mã nên viết tiếng Anh). */
+export const SOURCE_MARK = "%% uc-source:";
 
-/** Đọc mã băm nguồn UC từ mã Mermaid (null nếu BA đã xoá dòng chú thích). */
+/**
+ * Đọc mã băm nguồn UC từ mã Mermaid (null nếu BA đã xoá dòng chú thích).
+ * Nhận cả dấu cũ "%% nguon-uc:" (trước đợt 6) còn nằm trong sơ đồ đã lưu để vẫn nhận biết Bản cũ.
+ */
 export function readSourceHash(code: string): string | null {
-  const m = String(code ?? "").match(/^\s*%% nguon-uc:\s*([0-9a-f]{8})\s*$/m);
+  const m = String(code ?? "").match(/^\s*%% (?:uc-source|nguon-uc):\s*([0-9a-f]{8})\s*$/m);
   return m ? m[1] : null;
 }
 

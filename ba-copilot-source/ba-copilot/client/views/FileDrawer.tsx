@@ -4,7 +4,7 @@
 import React from "react";
 import { download, fileDownloadUrl, filePreviewUrl } from "../api.ts";
 import type { FileItem } from "../../shared/types.ts";
-import { Badge, Btn, Drawer, Empty, Icon, RowActions, fmtTime, useUI, type DeleteConfirm } from "../components/ui.tsx";
+import { Badge, Btn, Drawer, Empty, Icon, RowActions, fmtDate, fmtTime, useUI, type DeleteConfirm } from "../components/ui.tsx";
 
 /** Câu hỏi xác nhận xoá tệp – dùng chung cho bảng Kho tài liệu và ngăn xem tệp. */
 export const deleteConfirm = (file: FileItem): DeleteConfirm => ({
@@ -24,13 +24,8 @@ export function fmtSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-/** "2026-10-18" → "18/10/2026". */
-/** Ngày YYYY-MM-DD → MM/DD/YYYY (en-US). */
-export const fmtDay = (d?: string | null) => (d ? usDate(d) : "");
-const usDate = (d: string) => {
-  const [y, m, day] = d.split("-");
-  return m && day ? `${m}/${day}/${y}` : d;
-};
+/** Ngày YYYY-MM-DD → "Oct 18, 2026" (fmtDate dùng chung trong ui.tsx); rỗng → "". */
+export const fmtDay = (d?: string | null) => fmtDate(d);
 
 /** Nhãn loại tệp theo mime. */
 export function kindLabel(mime: string): string {
