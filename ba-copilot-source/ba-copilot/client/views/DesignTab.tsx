@@ -7,7 +7,7 @@
 // "Đang được sửa bởi …" qua usePresence. Bình luận theo component giữ nguyên – đó là cách BA Lead góp ý.
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { get, post, patch, del, download, approveArtifact, getArtifactState, isConflict, markArtifactDone, requestArtifactChange, screenHtmlUrl } from "../api.ts";
+import { api, get, post, patch, del, download, approveArtifact, getArtifactState, isConflict, markArtifactDone, requestArtifactChange, screenHtmlUrl } from "../api.ts";
 import type { Annotation, ArtifactStatus, ModuleDetail, ScreenVersion } from "../../shared/types.ts";
 import type { WorkStepProps } from "../projectMenu.ts";
 import { usePresence } from "../presence.ts";
@@ -146,11 +146,11 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
    * Lệnh ghi màn: tự gửi baseRev = rev đang xem + actorId; 409 CONFLICT → hiện ConflictNotice (nút Tải lại).
    * Trả undefined khi lỗi (đã báo bằng toast).
    */
-  const writeScreen = <T,>(label: string, path: string, body: Record<string, unknown>, method: "POST" | "PATCH" = "POST") =>
+  const writeScreen = <T,>(label: string, path: string, body: Record<string, unknown>, method: "POST" | "PATCH" | "DELETE" = "POST") =>
     run<T>(label, async () => {
       try {
         const b = withActor({ ...body, baseRev: screen?.rev });
-        return await (method === "PATCH" ? patch<T>(path, b) : post<T>(path, b));
+        return await (method === "POST" ? post<T>(path, b) : api<T>(method, path, b));
       } catch (e) {
         if (isConflict(e)) {
           setConflict(true);
@@ -620,7 +620,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                     className="danger"
                     onClick={async () => {
                       if (!(await confirm({ title: `Delete screen "${screen.name}"?`, message: "The screen and all of its versions will be deleted.", okLabel: "Delete", danger: true }))) return;
-                      await run("Deleting", () => del(`/api/screens/${screen.id}`));
+                      if (!(await writeScreen("Deleting", `/api/screens/${screen.id}`, {}, "DELETE"))) return;
                       reload();
                     }}
                   >

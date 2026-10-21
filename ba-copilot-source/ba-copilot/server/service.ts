@@ -15,7 +15,7 @@ import { predictSlots, propsForSubtype, SUBTYPES, type Subtype, type Transformer
 import { defaultNode } from "../shared/layoutDefaults.ts";
 import { getRecursive, getTransformer } from "./nextModel.ts";
 import { getArtifactState, setArtifactState, bumpRev, tx } from "./db.ts";
-import { assertRev } from "./http.ts";
+import { assertRev, HttpError } from "./http.ts";
 import { emit } from "./events.ts";
 import { cascadeOutdated } from "./prereq.ts";
 
@@ -143,6 +143,14 @@ export async function editScreenWithPrompt(screenId: string, input: { prompt: st
     return { version: null, summary: summary || "No changes were applied", rejected: result.rejected.map((r) => ({ reason: r.reason })), diff };
   }
   const version = tx(() => {
+    // AI chạy vài giây: trong lúc đó người khác có thể đã lưu phiên bản khác hoặc xoá màn → kiểm lại trong tx,
+    // không ghi đè lên bản của họ (409 như chặn đè) và lấy trạng thái mới nhất cho draftAfterChange.
+    const now = repo.getScreen(screenId);
+    if (!now) throw new HttpError("This screen has just been deleted", 404);
+    if (now.currentVersionId !== current.id) {
+      const rev = getArtifactState({ kind: "screen", id: screenId, moduleId: now.moduleId })?.rev ?? 0;
+      throw new HttpError("This version has changed – reload", 409, "CONFLICT", { rev });
+    }
     const version = repo.addVersion(screenId, {
       kind: "edit",
       prompt: [input.prompt, ...annotations.map((a) => `[Comment] ${a.comment}`)].filter(Boolean).join("\n"),
@@ -153,7 +161,7 @@ export async function editScreenWithPrompt(screenId: string, input: { prompt: st
       tree: result.tree,
     });
     if (annotations.length) repo.setAnnotationStatus(annotations.map((a) => a.id), "sent");
-    draftAfterChange(screen, actorId);
+    draftAfterChange(now, actorId);
     return version;
   });
   return { version, summary, rejected: version.rejected, diff };

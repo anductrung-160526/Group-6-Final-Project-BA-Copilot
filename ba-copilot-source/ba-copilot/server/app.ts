@@ -158,26 +158,36 @@ route("GET", "/api/projects/:id/runs", ({ params, query }) => {
 });
 
 // Đợt 5 – chặn đè cho màn: nhận `baseRev`, lệch → 409 CONFLICT; ghi xong tăng `screens.rev` + người/lúc sửa.
-// (Kiểm tra trước khi gọi AI; hai lệnh cùng lúc vẫn có thể cùng qua – chấp nhận, đây là chặn đè lạc quan.)
+// (Kiểm tra trước khi gọi AI; sửa bằng AI kiểm lại phiên bản hiện tại trong tx lúc ghi – service.editScreenWithPrompt.)
+// AI không đổi gì (`version: null`) thì không tăng rev, để người khác không bị báo xung đột giả.
 async function screenWrite<T>(ctx: HandlerCtx, fn: () => T | Promise<T>): Promise<T> {
   const ref = { kind: "screen" as const, id: ctx.params.id, moduleId: "" };
   const st = getArtifactState(ref);
-  if (st) assertRev(st.rev, baseRevOf(ctx.body));
+  if (st) assertRev(st.rev, baseRevOf(ctx.body, ctx.query));
   const out = await fn();
-  if (st) bumpRev(ref, actor(ctx.body));
+  const noChange = !!out && typeof out === "object" && "version" in out && (out as { version: unknown }).version === null;
+  if (st && !noChange) bumpRev(ref, actor(ctx.body));
   return out;
 }
 
 // Design Studio
 route("POST", "/api/modules/:id/screens", ({ params, body }) => svc.createScreenFromPrompt(params.id, str(body.prompt), str(body.name, 120), actor(body)));
 route("PATCH", "/api/screens/:id", (ctx) => screenWrite(ctx, () => (repo.updateScreen(ctx.params.id, { name: str(ctx.body.name, 120) }), repo.getScreen(ctx.params.id))));
-route("DELETE", "/api/screens/:id", ({ params }) => (repo.deleteScreen(params.id), { ok: true }));
+route("DELETE", "/api/screens/:id", (ctx) => {
+  requireMember(ctx);
+  const st = getArtifactState({ kind: "screen", id: ctx.params.id, moduleId: "" });
+  if (!st) throw new BizError("Screen not found", 404);
+  assertRev(st.rev, baseRevOf(ctx.body, ctx.query)); // người khác vừa sửa màn → không xoá mất bản của họ
+  repo.deleteScreen(ctx.params.id);
+  return { ok: true };
+});
 route("GET", "/api/screens/:id/versions", ({ params }) => repo.listVersions(params.id));
 route("POST", "/api/screens/:id/edit", (ctx) =>
   screenWrite(ctx, () => svc.editScreenWithPrompt(ctx.params.id, { prompt: str(ctx.body.prompt), nodeIds: arr(ctx.body.nodeIds), annotationIds: arr(ctx.body.annotationIds) }, actor(ctx.body))),
 );
 route("POST", "/api/screens/:id/revert", (ctx) => screenWrite(ctx, () => svc.revertScreen(ctx.params.id, str(ctx.body.versionId), actor(ctx.body))));
-route("POST", "/api/screens/:id/approve", ({ params, body }) => svc.setScreenApproval(params.id, body.approved !== false, actor(body)));
+// v2 (client không còn gọi): chỉ BA Lead, như POST /api/artifacts/screen/:id/approve
+route("POST", "/api/screens/:id/approve", (ctx) => (requireLead(ctx), svc.setScreenApproval(ctx.params.id, ctx.body.approved !== false, actor(ctx.body))));
 route("POST", "/api/screens/:id/annotations", ({ params, body }) => {
   const s = repo.getScreen(params.id);
   if (!s || !s.currentVersionId) throw new BizError("Screen not found", 404);
@@ -236,7 +246,7 @@ route("GET", "/api/modules/:id/suggestion-stats", ({ params }) => repo.suggestio
 // Docs
 route("POST", "/api/modules/:id/docs/generate", ({ params, body }) => svc.generateDocs(params.id, actor(body)));
 route("POST", "/api/modules/:id/docs/refine", ({ params, body }) => svc.refineDoc(params.id, str(body.target, 100), str(body.instruction), actor(body)));
-route("POST", "/api/modules/:id/docs/approve", ({ params, body }) => svc.approveDocs(params.id, body.approved !== false, actor(body)));
+route("POST", "/api/modules/:id/docs/approve", (ctx) => (requireLead(ctx), svc.approveDocs(ctx.params.id, ctx.body.approved !== false, actor(ctx.body)))); // v2: chỉ BA Lead
 route("PUT", "/api/modules/:id/requirements", ({ params, body }) => svc.updateRequirements(params.id, Array.isArray(body.requirements) ? body.requirements : []));
 
 // Tests & trace

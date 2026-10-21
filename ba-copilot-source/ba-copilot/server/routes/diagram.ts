@@ -6,7 +6,7 @@ import { BizError } from "../service.ts";
 import { generateUcDiagram } from "../ai/pipelines.ts";
 import { getDb, tx } from "../db.ts";
 import { emit, on } from "../events.ts";
-import { route, str, actor } from "../http.ts";
+import { route, str, actor, requireLead } from "../http.ts";
 import { readSourceHash, ucSourceHash } from "../../shared/ucDiagram.ts";
 import type { ArtifactEventType, UcDiagram, UcDiagramStatus } from "../../shared/types.ts";
 
@@ -81,8 +81,10 @@ route("PUT", "/api/modules/:id/diagram", ({ params, body }) => {
   return saveDraft(params.id, code, actor(body));
 });
 
-// FN-13: duyệt / bỏ duyệt (mặc định approved = true). Chỉ phát sự kiện khi trạng thái thật sự đổi.
-route("POST", "/api/modules/:id/diagram/approve", ({ params, body }) => {
+// FN-13: duyệt / bỏ duyệt (mặc định approved = true). Chỉ phát sự kiện khi trạng thái thật sự đổi. Chỉ BA Lead.
+route("POST", "/api/modules/:id/diagram/approve", (ctx) => {
+  const { params, body } = ctx;
+  requireLead(ctx);
   mustModule(params.id);
   const approved = body?.approved !== false;
   return tx(() => {
