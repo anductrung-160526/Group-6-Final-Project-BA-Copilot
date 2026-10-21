@@ -52,6 +52,28 @@ export function nextTaskState(cur: TaskState, event: ArtifactEventType): TaskSta
   return to.status === cur.status && to.revisionRequested === cur.revisionRequested ? null : to;
 }
 
+/**
+ * Trạng thái ban đầu của task mới gắn với sản phẩm đã có (để task khớp sản phẩm ngay từ đầu, như khi sự kiện kéo theo).
+ * `requested`: Cần làm / Đang làm người tạo chọn. `artifact`: trạng thái sản phẩm (null / chưa có nội dung → giữ `requested`).
+ * - Sản phẩm Xong → Xong; Đã duyệt → Đã duyệt (xoá cờ, như artifact.approved).
+ * - Sản phẩm đang chờ sửa (Bản nháp / Bản cũ + cờ Yêu cầu sửa) → Đang làm + cờ (như artifact.revision_requested).
+ * - Còn lại (Bản nháp, Bản cũ) → giữ `requested`. Cờ Yêu cầu sửa đi theo sản phẩm (trừ khi Đã duyệt).
+ */
+export function initialTaskState(requested: TaskStatus, artifact: { status: string; revisionRequested: boolean } | null | undefined): TaskState {
+  const rr = !!artifact?.revisionRequested;
+  switch (artifact?.status) {
+    case "done":
+      return { status: "done", revisionRequested: rr };
+    case "approved":
+      return { status: "approved", revisionRequested: false };
+    case "draft":
+    case "outdated":
+      return rr ? { status: "doing", revisionRequested: true } : { status: requested, revisionRequested: false };
+    default:
+      return { status: requested, revisionRequested: false };
+  }
+}
+
 /** Chỉ trạng thái mới (bỏ qua cờ); `null` = giữ nguyên trạng thái. */
 export function nextStatus(current: TaskStatus, event: ArtifactEventType, revisionRequested = false): TaskStatus | null {
   const n = nextTaskState({ status: current, revisionRequested }, event);

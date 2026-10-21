@@ -116,10 +116,12 @@ export async function moveTask(t: Task, to: TaskStatus, me: Member | null): Prom
           ? await markArtifactDone(kind, t.artifactId!, b)
           : mv === "approve"
             ? await approveArtifact(kind, t.artifactId!, b)
-            : await requestArtifactChange(kind, t.artifactId!, { sub, actorId: me?.id });
+            : await requestArtifactChange(kind, t.artifactId!, b);
       const task = r.tasks.find((x) => x.id === t.id) ?? (await getTask(t.id));
       return { task, message: r.git?.message };
     }
+    // Sản phẩm đã ở trạng thái đích: server chỉ đồng bộ task; vẫn gửi rev đang thấy để server kiểm.
+    return { task: await setTaskStatus(t.id, to, me?.id, st?.rev) };
   }
   return { task: await setTaskStatus(t.id, to, me?.id) };
 }

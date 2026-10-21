@@ -8,14 +8,19 @@
 //   giữ nguyên. Thành công → approved, xoá cờ.
 // - request-change: CHỈ BA Lead, không cần lý do. Chỉ từ done/approved → draft + cờ revisionRequested. Sản phẩm đang
 //   Xong / Đã duyệt dựa trên nó → Bản cũ (server/prereq.ts cascadeOutdated) để không còn bước sau Xong khi bước trước chưa.
-// Đổi trạng thái bằng setArtifactState() (không tăng rev), phát artifact.done | approved | revision_requested trong
-// cùng giao dịch → taskAutomation.ts kéo task gắn kèm theo và ghi task_events.
+// - Màn hình rời Đã duyệt / Xong do Yêu cầu sửa: như khi sửa màn (service.screenLeftReady) – Đã duyệt → BR-02 (tài liệu
+//   + bộ test thành Bản cũ), chỉ Xong → bộ test thành Bản cũ.
+// Đổi trạng thái bằng setArtifactState() rồi bumpRev(): đổi trạng thái cũng là một lần ghi – tăng rev + ghi người/lúc
+// (updatedBy / updatedAt) để bản đang mở ở trạng thái cũ (vd còn thấy "Xong" sau khi đã Duyệt) ghi vào thì bị 409, không
+// lặng lẽ đưa bản đã duyệt về Bản nháp. Client lấy rev mới từ `state` trong kết quả. Phát artifact.done | approved |
+// revision_requested trong cùng giao dịch → taskAutomation.ts kéo task gắn kèm theo và ghi task_events.
 
-import { getArtifactState, getDb, setArtifactState, tx } from "../db.ts";
+import { bumpRev, getArtifactState, getDb, setArtifactState, tx } from "../db.ts";
 import { emit, pushApproved } from "../events.ts";
 import { HttpError, assertRev, baseRevOf, currentMember, requireMember, route, type HandlerCtx } from "../http.ts";
 import { listTasksByArtifact } from "../repo/tasks.ts";
 import { artifactBlockReason, cascadeOutdated } from "../prereq.ts";
+import { screenLeftReady } from "../service.ts";
 import {
   ARTIFACT_KINDS_V5,
   DIAGRAM_KINDS,
@@ -111,6 +116,7 @@ export async function applyApproval(action: ApprovalAction, ref: ArtifactRef, ct
   if (action === "done") {
     tx(() => {
       setArtifactState(ref, { status: "done" });
+      bumpRev(ref, actor.id);
       emit({ type: "artifact.done", artifact: ref, actorId: actor.id });
     });
     return result(ref);
@@ -119,7 +125,9 @@ export async function applyApproval(action: ApprovalAction, ref: ArtifactRef, ct
   if (action === "request-change") {
     tx(() => {
       setArtifactState(ref, { status: "draft", revisionRequested: true });
+      bumpRev(ref, actor.id);
       emit({ type: "artifact.revision_requested", artifact: ref, actorId: actor.id });
+      if (ref.kind === "screen") screenLeftReady(ref, st.status, actor.id);
       cascadeOutdated(ref.moduleId || ref.id, actor.id);
     });
     return result(ref);
@@ -140,6 +148,7 @@ export async function applyApproval(action: ApprovalAction, ref: ArtifactRef, ct
     const reason = artifactBlockReason(ref, "approve"); // bước trước vừa đổi trong lúc đẩy GitHub
     if (reason) throw new HttpError(reason, 400);
     setArtifactState(ref, { status: "approved", revisionRequested: false });
+    bumpRev(ref, actor.id);
     emit({ type: "artifact.approved", artifact: ref, actorId: actor.id });
   });
   return result(ref, git);

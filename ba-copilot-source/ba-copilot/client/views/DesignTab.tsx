@@ -171,20 +171,22 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
     if (!screen) return;
     const label = action === "done" ? "Marking as done" : action === "approve" ? "Approving" : "Requesting changes";
     const actorId = currentMemberId();
+    const b = { baseRev: screen.rev, actorId };
+    // Đổi trạng thái tăng rev của màn: tải lại module (rev mới) ngay trong lúc còn khoá màn, để lần sửa tiếp không bị báo xung đột giả.
     const r = await run(label, async () => {
+      let out;
       try {
-        if (action === "done") return await markArtifactDone("screen", screen.id, { baseRev: screen.rev, actorId });
-        if (action === "approve") return await approveArtifact("screen", screen.id, { baseRev: screen.rev, actorId });
-        return await requestArtifactChange("screen", screen.id, { actorId });
+        out = action === "done" ? await markArtifactDone("screen", screen.id, b) : action === "approve" ? await approveArtifact("screen", screen.id, b) : await requestArtifactChange("screen", screen.id, b);
       } catch (e) {
         if (isConflict(e)) setConflict(true);
         throw e;
       }
+      await reload();
+      return out;
     });
     if (!r) return;
     if (action === "approve" && r.git) toast(<GitOutcome git={r.git} />, r.git.pushed ? "ok" : "info");
     else toast(action === "done" ? "Marked as done – awaiting BA Lead approval" : action === "approve" ? "Screen approved" : "Changes requested", "ok");
-    await reload();
   };
   const loadVersions = useCallback(() => {
     if (!screenId) return setVersions([]);

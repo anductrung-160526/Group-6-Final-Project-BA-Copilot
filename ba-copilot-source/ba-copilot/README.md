@@ -51,7 +51,7 @@ There is no login screen: pick yourself from the **Select your name…** dropdow
    - **Document Repository**, **AI Log**, **GitHub History**.
 3. **Status and review** – on every deliverable: the BA marks it **Done**; the BA Lead clicks **Approve** or **Request changes** (no reason required — feedback goes through prototype comments). Request changes moves the deliverable and its task back to *In progress* with a tag. Editing a deliverable that is Done/Approved moves it back to *In progress*. A step cannot be marked Done until the previous step is Done.
 4. **GitHub** – the BA Lead enters the repository URL, token and branch (default `main`) under *GitHub History → Settings*. On every **Approve**, the app commits exactly that deliverable's files (`.md`, prototype `.html`) to the branch, where developers and testers pick them up. *Done* does not touch GitHub.
-5. **Concurrent-edit protection** – when two people edit the same deliverable, the one who saves last is told the content has changed and must reload (optimistic locking); a screen being edited shows the current editor's name.
+5. **Concurrent-edit protection** – when two people edit the same deliverable, the one who saves last is told the content has changed and must reload (optimistic locking); a screen being edited shows the current editor's name. *Done*, *Approve* and *Request changes* count as changes too, so someone still looking at the old status cannot silently overwrite an approval.
 6. **Permissions and data rules** – only a BA Lead can change roles, delete members, delete a project or delete a module (a BA does not see those Delete actions; until the team has a BA Lead, anyone can). The team always keeps at least one BA Lead: a BA Lead cannot demote or delete themselves, and the last BA Lead cannot be demoted or deleted. Member names are unique, and module names are unique within a project (ignoring case and extra spaces). A prototype comment's author is always the selected user; only its author or a BA Lead can delete it, while anyone can resolve it. Deleting a screen removes its comments and unlinks its tasks (the task history notes the deleted screen). A user story needs at least one of *As a / I want / So that*.
 
 ### Implemented business rules
@@ -59,7 +59,7 @@ There is no login screen: pick yourself from the **Select your name…** dropdow
 | ID | Rule |
 | --- | --- |
 | BR-01 | *(Dropped in iteration 5)* Documents are generated from user stories; an approved screen is no longer required. Each document step can only be generated once the previous step is *Done*. |
-| BR-02 | When an approved design is edited, restored or unapproved, its existing documents and test cases are flagged *Outdated*. |
+| BR-02 | When an approved screen design is edited, restored or unapproved (including *Request changes*), the module's existing documents (BRD, UC Specification, SRS, FRD-NFR, API Spec – any with content, drafts included) and test cases are flagged *Outdated*; diagrams based on those documents follow, and linked tasks move back to *In progress*. A screen that was only *Done* (not approved) flags only the test cases. |
 | BR-03 | Content the AI had to infer is labelled *Assumption* (`assumptions` and `isAssumption` fields). |
 | BR-04 | Every test case must reference at least one requirement. AI output that violates this rule is sent back to the AI for self-correction. |
 
@@ -265,7 +265,7 @@ Replaces WebSight and the Mock-generated synthetic data. Full specification in `
 ## 5. Testing
 
 ```bash
-npm test                          # 243 unit + integration tests (incl. a mocked Claude API and Recursive TS ↔ PyTorch parity checks)
+npm test                          # 278 unit + integration tests (incl. a mocked Claude API and Recursive TS ↔ PyTorch parity checks)
 npx playwright install chromium   # first run only
 npm run e2e                       # end-to-end browser run of the full workflow; screenshots saved to e2e/screenshots/
 ```

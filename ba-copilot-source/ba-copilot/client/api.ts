@@ -152,7 +152,8 @@ export const listTasks = (projectId: string, q: { assigneeId?: string; moduleId?
 export const createTask = (projectId: string, b: TaskInput & { status?: TaskStatus; actorId?: string }) => post<Task>(`/api/projects/${enc(projectId)}/tasks`, b);
 export const getTask = (id: string) => get<TaskDetail>(`/api/tasks/${enc(id)}`);
 export const updateTask = (id: string, b: Partial<TaskInput>) => patch<Task>(`/api/tasks/${enc(id)}`, b);
-export const setTaskStatus = (id: string, status: TaskStatus, actorId?: string) => patch<Task>(`/api/tasks/${enc(id)}/status`, { status, actorId });
+/** `baseRev`: rev sản phẩm gắn task client đang thấy (nếu có) – lệch → 409 CONFLICT. */
+export const setTaskStatus = (id: string, status: TaskStatus, actorId?: string, baseRev?: number) => patch<Task>(`/api/tasks/${enc(id)}/status`, { status, actorId, baseRev });
 export const deleteTask = (id: string) => del<{ ok: true }>(`/api/tasks/${enc(id)}`);
 export const listArtifacts = (projectId: string) => get<ArtifactOption[]>(`/api/projects/${enc(projectId)}/artifacts`);
 export const listArtifactTasks = (kind: ArtifactKind, id: string) => get<Task[]>(`/api/artifacts/${kind}/${enc(id)}/tasks`);
@@ -213,7 +214,19 @@ const artifactPath = (kind: ArtifactKindV5, id: string, action: string) => `/api
 export const getArtifactState = (kind: ArtifactKindV5, id: string, sub?: DocKind | DiagramKind) => get<ArtifactState>(`${artifactPath(kind, id, "state")}${qs({ sub })}`);
 export const markArtifactDone = (kind: ArtifactKindV5, id: string, b: { sub?: DocKind | DiagramKind; baseRev?: number; actorId?: string } = {}) => post<ApprovalResult>(artifactPath(kind, id, "done"), b);
 export const approveArtifact = (kind: ArtifactKindV5, id: string, b: { sub?: DocKind | DiagramKind; baseRev?: number; actorId?: string } = {}) => post<ApprovalResult>(artifactPath(kind, id, "approve"), b);
-export const requestArtifactChange = (kind: ArtifactKindV5, id: string, b: { sub?: DocKind | DiagramKind; actorId?: string } = {}) => post<ApprovalResult>(artifactPath(kind, id, "request-change"), b);
+export const requestArtifactChange = (kind: ArtifactKindV5, id: string, b: { sub?: DocKind | DiagramKind; baseRev?: number; actorId?: string } = {}) => post<ApprovalResult>(artifactPath(kind, id, "request-change"), b);
+/**
+ * Xong / Duyệt / Yêu cầu sửa tăng rev của sản phẩm: chép trạng thái + rev + người/lúc từ `ApprovalResult.state` vào bản
+ * client đang giữ, để lần ghi tiếp theo gửi đúng baseRev (không bị báo xung đột giả trong lúc chờ tải lại).
+ */
+export const withApprovalState = <T extends { status: string; revisionRequested?: boolean; rev?: number; updatedBy?: string | null; updatedAt?: string | null }>(x: T, st: ArtifactState): T => ({
+  ...x,
+  status: st.status,
+  revisionRequested: st.revisionRequested,
+  rev: st.rev,
+  updatedBy: st.updatedBy,
+  updatedAt: st.updatedAt,
+});
 
 // GitHub – C8 (501)
 export const getProjectGit = (projectId: string) => get<ProjectGit | null>(`/api/projects/${enc(projectId)}/git`);

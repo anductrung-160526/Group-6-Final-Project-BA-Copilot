@@ -6,8 +6,8 @@ import type { AddressInfo } from "node:net";
 import { getDb, openDb, setArtifactState } from "../server/db.ts";
 import { createApp } from "../server/app.ts";
 import { on } from "../server/events.ts";
-import { parseReqMarkdown, parseUcMarkdown, reqMarkdown, splitSections, ucMarkdown, mockUcSpec, type DocGenInput } from "../server/ai/docsPipelines.ts";
-import type { ArtifactEvent, DocKind, ModuleDoc } from "../shared/types.ts";
+import { parseReqMarkdown, parseUcMarkdown, reqMarkdown, splitSections, ucMarkdown, mockUcSpec, mockBrd, mockFrd, type DocGenInput } from "../server/ai/docsPipelines.ts";
+import type { ArtifactEvent, DocKind, ModuleDoc, UserStory } from "../shared/types.ts";
 
 let server: Server;
 let base = "";
@@ -291,4 +291,30 @@ test("Bản Claude: gọi tool đúng tên, kết quả sai thì tự sửa 1 l�
     process.env = env;
     fake.close();
   }
+});
+
+test("Mock: story gõ kèm cụm mở đầu (to / I want to / so that / As a) không làm câu lặp chữ, tên UC không bắt đầu bằng To", () => {
+  const story = (code: string, asA: string, iWant: string, soThat: string): UserStory =>
+    ({ id: code, projectId: "p", moduleId: "m", code, asA, iWant, soThat, acceptanceCriteria: [], priority: "High", order: 1, createdAt: "", rev: 1, updatedBy: null, updatedAt: null });
+  const input: DocGenInput = {
+    moduleId: "m",
+    moduleName: "Checkout",
+    stories: [story("US-01", "Shopper", "to pay for my order", "so that I receive my goods"), story("US-02", "As a Guest", "I want to track my parcel", "")],
+    storiesText: "",
+  };
+  const ucs = mockUcSpec(input);
+  assert.deepEqual(ucs.map((u) => u.name), ["Pay for my order", "Track my parcel"]);
+  assert.deepEqual(ucs.map((u) => u.actors[0]), ["Shopper", "Guest"]);
+  assert.equal(ucs[0].description, "Shopper wants to pay for my order so that I receive my goods.");
+  assert.equal(ucs[0].postconditions[0], "Goal achieved: I receive my goods");
+  const frs = mockFrd({ ...input, ucSpec: { content: "", useCases: ucs } }).filter((r) => r.type === "FR");
+  assert.equal(frs[0].statement, "The system shall allow Shopper to pay for my order.");
+  // Tên UC do AI đặt bắt đầu bằng "To …" cũng không thành "to to"
+  const fromAi = mockFrd({ ...input, ucSpec: { content: "", useCases: [{ ...ucs[0], name: "To pay for my order" }] } });
+  assert.equal(fromAi[0].statement, "The system shall allow Shopper to pay for my order.");
+  const brd = mockBrd(input);
+  assert.match(brd, /- I receive my goods \(US-01\)/);
+  assert.match(brd, /\| BR-02 \| Guest can track my parcel \|/);
+  const all = [brd, ...frs.map((r) => r.statement), ...ucs.map((u) => u.description)].join("\n");
+  for (const bad of [/\bto to\b/i, /so that so that/i, /I want to want/i, /As a As a/i, /\bcan to\b/i, /- To /]) assert.doesNotMatch(all, bad);
 });

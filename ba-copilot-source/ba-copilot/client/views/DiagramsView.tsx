@@ -13,6 +13,7 @@ import {
   markArtifactDone,
   requestArtifactChange,
   saveModuleDiagram,
+  withApprovalState,
   ApiError,
 } from "../api.ts";
 import { currentMemberId, useCurrentMember, withActor } from "../currentMember.ts";
@@ -195,6 +196,8 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
     setBusy(true);
     try {
       const r = (await fn()) as ApprovalResult | undefined;
+      // Đổi trạng thái tăng rev: lấy rev mới ngay để lần lưu tiếp không bị báo xung đột giả trong lúc chờ tải lại
+      if (r?.state) setAll((list) => list?.map((y) => (y.kind === r.state.ref.sub ? withApprovalState(y, r.state) : y)) ?? list);
       if (r?.git) toast(<GitOutcome git={r.git} />, r.git.pushed ? "ok" : "info");
       else toast(label, "ok");
     } catch (e) {
@@ -245,7 +248,7 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
             disabledReason={dirty ? "Save the code before marking as done" : doneLock}
             onDone={() => approval("Marked as done", () => markArtifactDone("diagram", moduleId, ref()))}
             onApprove={() => approval("Diagram approved", () => approveArtifact("diagram", moduleId, ref()))}
-            onRequestChange={() => approval("Changes requested", () => requestArtifactChange("diagram", moduleId, { sub: kind, actorId: currentMemberId() }))}
+            onRequestChange={() => approval("Changes requested", () => requestArtifactChange("diagram", moduleId, ref()))}
           />
           {conflict && <ConflictNotice onReload={reload} />}
           {d.status === "outdated" && (

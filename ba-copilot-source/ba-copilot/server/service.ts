@@ -18,6 +18,7 @@ import { getArtifactState, setArtifactState, bumpRev, tx } from "./db.ts";
 import { assertRev, HttpError } from "./http.ts";
 import { emit } from "./events.ts";
 import { cascadeOutdated } from "./prereq.ts";
+import { markModuleDocsOutdated } from "./repo/stories.ts";
 
 export class BizError extends Error {
   constructor(message: string, public status = 400) {
@@ -47,12 +48,32 @@ function moduleEvent(type: ArtifactEventType, kind: "docs" | "tests", moduleId: 
 }
 const live = (s: DocStatus) => s !== "none" && s !== "outdated";
 
-/** BR-02: tài liệu và test của module thành Bản cũ; phát artifact.stale cho phần vừa chuyển sang Bản cũ. */
+/**
+ * BR-02: thiết kế đã duyệt bị sửa / khôi phục / bỏ duyệt → tài liệu và test hiện có của module thành Bản cũ, phát
+ * artifact.stale cho phần vừa chuyển (task gắn kèm đi theo – taskAutomation.ts). Gọi trong tx().
+ *  - Bộ tài liệu cũ (`modules.docs_status`) + bộ test: như luồng v2.
+ *  - 5 tài liệu đợt 5 (`module_docs`) đang có nội dung (Bản nháp / Xong / Đã duyệt): cùng cách khi story đổi
+ *    (repo/stories.ts markModuleDocsOutdated – giữ cờ Yêu cầu sửa, không tăng rev).
+ *  - Sơ đồ đang Xong / Đã duyệt dựa trên tài liệu vừa thành Bản cũ → Bản cũ (cascadeOutdated), để không còn sản phẩm
+ *    Xong mà bước tiên quyết chưa Xong.
+ */
 function markStale(moduleId: string, actorId?: string) {
   const before = repo.getModule(moduleId);
   repo.markOutdated(moduleId);
   if (before && live(before.docsStatus)) moduleEvent("artifact.stale", "docs", moduleId, actorId);
   if (before && live(before.testsStatus)) moduleEvent("artifact.stale", "tests", moduleId, actorId);
+  markModuleDocsOutdated(moduleId, actorId);
+  cascadeOutdated(moduleId, actorId);
+}
+
+/**
+ * Màn rời Xong / Đã duyệt (sửa, khôi phục phiên bản, bỏ duyệt, Yêu cầu sửa). Gọi trong tx().
+ * Đã duyệt → BR-02 (markStale: tài liệu + test). Chỉ Xong (chưa duyệt) → chỉ bộ test (bước sau) thành Bản cũ;
+ * tài liệu đi trước prototype nên giữ nguyên.
+ */
+export function screenLeftReady(screen: { moduleId: string }, from: string, actorId?: string) {
+  if (from === "approved") markStale(screen.moduleId, actorId);
+  else if (from === "done") staleTests(screen.moduleId, actorId);
 }
 
 // ------------------------------------------------------------- Design Studio
@@ -184,6 +205,8 @@ export function setScreenApproval(screenId: string, approved: boolean, actorId?:
   const screen = mustScreen(screenId);
   return tx(() => {
     repo.updateScreen(screenId, { status: approved ? "approved" : "draft" });
+    // Đổi trạng thái cũng tăng rev (như routes/approval.ts) để bản đang mở ở trạng thái cũ ghi vào thì bị 409.
+    bumpRev({ kind: "screen", id: screenId, moduleId: screen.moduleId }, actorId);
     screenEvent(approved ? "artifact.approved" : "artifact.unapproved", screen, actorId);
     if (!approved) markStale(screen.moduleId, actorId);
     return repo.getScreen(screenId);
@@ -373,19 +396,16 @@ export function manualEdit(screenId: string, input: { op: "remove" | "up" | "dow
 
 /**
  * Màn vừa có phiên bản mới (gọi trong tx()). Đợt 5: màn đang Xong / Đã duyệt / Bản cũ → về Bản nháp (giữ cờ
- * "Yêu cầu sửa"), phát artifact.drafted; màn đang Xong mà bị sửa thì bộ test của module (bước sau) → Bản cũ.
- * Tài liệu mới (`module_docs`) đi trước prototype nên không bị ảnh hưởng.
- * Tương thích v2 tới khi C7 gộp (R-030, R-100): màn đang Đã duyệt vẫn phát thêm "artifact.unapproved" và áp BR-02 cho
- * bộ tài liệu cũ (`modules.docs_status`) + test như trước.
+ * "Yêu cầu sửa"), phát artifact.drafted, rồi screenLeftReady: màn Đã duyệt bị sửa → BR-02 (tài liệu cũ + 5 tài liệu
+ * `module_docs` + bộ test thành Bản cũ); màn chỉ Xong bị sửa → chỉ bộ test (bước sau) thành Bản cũ.
+ * Tương thích v2 tới khi C7 gộp (R-030, R-100): màn đang Đã duyệt vẫn phát thêm "artifact.unapproved".
  */
 function draftAfterChange(screen: { id: string; status: string; moduleId: string }, actorId?: string) {
   const ref: ArtifactRef = { kind: "screen", id: screen.id, moduleId: screen.moduleId };
   if (screen.status !== "draft") setArtifactState(ref, { status: "draft" });
   screenEvent("artifact.drafted", screen, actorId);
-  if (screen.status === "approved") {
-    screenEvent("artifact.unapproved", screen, actorId); // v2 – bỏ khi C0 làm R-030
-    markStale(screen.moduleId, actorId); // BR-02 cũ: tài liệu cũ + test
-  } else if (screen.status === "done") staleTests(screen.moduleId, actorId);
+  if (screen.status === "approved") screenEvent("artifact.unapproved", screen, actorId); // v2 – bỏ khi C0 làm R-030
+  screenLeftReady(screen, screen.status, actorId);
 }
 
 /** Bộ test đang có (Bản nháp / Xong / Đã duyệt) → Bản cũ, phát artifact.stale. */

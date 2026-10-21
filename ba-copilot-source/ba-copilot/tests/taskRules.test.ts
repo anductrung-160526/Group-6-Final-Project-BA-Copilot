@@ -1,7 +1,7 @@
 // Quy tắc trạng thái task đợt 5 (shared/taskRules.ts): theo sự kiện sản phẩm + kéo thẻ bằng tay. Chủ sở hữu: C7.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { artifactTitle, moveError, nextStatus, nextTaskState, statusReason, taskMove, type TaskState } from "../shared/taskRules.ts";
+import { artifactTitle, initialTaskState, moveError, nextStatus, nextTaskState, statusReason, taskMove, type TaskState } from "../shared/taskRules.ts";
 import type { ArtifactEventType, TaskStatus } from "../shared/types.ts";
 
 const S = (status: TaskStatus, revisionRequested = false): TaskState => ({ status, revisionRequested });
@@ -100,4 +100,22 @@ test("statusReason / artifactTitle: lý do tiếng Việt ghi rõ sản phẩm",
   assert.equal(statusReason("artifact.unapproved", "docs", "Xác thực"), "Documents (legacy) – Xác thực approval was withdrawn");
   assert.equal(artifactTitle("diagram", null, "M"), "Use Case diagram – M", "sơ đồ thiếu sub = UC");
   assert.equal(artifactTitle("doc", "UC_SPEC", "M"), "UC Specification document – M");
+});
+
+test("initialTaskState: task mới gắn sản phẩm bắt đầu khớp trạng thái sản phẩm", () => {
+  const A = (status: string, revisionRequested = false) => ({ status, revisionRequested });
+  const cases: [TaskStatus, ReturnType<typeof A> | null, string][] = [
+    ["todo", null, "todo"],
+    ["doing", null, "doing"],
+    ["todo", A("none"), "todo"],
+    ["todo", A("draft"), "todo"],
+    ["doing", A("outdated"), "doing"],
+    ["todo", A("draft", true), "doing+cờ"],
+    ["todo", A("outdated", true), "doing+cờ"],
+    ["todo", A("done"), "done"],
+    ["doing", A("done", true), "done+cờ"],
+    ["todo", A("approved"), "approved"],
+    ["todo", A("approved", true), "approved"],
+  ];
+  for (const [req, art, want] of cases) assert.equal(fmt(initialTaskState(req, art)), want, `${req} + ${JSON.stringify(art)}`);
 });

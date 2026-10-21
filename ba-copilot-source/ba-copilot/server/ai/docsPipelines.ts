@@ -43,8 +43,15 @@ export function slugify(s: string, maxWords = 5): string {
   return words.slice(0, maxWords).join("-") || "resource";
 }
 
-const actorOf = (s: UserStory) => cap(tidy(s.asA)) || "User";
-const featureOf = (s: UserStory) => cap(tidy(s.iWant).slice(0, 90)) || `Feature ${s.code}`;
+// Bỏ cụm mở đầu BA lỡ gõ lại trong ô story ("As a Shopper", "I want to pay", "to pay", "so that I …") để câu ghép
+// không lặp chữ ("allow Shopper to to pay", "so that so that") và tên UC không bắt đầu bằng "To …".
+const roleOf = (s: string) => tidy(s).replace(/^as\s+(?:an?|the)\s+/i, "");
+const wantOf = (s: string) => tidy(s).replace(/^i\s+(?:want|would\s+like|need)\s+/i, "").replace(/^to\s+/i, "");
+const goalOf = (s: string) => tidy(s).replace(/^so\s+that\s+/i, "");
+/** Cụm động từ ghép sau "to" / "can" / "wants to": bỏ "to " đầu (tên UC do AI đặt cũng có thể là "To …"), viết thường chữ đầu. */
+const verbPhrase = (name: string) => low(tidy(name).replace(/^to\s+/i, ""));
+const actorOf = (s: UserStory) => cap(roleOf(s.asA)) || "User";
+const featureOf = (s: UserStory) => cap(wantOf(s.iWant).slice(0, 90)) || `Feature ${s.code}`;
 // vi-keep-start: từ khoá nhận diện chức năng đọc / xoá / sửa (story cũ tiếng Việt), song song tiếng Anh
 const READ_RE = /xem|tra cứu|tìm|danh sách|liệt kê|báo cáo|thống kê|lọc|theo dõi|\b(?:view|see|search|find|look up|list|browse|report|statistic|filter|track)/i;
 const DELETE_RE = /xoá|xóa|huỷ|hủy|\b(?:delete|remove|cancel)/i;
@@ -442,7 +449,7 @@ export function mockBrd(input: DocGenInput): string {
   L.push("## 1. Background and Objectives", "");
   L.push(`Module **${input.moduleName}** is built to satisfy ${st.length} user ${st.length === 1 ? "story" : "stories"} from: ${actors.join(", ")}.`, "");
   L.push("Business objectives:");
-  for (const s of st) L.push(`- ${s.soThat.trim() ? cap(tidy(s.soThat)) : `${actorOf(s)} can ${low(featureOf(s))}`} (${s.code})`);
+  for (const s of st) L.push(`- ${goalOf(s.soThat) ? cap(goalOf(s.soThat)) : `${actorOf(s)} can ${verbPhrase(featureOf(s))}`} (${s.code})`);
   L.push("", "## 2. Scope", "", "### In Scope");
   for (const s of st) L.push(`- ${featureOf(s)} (${s.code})`);
   L.push("", "### Out of Scope", "- Features not listed in the module's user stories (any addition must be confirmed by the BA).", "- Integration with external systems that have not been described.", "");
@@ -450,7 +457,7 @@ export function mockBrd(input: DocGenInput): string {
   for (const a of actors) L.push(`| ${cell(a)} | Direct user of the feature | ${st.filter((s) => actorOf(s) === a).map((s) => s.code).join(", ")} |`);
   L.push("| BA Lead / Product Owner | Approves requirements and performs acceptance | All |", "");
   L.push("## 4. Business Requirements", "", "| ID | Business requirement | Benefit | Priority | Story |", "|---|---|---|---|---|");
-  st.forEach((s, i) => L.push(`| BR-${pad2(i + 1)} | ${cell(`${actorOf(s)} can ${low(featureOf(s))}`)} | ${cell(s.soThat.trim() ? cap(tidy(s.soThat)) : "(not stated – to be completed by the BA)")} | ${s.priority} | ${s.code} |`));
+  st.forEach((s, i) => L.push(`| BR-${pad2(i + 1)} | ${cell(`${actorOf(s)} can ${verbPhrase(featureOf(s))}`)} | ${cell(goalOf(s.soThat) ? cap(goalOf(s.soThat)) : "(not stated – to be completed by the BA)")} | ${s.priority} | ${s.code} |`));
   L.push("", "## 5. Acceptance Criteria", "");
   for (const s of st) {
     L.push(`### ${s.code} – ${featureOf(s)}`);
@@ -507,7 +514,7 @@ export function mockUcSpec(input: DocGenInput): DocUseCase[] {
     const actor = actorOf(s);
     const name = featureOf(s);
     const read = READ_RE.test(s.iWant);
-    const goal = s.soThat.trim() ? tidy(s.soThat) : "";
+    const goal = goalOf(s.soThat);
     const mainFlow: FlowStep[] = read
       ? [
           { no: 1, actor, text: `Selects the "${name}" function` },
@@ -527,7 +534,7 @@ export function mockUcSpec(input: DocGenInput): DocUseCase[] {
       name,
       actors: [actor],
       storyCodes: [s.code],
-      description: `${actor} wants to ${low(name)}${goal ? ` so that ${low(goal)}` : ""}.`,
+      description: `${actor} wants to ${verbPhrase(name)}${goal ? ` so that ${low(goal)}` : ""}.`,
       trigger: `${actor} selects the "${name}" function`,
       preconditions: [`${actor} is signed in and has permission to use the function`],
       postconditions: [goal ? `Goal achieved: ${low(goal)}` : `The "${name}" request is recorded by the system`],
@@ -682,7 +689,7 @@ export function mockFrd(input: DocGenInput): Requirement[] {
   let fr = 0;
   const frCode = () => `FR-${pad2(++fr)}`;
   for (const u of ucs) {
-    out.push({ code: frCode(), type: "FR", statement: `The system shall allow ${u.actors.join(", ") || "the user"} to ${low(u.name)}.`, priority: prio(u), useCaseCodes: [u.code], source: `${u.code} main flow`, isAssumption: false });
+    out.push({ code: frCode(), type: "FR", statement: `The system shall allow ${u.actors.join(", ") || "the user"} to ${verbPhrase(u.name)}.`, priority: prio(u), useCaseCodes: [u.code], source: `${u.code} main flow`, isAssumption: false });
     for (const r of u.businessRules) out.push({ code: frCode(), type: "FR", statement: `The system shall ensure that: ${tidy(r)}.`, priority: "Medium", useCaseCodes: [u.code], source: `${u.code} business rule`, isAssumption: false });
     const bad = u.exceptions.find((e) => /không hợp lệ|invalid/i.test(e.name)); // vi-keep: tên ngoại lệ UC cũ tiếng Việt
     if (bad) out.push({ code: frCode(), type: "FR", statement: `The system shall validate the input data of "${u.name}" and show a clear error on each invalid field.`, priority: "Medium", useCaseCodes: [u.code], source: `${u.code} ${bad.code}`, isAssumption: false });
