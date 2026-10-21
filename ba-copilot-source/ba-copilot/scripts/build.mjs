@@ -16,7 +16,7 @@ const options = {
   logLevel: "info",
 };
 // CSS là entry riêng
-options.entryPoints = { app: "client/main.tsx", "app-style": "client/styles.css" };
+options.entryPoints = { app: "client/main.tsx", "app-style": "client/styles.css", nlp: "client/nlp-entry.ts" };
 
 if (watch) {
   const ctx = await esbuild.context(options);

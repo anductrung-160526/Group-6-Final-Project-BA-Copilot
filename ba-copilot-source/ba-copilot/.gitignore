@@ -8,3 +8,4 @@ data/corpus/
 analysis/
 __pycache__/
 model/*.pt
+scripts/qus-eval/corenlp/classes/

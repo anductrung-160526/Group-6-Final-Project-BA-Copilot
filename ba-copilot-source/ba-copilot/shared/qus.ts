@@ -1,5 +1,9 @@
 // Chấm chất lượng User Story theo khung QUS (Quality User Story).
 // Hàm thuần: không gọi AI, không phụ thuộc Node API hay browser API, chạy được cả client và server.
+// Story tiếng Anh: well-formed / atomic / minimal / uniform / unique chấm bằng AQUSA (shared/aqusa.ts, Lucassen et al. 2016).
+// Story tiếng Việt cũ: giữ bộ luật cũ. FULL_SENTENCE, NO_END, AMBIGUOUS, NO_CRITERIA, trùng gần đúng (Jaccard) và thang điểm
+// 100 − 30/15/5 là thiết kế của nhóm (ngoài bài báo).
+import { analyzeSet, isEnglishStory, nlpReady, type AqusaDefect, type QusCriterion } from "./aqusa.ts";
 
 export const BASE_SCORE = 100;
 export const PENALTY_ERROR = 30;
@@ -13,6 +17,9 @@ export interface QusIssue {
   suggestion?: string;
   /** Đoạn chữ trong story gây ra lỗi (FN-55), ví dụ từ mơ hồ "nhanh" hoặc cụm "và xóa". */
   excerpt?: string;
+  /** Tiêu chí QUS (chỉ có khi chấm bằng AQUSA) và mục của bài báo làm căn cứ. */
+  criterion?: QusCriterion;
+  paperRef?: string;
 }
 
 export interface StoryScore {
@@ -434,6 +441,9 @@ function majorityTemplate(parsed: ParsedStory[]): StoryTemplate | null {
   return en === vi ? std[0].template : en > vi ? "en" : "vi";
 }
 
+const AQUSA_CODE: Record<QusCriterion, string> = { "well-formed": "WELL_FORMED", atomic: "ATOMIC", minimal: "MINIMAL", uniform: "NOT_UNIFORM", unique: "DUPLICATE" };
+const AQUSA_SEVERITY: Record<QusCriterion, QusIssue["severity"]> = { "well-formed": "error", atomic: "warn", minimal: "info", uniform: "info", unique: "warn" };
+
 // Chấm chất lượng toàn bộ danh sách User Stories.
 // options.others: story của các module khác trong cùng dự án, để bắt trùng chéo module (G1).
 export function scoreStories(text: string, options: ScoreOptions = {}): QusResult {
@@ -457,6 +467,12 @@ function scoreTexts(rawStories: string[], options: ScoreOptions = {}, ex: TextEx
   const label = (i: number) => ex.labels?.[i] ?? `#${i + 1}`;
 
   const parsedList = rawStories.map(parseStory);
+  // Story tiếng Anh chấm bằng AQUSA (cùng một bộ để kiểm uniform/unique); story tiếng Việt cũ giữ bộ luật cũ.
+  const useAqusa = nlpReady();
+  const eng = rawStories.map((t, i) => useAqusa && isEnglishStory(t) && parsedList[i].template !== "vi");
+  const engIdx = rawStories.map((_, i) => i).filter((i) => eng[i]);
+  const aq: AqusaDefect[][] = rawStories.map(() => []);
+  analyzeSet(engIdx.map((i) => rawStories[i])).forEach((d, k) => (aq[engIdx[k]] = d));
   const issuesList: QusIssue[][] = rawStories.map((raw, idx) => {
     const issues: QusIssue[] = [];
     const words = raw.trim().split(/\s+/).filter(Boolean);
@@ -472,8 +488,24 @@ function scoreTexts(rawStories: string[], options: ScoreOptions = {}, ex: TextEx
       });
     }
 
-    // WELL_FORMED: thiếu vai trò hoặc thiếu hành động
-    if (!parsed.isTemplate) {
+    if (eng[idx]) {
+      // AQUSA: mỗi tiêu chí báo một lỗi (lỗi đầu tiên tìm được) để không trừ điểm nhiều lần cho cùng tiêu chí.
+      const seen = new Set<string>();
+      for (const d of aq[idx]) {
+        if (seen.has(d.criterion)) continue;
+        seen.add(d.criterion);
+        issues.push({ code: AQUSA_CODE[d.criterion], severity: AQUSA_SEVERITY[d.criterion], message: d.message, suggestion: d.suggestion, ...(d.excerpt ? { excerpt: d.excerpt } : {}), criterion: d.criterion, paperRef: d.paperRef });
+      }
+      if (parsed.isTemplate && !seen.has("well-formed") && (!parsed.end || !parsed.end.trim())) {
+        issues.push({
+          code: "NO_END",
+          severity: "warn",
+          message: "Story is missing the goal or business value (end).",
+          suggestion: "Add 'so that <benefit>' to make the delivered value explicit.",
+        });
+      }
+    } else if (!parsed.isTemplate) {
+      // WELL_FORMED: thiếu vai trò hoặc thiếu hành động
       issues.push({
         code: "WELL_FORMED",
         severity: "error",
@@ -505,7 +537,7 @@ function scoreTexts(rawStories: string[], options: ScoreOptions = {}, ex: TextEx
     }
 
     // MINIMAL: ghi chú dài trong ngoặc hoặc ví dụ, lưu ý
-    const minimal = checkMinimal(raw);
+    const minimal = eng[idx] ? null : checkMinimal(raw);
     if (minimal) {
       issues.push({
         code: "MINIMAL",
@@ -555,14 +587,14 @@ function scoreTexts(rawStories: string[], options: ScoreOptions = {}, ex: TextEx
         dupSuggestion = `Review the scope: should this story belong to the current module or to module "${o.moduleName}"?`;
       }
     }
-    if (dupMessage) issuesList[j].push({ code: "DUPLICATE", severity: "warn", message: dupMessage, suggestion: dupSuggestion });
+    if (dupMessage && !issuesList[j].some((x) => x.code === "DUPLICATE")) issuesList[j].push({ code: "DUPLICATE", severity: "warn", message: dupMessage, suggestion: dupSuggestion });
   }
 
   // NOT_UNIFORM (G2): story lệch khuôn mẫu chiếm đa số nhận mức info. Module chỉ có 1 story thì bỏ qua.
   const majority = rawStories.length > 1 ? majorityTemplate(parsedList) : null;
   if (majority) {
     parsedList.forEach((p, idx) => {
-      if (p.template !== majority) {
+      if (p.template !== majority && !(eng[idx] && p.template === "free")) {
         issuesList[idx].push({
           code: "NOT_UNIFORM",
           severity: "info",
