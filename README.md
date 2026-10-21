@@ -44,5 +44,5 @@ The app uses Node's built-in SQLite driver — no database server required. The 
 ## Further reading
 
 - [Application README](ba-copilot-source/ba-copilot/README.md) — usage, business rules, architecture, layout suggestion, testing, environment variables.
-- [DEPLOY.md](ba-copilot-source/ba-copilot/DEPLOY.md) — deploying to Railway.
+- [DEPLOY.md](ba-copilot-source/ba-copilot/DEPLOY.md) — deploying to Render.
 - [database/README.md](ba-copilot-source/ba-copilot/database/README.md) — browsing the data and sample queries.
