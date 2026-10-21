@@ -5,7 +5,7 @@
 //   - cùng dòng hoặc dòng ngay trên:   // vi-keep: <lý do>
 //   - cả một vùng:                     // vi-keep-start: <lý do>   …   // vi-keep-end
 //
-// Chạy: node scripts/check-vi.mjs           (thoát mã 1 nếu còn chuỗi chưa dịch)
+// Chạy: npm run check-vi  (hoặc node scripts/check-vi.mjs)           (thoát mã 1 nếu còn chuỗi chưa dịch)
 //       node scripts/check-vi.mjs --kept    (liệt kê thêm các vùng vi-keep kèm lý do)
 import ts from "typescript";
 import { readFileSync, readdirSync, statSync } from "node:fs";
