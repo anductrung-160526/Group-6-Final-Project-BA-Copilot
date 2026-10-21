@@ -89,13 +89,13 @@ function report(name: string, pred: Pred) {
 const tagger = arg("tagger", "wink");
 if (tagger === "corenlp") {
   const { useCoreNLP } = await import("./corenlp-tagger.ts");
-  const info = useCoreNLP(arg("jars", ""), () => { predictAqusa(ALL_V2); predictAqusa([]); predictAqusa([], false); for (const f of ALL_V2) predictAqusa(ALL_V2.filter((x) => x !== f)); });
+  const info = useCoreNLP(arg("jars", ""), () => { predictAqusa(ALL_V2); predictAqusa([]); predictAqusa([], false); predictAqusa(ALL_V2, false); for (const f of ALL_V2) predictAqusa(ALL_V2.filter((x) => x !== f)); });
   console.log(`CoreNLP: ${info.strings} chuỗi, ${info.passes} lượt`);
 }
 const t0 = performance.now();
 const full = predictAqusa(ALL_V2);
 const msPerStory = Math.round(((performance.now() - t0) / Math.max(evalStories.length, 1)) * 10) / 10;
-const results = [report("legacy (main)", predictLegacy()), report("AQUSA v1", predictAqusa([])), report("AQUSA v1+v2", full), report("AQUSA v1 (paper)", predictAqusa([], false))];
+const results = [report("legacy (main)", predictLegacy()), report("AQUSA v1", predictAqusa([])), report("AQUSA v1+v2", full), report("AQUSA v1 (paper)", predictAqusa([], false)), report("AQUSA v1+v2 (paper)", predictAqusa(ALL_V2, false))];
 const ablation = ALL_V2.map((f) => ({ without: f, ...report(`v1+v2 − ${f}`, predictAqusa(ALL_V2.filter((x) => x !== f))).micro }));
 const goldAny = pct(evalStories.filter((s) => CRIT.some((c) => labels.get(s.id)![c])).length, evalStories.length);
 // Danh sách lỗi của bản đầy đủ để phân tích lỗi (§5.1).

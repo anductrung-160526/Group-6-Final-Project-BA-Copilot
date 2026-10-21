@@ -1,0 +1,647 @@
+{
+ "split": "test3",
+ "tagger": "wink",
+ "nStories": 345,
+ "nSets": 5,
+ "goldStoriesWithDefectPct": 8.1,
+ "msPerStory": 0.2,
+ "results": [
+  {
+   "name": "legacy (main)",
+   "perCriterion": {
+    "well-formed": {
+     "def": 7,
+     "tp": 4,
+     "fp": 3,
+     "fn": 0,
+     "recall": 100,
+     "precision": 57.1,
+     "f1": 72.7
+    },
+    "atomic": {
+     "def": 6,
+     "tp": 5,
+     "fp": 1,
+     "fn": 11,
+     "recall": 31.3,
+     "precision": 83.3,
+     "f1": 45.5
+    },
+    "minimal": {
+     "def": 1,
+     "tp": 1,
+     "fp": 0,
+     "fn": 5,
+     "recall": 16.7,
+     "precision": 100,
+     "f1": 28.6
+    },
+    "uniform": {
+     "def": 7,
+     "tp": 4,
+     "fp": 3,
+     "fn": 1,
+     "recall": 80,
+     "precision": 57.1,
+     "f1": 66.7
+    },
+    "unique": {
+     "def": 4,
+     "tp": 1,
+     "fp": 3,
+     "fn": 0,
+     "recall": 100,
+     "precision": 25,
+     "f1": 40
+    }
+   },
+   "micro": {
+    "def": 25,
+    "tp": 15,
+    "fp": 10,
+    "fn": 17,
+    "recall": 46.9,
+    "precision": 60,
+    "f1": 52.6
+   },
+   "macro": {
+    "recall": 26.9,
+    "precision": 43.5
+   },
+   "storiesWithDefectPct": 5.2,
+   "recall95": [
+    21.2,
+    59.1
+   ],
+   "precision95": [
+    29.4,
+    84.6
+   ]
+  },
+  {
+   "name": "AQUSA v1",
+   "perCriterion": {
+    "well-formed": {
+     "def": 4,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0,
+     "recall": 100,
+     "precision": 100,
+     "f1": 100
+    },
+    "atomic": {
+     "def": 20,
+     "tp": 12,
+     "fp": 8,
+     "fn": 4,
+     "recall": 75,
+     "precision": 60,
+     "f1": 66.7
+    },
+    "minimal": {
+     "def": 8,
+     "tp": 4,
+     "fp": 4,
+     "fn": 2,
+     "recall": 66.7,
+     "precision": 50,
+     "f1": 57.1
+    },
+    "uniform": {
+     "def": 7,
+     "tp": 4,
+     "fp": 3,
+     "fn": 1,
+     "recall": 80,
+     "precision": 57.1,
+     "f1": 66.7
+    },
+    "unique": {
+     "def": 1,
+     "tp": 1,
+     "fp": 0,
+     "fn": 0,
+     "recall": 100,
+     "precision": 100,
+     "f1": 100
+    }
+   },
+   "micro": {
+    "def": 40,
+    "tp": 25,
+    "fp": 15,
+    "fn": 7,
+    "recall": 78.1,
+    "precision": 62.5,
+    "f1": 69.4
+   },
+   "macro": {
+    "recall": 73,
+    "precision": 61.5
+   },
+   "storiesWithDefectPct": 10.1,
+   "recall95": [
+    64.5,
+    89.7
+   ],
+   "precision95": [
+    46.3,
+    76.7
+   ]
+  },
+  {
+   "name": "AQUSA v1+v2",
+   "perCriterion": {
+    "well-formed": {
+     "def": 4,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0,
+     "recall": 100,
+     "precision": 100,
+     "f1": 100
+    },
+    "atomic": {
+     "def": 26,
+     "tp": 12,
+     "fp": 14,
+     "fn": 4,
+     "recall": 75,
+     "precision": 46.2,
+     "f1": 57.1
+    },
+    "minimal": {
+     "def": 10,
+     "tp": 5,
+     "fp": 5,
+     "fn": 1,
+     "recall": 83.3,
+     "precision": 50,
+     "f1": 62.5
+    },
+    "uniform": {
+     "def": 8,
+     "tp": 4,
+     "fp": 4,
+     "fn": 1,
+     "recall": 80,
+     "precision": 50,
+     "f1": 61.5
+    },
+    "unique": {
+     "def": 1,
+     "tp": 1,
+     "fp": 0,
+     "fn": 0,
+     "recall": 100,
+     "precision": 100,
+     "f1": 100
+    }
+   },
+   "micro": {
+    "def": 49,
+    "tp": 26,
+    "fp": 23,
+    "fn": 6,
+    "recall": 81.3,
+    "precision": 53.1,
+    "f1": 64.2
+   },
+   "macro": {
+    "recall": 74.4,
+    "precision": 49
+   },
+   "storiesWithDefectPct": 12.5,
+   "recall95": [
+    68,
+    92
+   ],
+   "precision95": [
+    39,
+    67.6
+   ]
+  },
+  {
+   "name": "AQUSA v1 (paper)",
+   "perCriterion": {
+    "well-formed": {
+     "def": 4,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0,
+     "recall": 100,
+     "precision": 100,
+     "f1": 100
+    },
+    "atomic": {
+     "def": 37,
+     "tp": 13,
+     "fp": 24,
+     "fn": 3,
+     "recall": 81.3,
+     "precision": 35.1,
+     "f1": 49.1
+    },
+    "minimal": {
+     "def": 6,
+     "tp": 2,
+     "fp": 4,
+     "fn": 4,
+     "recall": 33.3,
+     "precision": 33.3,
+     "f1": 33.3
+    },
+    "uniform": {
+     "def": 7,
+     "tp": 4,
+     "fp": 3,
+     "fn": 1,
+     "recall": 80,
+     "precision": 57.1,
+     "f1": 66.7
+    },
+    "unique": {
+     "def": 1,
+     "tp": 1,
+     "fp": 0,
+     "fn": 0,
+     "recall": 100,
+     "precision": 100,
+     "f1": 100
+    }
+   },
+   "micro": {
+    "def": 55,
+    "tp": 24,
+    "fp": 31,
+    "fn": 8,
+    "recall": 75,
+    "precision": 43.6,
+    "f1": 55.2
+   },
+   "macro": {
+    "recall": 63.7,
+    "precision": 41.2
+   },
+   "storiesWithDefectPct": 14.5,
+   "recall95": [
+    57.6,
+    84.4
+   ],
+   "precision95": [
+    28.8,
+    55
+   ]
+  },
+  {
+   "name": "AQUSA v1+v2 (paper)",
+   "perCriterion": {
+    "well-formed": {
+     "def": 4,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0,
+     "recall": 100,
+     "precision": 100,
+     "f1": 100
+    },
+    "atomic": {
+     "def": 43,
+     "tp": 13,
+     "fp": 30,
+     "fn": 3,
+     "recall": 81.3,
+     "precision": 30.2,
+     "f1": 44.1
+    },
+    "minimal": {
+     "def": 6,
+     "tp": 2,
+     "fp": 4,
+     "fn": 4,
+     "recall": 33.3,
+     "precision": 33.3,
+     "f1": 33.3
+    },
+    "uniform": {
+     "def": 8,
+     "tp": 4,
+     "fp": 4,
+     "fn": 1,
+     "recall": 80,
+     "precision": 50,
+     "f1": 61.5
+    },
+    "unique": {
+     "def": 1,
+     "tp": 1,
+     "fp": 0,
+     "fn": 0,
+     "recall": 100,
+     "precision": 100,
+     "f1": 100
+    }
+   },
+   "micro": {
+    "def": 62,
+    "tp": 24,
+    "fp": 38,
+    "fn": 8,
+    "recall": 75,
+    "precision": 38.7,
+    "f1": 51.1
+   },
+   "macro": {
+    "recall": 63.7,
+    "precision": 34.5
+   },
+   "storiesWithDefectPct": 16.5,
+   "recall95": [
+    57.6,
+    84.4
+   ],
+   "precision95": [
+    24,
+    50
+   ]
+  }
+ ],
+ "ablation": [
+  {
+   "without": "ends-indicators",
+   "def": 47,
+   "tp": 25,
+   "fp": 22,
+   "fn": 7,
+   "recall": 78.1,
+   "precision": 53.2,
+   "f1": 63.3
+  },
+  {
+   "without": "chunk-repetition",
+   "def": 42,
+   "tp": 25,
+   "fp": 17,
+   "fn": 7,
+   "recall": 78.1,
+   "precision": 59.5,
+   "f1": 67.6
+  },
+  {
+   "without": "slash-gt",
+   "def": 49,
+   "tp": 26,
+   "fp": 23,
+   "fn": 6,
+   "recall": 81.3,
+   "precision": 53.1,
+   "f1": 64.2
+  },
+  {
+   "without": "verb-exceptions",
+   "def": 48,
+   "tp": 26,
+   "fp": 22,
+   "fn": 6,
+   "recall": 81.3,
+   "precision": 54.2,
+   "f1": 65
+  },
+  {
+   "without": "symbol-role",
+   "def": 49,
+   "tp": 26,
+   "fp": 23,
+   "fn": 6,
+   "recall": 81.3,
+   "precision": 53.1,
+   "f1": 64.2
+  },
+  {
+   "without": "starting-text",
+   "def": 49,
+   "tp": 26,
+   "fp": 23,
+   "fn": 6,
+   "recall": 81.3,
+   "precision": 53.1,
+   "f1": 64.2
+  },
+  {
+   "without": "abbreviation",
+   "def": 49,
+   "tp": 26,
+   "fp": 23,
+   "fn": 6,
+   "recall": 81.3,
+   "precision": 53.1,
+   "f1": 64.2
+  }
+ ],
+ "errors": [
+  {
+   "id": "g10-018",
+   "set": "g10",
+   "criterion": "minimal",
+   "type": "FP",
+   "text": "As a site editor, I want to set the following dates on a news item: Start Publishing Date, Old News Date, Stop Publishing Date, so that articles are published on and through appropriate dates."
+  },
+  {
+   "id": "g10-041",
+   "set": "g10",
+   "criterion": "minimal",
+   "type": "FP",
+   "text": "As a visitor, I want to download presentations, PDFs, etc. on Scrum, so that I can learn from them or use them."
+  },
+  {
+   "id": "g10-049",
+   "set": "g10",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a recruiter, I want to be able to extend an ad for another 30 days by visiting the site and updating the posting, so that my ad remains active."
+  },
+  {
+   "id": "g10-052",
+   "set": "g10",
+   "criterion": "uniform",
+   "type": "FP",
+   "text": "As the site editor, I want to include a teaser with each article, so that site visitors can decide if they want to read the rest."
+  },
+  {
+   "id": "g10-054",
+   "set": "g10",
+   "criterion": "uniform",
+   "type": "FP",
+   "text": "As the site editor, I want to add an article to the site, so that the site has plenty of content."
+  },
+  {
+   "id": "g10-055",
+   "set": "g10",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a site editor, I want to set start publishing dates, old article date, and stop publishing dates for articles, so that articles appear only during appropriate periods."
+  },
+  {
+   "id": "g10-057",
+   "set": "g10",
+   "criterion": "uniform",
+   "type": "FP",
+   "text": "As the site editor, I want to have pretty good control over how the article, so that articles are visually appealing."
+  },
+  {
+   "id": "g10-058",
+   "set": "g10",
+   "criterion": "minimal",
+   "type": "FP",
+   "text": "As a site visitor, I want to click the link from the article teaser to take me directly to the body of the article. not to another teaser setup, so that I can easily finish the article."
+  },
+  {
+   "id": "g10-067",
+   "set": "g10",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a trainer, I want to see the upcoming courses are what I want visitors to notice, so that they register and there's a benefit to my membership."
+  },
+  {
+   "id": "g10-086",
+   "set": "g10",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a CSM, I want to be sent an email welcoming me to the Scrum Alliance and with instructions to register or activate my membership once my name has been loaded to the registry."
+  },
+  {
+   "id": "g10-095",
+   "set": "g10",
+   "criterion": "uniform",
+   "type": "FN",
+   "text": "As a member, I want to have the system email me a new password or a password reminder since i have short-term memory problems."
+  },
+  {
+   "id": "g11-033",
+   "set": "g11",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a web recruiter manager, I want to confirm the recruiter is set up and working properly on Science360.gov."
+  },
+  {
+   "id": "g11-053",
+   "set": "g11",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a web recruiter manager, I want to confirm the recruiter is set up and working properly, so that I can deploy it on more pages."
+  },
+  {
+   "id": "g11-059",
+   "set": "g11",
+   "criterion": "atomic",
+   "type": "FN",
+   "text": "As an author, I want to be able to indent / outdent content."
+  },
+  {
+   "id": "g12-012",
+   "set": "g12",
+   "criterion": "atomic",
+   "type": "FN",
+   "text": "As a camp administrator, I want to be able to create, modify rules that campers and camp workers has to follow."
+  },
+  {
+   "id": "g12-014",
+   "set": "g12",
+   "criterion": "uniform",
+   "type": "FP",
+   "text": "As a camp administrator, I want to create an avenue so parents can submit feedback and general concerns, so that I can keep improving the services I provide."
+  },
+  {
+   "id": "g12-037",
+   "set": "g12",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a parent, I want to be able to track my child's activity and schedule at camp, so that I can have peace of mind."
+  },
+  {
+   "id": "g12-047",
+   "set": "g12",
+   "criterion": "minimal",
+   "type": "FP",
+   "text": "As a parent, I want to be able to see and edit my enrolled children to the camp year, so that I can know who I already enrolled to camp, who is still pending admission etc."
+  },
+  {
+   "id": "g13-005",
+   "set": "g13",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a moderator, I want to select an item to be estimated or re-estimated, so that the team sees that item and can estimate it."
+  },
+  {
+   "id": "g13-006",
+   "set": "g13",
+   "criterion": "minimal",
+   "type": "FP",
+   "text": "As a moderator, I want to add an item to the list of items to be estimated, so that so that we can be flexible and accommodate situations where we think of a new story while playing."
+  },
+  {
+   "id": "g13-015",
+   "set": "g13",
+   "criterion": "atomic",
+   "type": "FN",
+   "text": "As a moderator, I want to copy/paste stories from a spreadsheet, so that I can get started more quickly."
+  },
+  {
+   "id": "g13-018",
+   "set": "g13",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a moderator, I want to export a transcript of a game as a HTML file, so that I can save the stories and estimates locally."
+  },
+  {
+   "id": "g13-019",
+   "set": "g13",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a moderator, I want to export a transcript of a game as a CSV file, so that I can further process the stories and estimates."
+  },
+  {
+   "id": "g13-035",
+   "set": "g13",
+   "criterion": "minimal",
+   "type": "FN",
+   "text": "As a participant, I want to be able to see each estimator's prior estimates for the story being estimated, so that I can see how his or her opinion has changed so I can ask questions."
+  },
+  {
+   "id": "g14-032",
+   "set": "g14",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a Developer, I want to use data package as a node lib in my project, so that that I can depend on it using my normal dependency framework."
+  },
+  {
+   "id": "g14-043",
+   "set": "g14",
+   "criterion": "atomic",
+   "type": "FN",
+   "text": "As a Publisher, I want to version my Data Package and keep multiple versions around including older versions, so that that I do not break consumer systems when I change my datapackage."
+  },
+  {
+   "id": "g14-051",
+   "set": "g14",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a Consumer, I want to browse and find publishers, so that that I can find interesting publishers and their packages."
+  },
+  {
+   "id": "g14-057",
+   "set": "g14",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As an owner, I want to invite someone using their email to sign up and become a member of my Publisher, so that that they are authorized to publish data packages under my Publisher."
+  },
+  {
+   "id": "g14-061",
+   "set": "g14",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As an owner, I want to remove a user as an owner, so that they are just a member and no longer have full control."
+  }
+ ]
+}

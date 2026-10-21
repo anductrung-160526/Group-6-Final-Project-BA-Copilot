@@ -108,3 +108,31 @@ python3 scripts/qus-eval/tables.py dataset/export/eval/qus-v1/aqusa-v1-corenlp.j
   - Nhãn chính cho kết quả **cao hơn nhãn độc lập khoảng 1–4 điểm** (ví dụ F1 bản trong app 69,8 so với 66,3). Thiên lệch nghi ngờ trước đó **có thật nhưng nhỏ**; kết luận chính không đổi.
   - Bảng 4–5 ở mục 3 nên đọc kèm khoảng này: với nhãn độc lập, AQUSA v1 (CoreNLP) đạt recall khoảng 69, precision khoảng 41.
   - **Giới hạn:** các agent cùng một loại mô hình AI nên dễ sai giống nhau; hướng dẫn có ví dụ lấy từ chính bộ dữ liệu nên dễ đồng thuận. Kappa cao không chứng minh nhãn đúng; người gán thật (`kappa-sample.csv`) vẫn là bằng chứng mạnh nhất.
+
+## 10. AQUSA v1 + v2 đúng bài báo (không tinh chỉnh của nhóm), §6.2 đã sửa
+- **Cấu hình:** 5 bộ phân tích v1 cộng 7 cải tiến v2 (§6), tắt mọi tinh chỉnh của nhóm (`{ team: false }`). Căn cứ hoàn toàn từ bài báo.
+- **Sửa lỗi cài đặt §6.2:** chỉ xét lặp cụm chỉ dấu trong phần vai trò và hành động, đúng mô tả của bài báo. Bản trước đếm cả phần lý do, ví dụ "so that I can find the ones I want". Lỗi được sửa chung cho mọi cấu hình, kể cả bản trong app.
+- Kết quả (recall / precision / F1 micro), file `dataset/export/eval/qus-v1/paper-v1v2/`:
+
+| Cấu hình | Toàn bộ 671 story – nhãn đa số 3 agent, CoreNLP | Toàn bộ – wink | test3 (345) – nhãn đa số, wink |
+|---|---|---|---|
+| AQUSA v1 đúng bài báo | 69,1 / 40,9 / 51,4 | 66,2 / 40,5 / 50,3 | 75,0 / 43,6 / 55,2 |
+| **AQUSA v1 + v2 đúng bài báo** | **73,5 / 43,1 / 54,3** | **73,5 / 43,5 / 54,6** | 75,0 / 38,7 / 51,1 |
+| Bản trong app (v1 + v2 + nhóm, §6.2 đã sửa) | 82,4 / 61,5 / 70,4 | 82,4 / 60,2 / 69,6 | 81,3 / 53,1 / 64,2 |
+| *Bài báo (AQUSA v1, dữ liệu khác)* | *93,8 / 72,2* | | |
+
+- **Theo tiêu chí (toàn bộ, nhãn đa số, CoreNLP; TP / FP / FN):**
+
+| Tiêu chí | v1 bài báo | v1 + v2 bài báo | Bản trong app |
+|---|---|---|---|
+| well-formed | 5 / 9 / 0 | 4 / 0 / 1 | 4 / 0 / 1 |
+| atomic | 21 / 50 / 9 | 23 / 54 / 7 | 22 / 23 / 8 |
+| minimal | 2 / 6 / 8 | 2 / 6 / 8 | 8 / 6 / 2 |
+| uniform | 14 / 3 / 4 | 16 / 6 / 2 | 17 / 6 / 1 |
+| unique | 5 / 0 / 0 | 5 / 0 / 0 | 5 / 0 / 0 |
+
+- **Nhận xét:**
+  - **v2 của bài báo giúp ít:** F1 tăng khoảng 3–4 điểm trên toàn bộ dữ liệu, nhờ hết báo nhầm well-formed (§6.1) và bắt thêm lỗi atomic, uniform. Trên test3, v2 thuần còn **giảm** precision (43,6 → 38,7) vì báo nhầm atomic nhiều hơn.
+  - **Vấn đề lớn nhất là atomic báo nhầm** (khoảng 50 lần). Bài báo cũng gặp đúng điều này (precision atomic 51,18%).
+  - **Tinh chỉnh của nhóm đóng góp chính ở atomic** (báo nhầm 54 → 23) và minimal (bắt lỗi 2 → 8). Đây là phần nhóm thêm ngoài bài báo, dựa trên phân tích lỗi trên dev; trên test3 (chưa từng chỉnh), bản trong app vẫn tốt nhất về F1 (64,2) sau khi sửa §6.2.
+  - Sửa §6.2 làm F1 của bản trong app trên test3 tăng từ khoảng 58–60 lên 64,2 (nhãn đa số, wink). Đây là thay đổi sau khi đã xem test3 nên không phải kết quả chính thức.

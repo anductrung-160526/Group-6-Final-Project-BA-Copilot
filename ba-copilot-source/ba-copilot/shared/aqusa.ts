@@ -193,18 +193,21 @@ function atomic(c: Chunks, raw: string, o: AqusaOptions): AqusaDefect[] {
     if (separate && l && r) out.push({ criterion: "atomic", code: "AT_ROLE", message: `The role names more than one user type ("${role}").`, suggestion: "Write one story per role.", excerpt: role, paperRef: on(o, "symbol-role") ? "§4.3, §6.5" : "§4.3" });
   }
   // Lặp cụm chỉ dấu (§6.2): "As a pharmacist, I want …, I as a wholesaler will …".
+  // Chỉ xét phần vai trò và hành động, đúng mô tả §6.2 (bản trước đếm cả phần lý do – "so that I can find the ones I want" –
+  // là lỗi cài đặt, đã sửa).
   if (on(o, "chunk-repetition")) {
-    const roles = raw.match(new RegExp(indicatorRe(["as an", "as a"]).source, "giu")) ?? [];
-    const wants = raw.match(new RegExp(indicatorRe(["i want"]).source, "giu")) ?? [];
-    if (roles.length > 1 || wants.length > 1)
-      out.push({ criterion: "atomic", code: "AT_REPEAT", message: `An indicator occurs twice ("${roles.length > 1 ? roles[1] : wants[1]}"), so the story probably holds two requirements.`, suggestion: "Split it into separate stories.", paperRef: "§6.2" });
+    const roleMeans = `${c.role ?? ""} ${c.means ?? ""}`;
+    const roles = roleMeans.match(new RegExp(indicatorRe(["as an", "as a"]).source, "giu")) ?? [];
+    const wants = (c.means ?? "").match(new RegExp(indicatorRe(["i want"]).source, "giu")) ?? [];
+    if (c.roleIndicator && (roles.length > 0 || wants.length > 0))
+      out.push({ criterion: "atomic", code: "AT_REPEAT", message: `An indicator occurs twice ("${roles[0] ?? wants[0]}"), so the story probably holds two requirements.`, suggestion: "Split it into separate stories.", paperRef: "§6.2" });
   }
   return out;
 }
 
 // §6.2 mở rộng cho phần ends: hai cụm lý do lồng nhau ("…, so I have …, so that …") – xếp vào minimal (thiết kế của nhóm).
 function endsRepeat(c: Chunks, o: AqusaOptions): AqusaDefect[] {
-  if (!on(o, "chunk-repetition") || !c.ends) return [];
+  if (!tm(o) || !on(o, "chunk-repetition") || !c.ends) return [];
   const m = c.ends.match(/(?<![\p{L}])so that(?![\p{L}])/iu);
   return m ? [{ criterion: "minimal", code: "MN_ENDS_REPEAT", message: "The story has two reasons (ends) one after another.", suggestion: "Keep one reason; move the rest to the description.", excerpt: c.ends.slice(0, 50), paperRef: "§6.2" }] : [];
 }
