@@ -84,6 +84,9 @@ test("đọc được (nhóm): chữ linh tinh trong vai trò / hành động / 
   assert.equal(codes("As a asdf, I want qwer, so that zxcv.").filter((c) => c === "WF_UNREADABLE").length, 3);
   assert.equal(codes("As a customer, I want sdfsdf sdf, so that I can track orders.").filter((c) => c === "WF_UNREADABLE").length, 1);
   assert.equal(codes("As a lkjlkj, I want to view my orders.").filter((c) => c === "WF_UNREADABLE").length, 1);
+  // từ 1–2 chữ cái vô nghĩa (trước đây bị bỏ qua nên được 100 điểm)
+  assert.equal(codes("As a j, I want j, so that j.").filter((c) => c === "WF_UNREADABLE").length, 3);
+  assert.equal(codes("As a x, I want kk, so that I can track orders.").filter((c) => c === "WF_UNREADABLE").length, 2);
 });
 
 test("đọc được (nhóm): từ ghép, số nhiều, viết tắt, tên riêng, từ phần mềm không bị bắt nhầm", () => {
@@ -93,6 +96,9 @@ test("đọc được (nhóm): từ ghép, số nhiều, viết tắt, tên riê
     "As an admin, I want to export orders to CSV so that I can reconcile payments.",
     "As a CSM, I want to sync my Shopee listings with Lazada.",
     "As a BA Lead, I want to approve the BRD of a module so that developers can start.",
+    "As a PM, I want to go up a level so that I can see it all.",
+    "As a user, I want to compare plan A and plan B so that I can pick one.",
+    "As a member, I want my ID on the card so that I can log in.",
   ])
     assert.ok(!codes(t).includes("WF_UNREADABLE"), t);
 });

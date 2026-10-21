@@ -17103,7 +17103,9 @@ function segmentable(w, depth2 = 0) {
 }
 function knownPiece(piece) {
   const w = piece.toLowerCase();
-  if (w.length < 3 || SOFTWARE_TERMS.has(w) || inVocab(w)) return true;
+  if (w.length === 1) return w === "a" || w === "i";
+  if (SOFTWARE_TERMS.has(w) || inVocab(w)) return true;
+  if (w.length < 3) return false;
   const t = nlp.readDoc(w).tokens();
   const lemma = t.out(its.lemma)[0];
   const stem = t.out(its.stem)[0];
@@ -17113,7 +17115,7 @@ function unknownWords(part) {
   const t = nlp.readDoc(part).tokens();
   const vals = t.out(its.value);
   const types = t.out(its.type);
-  const words2 = vals.filter((w, i) => types[i] === "word" && w.length > 1 && !/\d|['’]|[A-Z]{2}/.test(w));
+  const words2 = vals.filter((w, i) => types[i] === "word" && !/\d|['’]|[A-Z]{2}/.test(w));
   const unknown = words2.filter((w) => !SOFTWARE_TERMS.has(w.toLowerCase()) && !w.split(/-|(?<=[a-z])(?=[A-Z])/).every(knownPiece));
   return { words: words2.length, unknown };
 }

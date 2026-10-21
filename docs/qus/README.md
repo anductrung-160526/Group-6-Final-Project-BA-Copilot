@@ -28,7 +28,7 @@ Module được xây dựng dựa trên các nghiên cứu khoa học về chấ
 | Mã tiêu chí | Mức độ | Trừ điểm | Ý nghĩa & Cách kiểm tra |
 | :--- | :--- | :--- | :--- |
 | **`WELL_FORMED`** | Error | -30đ | User Story thiếu vai trò (Role) hoặc thiếu hành động (Means). Bắt buộc viết theo mẫu chuẩn. |
-| **`UNREADABLE`** | Error | -50đ / mỗi phần | *(Luật của nhóm, chạy bằng mô hình NLP)* Phần vai trò / hành động / lợi ích không phải tiếng Anh đọc được: hơn nửa số từ không có trong từ điển của mô hình wink-nlp (kể cả dạng gốc của từ và từ ghép tách được). Một ô linh tinh → 50đ (Poor); "As a asdf, I want qwer, so that zxcv" → 3 lỗi, 0đ. |
+| **`UNREADABLE`** | Error | -50đ / mỗi phần | *(Luật của nhóm, chạy bằng mô hình NLP)* Phần vai trò / hành động / lợi ích không phải tiếng Anh đọc được: hơn nửa số từ không có trong từ điển của mô hình wink-nlp (kể cả dạng gốc của từ và từ ghép tách được). Một ô linh tinh → 50đ (Poor); "As a asdf, I want qwer, so that zxcv" hay "As a j, I want j, so that j" → 3 lỗi, 0đ. Từ 1 chữ cái chỉ chấp nhận "a" / "I"; từ 2 chữ cái phải có trong từ điển. |
 | **`NO_END`** | Warn | -15đ | Có vai trò và hành động nhưng thiếu phần mục đích / giá trị mang lại (`so that` / `để`). |
 | **`ATOMIC`** | Warn | -15đ | Phần hành động (means) chứa nhiều hành động nối bằng "và" / "and" / `;` (phân biệt nối hành động với nối danh từ như *email và mật khẩu*). |
 | **`MINIMAL`** | Info | -5đ | Chứa ghi chú dài trong ngoặc đơn, hoặc chứa các từ "ví dụ", "lưu ý", "e.g.", "note:". Nên đưa vào Acceptance Criteria. |

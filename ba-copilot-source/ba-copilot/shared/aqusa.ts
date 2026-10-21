@@ -110,7 +110,8 @@ function wellFormed(c: Chunks): AqusaDefect[] {
 // nhóm: mỗi phần (vai trò / hành động / lý do) phải là tiếng Anh đọc được. AQUSA chỉ kiểm cú pháp, nên "As a asdf, I want
 // qwer, so that zxcv" qua hết (bộ gán nhãn coi từ lạ là danh từ). Một từ được coi là biết khi nó, dạng gốc (lemma) hoặc gốc
 // từ (stem) do mô hình sinh có trong từ điển của mô hình, hoặc tách được thành các từ có trong từ điển ("VisualDesigner",
-// "corporatesponsor", "non-existent"). Bỏ qua viết tắt viết hoa, từ có chữ số, từ rút gọn (I'm) và từ 1 chữ cái.
+// "corporatesponsor", "non-existent"). Bỏ qua viết tắt viết hoa, từ có chữ số và từ rút gọn (I'm). Từ 1 chữ cái chỉ biết
+// "a" / "I", từ 2 chữ cái phải có trong từ điển – để "As a j, I want j, so that j" hay "kk" không còn lọt.
 // Một phần bị coi là không đọc được khi hơn nửa số từ là từ lạ. Đo trên 671 story thật (dataset/qus-eval): chỉ bắt nhầm
 // "admin" – từ điển bản lite thiếu một số từ phần mềm, bổ sung ở SOFTWARE_TERMS.
 const SOFTWARE_TERMS = new Set(["admin", "admins", "superuser", "dev", "devops", "app", "apps", "frontend", "backend", "plugin", "plugins", "json", "csv", "api", "apis", "ui", "ux", "analytics", "onboard", "onboarding", "checkin", "checkout", "iframe", "unpublish", "undelete", "embeddable", "stats", "login", "logout", "signup", "username", "email", "emails", "dashboard", "chatbot", "webhook", "sync", "inbox", "url", "urls", "faq", "otp", "sms", "pdf", "crm", "erp", "sku", "kpi", "todo", "workflow", "timestamp", "metadata", "config", "repo", "backlog", "kanban", "scrum", "sprint", "wishlist", "e-commerce", "ecommerce"]);
@@ -129,7 +130,9 @@ function segmentable(w: string, depth = 0): boolean {
 
 function knownPiece(piece: string): boolean {
   const w = piece.toLowerCase();
-  if (w.length < 3 || SOFTWARE_TERMS.has(w) || inVocab(w)) return true;
+  if (w.length === 1) return w === "a" || w === "i";
+  if (SOFTWARE_TERMS.has(w) || inVocab(w)) return true;
+  if (w.length < 3) return false;
   const t = nlp.readDoc(w).tokens();
   const lemma = (t.out(its.lemma) as string[])[0];
   const stem = (t.out(its.stem) as string[])[0];
@@ -141,7 +144,7 @@ export function unknownWords(part: string): { words: number; unknown: string[] }
   const t = nlp.readDoc(part).tokens();
   const vals = t.out(its.value) as string[];
   const types = t.out(its.type) as string[];
-  const words = vals.filter((w, i) => types[i] === "word" && w.length > 1 && !/\d|['’]|[A-Z]{2}/.test(w));
+  const words = vals.filter((w, i) => types[i] === "word" && !/\d|['’]|[A-Z]{2}/.test(w));
   const unknown = words.filter((w) => !SOFTWARE_TERMS.has(w.toLowerCase()) && !w.split(/-|(?<=[a-z])(?=[A-Z])/).every(knownPiece));
   return { words: words.length, unknown };
 }
