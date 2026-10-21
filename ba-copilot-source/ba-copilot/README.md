@@ -1,298 +1,298 @@
 # BA Copilot
 
-Hệ thống web hỗ trợ Business Analyst đi trọn luồng **Prompt → Thiết kế UI → Tài liệu (UC, SRS, Sequence) → Test case → Truy vết**. Đây là sản phẩm của luận án; mọi đầu ra AI là *bản nháp* để BA duyệt.
+A web application that supports Business Analysts through the end-to-end workflow **Prompt → UI design → Documentation (UC, SRS, Sequence) → Test cases → Traceability**. It is the software artifact of the thesis; all AI output is treated as a *draft* for the BA to review.
 
-**Bản chạy trên web:** <https://ba-copilot.up.railway.app/> — mật khẩu: `123321`. Sau khi đăng nhập, chọn tên ở ô *Select your name…* (ví dụ **Lan Nguyen**, vai BA Lead). Cách deploy: [DEPLOY.md](DEPLOY.md).
+**Live demo:** <https://ba-copilot.up.railway.app/> — password: `123321`. After signing in, pick a user from the *Select your name…* dropdown (e.g. **Lan Nguyen**, BA Lead). Deployment guide: [DEPLOY.md](DEPLOY.md).
 
-## 1. Chạy trên máy
+## 1. Running locally
 
-Yêu cầu: **Node.js 22.13 trở lên** (bản LTS 22 hoặc 24 tại nodejs.org). Kiểm tra bằng `node -v`. Chạy được trên Windows, macOS, Linux. Mọi lệnh chạy trong thư mục `ba-copilot-source/ba-copilot`.
+Requirements: **Node.js 22.13 or later** (LTS 22 or 24 from nodejs.org); check with `node -v`. Runs on Windows, macOS and Linux. Run all commands from `ba-copilot-source/ba-copilot`.
 
 ```bash
-npm install        # cài thư viện (cần Internet, chạy một lần)
-npm run seed       # tạo dự án mẫu "Electronics Store (sample)" và 3 thành viên
-npm start          # build giao diện + chạy server
+npm install        # install dependencies (requires internet, run once)
+npm run seed       # seed the sample project "Electronics Store (sample)" and 3 team members
+npm start          # build the client and start the server
 ```
 
-Mở trình duyệt tại **http://localhost:3000**, chọn tên ở ô *Select your name…* trên thanh trên (ví dụ **Lan Nguyen**, vai BA Lead).
+Open **http://localhost:3000** and pick a user from the *Select your name…* dropdown in the top bar (e.g. **Lan Nguyen**, BA Lead).
 
-- Muốn dùng đúng dữ liệu đã nộp thay vì dữ liệu mẫu mới: bỏ bước `npm run seed`, chép `database/ba-copilot.db` vào `data/ba-copilot.db` (và `database/files/` vào `data/files/`) rồi `npm start`.
-- **Gắn Claude:** chép `.env.example` thành `.env` rồi điền khoá (xem mục 6). Không có khoá thì hệ thống chạy **Chế độ Mock** (bộ sinh rule-based): vẫn đi trọn luồng, dùng được để demo offline, và là baseline khi so sánh với LLM trong chương thực nghiệm. Thanh trên hiện *Claude · tên model* hoặc *Mock mode*.
-- `npm run dev` chạy chế độ phát triển, tự build lại khi sửa code.
+- To run against the submitted dataset instead of fresh seed data: skip `npm run seed`, copy `database/ba-copilot.db` to `data/ba-copilot.db` (and `database/files/` to `data/files/`), then run `npm start`.
+- **Enabling Claude:** copy `.env.example` to `.env` and fill in your key (see section 6). Without a key the app runs in **Mock mode** (a rule-based generator): the full workflow still works, it is suitable for offline demos, and it serves as the baseline when comparing against the LLM in the evaluation chapter. The top bar shows either *Claude · model name* or *Mock mode*.
+- `npm run dev` starts development mode with automatic rebuilds on file changes.
 
-## 2. Cơ sở dữ liệu
+## 2. Database
 
-Phần mềm dùng **SQLite** tích hợp sẵn trong Node (`node:sqlite`), không cần cài máy chủ CSDL. Dữ liệu khi chạy nằm ở `data/` (không đưa lên Git). Bản nộp kèm mã nguồn nằm ở **`database/`**:
+The app uses Node's built-in **SQLite** driver (`node:sqlite`), so no database server is required. Runtime data lives in `data/` (git-ignored). The snapshot submitted with the source code lives in **`database/`**:
 
-| Tệp | Nội dung |
+| File | Contents |
 | --- | --- |
-| `database/ba-copilot.db` | Toàn bộ dữ liệu, một tệp SQLite |
-| `database/ba-copilot.sql` | Cùng dữ liệu dạng lệnh SQL (cấu trúc + `INSERT`), mở bằng trình soạn thảo bất kỳ |
-| `database/files/` | Tệp của Kho tài liệu |
-| `database/ERD.md`, `ERD.png`, `ERD-day-du.png` | Sơ đồ quan hệ thực thể: bản tổng quan và bản đầy đủ, danh sách bảng kèm số dòng |
+| `database/ba-copilot.db` | The full dataset as a single SQLite file |
+| `database/ba-copilot.sql` | The same data as a SQL dump (schema + `INSERT` statements), readable in any text editor |
+| `database/files/` | Files stored in the Document Repository |
+| `database/ERD.md`, `ERD.png`, `ERD-day-du.png` | Entity-relationship diagrams (overview and full), plus a table list with row counts |
 
-**Xem dữ liệu:** cài [DB Browser for SQLite](https://sqlitebrowser.org/dl/) (miễn phí) → *Open Database* → chọn `database/ba-copilot.db` → tab *Browse Data*. Chi tiết và truy vấn mẫu: [database/README.md](database/README.md).
+**Browsing the data:** install [DB Browser for SQLite](https://sqlitebrowser.org/dl/) (free) → *Open Database* → select `database/ba-copilot.db` → *Browse Data* tab. More details and sample queries: [database/README.md](database/README.md).
 
-**Cập nhật bản nộp** sau khi dùng thử: `npm run export-db`. Lệnh chụp DB thành một tệp (chạy được cả khi server đang mở), xuất `.sql`, chép tệp Kho tài liệu, vẽ lại ERD. Bản xuất **xoá** token GitHub, mật khẩu thành viên và khoá ký phiên. `npm run erd` chỉ vẽ lại ERD từ cấu trúc bảng.
+**Refreshing the snapshot** after using the app: `npm run export-db`. It takes a consistent snapshot of the database (safe to run while the server is up), writes the `.sql` dump, copies the Document Repository files and regenerates the ERD. The export **strips** GitHub tokens, member passwords and the session signing key. `npm run erd` only regenerates the ERD from the current schema.
 
-## 3. Cách dùng
+## 3. Usage
 
-Không có màn đăng nhập: chọn tên mình ở ô **Select your name…** trên thanh trên. Quyền BA Lead (Approve, Request changes, Administration, cài đặt GitHub) xét theo người đang chọn.
+There is no login screen: pick yourself from the **Select your name…** dropdown in the top bar. BA Lead permissions (Approve, Request changes, Administration, GitHub settings) are based on the selected user.
 
-1. **Projects** – danh sách dự án. **Administration** (chỉ BA Lead): thành viên và vai BA / BA Lead.
-2. Bấm vào dự án → khung dự án với **menu trái**:
-   - **Task Board** – Kanban 4 cột *To do → In progress → Done → Approved*, tag *Changes requested*.
-   - **Business Requirements** – mỗi user story một dòng: mã US-xx, *As a / I want / So that*, tiêu chí chấp nhận, ưu tiên; chấm QUS theo từng dòng. Phải có module trước khi tạo story.
-   - **Deliverables** (chọn module ở đầu trang):
-     1. *Documents*: BRD → UC Specification → SRS → FRD-NFR → API Spec (bước sau mở khi bước trước *Done*).
-     2. *Diagrams*: Context → Use Case → Sequence → BPMN (mô phỏng bằng Mermaid) → ERD.
-     3. *Prototype*: Design Studio (khoanh vùng, bình luận, phiên bản, gợi ý bố cục, xuất HTML).
-     4. *Test Cases*, 5. *Traceability* (Story → UC → FR → Màn → TC).
+1. **Projects** – project list. **Administration** (BA Lead only): team members and their BA / BA Lead roles.
+2. Click a project to open the project workspace with a **left sidebar**:
+   - **Task Board** – Kanban board with 4 columns *To do → In progress → Done → Approved*, plus a *Changes requested* tag.
+   - **Business Requirements** – one user story per row: US-xx ID, *As a / I want / So that*, acceptance criteria, priority; QUS quality scoring per row. A module must exist before stories can be created.
+   - **Deliverables** (select a module at the top of the page):
+     1. *Documents*: BRD → UC Specification → SRS → FRD-NFR → API Spec (each step unlocks once the previous one is *Done*).
+     2. *Diagrams*: Context → Use Case → Sequence → BPMN (rendered with Mermaid) → ERD.
+     3. *Prototype*: Design Studio (region selection, comments, version history, layout suggestion, HTML export).
+     4. *Test Cases*, 5. *Traceability* (Story → UC → FR → Screen → TC).
    - **Document Repository**, **AI Log**, **GitHub History**.
-3. **Trạng thái và duyệt** – trên mọi sản phẩm: BA bấm **Done**; BA Lead bấm **Approve** hoặc **Request changes** (không cần lý do – góp ý bằng bình luận trên prototype). Request changes → sản phẩm và task về *In progress* + tag. Sửa nội dung sản phẩm đã Done/Approved → về *In progress*. Không bấm Done được khi bước trước chưa Done.
-4. **GitHub** – BA Lead nhập link repo, token và tên nhánh (mặc định `main`) ở *GitHub History → Settings*. Mỗi lần **Approve**, app commit đúng các tệp của sản phẩm đó (`.md`, prototype `.html`) lên nhánh; Dev/Tester đọc từ repo. *Done* không đụng GitHub.
-5. **Chống ghi đè** – hai người cùng sửa một sản phẩm: người lưu sau được báo bản đã thay đổi và phải tải lại; màn đang có người sửa hiện tên người đó.
+3. **Status and review** – on every deliverable: the BA marks it **Done**; the BA Lead clicks **Approve** or **Request changes** (no reason required — feedback goes through prototype comments). Request changes moves the deliverable and its task back to *In progress* with a tag. Editing a deliverable that is Done/Approved moves it back to *In progress*. A step cannot be marked Done until the previous step is Done.
+4. **GitHub** – the BA Lead enters the repository URL, token and branch (default `main`) under *GitHub History → Settings*. On every **Approve**, the app commits exactly that deliverable's files (`.md`, prototype `.html`) to the branch, where developers and testers pick them up. *Done* does not touch GitHub.
+5. **Concurrent-edit protection** – when two people edit the same deliverable, the one who saves last is told the content has changed and must reload (optimistic locking); a screen being edited shows the current editor's name.
 
-### Quy tắc nghiệp vụ được cài đặt
+### Implemented business rules
 
-| Mã | Quy tắc |
+| ID | Rule |
 | --- | --- |
-| BR-01 | *(Bỏ ở đợt 5)* Tài liệu sinh từ user story, không cần màn hình đã duyệt. Bước tài liệu sau chỉ sinh khi bước trước *Xong*. |
-| BR-02 | Khi sửa, khôi phục hoặc bỏ duyệt một thiết kế đã duyệt, tài liệu và test hiện có chuyển sang *Outdated*. |
-| BR-03 | Nội dung AI phải suy diễn được gắn nhãn *Giả định* (trường `assumptions`, `isAssumption`). |
-| BR-04 | Mỗi test case phải tham chiếu ít nhất 1 yêu cầu. Kết quả AI vi phạm quy tắc này sẽ bị trả về để AI tự sửa. |
+| BR-01 | *(Dropped in iteration 5)* Documents are generated from user stories; an approved screen is no longer required. Each document step can only be generated once the previous step is *Done*. |
+| BR-02 | When an approved design is edited, restored or unapproved, its existing documents and test cases are flagged *Outdated*. |
+| BR-03 | Content the AI had to infer is labelled *Assumption* (`assumptions` and `isAssumption` fields). |
+| BR-04 | Every test case must reference at least one requirement. AI output that violates this rule is sent back to the AI for self-correction. |
 
-## 4. Kiến trúc
+## 4. Architecture
 
 ```
-client/            Giao diện React (đóng gói bằng esbuild → public/)
-  views/DesignTab  Design Studio: canvas, khoanh vùng, bình luận, phiên bản
-  views/DocsTab    UC / SRS / Sequence / Yêu cầu + prompt chỉnh
-  views/TestsTab   Test case · TraceTab: truy vết · LogsTab: nhật ký AI
+client/            React UI (bundled with esbuild → public/)
+  views/DesignTab  Design Studio: canvas, region selection, comments, versions
+  views/DocsTab    UC / SRS / Sequence / requirements + refinement prompt
+  views/TestsTab   Test cases · TraceTab: traceability · LogsTab: AI log
   components/      Renderer (component tree → UI), Mermaid, Markdown
-shared/            Dùng chung client + server
-  design.ts        Mô hình component tree, validate, diff
-  patch.ts         Patch engine + kiểm tra phạm vi vùng khoanh
-  extract.ts       Trích "mô hình trung gian" (trường, ràng buộc, thao tác, điều hướng)
-  trace.ts         Ma trận truy vết + chỉ số bao phủ
+shared/            Code shared by client and server
+  design.ts        Component-tree model, validation, diff
+  patch.ts         Patch engine + region-scope enforcement
+  extract.ts       Extracts the intermediate model (fields, constraints, actions, navigation)
+  trace.ts         Traceability matrix + coverage metrics
 server/
-  app.ts           REST API (Node http, không framework)
-  service.ts       Tầng nghiệp vụ (BR-01..04, điều phối pipeline)
-  repo.ts, db.ts   Lưu trữ SQLite tích hợp sẵn trong Node (node:sqlite)
-  ai/client.ts     Gọi Claude API (API key hoặc Bearer qua cổng): tool use bắt JSON theo schema, tự sửa 1 lần, ghi log
-  ai/pipelines.ts  Prompt + schema cho từng tác vụ
-  ai/mock.ts       Bộ sinh rule-based (Mock / baseline)
-  export/          Xuất DOCX (thư viện docx) và XLSX (OOXML + JSZip)
+  app.ts           REST API (plain Node http, no framework)
+  service.ts       Business layer (BR-01..04, pipeline orchestration)
+  repo.ts, db.ts   Persistence on Node's built-in SQLite (node:sqlite)
+  ai/client.ts     Claude API client (API key, or Bearer token via a gateway): tool use for schema-constrained JSON, one self-repair retry, logging
+  ai/pipelines.ts  Prompts + schemas per task
+  ai/mock.ts       Rule-based generator (Mock / baseline)
+  export/          DOCX export (docx library) and XLSX export (OOXML + JSZip)
 scripts/
-  seed.ts          Dữ liệu mẫu (npm run seed)
-  export-db.ts     Xuất DB ra database/ (npm run export-db)
-  erd.ts           Vẽ ERD từ cấu trúc bảng thật (npm run erd)
-database/          Bản xuất DB nộp kèm mã nguồn: .db, .sql, tệp Kho tài liệu, ERD
-tests/             Unit + integration (node:test)
-e2e/               Kiểm thử trình duyệt toàn luồng (Playwright)
+  seed.ts          Sample data (npm run seed)
+  export-db.ts     Exports the DB to database/ (npm run export-db)
+  erd.ts           Generates the ERD from the live schema (npm run erd)
+database/          DB snapshot submitted with the source: .db, .sql, repository files, ERD
+tests/             Unit + integration tests (node:test)
+e2e/               End-to-end browser tests (Playwright)
 ```
 
-**Các điểm thiết kế quan trọng (dùng cho chương phương pháp của luận án):**
+**Key design decisions (referenced in the thesis methodology chapter):**
 
-- **Thiết kế dạng component tree JSON.** Mỗi node có `id` ổn định, nhờ vậy khoanh vùng và bình luận gắn đúng phần tử, AI sửa bằng *patch* thay vì vẽ lại cả màn hình. Thư viện có 28 loại component.
-- **Region-scoped editing.** Server tính tập node được phép sửa (vùng chọn và con cháu, cộng với việc chèn phần tử anh em vào node cha của vùng) và từ chối mọi thao tác ngoài vùng. Mỗi phiên bản ghi lại số thao tác bị chặn, phục vụ đo RQ1.
-- **Sinh tài liệu 2 bước.** Bước (a) trích mô hình trung gian một cách tất định từ thiết kế; bước (b) LLM sinh UC/SRS/Sequence/Test dựa trên mô hình đó. Cách này giảm việc AI "bịa" chi tiết không có trong thiết kế.
-- **Structured output.** Mọi lời gọi Claude dùng `tool_choice` bắt buộc và JSON schema, kết quả được validate. Khi kết quả sai, hệ thống gửi lỗi về để AI tự sửa đúng 1 lần.
+- **Designs as a JSON component tree.** Every node has a stable `id`, so region selections and comments stay anchored to the right element, and the AI edits via *patches* instead of regenerating the whole screen. The component library has 28 component types.
+- **Region-scoped editing.** The server computes the set of nodes that may be modified (the selected region and its descendants, plus inserting siblings under the region's parent) and rejects any operation outside it. Each version records the number of blocked operations, which feeds the RQ1 measurements.
+- **Two-stage document generation.** Stage (a) deterministically extracts an intermediate model from the design; stage (b) has the LLM generate UC/SRS/Sequence/Test artifacts grounded in that model. This reduces hallucinated details that are not present in the design.
+- **Structured output.** Every Claude call uses a forced `tool_choice` with a JSON schema, and the result is validated. On validation failure the errors are fed back to the model for exactly one self-repair attempt.
 
-## Gợi ý bố cục (tab "Gợi ý" trong Design Studio)
+## Layout suggestion ("Suggestion" tab in Design Studio)
 
-Tính năng **chỉ dùng phương pháp của Li et al. (2020)**, *Auto Completion of User Interface Layout Design Using Transformer-Based Tree Decoders* (arXiv:2001.05308): **Recursive Transformer Tree Decoder** (§4.4). Bài toán là **hoàn thành bố cục** (layout auto-completion), không phải kiểm tra lỗi. Không có luật hay bộ lọc nào khác.
+This feature **implements only the method of Li et al. (2020)**, *Auto Completion of User Interface Layout Design Using Transformer-Based Tree Decoders* (arXiv:2001.05308): the **Recursive Transformer Tree Decoder** (§4.4). The task is **layout auto-completion**, not linting. No other rules or filters are applied.
 
-- **Phần tử tiếp theo:**
-  - Sau mỗi thay đổi, mô hình giải mã một bước và hiện **khung mờ** trên canvas: loại, vị trí và kích thước theo khung bao dự đoán.
-  - **Tab** chấp nhận, **Esc** bỏ qua. Panel có **top-3 loại** kèm xác suất và xác suất EOS ("mô hình cho rằng đã đủ").
-  - Chọn một container để hỏi riêng container đó; không chọn gì thì xét mọi container.
-- **Hoàn thành bố cục:** giải mã tham lam tới EOS (kể cả container vừa sinh) trong vùng chọn hoặc cả màn, rồi chấp nhận từng phần.
-- **Đầu vào:** cây đang thiết kế và khung bao từng phần tử đo trên canvas, rời rạc hóa theo lưới 32 ô ngang × ô dọc 40 px (lưới đọc từ config của mô hình).
-- **Đầu ra:** loại, cờ lá, khung bao. Phần tử chèn vào có props trung tính; nội dung chữ đổi bằng Prompt sửa thiết kế.
-- **Mô hình:** `model/recursive-layout.json`, hidden 256, 4 lớp, 4,3 triệu tham số, lưới **32 ô ngang × ô dọc 40 px**, chọn theo val (`dataset/export/eval/STRICT-NEXT.md`). Huấn luyện trên **500 màn gốc (399 màn train) = 2.793 cây**, chia 80/10/10, chỉ dữ liệu web của nhóm, không WebSight. Test 38 màn: Next chặt 8,8%, IoU ≥ 0,5 22,8%.
-  - Suy luận thuần TypeScript (`shared/recursive.ts`), khớp PyTorch (`tests/recursive.test.ts`).
-  - Độ trễ trên CPU (42 màn test): hỏi một container khoảng 20–60 ms; xét cả màn trung vị 0,3 s (tối đa 0,9 s); Hoàn thành bố cục trung vị 0,4 s (tối đa khoảng 6 s với màn lớn).
-- **Kết quả:** `dataset/export/eval/LAYOUT-SUGGEST.md`.
-  - Mô phỏng KLM cho thấy gợi ý từng bước tiết kiệm khoảng 39–48% thời gian thao tác so với tự làm tay; Hoàn thành bố cục tiết kiệm 16–43%.
-  - Có bảng độ chính xác theo từng loại phần tử.
-  - Đối chiếu từng điểm với bài báo: `dataset/export/eval/PAPER-METHOD.md`.
-- **Giới hạn:**
-  - không gợi ý nội dung;
-  - còn yếu với Radio, Form, List;
-  - không chuyên tìm phần tử bị quên ở giữa (bài báo không đặt bài toán này);
-  - dữ liệu ít hơn bài báo khoảng 25 lần và do Claude soạn.
-- Mỗi lần hiện, chấp nhận hoặc bỏ qua được ghi vào `suggestion_events`.
+- **Next element:**
+  - After every change the model decodes one step and renders a **ghost box** on the canvas showing the predicted type, position and size (from the predicted bounding box).
+  - **Tab** accepts, **Esc** dismisses. The panel shows the **top-3 types** with probabilities and the EOS probability ("the model thinks this container is complete").
+  - Select a container to query only that container; with nothing selected, all containers are considered.
+- **Complete layout:** greedy decoding until EOS (including containers generated along the way) within the selected region or the whole screen; each generated element can then be accepted individually.
+- **Input:** the current design tree plus each element's bounding box measured on the canvas, discretised onto a grid of 32 columns × 40 px rows (grid parameters are read from the model config).
+- **Output:** type, leaf flag, bounding box. Inserted elements get neutral default props; text content is changed via the design-editing prompt.
+- **Model:** `model/recursive-layout.json`, hidden size 256, 4 layers, 4.3M parameters, **32-column × 40 px-row** grid, selected on the validation set (`dataset/export/eval/STRICT-NEXT.md`). Trained on **500 root screens (399 for training) = 2,793 trees**, 80/10/10 split, using only the team's own web data (no WebSight). On the 38-screen test set: strict Next accuracy 8.8%, IoU ≥ 0.5 at 22.8%.
+  - Inference is pure TypeScript (`shared/recursive.ts`) and matches PyTorch output (`tests/recursive.test.ts`).
+  - CPU latency (42 test screens): querying one container takes ~20–60 ms; a full-screen pass has a median of 0.3 s (max 0.9 s); Complete layout has a median of 0.4 s (max ~6 s on large screens).
+- **Results:** `dataset/export/eval/LAYOUT-SUGGEST.md`.
+  - A KLM simulation shows step-by-step suggestions save roughly 39–48% of interaction time compared with building by hand; Complete layout saves 16–43%.
+  - Includes per-element-type accuracy tables.
+  - Point-by-point comparison with the paper: `dataset/export/eval/PAPER-METHOD.md`.
+- **Limitations:**
+  - no content suggestions;
+  - still weak on Radio, Form and List;
+  - not designed to find elements missing from the middle of a container (the paper does not address that task);
+  - roughly 25× less training data than the paper, and the data was authored by Claude.
+- Every impression, accept and dismiss event is logged to `suggestion_events`.
 
-Mã nguồn:
-- `shared/recursive.ts`: suy luận (`nextInContainer`, `nextElements`, `completeLayout`).
-- `shared/layoutDefaults.ts`: props mặc định khi chèn.
+Source code:
+- `shared/recursive.ts`: inference (`nextInContainer`, `nextElements`, `completeLayout`).
+- `shared/layoutDefaults.ts`: default props for inserted elements.
 - `server/service.ts`: `layoutSuggestions`, `acceptLayout`, `manualEdit`.
-- `client/views/DesignTab.tsx`: khung mờ, panel.
-- `scripts/paper/train_faithful.py`, `export_recursive.py`, `klm_sim.py`: huấn luyện, xuất, đánh giá.
+- `client/views/DesignTab.tsx`: ghost boxes, panel.
+- `scripts/paper/train_faithful.py`, `export_recursive.py`, `klm_sim.py`: training, export, evaluation.
 
 ```bash
 python3 scripts/paper/train_faithful.py --data=data/paper-w7c20-r400 && python3 scripts/paper/export_recursive.py
 python3 scripts/paper/klm_sim.py
 ```
 
-<details><summary>Lịch sử: mô hình đối chứng không thuộc bài báo (encoder hai chiều, n-gram) và bộ luật R1–R9 – đã gỡ khỏi app</summary>
+<details><summary>History: baseline models outside the paper (bidirectional encoder, n-gram) and rule set R1–R9 – removed from the app</summary>
 
-Các phần dưới đây mô tả phiên bản trước. Mã mô hình đối chứng (`shared/transformer.ts`, n-gram trong `shared/nextComponent.ts`) chỉ còn dùng trong các script đánh giá. Bộ luật R1–R9, bộ lọc ứng dụng và hàm `suggest` đã bị xóa.
+The sections below describe the previous version. The baseline model code (`shared/transformer.ts`, the n-gram in `shared/nextComponent.ts`) is now used only by the evaluation scripts. Rule set R1–R9, the app-side filters and the `suggest` function have been deleted.
 
-Khi BA đang thiết kế, hệ thống tìm **phần tử còn thiếu** (ở cuối *hoặc giữa* một container) và **thiếu sót cần sửa** trong vùng đang khoanh (hoặc cả màn).
+While the BA was designing, the system looked for **missing elements** (at the end *or in the middle* of a container) and **issues to fix** within the selected region (or the whole screen).
 
-- **Mô hình chính: Transformer trên cây** theo Li et al. (2020), *Auto Completion of User Interface Layout Design Using Transformer-Based Tree Decoders* (arXiv:2001.05308):
-  - Cây được duỗi theo DFS, mỗi container có token đóng `</>` (như Vanilla decoder, mục 4.2).
-  - Mỗi token là tổng các embedding thuộc tính (Eq. 5): loại component + **loại con mang nghĩa** (email, password, search, submit, cancel, create…) + độ sâu + vị trí. Bài báo dùng tọa độ khung bao; cây của BA Copilot không có tọa độ nên thay bằng loại con và độ sâu.
-  - **Khác bài báo:** chú ý hai chiều thay vì sinh tuần tự. Cây BA đang sửa không phải tiền tố DFS, phần tử thiếu có thể nằm giữa form. Mỗi token dự đoán "phần tử còn thiếu ngay trước nó", token `</>` dự đoán "phần tử thiếu ở cuối container". Lớp 0 nghĩa là không thiếu. Loại con được dự đoán có điều kiện theo loại.
-  - 4 lớp, d = 96, 4 head, khoảng 479 nghìn tham số (2,6 MB). Suy luận **thuần TypeScript** (`shared/transformer.ts`, không thêm thư viện), khoảng 10–25 ms/màn. Kết quả khớp PyTorch đến 10⁻⁵.
-- **Huấn luyện tự giám sát:** mỗi cây đầy đủ bị "làm hỏng" ngẫu nhiên theo 3 kiểu: giữ nguyên, xóa node ngẫu nhiên, cắt theo BFS. Mô hình học khôi phục phần bị bỏ.
-- **Dữ liệu (23.881 cây):**
+- **Main model: tree Transformer** following Li et al. (2020), *Auto Completion of User Interface Layout Design Using Transformer-Based Tree Decoders* (arXiv:2001.05308):
+  - The tree is flattened in DFS order, with a closing token `</>` per container (as in the Vanilla decoder, §4.2).
+  - Each token is the sum of attribute embeddings (Eq. 5): component type + **semantic subtype** (email, password, search, submit, cancel, create…) + depth + position. The paper uses bounding-box coordinates; BA Copilot trees have no coordinates, so subtype and depth are used instead.
+  - **Deviation from the paper:** bidirectional attention instead of autoregressive decoding. A tree the BA is editing is not a DFS prefix — the missing element may sit in the middle of a form. Each token predicts "the element missing right before it", and a `</>` token predicts "the element missing at the end of the container". Class 0 means nothing is missing. The subtype is predicted conditioned on the type.
+  - 4 layers, d = 96, 4 heads, ~479K parameters (2.6 MB). Inference is **pure TypeScript** (`shared/transformer.ts`, no extra dependencies), ~10–25 ms per screen, matching PyTorch to within 10⁻⁵.
+- **Self-supervised training:** each complete tree is randomly corrupted in one of 3 ways: left intact, random node deletion, BFS truncation. The model learns to recover what was removed.
+- **Data (23,881 trees):**
 
-  | Nguồn | Số cây | Ghi chú |
+  | Source | Trees | Notes |
   |---|---|---|
-  | WebSight v0.2 | 22.227 | Trang web |
-  | Màn nghiệp vụ tổng hợp | 1.521 | Sinh từ bộ sinh thiết kế, bù phần Table/Select/Pagination/Stat mà WebSight gần như không có |
-  | Màn nội bộ | 133 | |
-  | Màn BA đã duyệt | | Lấy từ DB, trọng số ×5 |
-- **3 loại gợi ý:**
-  - *Thêm:* điểm = P(thiếu tại ô) × P(loại | thiếu) ≥ 0,3 cho cả màn, ≥ 0,15 khi đã khoanh vùng. Câu prompt cụ thể theo loại con, ví dụ `Thêm ô tìm kiếm (Input) "Tìm kiếm" vào Row, ngay trước Select "Trạng thái".`
-  - *Sửa:* bộ luật R1–R9.
-  - *Xem lại:* chỉ có khi chạy dự phòng bằng n-gram.
-- **Dự phòng:** nếu không có `model/next-transformer.json`, hoặc đặt `NEXT_MODEL=ngram`, app dùng n-gram với *stupid backoff* (Brants et al., 2007) như trước.
-- **Áp dụng** sẽ khoanh container và điền sẵn prompt. Chế độ Mock hiểu được vị trí "ngay sau…/ngay trước…". Mỗi lần hiện/Áp dụng/Bỏ qua được ghi vào `suggestion_events`.
-- **Học tiếp:** màn được duyệt lưu vào bảng `model_learned_trees`. N-gram cộng ngay; Transformer dùng ở lần huấn luyện lại.
+  | WebSight v0.2 | 22,227 | Web pages |
+  | Synthetic business screens | 1,521 | Generated by the design generator to cover Table/Select/Pagination/Stat, which WebSight barely contains |
+  | Internal screens | 133 | |
+  | BA-approved screens | | Pulled from the DB, weighted ×5 |
+- **3 suggestion types:**
+  - *Add:* score = P(missing at slot) × P(type | missing) ≥ 0.3 for the whole screen, ≥ 0.15 within a selected region. The prompt is specific to the subtype, e.g. `Add a search input (Input) "Search" to the Row, right before Select "Status".`
+  - *Fix:* rule set R1–R9.
+  - *Review:* only produced by the n-gram fallback.
+- **Fallback:** if `model/next-transformer.json` is missing, or `NEXT_MODEL=ngram` is set, the app falls back to the n-gram model with *stupid backoff* (Brants et al., 2007).
+- **Apply** selects the container and pre-fills the prompt. Mock mode understands "right after…/right before…" positions. Every impression/Apply/Dismiss is logged to `suggestion_events`.
+- **Continual learning:** approved screens are stored in `model_learned_trees`. The n-gram picks them up immediately; the Transformer uses them on the next retraining.
 
-Mã nguồn:
-- `shared/transformer.ts`: mã hóa cây, suy luận.
-- `shared/nextComponent.ts`: n-gram, bộ luật, xếp hạng gợi ý.
-- `server/nextModel.ts`: nạp mô hình.
-- `scripts/train_transformer.py`: huấn luyện.
-- `scripts/eval-transformer.ts`: so sánh.
+Source code:
+- `shared/transformer.ts`: tree encoding, inference.
+- `shared/nextComponent.ts`: n-gram, rule set, suggestion ranking.
+- `server/nextModel.ts`: model loading.
+- `scripts/train_transformer.py`: training.
+- `scripts/eval-transformer.ts`: comparison.
 
-### Huấn luyện lại và đánh giá
+### Retraining and evaluation
 
 ```bash
-# dữ liệu (một lần)
-python scripts/websight_to_trees.py --n 30000 --out data/corpus/websight.jsonl    # cần: pip install datasets beautifulsoup4
+# data (one-off)
+python scripts/websight_to_trees.py --n 30000 --out data/corpus/websight.jsonl    # requires: pip install datasets beautifulsoup4
 npm run build-corpus && npm run build-synthetic -- --n 6000
-# huấn luyện (CPU 4 nhân, khoảng 5 phút cho 20 epoch) và đánh giá
-npm run export-tf-data                      # gồm cả màn đã duyệt trong DB
+# training (4-core CPU, ~5 min for 20 epochs) and evaluation
+npm run export-tf-data                      # includes approved screens from the DB
 pip install torch && npm run train-transformer -- --epochs 20
 npm run eval-transformer -- --limit 1500    # → analysis/eval-transformer.csv
 ```
 
-**Kết quả.** Đánh giá theo đúng thiết lập của Li et al. 2020 (mục 5):
-- Cây "đang thiết kế dở" gồm 10/50/80% node đầu theo hai luồng thiết kế **BFS** và **DFS**.
-- Dùng 3 thước đo của mục 5.2, ở bản **nới lỏng theo loại** (mục 6 của bài báo), vì cây không có tọa độ:
-  - **F1** cặp cha–con giữa cây do mô hình *tự hoàn thiện* và cây đúng.
-  - **Next:** độ chính xác Top-1 đoán node kế tiếp, kèm Top-3.
-  - **Edit:** khoảng cách sửa cây Zhang–Shasha, quy ra giây theo KLM-GOMS (chèn 5,05 s; đổi loại 3,95 s; xóa 0,1 s).
-- Mốc so sánh "Không gợi ý" là giữ nguyên cây dở, nghĩa là BA tự thêm mọi thứ.
-- N-gram huấn luyện trên *cùng* 23.881 cây. Next đo trên 1.500 cây, F1/Edit trên 500 cây (`npm run eval-transformer`).
+**Results.** Evaluated with the same setup as Li et al. 2020 (§5):
+- "Partially designed" trees consist of the first 10/50/80% of nodes under two design orders, **BFS** and **DFS**.
+- The 3 metrics from §5.2 are used in their **type-relaxed** form (§6 of the paper), since the trees have no coordinates:
+  - **F1** over parent–child pairs between the tree the model *auto-completes* and the ground-truth tree.
+  - **Next:** Top-1 accuracy for predicting the next node, plus Top-3.
+  - **Edit:** Zhang–Shasha tree edit distance, converted to seconds using KLM-GOMS (insert 5.05 s; relabel 3.95 s; delete 0.1 s).
+- The "No suggestion" baseline keeps the partial tree as-is, i.e. the BA adds everything manually.
+- The n-gram is trained on the *same* 23,881 trees. Next is measured on 1,500 trees, F1/Edit on 500 trees (`npm run eval-transformer`).
 
-*WebSight + nội bộ, luồng BFS (so với Bảng 1 của bài báo):*
+*WebSight + internal, BFS order (cf. Table 1 of the paper):*
 
-| Mô hình | 10% F1 / Next / Edit | 50% F1 / Next / Edit | 80% F1 / Next / Edit |
+| Model | 10% F1 / Next / Edit | 50% F1 / Next / Edit | 80% F1 / Next / Edit |
 |---|---|---|---|
-| Không gợi ý | 20,1 / – / 55,9 | 64,3 / – / 32,0 | 86,0 / – / 14,3 |
-| N-gram | 37,7 / **50,6** / 40,2 | 49,2 / 66,1 / **14,7** | 52,4 / 77,3 / 7,7 |
-| Transformer | **42,2** / 46,6 / **33,9** | **75,4 / 69,1** / 15,5 | **88,4 / 79,0 / 6,3** |
+| No suggestion | 20.1 / – / 55.9 | 64.3 / – / 32.0 | 86.0 / – / 14.3 |
+| N-gram | 37.7 / **50.6** / 40.2 | 49.2 / 66.1 / **14.7** | 52.4 / 77.3 / 7.7 |
+| Transformer | **42.2** / 46.6 / **33.9** | **75.4 / 69.1** / 15.5 | **88.4 / 79.0 / 6.3** |
 
-*WebSight + nội bộ, luồng DFS (so với Bảng 2):*
+*WebSight + internal, DFS order (cf. Table 2):*
 
-| Mô hình | 10% | 50% | 80% |
+| Model | 10% | 50% | 80% |
 |---|---|---|---|
-| Không gợi ý | 20,1 / – / 55,9 | 64,3 / – / 32,0 | **86,0** / – / 14,3 |
-| N-gram | 38,1 / **47,3** / 39,8 | 47,4 / 74,0 / **20,1** | 51,6 / 63,6 / 11,4 |
-| Transformer | **42,7** / 44,3 / **33,1** | **68,5 / 74,3** / 22,7 | 84,4 / **63,8 / 11,2** |
+| No suggestion | 20.1 / – / 55.9 | 64.3 / – / 32.0 | **86.0** / – / 14.3 |
+| N-gram | 38.1 / **47.3** / 39.8 | 47.4 / 74.0 / **20.1** | 51.6 / 63.6 / 11.4 |
+| Transformer | **42.7** / 44.3 / **33.1** | **68.5 / 74.3** / 22.7 | 84.4 / **63.8 / 11.2** |
 
-*Màn nghiệp vụ tổng hợp (189 cây):*
+*Synthetic business screens (189 trees):*
 
-| Mô hình | BFS 10% | BFS 50% | BFS 80% | DFS 50% | DFS 80% |
+| Model | BFS 10% | BFS 50% | BFS 80% | DFS 50% | DFS 80% |
 |---|---|---|---|---|---|
-| Không gợi ý | 23,5 / – / 34,2 | 64,2 / – / 20,7 | 84,8 / – / 10,0 | 64,2 / – / 20,7 | 84,8 / – / 10,0 |
-| N-gram | 21,0 / 0,0 / 33,1 | 47,2 / 50,3 / 14,2 | 64,5 / 62,4 / 5,9 | 46,1 / 56,6 / 14,2 | 66,4 / 77,2 / 7,9 |
-| Transformer | **50,1 / 52,9 / 10,5** | **78,8 / 69,8 / 6,5** | **91,7 / 75,1 / 1,6** | **81,0 / 63,5 / 6,8** | **90,5 / 83,1 / 2,8** |
+| No suggestion | 23.5 / – / 34.2 | 64.2 / – / 20.7 | 84.8 / – / 10.0 | 64.2 / – / 20.7 | 84.8 / – / 10.0 |
+| N-gram | 21.0 / 0.0 / 33.1 | 47.2 / 50.3 / 14.2 | 64.5 / 62.4 / 5.9 | 46.1 / 56.6 / 14.2 | 66.4 / 77.2 / 7.9 |
+| Transformer | **50.1 / 52.9 / 10.5** | **78.8 / 69.8 / 6.5** | **91.7 / 75.1 / 1.6** | **81.0 / 63.5 / 6.8** | **90.5 / 83.1 / 2.8** |
 
-Next Top-3 của Transformer trên WebSight BFS: 85,5% / 90,2% / 94,0% (bài báo, bản nới lỏng ở BFS 80%: 92,9–95,3%).
+Transformer Next Top-3 on WebSight BFS: 85.5% / 90.2% / 94.0% (paper, relaxed variant at BFS 80%: 92.9–95.3%).
 
-**Đọc kết quả:**
-- Transformer cho F1 cao nhất ở hầu hết cấu hình. N-gram có F1 *thấp hơn cả việc không gợi ý* ở mức 50–80%, vì nó chỉ biết nối thêm vào cuối container nên sinh thừa phần tử.
-- Edit distance rất "dễ dãi" với phần tử thừa, vì xóa chỉ tốn 0,1 s theo cách đặt của bài báo. Vì vậy ở mức 50% trên WebSight, n-gram nhỉnh hơn một chút về Edit dù F1 thấp hơn nhiều.
-- Ở DFS 80% trên WebSight, Transformer chưa vượt mốc "không gợi ý" về F1 (84,4 so với 86,0).
-- Trên màn nghiệp vụ, Transformer vượt rõ ở mọi thước đo.
+**Interpretation:**
+- The Transformer achieves the highest F1 in most configurations. At 50–80% the n-gram scores *below the no-suggestion baseline* on F1, because it can only append to the end of a container and therefore over-generates.
+- Edit distance is very lenient towards extra elements, since deletion costs only 0.1 s under the paper's setup. That is why, at 50% on WebSight, the n-gram edges ahead on Edit despite a much lower F1.
+- At DFS 80% on WebSight, the Transformer does not yet beat the no-suggestion baseline on F1 (84.4 vs 86.0).
+- On business screens, the Transformer wins clearly on every metric.
 
-*Bổ sung cho tính năng của nhóm (bài báo không có):* tìm phần tử bị thiếu. Xóa 1 node, mô hình phải chỉ đúng vị trí và loại; kết quả Hit@1 / Hit@3:
+*Additional task specific to our use case (not covered by the paper):* missing-element detection. One node is deleted and the model must identify both its position and type; Hit@1 / Hit@3:
 
-| Tập | N-gram | Transformer |
+| Set | N-gram | Transformer |
 |---|---|---|
-| WebSight + nội bộ | 9,3% / 24,3% | **43,2% / 62,5%** |
-| Nghiệp vụ tổng hợp | 6,9% / 22,2% | **58,7% / 87,3%** |
+| WebSight + internal | 9.3% / 24.3% | **43.2% / 62.5%** |
+| Synthetic business | 6.9% / 22.2% | **58.7% / 87.3%** |
 
-Báo động giả (cây hoàn chỉnh vẫn bị gợi ý thêm, ngưỡng 0,3 của app): 18,3% WebSight, 14,8% nghiệp vụ. Độ trễ khoảng 9–15 ms/màn.
+False-alarm rate (complete trees still receiving an Add suggestion at the app's 0.3 threshold): 18.3% on WebSight, 14.8% on business screens. Latency ~9–15 ms per screen.
 
-**Giới hạn:**
-- Dữ liệu nghiệp vụ tổng hợp sinh từ chính bộ sinh thiết kế, nên kết quả trên tập này lạc quan hơn thực tế.
-- WebSight chủ yếu là landing page, ít form/bảng.
-- Phần tử bị xóa ngẫu nhiên đôi khi không đoán được về bản chất (một đoạn Text bất kỳ), nên Hit@k không thể đạt 100%.
+**Limitations:**
+- The synthetic business data comes from the design generator itself, so results on that set are optimistic.
+- WebSight is dominated by landing pages, with few forms or tables.
+- A randomly deleted element is sometimes inherently unpredictable (an arbitrary Text block), so Hit@k cannot reach 100%.
 
-**Kiểm tra trên 30 màn tham chiếu** (`npm run eval-reference`): đây là các màn nhóm tự thiết kế thủ công, mô phỏng sản phẩm thật, có Sidebar/Card/Section/Modal, và không dùng khi huấn luyện. Kết quả cho thấy mô hình **chưa tổng quát tốt** sang bố cục khác dữ liệu huấn luyện:
-- Leave-one-out (bỏ lần lượt 489 node): Hit@3 của Transformer 11,2%, n-gram 9,2%. Riêng Input đạt 44,7%, Button 22%.
-- 12/30 màn hoàn chỉnh vẫn có gợi ý thừa, chủ yếu là "Thêm Heading/Text" (thói quen học từ landing page WebSight).
-- Màn bỏ 2 phần tử (90 lượt):
-  - Transformer *đa dạng hơn*: Jaccard giữa hai màn khác nhau là 0,12 so với 0,36 của n-gram; gợi ý "Thêm" phổ biến nhất chiếm 42% so với 53%.
-  - Nhưng Transformer *ít trúng hơn*: recall 7% so với 42%. N-gram trúng nhiều chủ yếu nhờ "Thêm Link" vào thanh điều hướng.
+**Evaluation on 30 reference screens** (`npm run eval-reference`): hand-designed by the team to mimic real products, with Sidebar/Card/Section/Modal, and never used in training. The results show the model **does not yet generalise well** to layouts that differ from its training distribution:
+- Leave-one-out (removing each of 489 nodes in turn): Transformer Hit@3 11.2%, n-gram 9.2%. Input alone reaches 44.7%, Button 22%.
+- 12 of 30 complete screens still receive spurious suggestions, mostly "Add Heading/Text" (a habit learned from WebSight landing pages).
+- Screens with 2 elements removed (90 runs):
+  - The Transformer is *more diverse*: Jaccard similarity between two different screens is 0.12 vs 0.36 for the n-gram; its most frequent "Add" suggestion accounts for 42% vs 53%.
+  - But the Transformer is *less accurate*: recall 7% vs 42%. The n-gram's hits come mostly from "Add Link" to navigation bars.
 
-<details><summary>N-gram cũ (chỉ WebSight + nội bộ, 22.429 cây)</summary>
+<details><summary>Legacy n-gram (WebSight + internal only, 22,429 trees)</summary>
 
-`npm run build-model` / `npm run eval-next`: Top-1/Top-3 ở mức 50% đạt 66,4% / 88,9% trên holdout 2.503 cây. Bảng trên huấn luyện lại n-gram trên cùng dữ liệu với Transformer nên số khác.
+`npm run build-model` / `npm run eval-next`: Top-1/Top-3 at 50% reaches 66.4% / 88.9% on a 2,503-tree holdout. The tables above retrain the n-gram on the same data as the Transformer, hence the different numbers.
 </details>
 
 </details>
 
-### Bộ dữ liệu "bổ sung UI" (đang xây dựng)
+### UI completion dataset (work in progress)
 
-Thay cho WebSight và dữ liệu tổng hợp từ Mock. Đặc tả chi tiết ở `dataset/AUTHORING.md`.
+Replaces WebSight and the Mock-generated synthetic data. Full specification in `dataset/AUTHORING.md`.
 
-- **Màn gốc:** do Claude soạn theo ma trận phủ `dataset/matrix.json`, gồm 500 màn = 5 nhóm × 12 miền × quyền × bố cục. Đợt thử là 50 màn trong `dataset/roots/`.
-- **Duyệt:** BA duyệt tại trang **Duyệt dữ liệu** (`#/review`) theo 6 tiêu chí, rồi bấm "Xuất kết quả" và gửi file JSON cho nhóm. Ở đợt thử, mỗi màn có 2 BA duyệt độc lập để đo độ đồng thuận.
-- **Sinh mẫu:** `npm run dataset:samples -- --reviews kq1.json,kq2.json,...` tạo mẫu từ các màn được chấp nhận. Mỗi mẫu gồm `requirement`, `partialTree`, `targetContainerId`, `acceptedPatch`, `completedTree`, `review`. Có 4 kiểu: thiếu 1 phần tử, thiếu 1 cụm, thiếu 1 cặp, và màn đủ (đáp án rỗng; với màn giới hạn quyền thì là mẫu bẫy). Tập train/val/test được chia theo màn gốc.
-- **Huấn luyện:** `npm run dataset:export && python3 scripts/train_transformer.py --samples data/dataset/tf --epochs 30`.
+- **Root screens:** authored by Claude following the coverage matrix `dataset/matrix.json`: 500 screens = 5 groups × 12 domains × permission levels × layouts. The pilot batch is 50 screens in `dataset/roots/`.
+- **Review:** BAs review screens on the **dataset review** page (`#/review`) against 6 criteria, then click export and send the JSON file to the team. In the pilot, each screen is reviewed by 2 independent BAs to measure inter-rater agreement.
+- **Sample generation:** `npm run dataset:samples -- --reviews kq1.json,kq2.json,...` builds samples from accepted screens. Each sample contains `requirement`, `partialTree`, `targetContainerId`, `acceptedPatch`, `completedTree`, `review`. There are 4 kinds: one missing element, one missing group, one missing pair, and complete screens (empty target; for permission-restricted screens these act as trap samples). Train/val/test splits are made per root screen.
+- **Training:** `npm run dataset:export && python3 scripts/train_transformer.py --samples data/dataset/tf --epochs 30`.
 
-## 5. Kiểm thử
+## 5. Testing
 
 ```bash
-npm test                          # 243 test unit + tích hợp (gồm giả lập Claude API, đối chiếu Recursive TS ↔ PyTorch)
-npx playwright install chromium   # chỉ cần chạy lần đầu
-npm run e2e                       # chạy trình duyệt qua toàn luồng, ảnh chụp lưu ở e2e/screenshots/
+npm test                          # 243 unit + integration tests (incl. a mocked Claude API and Recursive TS ↔ PyTorch parity checks)
+npx playwright install chromium   # first run only
+npm run e2e                       # end-to-end browser run of the full workflow; screenshots saved to e2e/screenshots/
 ```
 
-## 6. Biến môi trường
+## 6. Environment variables
 
-Đặt trong tệp `.env` (chép từ `.env.example`; `.env` không bị đưa lên Git) hoặc trong *Variables* của Railway.
+Set them in `.env` (copied from `.env.example`; `.env` is git-ignored) or under *Variables* on Railway.
 
-| Biến | Ý nghĩa |
+| Variable | Description |
 | --- | --- |
-| `ANTHROPIC_API_KEY` | API key Claude, gọi thẳng Anthropic (gửi qua header `x-api-key`). |
-| `ANTHROPIC_AUTH_TOKEN` | Khoá dạng Bearer, dùng khi đi qua cổng trung gian (gửi qua `Authorization: Bearer`). Thay cho `ANTHROPIC_API_KEY`. Không có cả hai thì chạy Mock. |
-| `ANTHROPIC_BASE_URL` | Địa chỉ cổng gọi Claude, mặc định `https://api.anthropic.com`. |
-| `ANTHROPIC_MODEL` | Model sử dụng, mặc định `claude-sonnet-4-5`. |
-| `MAX_AI_CALLS_PER_DAY` | Giới hạn số lượt gọi Claude mỗi ngày (0 = không giới hạn). |
-| `APP_PASSWORD` | Đặt khi deploy công khai: mọi trang và API yêu cầu mật khẩu. |
-| `AI_MODE=mock` | Ép chạy rule-based dù đã có khoá. |
-| `PORT` | Cổng server, mặc định 3000. |
-| `DB_FILE` | Đường dẫn file SQLite, mặc định `data/ba-copilot.db`. |
-| `DATA_DIR` | Thư mục chứa tệp Kho tài liệu (`files/`), mặc định là thư mục của `DB_FILE`. |
-| `RECURSIVE_FILE` | Đường dẫn mô hình gợi ý bố cục, mặc định `model/recursive-layout.json`. |
-| `GITHUB_TOKEN` | (Tuỳ chọn) Token GitHub mặc định cho dự án chưa nhập token riêng. Nên dùng token chỉ có quyền ghi đúng repo. |
-| `GITHUB_API_URL` | (Tuỳ chọn) Địa chỉ API GitHub, mặc định `https://api.github.com`. |
+| `ANTHROPIC_API_KEY` | Claude API key for calling Anthropic directly (sent in the `x-api-key` header). |
+| `ANTHROPIC_AUTH_TOKEN` | Bearer token for use behind an API gateway (sent as `Authorization: Bearer`). Alternative to `ANTHROPIC_API_KEY`. If neither is set, the app runs in Mock mode. |
+| `ANTHROPIC_BASE_URL` | Claude endpoint base URL, default `https://api.anthropic.com`. |
+| `ANTHROPIC_MODEL` | Model to use, default `claude-sonnet-4-5`. |
+| `MAX_AI_CALLS_PER_DAY` | Daily cap on Claude calls (0 = unlimited). |
+| `APP_PASSWORD` | Set for public deployments: every page and API endpoint requires this password. |
+| `AI_MODE=mock` | Force the rule-based generator even when a key is configured. |
+| `PORT` | Server port, default 3000. |
+| `DB_FILE` | Path to the SQLite file, default `data/ba-copilot.db`. |
+| `DATA_DIR` | Directory for Document Repository files (`files/`), defaults to the directory of `DB_FILE`. |
+| `RECURSIVE_FILE` | Path to the layout suggestion model, default `model/recursive-layout.json`. |
+| `GITHUB_TOKEN` | (Optional) Fallback GitHub token for projects without their own token. Use a token scoped to write access on the target repository only. |
+| `GITHUB_API_URL` | (Optional) GitHub API base URL, default `https://api.github.com`. |
 
-## 7. Chưa làm trong bản MVP (theo lộ trình)
+## 7. Out of scope for the MVP (roadmap)
 
-- Đăng nhập thật cho từng thành viên (hiện chọn người dùng ở ô *Select your name…*; mã đăng nhập thành viên đã có ở server nhưng chưa bật giao diện). Bản deploy chỉ có một mật khẩu chung `APP_PASSWORD`.
-- Bình luận trực tiếp trên tài liệu (như Google Docs).
-- Mã hoá token GitHub lưu trong DB (bản xuất `database/` đã xoá token).
-- Chuyển sang PostgreSQL khi cần nhiều máy chủ cùng lúc. Hiện dùng SQLite trên volume của Railway; tầng `repo.ts` đã tách riêng nên chỉ cần thay phần này.
-- Xuất sang Figma và sinh script Playwright từ test case.
+- Real per-member authentication (users currently pick themselves from *Select your name…*; member login exists on the server but is not yet wired into the UI). The deployment uses a single shared `APP_PASSWORD`.
+- Inline commenting on documents (Google Docs-style).
+- Encrypting GitHub tokens at rest in the DB (the `database/` export already strips them).
+- Migrating to PostgreSQL when multiple server instances are needed. SQLite currently runs on a Railway volume; the persistence layer is isolated in `repo.ts`, so only that layer needs replacing.
+- Figma export and generating Playwright scripts from test cases.

@@ -1,48 +1,48 @@
 # BA Copilot
 
-Hệ thống web hỗ trợ Business Analyst đi trọn luồng **User story → Thiết kế UI → Tài liệu (BRD, UC, SRS, FRD-NFR, API) → Sơ đồ → Test case → Truy vết**, có duyệt theo vai BA / BA Lead và đẩy sản phẩm đã duyệt lên GitHub. Mọi đầu ra AI là *bản nháp* để BA duyệt.
+A web application that supports Business Analysts across the end-to-end workflow **User story → UI design → Documentation (BRD, UC, SRS, FRD-NFR, API spec) → Diagrams → Test cases → Traceability**, with a BA / BA Lead review process and automatic publishing of approved deliverables to GitHub. All AI output is treated as a *draft* for the BA to review.
 
-## Dùng thử trên web
+## Live demo
 
 | | |
 | --- | --- |
-| **Link** | <https://ba-copilot.up.railway.app/> |
-| **Mật khẩu** | `123321` |
+| **URL** | <https://ba-copilot.up.railway.app/> |
+| **Password** | `123321` |
 
-1. Mở link, nhập mật khẩu.
-2. Chọn tên ở ô **Select your name…** trên thanh trên — ví dụ **Lan Nguyen** (BA Lead, có quyền Approve / Request changes / Administration).
-3. Mở dự án mẫu **Electronics Store (sample)** để xem đủ các phần: Task Board, Business Requirements, Deliverables (Documents, Diagrams, Prototype, Test Cases, Traceability), Document Repository, AI Log, GitHub History.
+1. Open the URL and enter the password.
+2. Pick a user from the **Select your name…** dropdown in the top bar, e.g. **Lan Nguyen** (BA Lead — can Approve, Request changes and access Administration).
+3. Open the sample project **Electronics Store (sample)** to explore every module: Task Board, Business Requirements, Deliverables (Documents, Diagrams, Prototype, Test Cases, Traceability), Document Repository, AI Log and GitHub History.
 
-## Chạy trên máy
+## Running locally
 
-Yêu cầu **Node.js 22.13 trở lên** (`node -v`).
+Requires **Node.js 22.13+** (check with `node -v`).
 
 ```bash
 cd ba-copilot-source/ba-copilot
-npm install        # cài thư viện (một lần)
-npm run seed       # tạo dự án mẫu và 3 thành viên
-npm start          # build giao diện + chạy server
+npm install        # install dependencies (once)
+npm run seed       # seed the sample project and 3 team members
+npm start          # build the client and start the server
 ```
 
-Mở **http://localhost:3000**. Không có khoá Claude thì hệ thống chạy **Mock mode** (bộ sinh rule-based), vẫn đi trọn luồng. Cách gắn Claude: chép `.env.example` thành `.env` rồi điền khoá.
+Then open **http://localhost:3000**. Without a Claude API key the app runs in **Mock mode** (a rule-based generator) and still supports the full workflow. To enable Claude, copy `.env.example` to `.env` and fill in your key.
 
-## Cơ sở dữ liệu
+## Database
 
-SQLite tích hợp sẵn trong Node, không cần cài máy chủ CSDL. Bản dữ liệu nộp kèm nằm ở [`ba-copilot-source/ba-copilot/database/`](ba-copilot-source/ba-copilot/database/):
+The app uses Node's built-in SQLite driver — no database server required. The submitted data snapshot lives in [`ba-copilot-source/ba-copilot/database/`](ba-copilot-source/ba-copilot/database/):
 
-- `ba-copilot.db` — toàn bộ dữ liệu, mở bằng [DB Browser for SQLite](https://sqlitebrowser.org/dl/) → *Open Database* → tab *Browse Data*.
-- `ba-copilot.sql` — cùng dữ liệu dạng lệnh SQL.
-- `ERD.md`, `ERD.png`, `ERD-day-du.png` — sơ đồ quan hệ thực thể.
+- `ba-copilot.db` — the full dataset as a single SQLite file; open it with [DB Browser for SQLite](https://sqlitebrowser.org/dl/) → *Open Database* → *Browse Data*.
+- `ba-copilot.sql` — the same data as a SQL dump (schema + `INSERT` statements).
+- `ERD.md`, `ERD.png`, `ERD-day-du.png` — entity-relationship diagrams (overview and full).
 
-## Cấu trúc repo
+## Repository layout
 
-| Thư mục | Nội dung |
+| Path | Contents |
 | --- | --- |
-| [`ba-copilot-source/ba-copilot/`](ba-copilot-source/ba-copilot/) | Mã nguồn phần mềm (client React, server Node, shared, tests, e2e, database) |
-| [`docs/`](docs/) | Tài liệu thiết kế: design system, kế hoạch, tài liệu QUS |
+| [`ba-copilot-source/ba-copilot/`](ba-copilot-source/ba-copilot/) | Application source (React client, Node server, shared code, tests, e2e, database snapshot) |
+| [`docs/`](docs/) | Design documentation: design system, project plans, QUS docs |
 
-## Tài liệu chi tiết
+## Further reading
 
-- [README của phần mềm](ba-copilot-source/ba-copilot/README.md) — cách dùng, quy tắc nghiệp vụ, kiến trúc, gợi ý bố cục, kiểm thử, biến môi trường.
-- [DEPLOY.md](ba-copilot-source/ba-copilot/DEPLOY.md) — cách deploy lên Railway.
-- [database/README.md](ba-copilot-source/ba-copilot/database/README.md) — xem dữ liệu và truy vấn mẫu.
+- [Application README](ba-copilot-source/ba-copilot/README.md) — usage, business rules, architecture, layout suggestion, testing, environment variables.
+- [DEPLOY.md](ba-copilot-source/ba-copilot/DEPLOY.md) — deploying to Railway.
+- [database/README.md](ba-copilot-source/ba-copilot/database/README.md) — browsing the data and sample queries.
