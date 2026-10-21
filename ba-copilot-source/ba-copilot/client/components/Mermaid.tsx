@@ -24,7 +24,7 @@ export function loadMermaid(): Promise<any> {
       };
       sc.onerror = () => {
         loader = null;
-        reject(new Error("Không tải được thư viện Mermaid"));
+        reject(new Error("Could not load the Mermaid library"));
       };
       document.head.appendChild(sc);
     });
@@ -42,18 +42,18 @@ export interface MermaidError {
 
 /** Đọc số dòng và câu ngắn từ lỗi của Mermaid ("Parse error on line 3: …", "Lexical error on line 2. …"). */
 export function toMermaidError(e: unknown): MermaidError {
-  const detail = String((e as Error)?.message ?? e ?? "Lỗi không rõ");
+  const detail = String((e as Error)?.message ?? e ?? "Unknown error");
   const line = Number(detail.match(/on line (\d+)/i)?.[1] ?? 0);
   const expecting = detail.match(/Expecting (.+?), got '([^']*)'/);
   let message = detail.split("\n")[0].replace(/[:.]\s*$/, "");
-  if (/^(Parse|Lexical) error on line \d+/i.test(message)) message = expecting ? `Cú pháp sai gần "${expecting[2]}"` : "Cú pháp sai";
-  else if (/No diagram type detected/i.test(detail)) message = "Không nhận ra loại sơ đồ ở dòng đầu (vd flowchart LR, sequenceDiagram, erDiagram)";
+  if (/^(Parse|Lexical) error on line \d+/i.test(message)) message = expecting ? `Syntax error near "${expecting[2]}"` : "Syntax error";
+  else if (/No diagram type detected/i.test(detail)) message = "The diagram type on the first line was not recognised (e.g. flowchart LR, sequenceDiagram, erDiagram)";
   return { line, message: message.slice(0, 200), detail };
 }
 
 /** Kiểm tra cú pháp bằng Mermaid thật. null = hợp lệ. */
 export async function parseMermaid(code: string): Promise<MermaidError | null> {
-  if (!code.trim()) return { line: 0, message: "Mã sơ đồ trống", detail: "" };
+  if (!code.trim()) return { line: 0, message: "Diagram code is empty", detail: "" };
   const m = await loadMermaid();
   try {
     await m.parse(code);
@@ -105,12 +105,12 @@ export function Mermaid({ code, name, downloadable = true }: { code: string; nam
       <div className="mermaid-error" data-testid="mermaid-error">
         <div className="notice notice-warn" role="alert">
           <span className="notice-text">
-            Sơ đồ chưa vẽ được{error.line ? ` – dòng ${error.line}` : ""}: {error.message}
+            The diagram could not be rendered{error.line ? ` – line ${error.line}` : ""}: {error.message}
           </span>
         </div>
         {error.detail && error.detail !== error.message && (
           <details>
-            <summary className="muted small">Chi tiết lỗi</summary>
+            <summary className="muted small">Error details</summary>
             <pre className="code">{error.detail}</pre>
           </details>
         )}
@@ -122,7 +122,7 @@ export function Mermaid({ code, name, downloadable = true }: { code: string; nam
       {svg && downloadable && (
         <Btn kind="ghost" size="sm" onClick={downloadSvg}>
           <Icon name="download" size="sm" />
-          Tải SVG
+          Download SVG
         </Btn>
       )}
     </div>

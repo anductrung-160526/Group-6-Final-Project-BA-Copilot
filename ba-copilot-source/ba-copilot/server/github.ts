@@ -54,18 +54,18 @@ export class GitHubError extends HttpError {
 /** Dịch lỗi GitHub thành câu tiếng Việt dễ hiểu. Không bao giờ chứa token. */
 export function translateError(status: number, ghMessage: string, repoName: string, rateLimited = false): string {
   const msg = (ghMessage || "").toLowerCase();
-  if (status === 401) return "Token GitHub không hợp lệ hoặc đã hết hạn – BA Lead cập nhật token trong Cài đặt GitHub.";
-  if (status === 403 && (rateLimited || msg.includes("rate limit"))) return "GitHub tạm chặn vì gọi quá nhiều lần – thử lại sau ít phút.";
+  if (status === 401) return "The GitHub token is invalid or has expired – the BA Lead must update it in GitHub Settings.";
+  if (status === 403 && (rateLimited || msg.includes("rate limit"))) return "GitHub is temporarily rate-limiting requests – try again in a few minutes.";
   if (status === 403 || (status === 404 && msg.includes("resource not accessible")))
-    return `Token không có quyền ghi vào repo ${repoName} – cần quyền "Contents: Read and write" (hoặc quyền "repo").`;
-  if (status === 404) return `Không tìm thấy repo ${repoName} – kiểm tra lại link repo, hoặc token chưa được cấp quyền vào repo này.`;
-  if (status === 409) return `Repo ${repoName} đang trống hoặc nhánh bị xung đột – thử lại.`;
-  if (status === 422) return `GitHub từ chối dữ liệu gửi lên${ghMessage ? ` (${ghMessage})` : ""}.`;
-  if (status >= 500) return `GitHub đang gặp sự cố (mã ${status}) – thử lại sau.`;
-  return `GitHub báo lỗi (mã ${status})${ghMessage ? `: ${ghMessage}` : ""}.`;
+    return `The token cannot write to repository ${repoName} – it needs the "Contents: Read and write" permission (or the "repo" scope).`;
+  if (status === 404) return `Repository ${repoName} not found – check the repository link, or the token has not been granted access to it.`;
+  if (status === 409) return `Repository ${repoName} is empty or the branch has a conflict – try again.`;
+  if (status === 422) return `GitHub rejected the submitted data${ghMessage ? ` (${ghMessage})` : ""}.`;
+  if (status >= 500) return `GitHub is having problems (code ${status}) – try again later.`;
+  return `GitHub returned an error (code ${status})${ghMessage ? `: ${ghMessage}` : ""}.`;
 }
 
-const NETWORK_ERROR = "Không kết nối được GitHub – kiểm tra mạng của máy chủ rồi thử lại.";
+const NETWORK_ERROR = "Could not connect to GitHub – check the server's network connection and try again.";
 
 // ---------------------------------------------------------------- repo
 
@@ -186,7 +186,7 @@ export interface CommitResult {
  * - Repo rỗng: tạo README.md khởi tạo bằng Contents API trên nhánh mặc định rồi làm như trên.
  */
 export async function commitFiles(gh: GitHubClient, branch: string, files: ExportFile[], message: string): Promise<CommitResult> {
-  if (!files.length) throw new GitHubError("Sản phẩm không có tệp nào để đẩy.", 400);
+  if (!files.length) throw new GitHubError("The artifact has no files to push.", 400);
   for (let attempt = 0; ; attempt++) {
     let parent = await gh.branchSha(branch);
     let createBranch = false;
@@ -198,11 +198,11 @@ export async function commitFiles(gh: GitHubClient, branch: string, files: Expor
       if (!parent) {
         // Repo rỗng: Git Data API không chạy được cho tới khi có commit đầu tiên.
         await gh.req("PUT", `/contents/README.md`, {
-          message: "Khởi tạo repo cho BA Copilot",
-          content: Buffer.from(`# ${gh.repo.name}\n\nTài liệu, sơ đồ, prototype và test case đã được BA Lead duyệt trong BA Copilot.\n`, "utf8").toString("base64"),
+          message: "Initialise repository for BA Copilot",
+          content: Buffer.from(`# ${gh.repo.name}\n\nDocuments, diagrams, prototypes and test cases approved by the BA Lead in BA Copilot.\n`, "utf8").toString("base64"),
         });
         parent = await gh.branchSha(def);
-        if (!parent) throw new GitHubError("Không khởi tạo được repo rỗng trên GitHub – thử lại.", 409);
+        if (!parent) throw new GitHubError("Could not initialise the empty repository on GitHub – try again.", 409);
         if (def === branch) createBranch = false;
       }
     }
@@ -249,22 +249,22 @@ export async function listCommits(gh: GitHubClient, branch: string, limit = 30):
 /** Thử kết nối: repo tồn tại, token có quyền ghi, nhánh đã có chưa. */
 export async function testConnection(repoLink: string, token: string, branch: string): Promise<GitTestResult> {
   const repo = parseRepo(repoLink);
-  if (!repo) return { ok: false, message: "Link repo không hợp lệ – dán dạng https://github.com/<tổ chức>/<repo>." };
-  if (!token) return { ok: false, message: "Chưa có token GitHub – BA Lead dán token của dự án rồi thử lại." };
-  if (!validBranch(branch)) return { ok: false, message: `Tên nhánh "${branch}" không hợp lệ.` };
+  if (!repo) return { ok: false, message: "Invalid repository link – paste it as https://github.com/<organization>/<repo>." };
+  if (!token) return { ok: false, message: "No GitHub token yet – the BA Lead must paste the project's token and try again." };
+  if (!validBranch(branch)) return { ok: false, message: `Invalid branch name "${branch}".` };
   const gh = new GitHubClient(repo, token);
   try {
     const info = await gh.repoInfo();
     const defaultBranch = info.default_branch || undefined;
     if (info.permissions && !info.permissions.push && !info.permissions.admin) {
-      return { ok: false, message: `Token chỉ đọc được, không có quyền ghi vào repo ${repoFull(repo)} – cần quyền "Contents: Read and write".`, defaultBranch };
+      return { ok: false, message: `The token is read-only and cannot write to repository ${repoFull(repo)} – it needs the "Contents: Read and write" permission.`, defaultBranch };
     }
     const branchExists = !!(await gh.branchSha(branch));
     return {
       ok: true,
       message: branchExists
-        ? `Kết nối được repo ${repoFull(repo)}, có quyền ghi. Nhánh "${branch}" đã có.`
-        : `Kết nối được repo ${repoFull(repo)}, có quyền ghi. Nhánh "${branch}" chưa có – app sẽ tự tạo ở lần Duyệt đầu tiên.`,
+        ? `Connected to repository ${repoFull(repo)} with write access. Branch "${branch}" exists.`
+        : `Connected to repository ${repoFull(repo)} with write access. Branch "${branch}" does not exist yet – the app will create it on the first approval.`,
       branchExists,
       defaultBranch,
     };
@@ -414,7 +414,7 @@ function taskOf(ref: ArtifactRef, projectId: string): string | null {
   return r?.id ?? null;
 }
 
-export const NOT_CONFIGURED = "Chưa cấu hình GitHub – chưa đẩy";
+export const NOT_CONFIGURED = "GitHub is not configured – nothing was pushed";
 
 /**
  * Hàm đẩy khi BA Lead Duyệt (đăng ký vào server/events.ts). Chưa cấu hình → `{ pushed: false }`.
@@ -425,9 +425,9 @@ export async function pushApprovedToGitHub(ref: ArtifactRef, actorId: string | n
   const exp = buildExport(ref);
   const cfg = resolveGitConfig(exp.projectId);
   if (!cfg) return { pushed: false, message: NOT_CONFIGURED };
-  const editor = lastEditor(ref, exp.moduleId) ?? "không rõ";
+  const editor = lastEditor(ref, exp.moduleId) ?? "unknown";
   const lead = memberName(actorId) ?? "BA Lead";
-  const message = `Duyệt: ${exp.label} – ${exp.moduleName} · BA ${editor} · duyệt bởi ${lead}`;
+  const message = `Approved: ${exp.label} – ${exp.moduleName} · BA ${editor} · approved by ${lead}`;
   const gh = new GitHubClient(cfg.repo, cfg.token);
   const res = await commitFiles(gh, cfg.branch, exp.files, message);
   const d = getDb();
@@ -453,7 +453,7 @@ export async function pushApprovedToGitHub(ref: ArtifactRef, actorId: string | n
   );
   return {
     pushed: true,
-    message: `Đã đẩy ${exp.files.length} tệp lên GitHub (nhánh ${res.branch}${res.createdBranch ? ", vừa tạo" : ""}, commit ${res.sha.slice(0, 7)}).`,
+    message: `Pushed ${exp.files.length} file(s) to GitHub (branch ${res.branch}${res.createdBranch ? ", newly created" : ""}, commit ${res.sha.slice(0, 7)}).`,
     commitSha: res.sha,
     commitUrl: res.url,
   };

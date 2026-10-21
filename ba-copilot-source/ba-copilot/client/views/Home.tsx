@@ -29,22 +29,22 @@ export function Home() {
     if (form.id) {
       // PATCH /api/projects/:id – route tạm của C3 (R-041), client api.ts chưa có hàm riêng.
       const id = form.id;
-      const p = await run("Đang lưu", () => patch<P>(`/api/projects/${encodeURIComponent(id)}`, body));
+      const p = await run("Saving", () => patch<P>(`/api/projects/${encodeURIComponent(id)}`, body));
       if (!p) return;
-      toast(`Đã cập nhật dự án ${p.name}`, "ok");
+      toast(`Project ${p.name} updated`, "ok");
       setForm(null);
       load();
       return;
     }
-    const p = await run("Đang tạo dự án", () => post<P>("/api/projects", body));
+    const p = await run("Creating project", () => post<P>("/api/projects", body));
     if (p) {
       setForm(null);
       window.location.hash = projectHref(p.id);
     }
   };
   const remove = async (p: P) => {
-    const r = await run("Đang xoá", () => del(`/api/projects/${encodeURIComponent(p.id)}`));
-    if (r) toast(`Đã xoá dự án ${p.name}`, "ok");
+    const r = await run("Deleting", () => del(`/api/projects/${encodeURIComponent(p.id)}`));
+    if (r) toast(`Project ${p.name} deleted`, "ok");
     load();
   };
 
@@ -52,18 +52,18 @@ export function Home() {
     <div className="page" data-testid="home">
       <div className="page-head">
         <div>
-          <h1>Dự án</h1>
-          <p className="muted">Mỗi dự án có user story, các module và luồng Tài liệu → Sơ đồ → Prototype → Test case → Truy vết.</p>
+          <h1>Projects</h1>
+          <p className="muted">Each project has user stories, modules and the flow Documents → Diagrams → Prototype → Test Cases → Traceability.</p>
         </div>
         <Btn kind="primary" onClick={() => setForm({ id: null, name: "", description: "" })} data-testid="new-project">
           <Icon name="plus" size="sm" />
-          Dự án mới
+          New project
         </Btn>
       </div>
       {projects === null ? (
-        <div className="muted">Đang tải…</div>
+        <div className="muted">Loading…</div>
       ) : projects.length === 0 ? (
-        <Empty title="Chưa có dự án nào">Tạo dự án đầu tiên để bắt đầu viết yêu cầu nghiệp vụ.</Empty>
+        <Empty title="No projects yet">Create your first project to start writing business requirements.</Empty>
       ) : (
         <div className="grid">
           {projects.map((p) => (
@@ -71,7 +71,7 @@ export function Home() {
               <a className="tile-title" href={projectHref(p.id)} onClick={(e) => e.stopPropagation()}>
                 {p.name}
               </a>
-              <div className="muted small clamp">{p.description || "Không có mô tả"}</div>
+              <div className="muted small clamp">{p.description || "No description"}</div>
               <div className="tile-foot">
                 <span>{p.moduleCount} module</span>
                 <span>{fmtTime(p.createdAt)}</span>
@@ -80,7 +80,7 @@ export function Home() {
                   testId={`project-${p.id}`}
                   onEdit={() => setForm({ id: p.id, name: p.name, description: p.description })}
                   onDelete={() => remove(p)}
-                  deleteConfirm={{ title: `Xoá dự án "${p.name}"?`, message: "Toàn bộ module, user story, tài liệu, sơ đồ, màn hình và công việc của dự án sẽ bị xoá." }}
+                  deleteConfirm={{ title: `Delete project "${p.name}"?`, message: "All of the project's modules, user stories, documents, diagrams, screens and tasks will be deleted." }}
                 />
               </div>
             </div>
@@ -89,22 +89,22 @@ export function Home() {
       )}
       {form && (
         <Modal
-          title={form.id ? "Sửa dự án" : "Dự án mới"}
+          title={form.id ? "Edit project" : "New project"}
           onClose={() => setForm(null)}
           footer={
             <>
-              <Btn onClick={() => setForm(null)}>Huỷ</Btn>
+              <Btn onClick={() => setForm(null)}>Cancel</Btn>
               <Btn kind="primary" disabled={!form.name.trim()} onClick={save} data-testid="create-project">
-                {form.id ? "Lưu" : "Tạo dự án"}
+                {form.id ? "Save" : "Create project"}
               </Btn>
             </>
           }
         >
-          <Field label="Tên dự án">
-            <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="VD: Hệ thống bán hàng online" data-testid="project-name" />
+          <Field label="Project name">
+            <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Online sales system" data-testid="project-name" />
           </Field>
-          <Field label="Mô tả">
-            <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Mục tiêu, phạm vi, người dùng…" />
+          <Field label="Description">
+            <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Goals, scope, users…" />
           </Field>
         </Modal>
       )}

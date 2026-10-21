@@ -67,13 +67,15 @@ function isCovered(text: string, vocabularies: Set<string>[]): boolean {
 }
 
 // FR kiểm tra dữ liệu ("Hệ thống phải kiểm tra: Tên là bắt buộc") là quy tắc của trường trên màn đã có, không phải màn mới.
+// vi-keep-start: mẫu câu FR tiếng Việt cũ trong DB, song song tiếng Anh
 const VALIDATION_FR = /^(?:(?:hệ thống|the system)\s+(?:phải|shall|must|should)\s+)?(?:kiểm tra|validate)\s*:/iu;
 // Phần mở đầu không mang tên màn: "Hệ thống phải (cho phép <vai trò> thực hiện)", "The system shall (allow <role> to)".
 const LEAD = /^(?:hệ thống|the system)\s+(?:phải|shall|must|should)\s+(?:cho phép\s+(?:\S+\s+){0,4}?thực hiện\s+|allow\s+(?:\S+\s+){0,3}?to\s+)?/iu;
 // Từ mở đầu mệnh đề phụ: tên màn dừng trước chúng ("… theo trạng thái", "… để xử lý").
-const CLAUSE_WORDS = new Set(["để", "nhằm", "theo", "khi", "trong", "cho", "when", "for", "by"]);
+const CLAUSE_WORDS = new Set(["để", "nhằm", "theo", "khi", "trong", "cho", "when", "for", "by", "so", "via"]);
 // Từ nối không được đứng cuối tên.
-const TRAILING_WORDS = new Set(["và", "hoặc", "của", "các", "với", "and", "or", "of", "the", "a", "an"]);
+const TRAILING_WORDS = new Set(["và", "hoặc", "của", "các", "với", "and", "or", "of", "the", "a", "an", "to", "with"]);
+// vi-keep-end
 const MAX_NAME_WORDS = 8;
 
 // Tên màn đề xuất: bỏ phần mở đầu chung, dừng ở mệnh đề phụ, tối đa 8 từ, không kết thúc bằng từ nối, viết hoa chữ đầu.
@@ -82,7 +84,7 @@ function screenName(text: string): string {
   const quoted = text.match(/["“]([^"”]+)["”]/u)?.[1];
   let words: string[] = [];
   if (quoted) {
-    words = quoted.trim().replace(/^mở màn hình\s+/iu, "").replace(/\s*\(([^)]+)\)\s*$/u, " – $1").split(/\s+/);
+    words = quoted.trim().replace(/^(?:mở màn hình|open(?: the)? screen)\s+/iu, "").replace(/\s*\(([^)]+)\)\s*$/u, " – $1").split(/\s+/); // vi-keep: FR tiếng Việt cũ
   } else {
     // Bỏ chú thích trong ngoặc ("… ra Excel (ví dụ theo tháng)"), kể cả ngoặc chưa đóng
     const core = text.replace(/\s*[(（][^)）]*[)）]?/gu, " ").replace(/[.。!?]+$/u, "").trim().replace(LEAD, "");
@@ -116,9 +118,9 @@ function brokenLinks(model: DesignModel, known: Set<string>): ScreenSuggestion[]
         key: `link:${s.screenId}:${t.nodeId}`,
         kind: "broken-link",
         name,
-        reason: `Nút "${t.label}" ở màn ${s.screenName} chưa có đích`,
+        reason: `Button "${t.label}" on screen ${s.screenName} has no target`,
         source: `${s.screenName} › ${t.label}`,
-        prompt: `Màn hình ${name}. Người dùng tới màn này khi bấm "${t.label}" ở màn ${s.screenName}.`,
+        prompt: `Screen ${name}. Users reach this screen by clicking "${t.label}" on screen ${s.screenName}.`,
       });
     }
   }
@@ -146,9 +148,9 @@ export function suggestNextScreens(input: SuggestInput): ScreenSuggestion[] {
         key: `fr:${r.code}`,
         kind: "uncovered-fr",
         name,
-        reason: `${r.code} chưa có màn nào phủ`,
+        reason: `${r.code} is not covered by any screen`,
         source: r.code,
-        prompt: `Màn hình ${name} đáp ứng ${r.code}: ${r.statement}`,
+        prompt: `Screen ${name} satisfying ${r.code}: ${r.statement}`,
       });
     }
   } else {
@@ -163,9 +165,9 @@ export function suggestNextScreens(input: SuggestInput): ScreenSuggestion[] {
         key: storyKey(story),
         kind: "uncovered-story",
         name,
-        reason: code ? `User story ${code} chưa có màn nào phủ` : "User story chưa có màn nào phủ",
+        reason: code ? `User story ${code} is not covered by any screen` : "User story is not covered by any screen",
         source: code ?? story,
-        prompt: `Màn hình ${name} đáp ứng user story${code ? ` ${code}` : ""}: ${story}`,
+        prompt: `Screen ${name} satisfying user story${code ? ` ${code}` : ""}: ${story}`,
       });
     }
   }

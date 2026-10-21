@@ -24,10 +24,10 @@ export function DocsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise<
   }, [docs]);
 
   const generate = async () => {
-    if (m.docsStatus !== "none" && !(await confirm({ title: "Sinh lại tài liệu?", message: "Sinh lại sẽ thay thế toàn bộ UC, SRS và sequence hiện có.", okLabel: "Sinh lại" }))) return;
-    const r = await run("AI đang phân tích thiết kế và viết UC, SRS, Sequence…", () => post(`/api/modules/${m.id}/docs/generate`));
+    if (m.docsStatus !== "none" && !(await confirm({ title: "Regenerate the documents?", message: "Regenerating replaces all current use cases, the SRS and the sequence diagrams.", okLabel: "Regenerate" }))) return;
+    const r = await run("AI is analysing the design and writing the use cases, SRS and sequence diagrams…", () => post(`/api/modules/${m.id}/docs/generate`));
     if (r) {
-      toast(`Đã sinh ${r.useCases.length} Use Case, ${r.requirements.length} yêu cầu, ${r.sequences.length} sơ đồ`, "ok");
+      toast(`Generated ${r.useCases.length} use case(s), ${r.requirements.length} requirement(s), ${r.sequences.length} diagram(s)`, "ok");
       reload();
     }
   };
@@ -35,10 +35,10 @@ export function DocsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise<
   const target = sub === "uc" ? ucCode : sub === "seq" ? (ucCode ? `SEQ:${ucCode}` : null) : sub === "srs" ? (srsKey ? `SRS:${srsKey}` : null) : null;
   const refine = async () => {
     if (!target || !instruction.trim()) return;
-    const r = await run("AI đang chỉnh tài liệu…", () => post(`/api/modules/${m.id}/docs/refine`, { target, instruction }));
+    const r = await run("AI is refining the document…", () => post(`/api/modules/${m.id}/docs/refine`, { target, instruction }));
     if (r) {
       setInstruction("");
-      toast("Đã cập nhật", "ok");
+      toast("Updated", "ok");
       reload();
     }
   };
@@ -50,39 +50,39 @@ export function DocsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise<
   return (
     <div className="docs">
       <div className="toolbar">
-        <strong>Tài liệu</strong>
+        <strong>Documents</strong>
         <StatusBadge status={m.docsStatus} />
-        <span className="muted small">Nguồn: {approvedScreens.length} màn hình đã duyệt</span>
+        <span className="muted small">Source: {approvedScreens.length} approved screen(s)</span>
         <div className="spacer" />
-        <Btn kind={m.docsStatus === "none" ? "primary" : "secondary"} size="sm" disabled={!approvedScreens.length} onClick={generate} data-testid="generate-docs" title={!approvedScreens.length ? "BR-01: cần duyệt ít nhất 1 màn hình" : ""}>
+        <Btn kind={m.docsStatus === "none" ? "primary" : "secondary"} size="sm" disabled={!approvedScreens.length} onClick={generate} data-testid="generate-docs" title={!approvedScreens.length ? "BR-01: at least 1 screen must be approved" : ""}>
           <Icon name={m.docsStatus === "none" ? "ai" : "regenerate"} size="sm" />
-          {m.docsStatus === "none" ? "Sinh tài liệu" : "Sinh lại"}
+          {m.docsStatus === "none" ? "Generate documents" : "Regenerate"}
         </Btn>
         {m.docsStatus !== "none" && (
           <>
             {m.docsStatus === "approved" ? (
-              <Btn size="sm" onClick={() => run("Đang cập nhật", () => post(`/api/modules/${m.id}/docs/approve`, { approved: false })).then(reload)}>
-                Bỏ duyệt
+              <Btn size="sm" onClick={() => run("Updating", () => post(`/api/modules/${m.id}/docs/approve`, { approved: false })).then(reload)}>
+                Withdraw approval
               </Btn>
             ) : (
-              <Btn size="sm" kind="primary" onClick={() => run("Đang cập nhật", () => post(`/api/modules/${m.id}/docs/approve`, { approved: true })).then(() => { toast("Đã duyệt tài liệu – có thể sinh test case", "ok"); reload(); })} data-testid="approve-docs">
-                ✓ Duyệt tài liệu
+              <Btn size="sm" kind="primary" onClick={() => run("Updating", () => post(`/api/modules/${m.id}/docs/approve`, { approved: true })).then(() => { toast("Documents approved – test cases can now be generated", "ok"); reload(); })} data-testid="approve-docs">
+                ✓ Approve documents
               </Btn>
             )}
-            <Btn size="sm" onClick={() => run("Đang tạo file Word", () => download(`/api/modules/${m.id}/export/docx`))} data-testid="export-docx">
+            <Btn size="sm" onClick={() => run("Creating the Word file", () => download(`/api/modules/${m.id}/export/docx`))} data-testid="export-docx">
               ⤓ Word
             </Btn>
           </>
         )}
       </div>
-      {m.docsStatus === "outdated" && <div className="warn-banner">Thiết kế đã thay đổi sau khi sinh tài liệu (BR-02). Hãy duyệt lại màn hình và bấm "Sinh lại" để cập nhật.</div>}
+      {m.docsStatus === "outdated" && <div className="warn-banner">The design changed after the documents were generated (BR-02). Approve the screens again and click "Regenerate" to update.</div>}
       <RelatedTasks kind="docs" id={m.id} />
 
       {m.docsStatus === "none" ? (
-        <Empty title={approvedScreens.length ? "Sẵn sàng sinh tài liệu" : "Cần duyệt thiết kế trước (BR-01)"}>
+        <Empty title={approvedScreens.length ? "Ready to generate documents" : "Approve the design first (BR-01)"}>
           {approvedScreens.length
-            ? "Hệ thống trích mô hình trung gian (trường, ràng buộc, thao tác, điều hướng) từ các màn hình đã duyệt rồi sinh Use Case, SRS và Sequence diagram."
-            : 'Vào tab "1. Thiết kế", chọn màn hình và bấm "Duyệt thiết kế".'}
+            ? "The system extracts an intermediate model (fields, constraints, actions, navigation) from the approved screens and then generates the use cases, SRS and sequence diagrams."
+            : 'Open the "1. Design" tab, select a screen and click "Approve design".'}
         </Empty>
       ) : (
         <>
@@ -92,7 +92,7 @@ export function DocsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise<
                 ["uc", `Use Case (${docs.useCases.length})`],
                 ["srs", "SRS"],
                 ["seq", `Sequence (${docs.sequences.length})`],
-                ["req", `Yêu cầu (${docs.requirements.length})`],
+                ["req", `Requirements (${docs.requirements.length})`],
               ] as [Sub, string][]
             ).map(([k, l]) => (
               <button key={k} className={sub === k ? "on" : ""} onClick={() => setSub(k)} data-testid={`docs-${k}`}>
@@ -131,23 +131,23 @@ export function DocsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise<
                     <h2>{seq.title}</h2>
                     <Mermaid code={seq.mermaid} name={seq.useCaseCode} />
                     <details>
-                      <summary className="muted small">Mã Mermaid</summary>
+                      <summary className="muted small">Mermaid code</summary>
                       <pre className="code">{seq.mermaid}</pre>
                     </details>
                   </article>
                 ) : (
-                  <Empty title="Chưa có sơ đồ cho UC này" />
+                  <Empty title="No diagram for this use case yet" />
                 ))}
               {sub === "req" && (
                 <table className="tbl">
                   <thead>
                     <tr>
-                      <th>Mã</th>
-                      <th>Loại</th>
-                      <th>Yêu cầu</th>
-                      <th>Ưu tiên</th>
+                      <th>ID</th>
+                      <th>Type</th>
+                      <th>Requirement</th>
+                      <th>Priority</th>
                       <th>Use Case</th>
-                      <th>Nguồn</th>
+                      <th>Source</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -158,9 +158,9 @@ export function DocsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise<
                           <Badge tone={r.type === "FR" ? "blue" : "violet"}>{r.type}</Badge>
                         </td>
                         <td>
-                          {r.statement} {r.isAssumption && <Badge tone="amber">Giả định</Badge>}
+                          {r.statement} {r.isAssumption && <Badge tone="amber">Assumption</Badge>}
                         </td>
-                        <td>{({ High: "Cao", Medium: "TB", Low: "Thấp" } as Record<string, string>)[r.priority]}</td>
+                        <td>{({ High: "High", Medium: "Medium", Low: "Low" } as Record<string, string>)[r.priority]}</td>
                         <td className="nowrap">{r.useCaseCodes.join(", ")}</td>
                         <td className="muted small">{r.source}</td>
                       </tr>
@@ -171,11 +171,11 @@ export function DocsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise<
 
               {target && (
                 <div className="refine">
-                  <div className="box-title">Prompt chỉnh {sub === "srs" ? `mục "${section?.title}"` : sub === "seq" ? `sơ đồ ${ucCode}` : ucCode}</div>
+                  <div className="box-title">Refinement prompt for {sub === "srs" ? `section "${section?.title}"` : sub === "seq" ? `the ${ucCode} diagram` : ucCode}</div>
                   <div className="refine-row">
-                    <textarea rows={2} value={instruction} onChange={(e) => setInstruction(e.target.value)} placeholder={sub === "uc" ? "VD: Thêm ngoại lệ khóa tài khoản sau 5 lần nhập sai mật khẩu" : sub === "seq" ? "VD: Thêm bước gửi email xác nhận" : "VD: Bổ sung yêu cầu bảo mật OWASP"} data-testid="refine-input" />
+                    <textarea rows={2} value={instruction} onChange={(e) => setInstruction(e.target.value)} placeholder={sub === "uc" ? "e.g. Add an exception that locks the account after 5 wrong password attempts" : sub === "seq" ? "e.g. Add a step that sends a confirmation email" : "e.g. Add OWASP security requirements"} data-testid="refine-input" />
                     <Btn kind="primary" disabled={!instruction.trim()} onClick={refine} data-testid="refine-btn">
-                      ✦ Chỉnh
+                      ✦ Refine
                     </Btn>
                   </div>
                 </div>
@@ -194,7 +194,7 @@ function UseCaseView({ uc, screenName, moduleId }: { uc: UseCase; screenName: (i
       <strong>
         {f.code}. {f.name}
       </strong>{" "}
-      <span className="muted small">(rẽ nhánh từ bước {f.branchFrom})</span>
+      <span className="muted small">(branches from step {f.branchFrom})</span>
       <ol>
         {f.steps.map((s, i) => (
           <li key={i}>{s}</li>
@@ -203,19 +203,20 @@ function UseCaseView({ uc, screenName, moduleId }: { uc: UseCase; screenName: (i
     </div>
   );
   const rows: [string, React.ReactNode][] = [
-    ["Tác nhân", uc.actors.join(", ")],
-    ["Mô tả", uc.description],
-    ["Sự kiện kích hoạt", uc.trigger],
-    ["Tiền điều kiện", <ul>{uc.preconditions.map((x, i) => <li key={i}>{x}</li>)}</ul>],
-    ["Hậu điều kiện", <ul>{uc.postconditions.map((x, i) => <li key={i}>{x}</li>)}</ul>],
+    ["Actors", uc.actors.join(", ")],
+    ["Description", uc.description],
+    ["Trigger", uc.trigger],
+    ["Preconditions", <ul>{uc.preconditions.map((x, i) => <li key={i}>{x}</li>)}</ul>],
+    ["Postconditions", <ul>{uc.postconditions.map((x, i) => <li key={i}>{x}</li>)}</ul>],
     [
-      "Luồng chính",
+      "Main flow",
       <ol className="main-flow">
         {uc.mainFlow.map((s) => (
           <li key={s.no}>
-            <span className={`actor ${s.actor === "Hệ thống" ? "sys" : ""}`}>{s.actor}</span> {s.text}
+            {/* vi-keep: actor "Hệ thống" trong UC cũ */}
+            <span className={`actor ${/^(?:system|hệ thống)$/i.test(s.actor) ? "sys" : ""}`}>{s.actor}</span> {s.text}
             {s.screenId && (
-              <a className="screen-link" href={`#/m/${moduleId}/design`} title="Mở màn hình">
+              <a className="screen-link" href={`#/m/${moduleId}/design`} title="Open screen">
                 ↗ {screenName(s.screenId)}
               </a>
             )}
@@ -223,10 +224,10 @@ function UseCaseView({ uc, screenName, moduleId }: { uc: UseCase; screenName: (i
         ))}
       </ol>,
     ],
-    ["Luồng thay thế", uc.altFlows.length ? uc.altFlows.map(flow) : "—"],
-    ["Ngoại lệ", uc.exceptions.length ? uc.exceptions.map(flow) : "—"],
-    ["Quy tắc nghiệp vụ", uc.businessRules.length ? <ul>{uc.businessRules.map((x, i) => <li key={i}>{x}</li>)}</ul> : "—"],
-    ["Màn hình", uc.screenIds.map(screenName).join(", ") || "—"],
+    ["Alternative flows", uc.altFlows.length ? uc.altFlows.map(flow) : "—"],
+    ["Exception flows", uc.exceptions.length ? uc.exceptions.map(flow) : "—"],
+    ["Business rules", uc.businessRules.length ? <ul>{uc.businessRules.map((x, i) => <li key={i}>{x}</li>)}</ul> : "—"],
+    ["Screens", uc.screenIds.map(screenName).join(", ") || "—"],
   ];
   return (
     <article className="paper">
@@ -245,7 +246,7 @@ function UseCaseView({ uc, screenName, moduleId }: { uc: UseCase; screenName: (i
       </table>
       {uc.assumptions.length > 0 && (
         <div className="assume">
-          <strong>Giả định – cần BA xác nhận (BR-03)</strong>
+          <strong>Assumptions – to be confirmed by the BA (BR-03)</strong>
           <ul>
             {uc.assumptions.map((a, i) => (
               <li key={i}>{a}</li>

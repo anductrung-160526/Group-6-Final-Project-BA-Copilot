@@ -12,6 +12,7 @@
     "build": "node scripts/build.mjs",
     "start": "node scripts/build.mjs && tsx server/index.ts",
     "test": "tsx --test tests/*.test.ts",
+    "check-vi": "node scripts/check-vi.mjs",
     "e2e": "node scripts/build.mjs && node e2e/e2e.mjs",
     "seed": "tsx scripts/seed.ts",
     "bundle": "node scripts/bundle.mjs",

@@ -9,7 +9,7 @@ import { qusRating, scoreStories, type OtherModuleStories, type QusIssue, type Q
 import { Empty, Icon, IssueList, ScoreBadge, type IssueItem } from "./ui.tsx";
 
 const DEBOUNCE_MS = 300;
-const SEVERITY_LABEL: Record<QusIssue["severity"], string> = { error: "lỗi", warn: "cảnh báo", info: "gợi ý" };
+const SEVERITY_LABEL: Record<QusIssue["severity"], string> = { error: "error", warn: "warning", info: "suggestion" };
 
 function useDebounced<T>(value: T, ms: number): T {
   const [v, setV] = useState(value);
@@ -47,7 +47,7 @@ export function QusPanel({ text, others }: { text: string; others?: OtherModuleS
   if (result.stories.length === 0) {
     return (
       <div data-testid="qus-panel">
-        <Empty title="Chưa có user story để chấm">Mỗi dòng một story, ví dụ: "Là khách hàng, tôi muốn xem lịch sử đơn hàng để theo dõi giao hàng."</Empty>
+        <Empty title="No user stories to score yet">One story per line, for example: "As a customer, I want to view my order history so that I can track deliveries."</Empty>
       </div>
     );
   }
@@ -64,16 +64,16 @@ export function QusPanel({ text, others }: { text: string; others?: OtherModuleS
       <div className="qus-head" aria-expanded={allOpen} {...pressable(() => setAll(!allOpen))}>
         <div>
           <div className="qus-title-wrap">
-            <span>Chất lượng yêu cầu</span>
+            <span>Requirement quality</span>
             <ScoreBadge score={result.total} testId="qus-total" />
           </div>
           <div className="muted small" data-testid="qus-summary">
-            {result.stories.length} story · {count("error")} lỗi · {count("warn")} cảnh báo · {count("info")} gợi ý
-            {qusRating(result.total) === "poor" && " · Điểm chỉ để tham khảo, vẫn lưu được."}
+            {result.stories.length} {result.stories.length === 1 ? "story" : "stories"} · {count("error")} errors · {count("warn")} warnings · {count("info")} suggestions
+            {qusRating(result.total) === "poor" && " · The score is for reference only; you can still save."}
           </div>
         </div>
         <span className="muted small">
-          {allOpen ? "Thu gọn tất cả" : "Bung tất cả"} <Icon name={allOpen ? "chevronUp" : "chevronDown"} size="sm" />
+          {allOpen ? "Collapse all" : "Expand all"} <Icon name={allOpen ? "chevronUp" : "chevronDown"} size="sm" />
         </span>
       </div>
 
@@ -98,7 +98,7 @@ export function QusPanel({ text, others }: { text: string; others?: OtherModuleS
                 </div>
                 <ScoreBadge score={s.score} showLabel={false} />
               </div>
-              {open && <IssueList issues={s.issues.map(toIssueItem)} empty="Đạt chuẩn QUS" />}
+              {open && <IssueList issues={s.issues.map(toIssueItem)} empty="Meets the QUS criteria" />}
             </div>
           );
         })}
@@ -120,7 +120,7 @@ export function QusToggle({ score, open, onToggle, testId }: { score?: StoryScor
       type="button"
       className="link nowrap"
       aria-expanded={open}
-      title={n ? `${n} vấn đề – bấm để ${open ? "thu gọn" : "xem chi tiết"}` : "Đạt chuẩn QUS"}
+      title={n ? `${n} ${n === 1 ? "issue" : "issues"} – click to ${open ? "collapse" : "see details"}` : "Meets the QUS criteria"}
       onClick={onToggle}
       data-testid={testId}
     >
@@ -133,8 +133,8 @@ export function QusToggle({ score, open, onToggle, testId }: { score?: StoryScor
 export function QusDetail({ score }: { score: StoryScore }) {
   return (
     <div className="issue-list" data-testid="qus-detail">
-      <div className="muted small">Câu được chấm: "{score.text}"</div>
-      <IssueList issues={score.issues.map(toIssueItem)} empty="Đạt chuẩn QUS" />
+      <div className="muted small">Scored sentence: "{score.text}"</div>
+      <IssueList issues={score.issues.map(toIssueItem)} empty="Meets the QUS criteria" />
     </div>
   );
 }
@@ -147,7 +147,7 @@ export function QusSummary({ result, testId = "qus-module" }: { result: QusResul
     <span className="qus-title-wrap" data-testid={testId}>
       <ScoreBadge score={result.total} />
       <span className="muted small">
-        QUS · {countOf(all, "error")} lỗi · {countOf(all, "warn")} cảnh báo · {countOf(all, "info")} gợi ý
+        QUS · {countOf(all, "error")} errors · {countOf(all, "warn")} warnings · {countOf(all, "info")} suggestions
       </span>
     </span>
   );

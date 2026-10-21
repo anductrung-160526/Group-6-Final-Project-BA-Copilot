@@ -48,12 +48,12 @@ function legacyDir(): string | null {
 
 /** Làm sạch tên file, loại bỏ đường dẫn, dấu nháy và ký tự điều khiển. */
 export function cleanName(name: string): string {
-  if (typeof name !== "string") throw new BizError("Tên file không hợp lệ");
+  if (typeof name !== "string") throw new BizError("Invalid file name");
   let s = name.replace(/^.*[/\\]/, "").replace(/[/\\]/g, "");
   s = s.replace(/["']/g, "").replace(/[\u0000-\u001F\u007F]/g, "").trim();
-  if (s === "." || s === "..") throw new BizError("Tên file không hợp lệ");
+  if (s === "." || s === "..") throw new BizError("Invalid file name");
   s = s.slice(0, 150).trim();
-  if (!s) throw new BizError("Tên file không được để trống");
+  if (!s) throw new BizError("File name is required");
   return s;
 }
 
@@ -61,7 +61,7 @@ export function cleanName(name: string): string {
 export function checkSignature(ext: string, buf: Buffer): boolean {
   const e = ext.toLowerCase();
   const fail = (what: string) => {
-    throw new BizError(`Nội dung file không đúng định dạng ${ext} (thiếu chữ ký ${what})`);
+    throw new BizError(`File content does not match the ${ext} format (missing ${what} signature)`);
   };
   if (e === ".docx" || e === ".xlsx") {
     if (buf.length < 2 || buf[0] !== 0x50 || buf[1] !== 0x4b) fail("PK");
@@ -85,7 +85,7 @@ export function checkSignature(ext: string, buf: Buffer): boolean {
 export function safePath(root: string, storedName: string): string {
   const base = resolve(root);
   const target = resolve(base, storedName);
-  if (!target.startsWith(base + sep)) throw new BizError("Đường dẫn file không hợp lệ (path traversal)");
+  if (!target.startsWith(base + sep)) throw new BizError("Invalid file path (path traversal)");
   return target;
 }
 
@@ -137,7 +137,7 @@ export function cleanDate(v: unknown): string | null {
   const s = String(v).trim();
   const d = new Date(`${s}T00:00:00Z`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s) || isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== s) {
-    throw new BizError("Ngày nhận không hợp lệ (định dạng YYYY-MM-DD)");
+    throw new BizError("Invalid received date (format YYYY-MM-DD)");
   }
   return s;
 }
@@ -187,7 +187,7 @@ const toItem = (r: Row): FileItem => ({
 });
 
 /** Bỏ dấu, chữ thường – để tìm "tai lieu" ra "Tài liệu". */
-export const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase();
+export const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase(); // vi-keep: bỏ dấu tiếng Việt khi tìm kiếm
 
 export function getFileItem(id: string): (FileItem & { storedName: string }) | null {
   const r = getDb().prepare("SELECT * FROM files WHERE id = ?").get(id) as Row | undefined;
@@ -218,10 +218,10 @@ export function saveBuffer(
   const cName = cleanName(name);
   const ext = extname(cName).toLowerCase();
   if (!EXT_TO_MIME[ext]) {
-    throw new BizError(`Định dạng file không được hỗ trợ: ${ext || "(không có đuôi)"}. Chỉ nhận Word, PDF, Excel, ảnh (${ALLOWED_EXTS.join(", ")})`);
+    throw new BizError(`Unsupported file format: ${ext || "(no extension)"}. Only Word, PDF, Excel and images are accepted (${ALLOWED_EXTS.join(", ")})`);
   }
-  if (!buf || buf.length === 0) throw new BizError("Nội dung file rỗng");
-  if (buf.length > MAX_FILE_BYTES) throw new BizError("Kích thước file vượt quá giới hạn 10MB", 413);
+  if (!buf || buf.length === 0) throw new BizError("The file is empty");
+  if (buf.length > MAX_FILE_BYTES) throw new BizError("The file exceeds the 10 MB size limit", 413);
   checkSignature(ext, buf);
 
   const id = randomUUID();
@@ -244,14 +244,14 @@ export function renameKeepExt(oldName: string, newName: string): string {
   const n = cleanName(newName);
   const ext = extname(n).toLowerCase();
   if (ext === oldExt) return n;
-  if (EXT_TO_MIME[ext]) throw new BizError(`Không được đổi đuôi tệp (${oldExt} → ${ext})`);
+  if (EXT_TO_MIME[ext]) throw new BizError(`The file extension cannot be changed (${oldExt} → ${ext})`);
   return cleanName(n + oldExt);
 }
 
 /** FN-06: đổi tên, chuyển module, sửa thông tin nguồn. */
 export function updateFileItem(id: string, body: any): FileItem {
   const f = getFileItem(id);
-  if (!f) throw new BizError("Không tìm thấy file", 404);
+  if (!f) throw new BizError("File not found", 404);
   const meta = readMeta(body);
   tx(() => {
     if (has(body, "name")) {
@@ -261,7 +261,7 @@ export function updateFileItem(id: string, body: any): FileItem {
       const mid = body.moduleId ? String(body.moduleId) : null;
       if (mid) {
         const mod = repo.getModule(mid);
-        if (!mod || mod.projectId !== f.projectId) throw new BizError("Module không thuộc dự án này", 400);
+        if (!mod || mod.projectId !== f.projectId) throw new BizError("The module does not belong to this project", 400);
       }
       getDb().prepare("UPDATE files SET module_id = ? WHERE id = ?").run(mid, id);
     }
@@ -273,7 +273,7 @@ export function updateFileItem(id: string, body: any): FileItem {
 /** Xoá dòng DB và tệp vật lý. */
 export function deleteFileItem(id: string): void {
   const f = getFileItem(id);
-  if (!f) throw new BizError("Không tìm thấy file", 404);
+  if (!f) throw new BizError("File not found", 404);
   repo.deleteFileRow(id);
   removeFileFromDisk(f.storedName);
 }
@@ -295,7 +295,7 @@ export function saveExport(projectId: string, moduleId: string, name: string, bu
     }
     return saveBuffer(projectId, moduleId, cName, buf, "export");
   } catch (err) {
-    console.error("Lỗi khi tự lưu file xuất vào kho tài liệu:", err);
+    console.error("Failed to auto-save the exported file to the document repository:", err);
     return null;
   }
 }

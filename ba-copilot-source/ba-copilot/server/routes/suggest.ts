@@ -15,12 +15,12 @@ const KEY_RE = /^(link|fr|story):\S.{0,299}$/;
 
 function requireModule(id: string) {
   const m = repo.getModule(id);
-  if (!m) throw new BizError("Không tìm thấy module", 404);
+  if (!m) throw new BizError("Module not found", 404);
   return m;
 }
 
 function requireKey(key: string): string {
-  if (!KEY_RE.test(key)) throw new BizError("Mã gợi ý không hợp lệ");
+  if (!KEY_RE.test(key)) throw new BizError("Invalid suggestion key");
   return key;
 }
 

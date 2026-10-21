@@ -63,13 +63,13 @@ const ref = (moduleId: string, kind: DiagramKind): ArtifactRef => ({ kind: "diag
 
 function mustModule(id: string): { id: string; name: string; project_id: string } {
   const m = getDb().prepare("SELECT id, name, project_id FROM modules WHERE id = ?").get(id) as { id: string; name: string; project_id: string } | undefined;
-  if (!m) throw new HttpError("Không tìm thấy module", 404);
+  if (!m) throw new HttpError("Module not found", 404);
   return m;
 }
 
 function parseKind(raw: string): DiagramKind {
   const k = String(raw ?? "").toUpperCase() as DiagramKind;
-  if (!DIAGRAM_KINDS.includes(k)) throw new HttpError(`Loại sơ đồ không hợp lệ: ${raw}. Chọn một trong ${DIAGRAM_KINDS.join(", ")}`, 400);
+  if (!DIAGRAM_KINDS.includes(k)) throw new HttpError(`Invalid diagram type: ${raw}. Choose one of ${DIAGRAM_KINDS.join(", ")}`, 400);
   return k;
 }
 
@@ -156,7 +156,7 @@ export function writeDiagram(
   return tx(() => {
     const r = ref(moduleId, kind);
     const cur = getArtifactState(r);
-    if (!cur) throw new HttpError("Không tìm thấy module", 404);
+    if (!cur) throw new HttpError("Module not found", 404);
     assertRev(cur.rev, baseRev);
     check?.();
     const d = getDb();
@@ -224,12 +224,12 @@ route("PUT", "/api/modules/:id/diagrams/:kind", (ctx) => {
   const kind = parseKind(ctx.params.kind);
   mustModule(ctx.params.id);
   const body = ctx.body ?? {};
-  if (typeof body.code === "string" && body.code.length > MAX_DIAGRAM_CODE) throw new HttpError("Mã sơ đồ quá dài", 413);
-  if (kind !== "SEQUENCE" && typeof body.code !== "string") throw new HttpError("Thiếu mã sơ đồ (code)", 400);
+  if (typeof body.code === "string" && body.code.length > MAX_DIAGRAM_CODE) throw new HttpError("Diagram code is too long", 413);
+  if (kind !== "SEQUENCE" && typeof body.code !== "string") throw new HttpError("Missing diagram code (code)", 400);
   const code = kind === "SEQUENCE" ? "" : String(body.code);
   const parts = kind === "SEQUENCE" ? normalizeParts(body.parts) : [];
   const errors = checkDiagram(kind, { code, parts });
-  if (errors.length) throw new HttpError(`Mã Mermaid chưa hợp lệ – ${errors[0]}`, 400, undefined, { details: errors });
+  if (errors.length) throw new HttpError(`Invalid Mermaid code – ${errors[0]}`, 400, undefined, { details: errors });
   return writeDiagram(ctx.params.id, kind, { code, parts }, baseRevOf(body), actorId);
 });
 
@@ -245,10 +245,10 @@ route("POST", "/api/modules/:id/diagrams/:kind/generate", async (ctx) => {
   // Báo sớm khi bản đã đổi – không tốn lượt AI. writeDiagram kiểm lại sau khi AI trả kết quả.
   assertRev(getArtifactState(ref(moduleId, kind))?.rev ?? 0, baseRev);
   const src = loadSources(moduleId);
-  if ((kind === "UC" || kind === "SEQUENCE" || kind === "BPMN") && !src.useCases.length) throw new HttpError("UC Specification chưa có Use Case nào – hãy sinh lại tài liệu UC Specification", 400);
+  if ((kind === "UC" || kind === "SEQUENCE" || kind === "BPMN") && !src.useCases.length) throw new HttpError("The UC Specification has no use cases – regenerate the UC Specification", 400);
   const result = await generateDiagram(kind, src);
   const errors = checkDiagram(kind, result);
-  if (errors.length) throw new HttpError(`AI trả sơ đồ chưa hợp lệ – ${errors[0]}`, 502, undefined, { details: errors });
+  if (errors.length) throw new HttpError(`The AI returned an invalid diagram – ${errors[0]}`, 502, undefined, { details: errors });
   // AI chạy lâu: tài liệu nguồn có thể vừa rời Xong (Yêu cầu sửa, sinh lại) → kiểm lại trong giao dịch ghi (D2 đợt 6).
   return writeDiagram(moduleId, kind, result, baseRev, actorId, () => {
     const r = generateBlockReason(moduleId, kind);

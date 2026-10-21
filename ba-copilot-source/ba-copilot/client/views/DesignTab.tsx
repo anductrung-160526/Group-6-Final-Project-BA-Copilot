@@ -26,15 +26,17 @@ interface Rect {
 }
 
 const TEMPLATES = [
-  { name: "Đăng nhập", prompt: "Màn hình đăng nhập bằng email và mật khẩu, có ghi nhớ đăng nhập, quên mật khẩu và link đăng ký." },
-  { name: "Quản lý sản phẩm", prompt: "Màn hình quản lý sản phẩm: tìm kiếm theo tên, lọc theo danh mục và trạng thái, bảng danh sách có sửa/xóa, nút thêm mới, phân trang." },
-  { name: "Thêm sản phẩm", prompt: "Form thêm sản phẩm: tên, mã SKU, danh mục, giá bán, số lượng tồn, mô tả, ảnh; nút Lưu và Huỷ." },
-  { name: "Trang chủ", prompt: "Dashboard tổng quan cho quản trị viên: các chỉ số doanh thu, đơn hàng, khách hàng mới và bảng đơn hàng gần đây." },
+  { name: "Sign in", prompt: "Sign-in screen with email and password, a remember-me option, forgot password and a sign-up link." },
+  { name: "Product management", prompt: "Product management screen: search by name, filter by category and status, a list table with edit/delete, an add button and pagination." },
+  { name: "Add product", prompt: "Add product form: name, SKU, category, price, stock quantity, description, image; Save and Cancel buttons." },
+  { name: "Home", prompt: "Admin overview dashboard: revenue, orders and new customers metrics, plus a recent orders table." },
 ];
 
+// vi-keep: bỏ dấu tiếng Việt khi so tên màn
+// vi-keep: bỏ dấu tiếng Việt khi so tên màn
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase().trim();
 
-const STATUS_VI: Record<ArtifactStatus, string> = { none: "chưa có", draft: "bản nháp", done: "Xong", approved: "đã duyệt", outdated: "bản cũ" };
+const STATUS_TEXT: Record<ArtifactStatus, string> = { none: "not started", draft: "draft", done: "done", approved: "approved", outdated: "outdated" };
 
 /** Bước 3 "Prototype" trong "Thực hiện công việc": nạp ModuleDetail của module đang chọn rồi dựng Design Studio. */
 export function PrototypeStep({ projectId, moduleId, params }: WorkStepProps) {
@@ -62,10 +64,10 @@ export function PrototypeStep({ projectId, moduleId, params }: WorkStepProps) {
   if (!moduleId)
     return (
       <div className="page">
-        <Empty title="Chưa chọn module">Chọn module ở đầu trang để thiết kế prototype.</Empty>
+        <Empty title="No module selected">Select a module at the top of the page to design the prototype.</Empty>
       </div>
     );
-  if (!m || m.id !== moduleId) return <div className="page muted">Đang tải…</div>;
+  if (!m || m.id !== moduleId) return <div className="page muted">Loading…</div>;
   return <DesignTab m={m} reload={reload} initialScreenId={params[0]} onScreenChange={onScreenChange} />;
 }
 
@@ -141,7 +143,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
       } catch (e) {
         if (isConflict(e)) {
           setConflict(true);
-          throw new Error("Màn hình vừa được người khác sửa – bấm Tải lại để xem bản mới rồi sửa tiếp");
+          throw new Error("Someone else just edited this screen – click Reload to see the latest version, then continue editing");
         }
         throw e;
       }
@@ -154,7 +156,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
   // Xong / Duyệt / Yêu cầu sửa (C7). Endpoint chưa gộp thì trả 501 – báo gọn bằng toast.
   const approval = async (action: "done" | "approve" | "request-change") => {
     if (!screen) return;
-    const label = action === "done" ? "Đang đánh dấu Xong" : action === "approve" ? "Đang duyệt" : "Đang gửi yêu cầu sửa";
+    const label = action === "done" ? "Marking as done" : action === "approve" ? "Approving" : "Requesting changes";
     const actorId = currentMemberId();
     const r = await run(label, async () => {
       try {
@@ -168,7 +170,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
     });
     if (!r) return;
     if (action === "approve" && r.git) toast(<GitOutcome git={r.git} />, r.git.pushed ? "ok" : "info");
-    else toast(action === "done" ? "Đã đánh dấu Xong – chờ BA Lead duyệt" : action === "approve" ? "Đã duyệt màn hình" : "Đã gửi yêu cầu sửa", "ok");
+    else toast(action === "done" ? "Marked as done – awaiting BA Lead approval" : action === "approve" ? "Screen approved" : "Changes requested", "ok");
     await reload();
   };
   const loadVersions = useCallback(() => {
@@ -271,7 +273,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
 
   const acceptItems = async (versionId: string, list: { ref: string; parentId: string; index: number; type: string }[]) => {
     if (!screen) return false;
-    const r = await writeScreen("Đang chèn phần tử", `/api/screens/${screen.id}/layout/accept`, { versionId, items: list });
+    const r = await writeScreen("Inserting elements", `/api/screens/${screen.id}/layout/accept`, { versionId, items: list });
     if (!r) return false;
     setShowChanges(true);
     await reload();
@@ -283,7 +285,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
     const c = cur.candidates.find((x) => x.type === curType)!;
     if (await acceptItems(next.versionId, [{ ref: "a", parentId: cur.parentId, index: cur.index, type: curType }])) {
       logSugg(cur, curType, c.p, "applied");
-      toast(`Đã thêm ${curType} vào ${cur.parentLabel} – đổi nội dung bằng Prompt sửa thiết kế`, "ok");
+      toast(`Added ${curType} to ${cur.parentLabel} – change its content with the design edit prompt`, "ok");
     }
   };
   const dismissNext = () => {
@@ -298,9 +300,9 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
     if (!screen) return;
     const layout = measureLayout();
     if (!layout) return;
-    const r = await run("Mô hình đang hoàn thành bố cục…", () => post<{ versionId: string; items: GenItem[] }>(`/api/screens/${screen.id}/suggestions`, { mode: "complete", nodeIds: selected, layout }));
+    const r = await run("The model is completing the layout…", () => post<{ versionId: string; items: GenItem[] }>(`/api/screens/${screen.id}/suggestions`, { mode: "complete", nodeIds: selected, layout }));
     if (!r) return;
-    if (!r.items.length) return toast("Mô hình cho rằng bố cục đã đủ (EOS ở mọi container)", "info");
+    if (!r.items.length) return toast("The model considers the layout complete (EOS in every container)", "info");
     setComplete({ versionId: r.versionId, items: r.items, on: new Set(r.items.map((g) => g.tempId)) });
     setPanel("suggest");
   };
@@ -329,7 +331,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
     if (!list.length) return setComplete(null);
     if (await acceptItems(complete.versionId, list)) {
       for (const g of complete.items) logSugg(g, g.type, g.p, complete.on.has(g.tempId) ? "applied" : "dismissed");
-      toast(`Đã thêm ${list.length} phần tử theo gợi ý bố cục`, "ok");
+      toast(`Added ${list.length} ${list.length === 1 ? "element" : "elements"} from the layout suggestion`, "ok");
       setComplete(null);
     }
   };
@@ -337,7 +339,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
   // sửa tay: xóa / đổi thứ tự trong container
   const manual = async (op: "remove" | "up" | "down", id: string) => {
     if (!screen) return;
-    const r = await writeScreen("Đang cập nhật", `/api/screens/${screen.id}/manual`, { op, id });
+    const r = await writeScreen("Updating", `/api/screens/${screen.id}/manual`, { op, id });
     if (!r) return;
     if (op === "remove") setSelected([]);
     await reload();
@@ -426,10 +428,10 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
     const found = m.screens.find((s) => norm(s.name) === t || norm(String(s.tree?.props.title ?? "")) === t);
     if (found) {
       setScreenId(found.id);
-      toast(`Chuyển tới ${found.name}`, "info");
+      toast(`Navigated to ${found.name}`, "info");
     } else {
-      toast(`Chưa có màn hình "${target}". Tạo mới để hoàn thiện luồng.`, "info");
-      setNewScreen({ name: target, prompt: `Màn hình ${target}` });
+      toast(`Screen "${target}" does not exist yet. Create it to complete the flow.`, "info");
+      setNewScreen({ name: target, prompt: `${target} screen` });
     }
   };
 
@@ -438,12 +440,12 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
   const openNewScreen = (initialName = "", initialPrompt = "") => setNewScreen({ name: initialName, prompt: initialPrompt });
   const createScreen = async () => {
     if (!newScreen) return;
-    const r = await run("AI đang thiết kế màn hình…", () => post<{ screen: { id: string } }>(`/api/modules/${m.id}/screens`, withActor(newScreen)));
+    const r = await run("AI is designing the screen…", () => post<{ screen: { id: string } }>(`/api/modules/${m.id}/screens`, withActor(newScreen)));
     if (r) {
       setNewScreen(null);
       await reload();
       setScreenId(r.screen.id);
-      toast("Đã tạo màn hình", "ok");
+      toast("Screen created", "ok");
     }
   };
 
@@ -457,7 +459,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
 
   const addComment = async () => {
     if (!screen || !comment.trim()) return;
-    const a = await run("Đang lưu bình luận", () => post<Annotation>(`/api/screens/${screen.id}/annotations`, withActor({ nodeIds: selected, comment, bbox: unionBox(selected), author: me?.name })));
+    const a = await run("Saving comment", () => post<Annotation>(`/api/screens/${screen.id}/annotations`, withActor({ nodeIds: selected, comment, bbox: unionBox(selected), author: me?.name })));
     if (a) {
       setComment("");
       setChecked((c) => new Set([...c, a.id]));
@@ -468,13 +470,13 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
   const applyEdit = async () => {
     if (!screen) return;
     const ids = [...checked].filter((id) => annotations.some((a) => a.id === id));
-    if (!prompt.trim() && !ids.length) return toast("Nhập yêu cầu sửa hoặc tick bình luận để gửi vào prompt", "err");
-    const label = selected.length || ids.length ? "AI đang sửa vùng đã khoanh…" : "AI đang sửa toàn màn hình…";
+    if (!prompt.trim() && !ids.length) return toast("Enter a change request or tick comments to include in the prompt", "err");
+    const label = selected.length || ids.length ? "AI is editing the selected region…" : "AI is editing the whole screen…";
     const r = await writeScreen<any>(label, `/api/screens/${screen.id}/edit`, { prompt, nodeIds: selected, annotationIds: ids });
     if (!r) return;
-    if (r.version) toast(`v${r.version.number}: ${r.summary || "Đã cập nhật thiết kế"}`, "ok");
+    if (r.version) toast(`v${r.version.number}: ${r.summary || "Design updated"}`, "ok");
     else toast(r.summary, "info");
-    if (r.rejected?.length) toast(`${r.rejected.length} thao tác ngoài vùng khoanh đã bị chặn`, "err");
+    if (r.rejected?.length) toast(`${r.rejected.length} ${r.rejected.length === 1 ? "operation" : "operations"} outside the selected region were blocked`, "err");
     setPrompt("");
     setChecked(new Set());
     setShowChanges(true);
@@ -484,11 +486,11 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
 
   const revert = async (v: ScreenVersion) => {
     if (!screen) return;
-    if (!(await writeScreen("Đang khôi phục", `/api/screens/${screen.id}/revert`, { versionId: v.id }))) return;
+    if (!(await writeScreen("Restoring", `/api/screens/${screen.id}/revert`, { versionId: v.id }))) return;
     setViewVersion(null);
     await reload();
     await loadVersions();
-    toast(`Đã khôi phục v${v.number} thành phiên bản mới`, "ok");
+    toast(`Restored v${v.number} as a new version`, "ok");
   };
 
   const selectedNodes = tree ? selected.map((id) => findNode(tree, id)).filter(Boolean) as UINode[] : [];
@@ -499,10 +501,10 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
       {/* Cột trái: màn hình + cây thành phần */}
       <aside className="studio-left">
         <div className="side-head">
-          <span>Màn hình ({m.screens.length})</span>
+          <span>Screens ({m.screens.length})</span>
           <Btn size="sm" kind="primary" onClick={() => setNewScreen({ name: "", prompt: "" })} data-testid="new-screen">
             <Icon name="plus" size="sm" />
-            Mới
+            New
           </Btn>
         </div>
         <div className="screen-list">
@@ -514,7 +516,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
               </span>
             </button>
           ))}
-          {!m.screens.length && <div className="muted small pad">Chưa có màn hình. Bấm "Mới", đặt tên màn – AI thiết kế theo SRS, FRD-NFR và user story của module.</div>}
+          {!m.screens.length && <div className="muted small pad">No screens yet. Click "New" and name the screen – AI designs it from the module's SRS, FRD-NFR and user stories.</div>}
         </div>
         {screen && <RelatedTasks kind="screen" id={screen.id} />}
         {/* SCR-16 – Gợi ý tiếp theo (A9). Không tự tạo màn (BR-06): Tạo chỉ mở hộp thoại đã điền sẵn */}
@@ -524,8 +526,8 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
       {/* Canvas */}
       <section className="studio-center">
         {!screen || !tree ? (
-          <Empty title="Thiết kế màn hình đầu tiên">
-            Đặt tên màn (và mô tả thêm nếu muốn) – AI dựng giao diện theo SRS, FRD-NFR và user story của module. Sau đó khoanh vùng, bình luận và prompt để sửa.
+          <Empty title="Design the first screen">
+            Name the screen (and add a description if you like) – AI builds the UI from the module's SRS, FRD-NFR and user stories. Then select regions, comment and prompt to refine it.
             <div className="tpl-row">
               {TEMPLATES.map((t) => (
                 <button key={t.name} className="chip" onClick={() => setNewScreen(t)}>
@@ -537,51 +539,51 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
         ) : (
           <>
             <div className="toolbar">
-              <div className="seg" role="group" aria-label="Chế độ">
-                <button className={mode === "select" ? "on" : ""} onClick={() => setMode("select")} title="Click để chọn phần tử, Shift+click để chọn nhiều" data-testid="mode-select">
-                  Chọn
+              <div className="seg" role="group" aria-label="Mode">
+                <button className={mode === "select" ? "on" : ""} onClick={() => setMode("select")} title="Click to select an element, Shift+click to select several" data-testid="mode-select">
+                  Select
                 </button>
-                <button className={mode === "region" ? "on" : ""} onClick={() => setMode("region")} title="Kéo khung để khoanh vùng" data-testid="mode-region">
+                <button className={mode === "region" ? "on" : ""} onClick={() => setMode("region")} title="Drag a box to select a region" data-testid="mode-region">
                   <Icon name="target" size="sm" />
-                  Khoanh vùng
+                  Region
                 </button>
-                <button className={mode === "prototype" ? "on" : ""} onClick={() => { setMode("prototype"); setSelected([]); }} title="Bấm nút/link để chuyển màn hình">
+                <button className={mode === "prototype" ? "on" : ""} onClick={() => { setMode("prototype"); setSelected([]); }} title="Click buttons/links to navigate between screens">
                   <Icon name="play" size="sm" />
-                  Xem thử
+                  Preview
                 </button>
               </div>
               <label className="check-inline">
-                <input type="checkbox" checked={showChanges} onChange={(e) => setShowChanges(e.target.checked)} /> Tô thay đổi
+                <input type="checkbox" checked={showChanges} onChange={(e) => setShowChanges(e.target.checked)} /> Highlight changes
               </label>
               <div className="spacer" />
               {others.length > 0 && <EditingBadge names={others.map((o) => o.name)} />}
-              <Btn size="sm" onClick={() => run("Đang xuất HTML", () => download(screenHtmlUrl(screen.id)))} title="Tải trang HTML tĩnh (mở được bằng trình duyệt, không cần app)" data-testid="export-html">
+              <Btn size="sm" onClick={() => run("Exporting HTML", () => download(screenHtmlUrl(screen.id)))} title="Download a static HTML page (opens in any browser, no app needed)" data-testid="export-html">
                 <Icon name="download" size="sm" />
-                Xuất HTML
+                Export HTML
               </Btn>
               <details className="menu">
-                <summary className="btn btn-ghost btn-sm" aria-label="Thêm thao tác" title="Thêm thao tác">
+                <summary className="btn btn-ghost btn-sm" aria-label="More actions" title="More actions">
                   <Icon name="more" />
                 </summary>
                 <div className="menu-pop">
                   <button onClick={() => setRename(screen.name)}>
-                    <Icon name="edit" size="sm" /> Đổi tên
+                    <Icon name="edit" size="sm" /> Rename
                   </button>
                   <button onClick={() => window.open(`${screenHtmlUrl(screen.id)}?inline=1`, "_blank", "noopener")}>
-                    <Icon name="external" size="sm" /> Xem HTML trong tab mới
+                    <Icon name="external" size="sm" /> Open HTML in a new tab
                   </button>
-                  <button onClick={() => run("Đang xuất", () => download(`/api/screens/${screen.id}/export/json`))}>
-                    <Icon name="download" size="sm" /> Xuất JSON
+                  <button onClick={() => run("Exporting", () => download(`/api/screens/${screen.id}/export/json`))}>
+                    <Icon name="download" size="sm" /> Export JSON
                   </button>
                   <button
                     className="danger"
                     onClick={async () => {
-                      if (!(await confirm({ title: `Xoá màn hình "${screen.name}"?`, message: "Màn hình và toàn bộ phiên bản của nó sẽ bị xoá.", okLabel: "Xoá", danger: true }))) return;
-                      await run("Đang xoá", () => del(`/api/screens/${screen.id}`));
+                      if (!(await confirm({ title: `Delete screen "${screen.name}"?`, message: "The screen and all of its versions will be deleted.", okLabel: "Delete", danger: true }))) return;
+                      await run("Deleting", () => del(`/api/screens/${screen.id}`));
                       reload();
                     }}
                   >
-                    <Icon name="delete" size="sm" /> Xoá màn hình
+                    <Icon name="delete" size="sm" /> Delete screen
                   </button>
                 </div>
               </details>
@@ -593,18 +595,18 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
               onDone={() => approval("done")}
               onApprove={() => approval("approve")}
               onRequestChange={() => approval("request-change")}
-              disabledReason={previewing ? "Đang xem phiên bản cũ" : undefined}
+              disabledReason={previewing ? "Viewing an older version" : undefined}
               testId="screen-approval"
             />
             {conflict && <ConflictNotice onReload={reloadAfterConflict} />}
             {previewing && (
               <div className="preview-banner">
-                Đang xem <strong>v{previewing.number}</strong> ({fmtTime(previewing.createdAt)}) – chỉ đọc.
+                Viewing <strong>v{previewing.number}</strong> ({fmtTime(previewing.createdAt)}) – read-only.
                 <Btn size="sm" kind="primary" onClick={() => revert(previewing)}>
-                  Khôi phục phiên bản này
+                  Restore this version
                 </Btn>
                 <Btn size="sm" onClick={() => setViewVersion(null)}>
-                  Về bản hiện tại
+                  Back to current version
                 </Btn>
               </div>
             )}
@@ -639,7 +641,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                     const r = ghostRect(cur.boxPx);
                     return (
                       r && (
-                        <button className="ov ov-ghost" style={box(r)} title="Tab: chấp nhận · Esc: bỏ qua" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); acceptNext(); }} data-testid="ghost">
+                        <button className="ov ov-ghost" style={box(r)} title="Tab: accept · Esc: dismiss" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); acceptNext(); }} data-testid="ghost">
                           <span className="ghost-tag">
                             {curType} {Math.round((cur.candidates.find((c) => c.type === curType)?.p ?? 0) * 100)}% · Tab
                           </span>
@@ -650,7 +652,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                   {mode !== "prototype" &&
                     complete?.items.map((g) => {
                       const r = ghostRect(g.boxPx);
-                      return r && <button key={g.tempId} className={`ov ov-ghost ${complete.on.has(g.tempId) ? "" : "off"}`} style={box(r)} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); toggleGen(g.tempId); }} title="Bấm để bỏ/chọn"><span className="ghost-tag">{g.type}</span></button>;
+                      return r && <button key={g.tempId} className={`ov ov-ghost ${complete.on.has(g.tempId) ? "" : "off"}`} style={box(r)} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); toggleGen(g.tempId); }} title="Click to toggle"><span className="ghost-tag">{g.type}</span></button>;
                     })}
                   {mode !== "prototype" &&
                     openAnns.map((a, i) => {
@@ -662,7 +664,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                           className={`pin pin-${a.status}`}
                           style={{ left: r.x + r.w - 10, top: r.y - 10 }}
                           title={`${a.author}: ${a.comment}`}
-                          aria-label={`Bình luận ${annotations.indexOf(a) + 1} của ${a.author}`}
+                          aria-label={`Comment ${annotations.indexOf(a) + 1} by ${a.author}`}
                           onMouseDown={(e) => e.stopPropagation()}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -679,9 +681,9 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
               </div>
             </div>
             <div className="hint muted small">
-              {mode === "select" && "Click để chọn phần tử · Shift+click chọn nhiều · Esc bỏ chọn · Delete xóa phần tử · Tab chấp nhận khung mờ gợi ý"}
-              {mode === "region" && "Kéo chuột để khoanh vùng – các phần tử nằm trọn trong khung sẽ được chọn"}
-              {mode === "prototype" && "Bấm nút/liên kết có điều hướng để chuyển màn hình như prototype"}
+              {mode === "select" && "Click to select an element · Shift+click to select several · Esc to clear · Delete to remove the element · Tab to accept the suggested ghost"}
+              {mode === "region" && "Drag to select a region – elements fully inside the box are selected"}
+              {mode === "prototype" && "Click buttons/links with navigation to move between screens like a prototype"}
             </div>
           </>
         )}
@@ -692,16 +694,16 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
         <aside className="studio-right">
           <div className="seg seg-full">
             <button className={panel === "edit" ? "on" : ""} onClick={() => setPanel("edit")} data-testid="edit-tab">
-              Sửa {openAnns.length ? `(${openAnns.length})` : ""}
+              Edit {openAnns.length ? `(${openAnns.length})` : ""}
             </button>
             <button className={panel === "layers" ? "on" : ""} onClick={() => setPanel("layers")}>
-              Thành phần
+              Layers
             </button>
             <button className={panel === "versions" ? "on" : ""} onClick={() => setPanel("versions")} data-testid="versions-tab">
-              Phiên bản ({versions.length})
+              Versions ({versions.length})
             </button>
             <button className={panel === "suggest" ? "on" : ""} onClick={() => setPanel("suggest")} data-testid="suggest-tab">
-              Gợi ý {complete ? `(${complete.on.size})` : cur && !cur.eos ? "•" : ""}
+              Suggest {complete ? `(${complete.on.size})` : cur && !cur.eos ? "•" : ""}
             </button>
           </div>
 
@@ -721,12 +723,12 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                   }}
                   data-testid="layout-toggle"
                 />{" "}
-                Hiện khung mờ phần tử tiếp theo trên canvas
+                Show the next element as a ghost on the canvas
               </label>
 
               {complete ? (
                 <div className="box box-accent">
-                  <div className="box-title">Hoàn thành bố cục – {complete.items.length} phần tử</div>
+                  <div className="box-title">Complete layout – {complete.items.length} {complete.items.length === 1 ? "element" : "elements"}</div>
                   <div className="gen-list">
                     {complete.items.map((g) => {
                       const depth = (() => {
@@ -743,36 +745,36 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                       return (
                         <label key={g.tempId} className="gen-item" style={{ paddingLeft: 4 + depth * 14 }}>
                           <input type="checkbox" checked={complete.on.has(g.tempId)} onChange={() => toggleGen(g.tempId)} /> <strong>{g.type}</strong>{" "}
-                          <span className="muted small">trong {parent ? nodeLabel(parent) : `${genParent?.type ?? ""} (mới)`} · {Math.round(g.p * 100)}%</span>
+                          <span className="muted small">in {parent ? nodeLabel(parent) : `${genParent?.type ?? ""} (new)`} · {Math.round(g.p * 100)}%</span>
                         </label>
                       );
                     })}
                   </div>
                   <div className="sugg-actions">
                     <Btn size="sm" kind="primary" disabled={!complete.on.size || !!previewing} onClick={acceptComplete} data-testid="accept-complete">
-                      Chấp nhận {complete.on.size} phần tử (Tab)
+                      Accept {complete.on.size} {complete.on.size === 1 ? "element" : "elements"} (Tab)
                     </Btn>
                     <Btn size="sm" kind="ghost" onClick={() => setComplete(null)}>
-                      Huỷ (Esc)
+                      Cancel (Esc)
                     </Btn>
                   </div>
                 </div>
               ) : (
                 <>
-                  <div className="muted small">{selected.length ? "Phần tử tiếp theo trong container đang chọn" : "Phần tử tiếp theo – chọn một container để hỏi riêng vị trí đó"}</div>
+                  <div className="muted small">{selected.length ? "Next element in the selected container" : "Next element – select a container to ask about that position"}</div>
                   {!layoutOn ? (
-                    <div className="muted small pad">Đang tắt gợi ý.</div>
+                    <div className="muted small pad">Suggestions are turned off.</div>
                   ) : !next ? (
-                    <div className="muted small pad">Đang tính…</div>
+                    <div className="muted small pad">Calculating…</div>
                   ) : !cur ? (
-                    <div className="muted small pad">Mô hình cho rằng bố cục đã đủ (dự đoán EOS ở mọi container). Chọn một container để xem các loại phần tử có thể thêm.</div>
+                    <div className="muted small pad">The model considers the layout complete (EOS predicted in every container). Select a container to see which element types could be added.</div>
                   ) : (
                     <div className="sugg" data-testid="suggestion">
                       <div className="sugg-head">
-                        <Badge tone="blue">Tiếp theo</Badge>
-                        <span className="sugg-title">trong {cur.parentLabel}</span>
+                        <Badge tone="blue">Next</Badge>
+                        <span className="sugg-title">in {cur.parentLabel}</span>
                       </div>
-                      {cur.eos && <div className="muted small">Mô hình cho rằng container này đã đủ (EOS {Math.round(cur.pEos * 100)}%). Có thể vẫn chọn một loại bên dưới.</div>}
+                      {cur.eos && <div className="muted small">The model considers this container complete (EOS {Math.round(cur.pEos * 100)}%). You can still pick a type below.</div>}
                       <div className="cand-list">
                         {cur.candidates.map((c, i) => (
                           <button key={c.type} className={`cand ${curType === c.type ? "on" : ""}`} onClick={() => setPick(i)} data-testid="candidate">
@@ -783,26 +785,26 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                             <span className="muted small">{Math.round(c.p * 100)}%</span>
                           </button>
                         ))}
-                        {!cur.eos && <div className="muted small">Kết thúc (EOS): {Math.round(cur.pEos * 100)}%</div>}
+                        {!cur.eos && <div className="muted small">End (EOS): {Math.round(cur.pEos * 100)}%</div>}
                       </div>
                       <div className="sugg-actions">
                         <Btn size="sm" kind="primary" disabled={!!previewing} onClick={acceptNext} data-testid="accept-next">
-                          Thêm {curType} {cur.eos ? "" : "(Tab)"}
+                          Add {curType} {cur.eos ? "" : "(Tab)"}
                         </Btn>
                         {!cur.eos && (
                           <Btn size="sm" kind="ghost" onClick={dismissNext}>
-                            Bỏ qua (Esc)
+                            Dismiss (Esc)
                           </Btn>
                         )}
                       </div>
                       {items.length > 1 && (
                         <div className="muted small">
-                          Vị trí khác:{" "}
+                          Other positions:{" "}
                           {items.map((e, i) => (
                             <React.Fragment key={e.parentId}>
                               {i > 0 && " · "}
                               <button className={`link small ${i === which ? "strong" : ""}`} onClick={() => { setWhich(i); setPick(0); }}>
-                                {e.candidates[0].type} trong {e.parentLabel}
+                                {e.candidates[0].type} in {e.parentLabel}
                               </button>
                             </React.Fragment>
                           ))}
@@ -811,17 +813,17 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                     </div>
                   )}
                   <div className="box">
-                    <div className="box-title">Hoàn thành bố cục</div>
-                    <div className="muted small">Mô hình sinh tiếp toàn bộ phần còn thiếu {selected.length ? "trong vùng đang chọn" : "của cả màn"}, hiện thành khung mờ để chấp nhận từng phần.</div>
+                    <div className="box-title">Complete layout</div>
+                    <div className="muted small">The model generates everything still missing {selected.length ? "in the selected region" : "on the whole screen"} and shows it as ghosts you can accept piece by piece.</div>
                     <Btn size="sm" disabled={!!previewing || !layoutOn} onClick={runComplete} data-testid="run-complete">
                       <Icon name="ai" size="sm" />
-                      Hoàn thành bố cục
+                      Complete layout
                     </Btn>
                   </div>
                 </>
               )}
               <div className="muted small sugg-foot">
-                Recursive Transformer Tree Decoder (Li et al. 2020){next?.model ? ` · học từ ${next.model.trees.toLocaleString("vi-VN")} cây giao diện (${next.model.roots} màn gốc)` : ""}. Gợi ý gồm loại, vị trí và kích thước phần tử – không gồm nội dung; đổi chữ bằng Prompt sửa thiết kế.
+                Recursive Transformer Tree Decoder (Li et al. 2020){next?.model ? ` · trained on ${next.model.trees.toLocaleString("en-US")} UI trees (${next.model.roots} root screens)` : ""}. Suggestions cover element type, position and size – not content; change text with the design edit prompt.
               </div>
             </div>
           )}
@@ -829,35 +831,35 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
           {panel === "edit" && (
             <div className="panel-body">
               <div className="box">
-                <div className="box-title">Vùng đang chọn</div>
+                <div className="box-title">Selected region</div>
                 {selectedNodes.length ? (
                   <div className="sel-list" data-testid="selection">
                     {selectedNodes.map((n) => (
                       <span key={n.id} className="chip chip-sel">
                         {nodeLabel(n)}
-                        <button onClick={() => setSelected((s) => s.filter((x) => x !== n.id))} aria-label="Bỏ" title="Bỏ">
+                        <button onClick={() => setSelected((s) => s.filter((x) => x !== n.id))} aria-label="Remove" title="Remove">
                           <Icon name="close" size="xs" />
                         </button>
                       </span>
                     ))}
                   </div>
                 ) : (
-                  <div className="muted small">Chưa khoanh vùng – yêu cầu sửa sẽ áp dụng cho toàn màn hình.</div>
+                  <div className="muted small">No region selected – the change request will apply to the whole screen.</div>
                 )}
               </div>
 
               <div className="box">
-                <div className="box-title">Bình luận vào vùng</div>
-                <textarea rows={2} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={selected.length ? "VD: Đổi chữ thành “Vào hệ thống”" : "Chọn vùng trên canvas rồi ghi bình luận…"} data-testid="comment-input" />
+                <div className="box-title">Comment on region</div>
+                <textarea rows={2} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={selected.length ? "E.g. Change the text to “Enter the system”" : "Select a region on the canvas, then write a comment…"} data-testid="comment-input" />
                 <Btn size="sm" disabled={!comment.trim()} onClick={addComment} data-testid="add-comment">
                   <Icon name="plus" size="sm" />
-                  Thêm bình luận
+                  Add comment
                 </Btn>
               </div>
 
               <div className="box">
                 <div className="box-title">
-                  Bình luận ({annotations.length}) <span className="muted small">– tick để gửi vào prompt</span>
+                  Comments ({annotations.length}) <span className="muted small">– tick to include in the prompt</span>
                 </div>
                 <div className="ann-list">
                   {annotations.map((a, i) => (
@@ -881,18 +883,18 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                       <div className="ann-main" onClick={() => setSelected(a.nodeIds.filter((id) => tree && findNode(tree, id)))}>
                         <div className="ann-text">{a.comment}</div>
                         <div className="muted small">
-                          {a.nodeIds.length ? a.nodeIds.map((id) => (tree && findNode(tree, id) ? nodeLabel(findNode(tree, id)!) : `${id} (đã xoá)`)).join(", ") : "Toàn màn hình"} · {a.author} · {fmtTime(a.createdAt)}
+                          {a.nodeIds.length ? a.nodeIds.map((id) => (tree && findNode(tree, id) ? nodeLabel(findNode(tree, id)!) : `${id} (deleted)`)).join(", ") : "Whole screen"} · {a.author} · {fmtTime(a.createdAt)}
                         </div>
                       </div>
                       <div className="ann-actions">
                         <StatusBadge status={a.status} />
                         {a.status !== "resolved" ? (
                           <button className="link small" onClick={async () => { await patch(`/api/annotations/${a.id}`, { status: "resolved" }); reload(); }}>
-                            Xong
+                            Resolve
                           </button>
                         ) : (
                           <button className="link small" onClick={async () => { await patch(`/api/annotations/${a.id}`, { status: "open" }); reload(); }}>
-                            Mở lại
+                            Reopen
                           </button>
                         )}
                         <RowActions
@@ -900,25 +902,25 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                             await del(`/api/annotations/${a.id}`);
                             reload();
                           }}
-                          deleteConfirm={{ title: "Xoá bình luận?", message: a.comment }}
+                          deleteConfirm={{ title: "Delete comment?", message: a.comment }}
                           testId={`ann-${i + 1}`}
                         />
                       </div>
                     </div>
                   ))}
-                  {!annotations.length && <div className="muted small">Chưa có bình luận.</div>}
+                  {!annotations.length && <div className="muted small">No comments yet.</div>}
                 </div>
               </div>
 
               <div className="box box-accent">
-                <div className="box-title">Prompt sửa thiết kế</div>
-                <textarea rows={3} value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder={selected.length ? "VD: Thêm nút “Đăng nhập bằng Google” bên dưới" : "VD: Chuyển bố cục sang 2 cột"} data-testid="edit-prompt" />
+                <div className="box-title">Design edit prompt</div>
+                <textarea rows={3} value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder={selected.length ? "E.g. Add a “Sign in with Google” button below" : "E.g. Switch the layout to 2 columns"} data-testid="edit-prompt" />
                 <div className="muted small">
-                  Gửi: {selected.length ? `${selected.length} vùng` : "toàn màn hình"} · {checked.size} bình luận{prompt.trim() ? " · 1 yêu cầu" : ""}
+                  Sending: {selected.length ? `${selected.length} ${selected.length === 1 ? "element" : "elements"}` : "whole screen"} · {checked.size} {checked.size === 1 ? "comment" : "comments"}{prompt.trim() ? " · 1 request" : ""}
                 </div>
                 <Btn kind="primary" disabled={!!previewing || (!prompt.trim() && !checked.size)} onClick={applyEdit} data-testid="apply-edit">
                   <Icon name="ai" size="sm" />
-                  {selected.length ? "Sửa vùng đã khoanh" : "Sửa toàn màn hình"}
+                  {selected.length ? "Edit selected region" : "Edit whole screen"}
                 </Btn>
               </div>
             </div>
@@ -933,11 +935,11 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                 <div className="sugg-actions">
                   <Btn size="sm" disabled={!!previewing} onClick={() => manual("up", selectedNodes[0].id)} data-testid="move-up">
                     <Icon name="up" size="sm" />
-                    Lên
+                    Up
                   </Btn>
                   <Btn size="sm" disabled={!!previewing} onClick={() => manual("down", selectedNodes[0].id)}>
                     <Icon name="down" size="sm" />
-                    Xuống
+                    Down
                   </Btn>
                   <Btn
                     size="sm"
@@ -945,18 +947,18 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                     disabled={!!previewing}
                     onClick={async () => {
                       const n = selectedNodes[0];
-                      if (await confirm({ title: `Xoá phần tử "${nodeLabel(n)}"?`, message: "Khôi phục được ở tab Phiên bản.", okLabel: "Xoá", danger: true })) manual("remove", n.id);
+                      if (await confirm({ title: `Delete element "${nodeLabel(n)}"?`, message: "You can restore it from the Versions tab.", okLabel: "Delete", danger: true })) manual("remove", n.id);
                     }}
                     data-testid="remove-node"
                   >
                     <Icon name="delete" size="sm" />
-                    Xoá phần tử
+                    Delete element
                   </Btn>
                 </div>
               )}
               {selectedNodes.length === 1 && (
                 <div className="box">
-                  <div className="box-title">Thuộc tính – {selectedNodes[0].id}</div>
+                  <div className="box-title">Properties – {selectedNodes[0].id}</div>
                   <pre className="code small">{JSON.stringify(selectedNodes[0].props, null, 2)}</pre>
                 </div>
               )}
@@ -969,8 +971,8 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                 <div key={v.id} className={`ver ${v.id === screen.currentVersionId ? "ver-current" : ""} ${viewVersion === v.id ? "ver-view" : ""}`}>
                   <div className="ver-head">
                     <strong>v{v.number}</strong>
-                    <Badge tone={v.kind === "generate" ? "blue" : v.kind === "revert" ? "amber" : v.kind === "layout" ? "green" : "violet"}>{v.kind === "generate" ? "Sinh mới" : v.kind === "revert" ? "Khôi phục" : v.kind === "layout" ? "Gợi ý bố cục" : v.kind === "manual" ? "Sửa tay" : v.scope === "region" ? "Sửa theo vùng" : "Sửa toàn màn hình"}</Badge>
-                    {v.id === screen.currentVersionId && <Badge tone="green">Hiện tại</Badge>}
+                    <Badge tone={v.kind === "generate" ? "blue" : v.kind === "revert" ? "amber" : v.kind === "layout" ? "green" : "violet"}>{v.kind === "generate" ? "Generated" : v.kind === "revert" ? "Restored" : v.kind === "layout" ? "Layout suggestion" : v.kind === "manual" ? "Manual edit" : v.scope === "region" ? "Region edit" : "Whole-screen edit"}</Badge>
+                    {v.id === screen.currentVersionId && <Badge tone="green">Current</Badge>}
                     <span className="muted small right" data-testid="version-author">
                       {v.author ? `${v.author} · ` : ""}
                       {fmtTime(v.createdAt)}
@@ -978,16 +980,16 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                   </div>
                   <div className="ver-prompt">{v.prompt || "—"}</div>
                   <div className="muted small">
-                    {v.changedIds.length} phần tử thay đổi{v.selectedIds.length ? ` · vùng: ${v.selectedIds.join(", ")}` : ""}
-                    {v.rejected.length ? ` · ${v.rejected.length} thao tác bị chặn` : ""}
+                    {v.changedIds.length} {v.changedIds.length === 1 ? "element" : "elements"} changed{v.selectedIds.length ? ` · region: ${v.selectedIds.join(", ")}` : ""}
+                    {v.rejected.length ? ` · ${v.rejected.length} blocked` : ""}
                   </div>
                   {v.id !== screen.currentVersionId && (
                     <div className="ver-actions">
                       <button className="link small" onClick={() => setViewVersion(v.id)}>
-                        Xem
+                        View
                       </button>
                       <button className="link small" onClick={() => revert(v)}>
-                        Khôi phục
+                        Restore
                       </button>
                     </div>
                   )}
@@ -1000,28 +1002,28 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
 
       {rename !== null && screen && (
         <Modal
-          title="Đổi tên màn hình"
+          title="Rename screen"
           onClose={() => setRename(null)}
           footer={
             <>
-              <Btn onClick={() => setRename(null)}>Huỷ</Btn>
+              <Btn onClick={() => setRename(null)}>Cancel</Btn>
               <Btn
                 kind="primary"
                 disabled={!rename.trim()}
                 onClick={async () => {
-                  if (await writeScreen("Đang lưu", `/api/screens/${screen.id}`, { name: rename.trim() }, "PATCH")) {
+                  if (await writeScreen("Saving", `/api/screens/${screen.id}`, { name: rename.trim() }, "PATCH")) {
                     setRename(null);
                     reload();
                   }
                 }}
                 data-testid="rename-save"
               >
-                Lưu
+                Save
               </Btn>
             </>
           }
         >
-          <Field label="Tên màn hình (dùng cho điều hướng giữa các màn hình)">
+          <Field label="Screen name (used for navigation between screens)">
             <input value={rename} onChange={(e) => setRename(e.target.value)} autoFocus data-testid="rename-input" />
           </Field>
         </Modal>
@@ -1029,32 +1031,32 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
 
       {newScreen && (
         <Modal
-          title="Màn hình mới"
+          title="New screen"
           wide
           onClose={() => setNewScreen(null)}
           footer={
             <>
-              <Btn onClick={() => setNewScreen(null)}>Huỷ</Btn>
+              <Btn onClick={() => setNewScreen(null)}>Cancel</Btn>
               <Btn kind="primary" disabled={!newScreen.prompt.trim() && !newScreen.name.trim()} onClick={createScreen} data-testid="generate-screen">
                 <Icon name="ai" size="sm" />
-                Sinh thiết kế
+                Generate design
               </Btn>
             </>
           }
         >
-          <Field label="Tên màn hình (dùng cho điều hướng giữa các màn hình)">
-            <input value={newScreen.name} onChange={(e) => setNewScreen({ ...newScreen, name: e.target.value })} placeholder="VD: Đăng nhập" data-testid="screen-name" />
+          <Field label="Screen name (used for navigation between screens)">
+            <input value={newScreen.name} onChange={(e) => setNewScreen({ ...newScreen, name: e.target.value })} placeholder="E.g. Sign in" data-testid="screen-name" />
           </Field>
           <div className="muted small" data-testid="screen-context">
-            AI dựa vào user story của module
-            {docCtx ? `, SRS (${STATUS_VI[docCtx.srs]}) và FRD-NFR (${STATUS_VI[docCtx.frd]})` : ", SRS và FRD-NFR"}.
-            {docCtx && docCtx.srs === "none" && docCtx.frd === "none" ? " Chưa có tài liệu – nên làm bước Tài liệu trước để màn đúng yêu cầu." : ""}
+            AI uses the module's user stories
+            {docCtx ? `, SRS (${STATUS_TEXT[docCtx.srs]}) and FRD-NFR (${STATUS_TEXT[docCtx.frd]})` : ", SRS and FRD-NFR"}.
+            {docCtx && docCtx.srs === "none" && docCtx.frd === "none" ? " No documents yet – complete the Documents step first so the screen matches the requirements." : ""}
           </div>
-          <Field label="Mô tả thêm (không bắt buộc)" hint="Để trống thì AI thiết kế theo tên màn và tài liệu. Có thể ghi thêm trường dữ liệu, nút bấm, điều hướng…">
+          <Field label="Additional description (optional)" hint="Leave blank and AI designs from the screen name and documents. You can add data fields, buttons, navigation…">
             <textarea rows={6} value={newScreen.prompt} onChange={(e) => setNewScreen({ ...newScreen, prompt: e.target.value })} data-testid="screen-prompt" />
           </Field>
           <div className="tpl-row">
-            <span className="muted small">Mẫu nhanh:</span>
+            <span className="muted small">Quick templates:</span>
             {TEMPLATES.map((t) => (
               <button key={t.name} className="chip" onClick={() => setNewScreen(t)}>
                 {t.name}

@@ -155,18 +155,18 @@ test("GET: đủ 5 loại theo thứ tự, chưa sinh = none / rev 0; loại sai
 test("sinh: chặn khi tài liệu nguồn chưa Xong, báo rõ tài liệu nào", async () => {
   let r = await gen("CONTEXT");
   assert.equal(r.status, 400);
-  assert.match(r.body.error, /BRD \(hiện: chưa có\)/);
+  assert.match(r.body.error, /BRD \(current: Not started\)/);
   setDoc("BRD", "draft", BRD);
   setDoc("UC_SPEC", "done", "", { useCases: UCS });
   r = await gen("BPMN");
   assert.equal(r.status, 400);
-  assert.match(r.body.error, /BRD \(hiện: Đang làm\)/);
+  assert.match(r.body.error, /BRD \(current: Draft\)/);
   assert.doesNotMatch(r.body.error, /UC Specification/);
   setDoc("SRS", "done", SRS);
   setDoc("FRD_NFR", "outdated", "", { requirements: REQS });
   r = await gen("ERD");
   assert.equal(r.status, 400);
-  assert.match(r.body.error, /FRD-NFR \(hiện: Bản cũ\)/);
+  assert.match(r.body.error, /FRD-NFR \(current: Outdated\)/);
   assert.equal((await call("GET", `/api/modules/${moduleId}/diagrams/ERD`)).body.status, "none");
 });
 
@@ -199,16 +199,16 @@ test("Mock: sinh đủ 5 loại, mã hợp lệ theo bộ kiểm tra và theo Me
   assert.match(by.SEQUENCE.parts[0].code, /alt Sai mật khẩu/);
   // BPMN: làn theo tác nhân, sự kiện bắt đầu/kết thúc, cổng
   assert.match(by.BPMN.code, /subgraph L\d+\["Khách hàng"\]/);
-  assert.match(by.BPMN.code, /subgraph L\d+\["Hệ thống"\]/);
-  assert.match(by.BPMN.code, /\(\("Bắt đầu"\)\)/);
-  assert.match(by.BPMN.code, /\(\(\("Kết thúc"\)\)\)/);
-  assert.match(by.BPMN.code, /\{"Hợp lệ\?"\}/);
+  assert.match(by.BPMN.code, /subgraph L\d+\["System"\]/);
+  assert.match(by.BPMN.code, /\(\("Start"\)\)/);
+  assert.match(by.BPMN.code, /\(\(\("End"\)\)\)/);
+  assert.match(by.BPMN.code, /\{"Valid\?"\}/);
   // ERD: thực thể lấy từ FRD/SRS
   assert.match(by.ERD.code, /^erDiagram/);
   assert.match(by.ERD.code, /DON_HANG\["Đơn hàng"\]/);
   assert.match(by.ERD.code, /SAN_PHAM\["Sản phẩm"\]/);
-  assert.match(by.ERD.code, /NGUOI_DUNG \|\|--o\{ DON_HANG/);
-  assert.match(by.ERD.code, /DON_HANG \}o--o\{ SAN_PHAM : "gồm"/, "trường trùng tên thực thể → quan hệ");
+  assert.match(by.ERD.code, /USER \|\|--o\{ DON_HANG/);
+  assert.match(by.ERD.code, /DON_HANG \}o--o\{ SAN_PHAM : "contains"/, "trường trùng tên thực thể → quan hệ");
   assert.match(by.ERD.code, /string dia_chi_giao_hang "Địa chỉ giao hàng"/);
   assert.doesNotMatch(by.ERD.code, /^\s*HANG\[/m, '"đặt hàng" không tạo thực thể "Hàng"');
   // Nhật ký AI ghi bản Mock
@@ -222,15 +222,15 @@ test("lưu: mã sai bị từ chối (400 + chi tiết theo dòng), mã đúng �
   const cur = (await call("GET", `/api/modules/${moduleId}/diagrams/CONTEXT`)).body as ModuleDiagram;
   let r = await save("CONTEXT", { code: 'flowchart LR\n  A(("Khách hàng") --> B', baseRev: cur.rev });
   assert.equal(r.status, 400);
-  assert.match(r.body.error, /Mã Mermaid chưa hợp lệ/);
-  assert.match(r.body.details[0], /^Dòng 2:/);
+  assert.match(r.body.error, /Invalid Mermaid code/);
+  assert.match(r.body.details[0], /^Line 2:/);
   r = await save("CONTEXT", { code: "sequenceDiagram\n  A->>B: x", baseRev: cur.rev });
   assert.equal(r.status, 400, "sai loại cú pháp");
   r = await save("CONTEXT", { code: "   ", baseRev: cur.rev });
   assert.equal(r.status, 400, "mã trống");
   r = await save("SEQUENCE", { parts: [{ key: "UC-01", title: "x", code: "sequenceDiagram\n  A->>B nội dung" }] });
   assert.equal(r.status, 400);
-  assert.match(r.body.details[0], /UC-01 – Dòng 2/);
+  assert.match(r.body.details[0], /UC-01 – Line 2/);
   r = await save("ERD", { code: "erDiagram\n  A {\n    string id PK\n" });
   assert.equal(r.status, 400, "thiếu }");
   assert.equal((await call("GET", `/api/modules/${moduleId}/diagrams/CONTEXT`)).body.rev, cur.rev, "không ghi khi lỗi");
@@ -284,11 +284,11 @@ test("tài liệu nguồn có bản mới → sơ đồ phụ thuộc thành B�
 
 // ------------------------------------------------------------------ hàm thuần
 test("checkMermaid: báo đúng dòng và đúng loại lỗi", () => {
-  assert.deepEqual(checkMermaid("", "flowchart"), [{ line: 0, message: "Mã sơ đồ trống" }]);
+  assert.deepEqual(checkMermaid("", "flowchart"), [{ line: 0, message: "Diagram code is empty" }]);
   assert.equal(checkMermaid("%% chú thích\nflowchart LR\n  A --> B", "flowchart").length, 0);
   assert.equal(checkMermaid("graph TD\n  A --> B", "flowchart").length, 0);
   assert.match(checkMermaid("pie\n  \"a\": 1", "flowchart")[0].message, /flowchart LR/);
-  assert.equal(checkMermaid('flowchart LR\n  subgraph X["a"]\n  A\n', "flowchart")[0].message, 'Thiếu "end" cho khối subgraph');
+  assert.equal(checkMermaid('flowchart LR\n  subgraph X["a"]\n  A\n', "flowchart")[0].message, 'Missing "end" for subgraph block');
   assert.equal(checkMermaid('flowchart LR\n  A["x] --> B', "flowchart")[0].line, 2);
   assert.equal(checkMermaid('flowchart LR\n  A>"Bất đối xứng"] --> B{"Cổng"}', "flowchart").length, 0);
   assert.equal(checkMermaid("sequenceDiagram\n  alt x\n  A->>B: y\n  else z\n  A-->>B: k\n  end", "sequence").length, 0);
@@ -319,8 +319,8 @@ test("đọc BRD / tìm thực thể (Mock)", () => {
 
 test("diagramMarkdown: khối mermaid, Sequence theo từng phần, BPMN có chú thích", () => {
   const md = diagramMarkdown({ kind: "SEQUENCE", code: "", parts: [{ key: "UC-01", title: "UC-01 – Đăng nhập", code: "sequenceDiagram\n  A->>B: x" }] }, "Đặt hàng");
-  assert.match(md, /^# Sơ đồ Sequence – Đặt hàng/);
+  assert.match(md, /^# Sequence Diagram – Đặt hàng/);
   assert.match(md, /## UC-01 – Đăng nhập\n\n```mermaid\nsequenceDiagram/);
-  assert.match(diagramMarkdown({ kind: "BPMN", code: "flowchart LR\n  A --> B" }), /BPMN mô phỏng bằng Mermaid/);
-  assert.match(diagramMarkdown({ kind: "ERD", code: "" }), /Chưa có sơ đồ/);
+  assert.match(diagramMarkdown({ kind: "BPMN", code: "flowchart LR\n  A --> B" }), /BPMN simulated with Mermaid/);
+  assert.match(diagramMarkdown({ kind: "ERD", code: "" }), /No diagram yet/);
 });

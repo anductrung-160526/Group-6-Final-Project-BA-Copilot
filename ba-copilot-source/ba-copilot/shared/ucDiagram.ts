@@ -25,7 +25,7 @@ export interface UcRelation {
   type: UcRelationType;
 }
 
-const SYSTEM_ACTOR = /^hệ thống$/i;
+const SYSTEM_ACTOR = /^(?:hệ thống|system|the system)$/i; // vi-keep: actor "Hệ thống" trong UC cũ tiếng Việt
 const UC_CODE = /\bUC-\d+\b/gi;
 
 /** Nhãn an toàn trong chuỗi "…" của Mermaid: bỏ ngoặc kép, xuống dòng, ký tự HTML. */
@@ -120,8 +120,8 @@ export function buildUcMermaid(useCases: UcDiagramInput[], actors: string[] = []
 
   const lines = ["flowchart LR", `  ${SOURCE_MARK} ${ucSourceHash(ucs)}`];
   actorNames.forEach((a, i) => lines.push(`  A${i + 1}(("${a}"))`));
-  lines.push(`  subgraph SYS["Hệ thống"]`, "    direction TB");
-  if (!ucs.length) lines.push(`    EMPTY["Chưa có Use Case"]`);
+  lines.push(`  subgraph SYS["System"]`, "    direction TB");
+  if (!ucs.length) lines.push(`    EMPTY["No use cases yet"]`);
   ucs.forEach((u) => lines.push(`    ${ucId.get(u.code)}(["${ucLabel(`${u.code}: ${u.name}`)}"])`));
   lines.push("  end");
   for (const u of ucs)
@@ -144,15 +144,15 @@ export function checkUcMermaid(code: string): string[] {
     .split("\n")
     .map((l) => l.trim())
     .filter((l) => l && !l.startsWith("%%"));
-  if (!lines.length) return ["Mã sơ đồ trống"];
-  if (!/^(flowchart|graph)\s+(LR|RL|TB|TD|BT)\b/.test(lines[0])) errs.push('Dòng đầu phải là "flowchart LR" (hoặc TB/TD/RL/BT)');
+  if (!lines.length) return ["Diagram code is empty"];
+  if (!/^(flowchart|graph)\s+(LR|RL|TB|TD|BT)\b/.test(lines[0])) errs.push('The first line must be "flowchart LR" (or TB/TD/RL/BT)');
   let depth = 0;
   for (const l of lines.slice(1)) {
     if (/^subgraph\b/.test(l)) depth++;
     if (l === "end") depth--;
-    if (depth < 0) errs.push('Thừa "end"');
-    if ((l.match(/"/g) ?? []).length % 2) errs.push(`Thiếu dấu ngoặc kép: ${l}`);
+    if (depth < 0) errs.push('Extra "end"');
+    if ((l.match(/"/g) ?? []).length % 2) errs.push(`Missing double quote: ${l}`);
   }
-  if (depth > 0) errs.push('Thiếu "end" cho khối subgraph');
+  if (depth > 0) errs.push('Missing "end" for subgraph block');
   return errs;
 }

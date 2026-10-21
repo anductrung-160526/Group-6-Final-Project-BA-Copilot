@@ -198,7 +198,7 @@ export function listArtifacts(projectId: string): ArtifactOption[] {
   for (const m of modules) {
     const base = { id: m.id, moduleId: m.id, moduleName: m.name };
     const screens = d.prepare("SELECT id, name, status FROM screens WHERE module_id = ? ORDER BY created_at, rowid").all(m.id) as Row[];
-    for (const s of screens) out.push({ kind: "screen", id: s.id, moduleId: m.id, moduleName: m.name, label: `Màn ${s.name}`, status: s.status });
+    for (const s of screens) out.push({ kind: "screen", id: s.id, moduleId: m.id, moduleName: m.name, label: `Screen ${s.name}`, status: s.status });
     const docs = new Map((d.prepare("SELECT kind, status FROM module_docs WHERE module_id = ?").all(m.id) as Row[]).map((r) => [r.kind, r.status]));
     for (const k of DOC_KINDS) out.push({ ...base, kind: "doc", sub: k, label: artifactTitle("doc", k, m.name), status: docs.get(k) ?? "none" });
     const diagrams = new Map((d.prepare("SELECT kind, status FROM module_diagrams WHERE module_id = ?").all(m.id) as Row[]).map((r) => [r.kind, r.status]));

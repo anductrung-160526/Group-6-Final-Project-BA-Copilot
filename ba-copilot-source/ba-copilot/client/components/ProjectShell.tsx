@@ -98,7 +98,7 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
       get<ProjectData>(`/api/projects/${encodeURIComponent(pid)}`)
         .then((p) => (setProject(p), setMissing(false), p))
         .catch((e) => {
-          if (e?.status === 404 || /Không tìm thấy/.test(e?.message ?? "")) setMissing(true);
+          if (e?.status === 404 || /not found/i.test(e?.message ?? "")) setMissing(true);
           else toast(e.message, "err");
           return null;
         }),
@@ -167,9 +167,9 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
   const active = section === "work" ? (step ? `work/${step.key}${sub ? `/${sub}` : ""}` : "work") : section;
 
   const deleteModule = async (m: Module) => {
-    const r = await run("Đang xoá module", () => del(`/api/modules/${encodeURIComponent(m.id)}`));
+    const r = await run("Deleting module", () => del(`/api/modules/${encodeURIComponent(m.id)}`));
     if (!r) return;
-    toast(`Đã xoá module ${m.name}`, "ok");
+    toast(`Module ${m.name} deleted`, "ok");
     await load();
     window.location.replace(workBase + (step ? `//${step.key}` : ""));
   };
@@ -177,17 +177,17 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
   if (missing)
     return (
       <div className="page">
-        <Empty title="Không tìm thấy dự án">
-          Dự án có thể đã bị xoá.{" "}
+        <Empty title="Project not found">
+          The project may have been deleted.{" "}
           <a className="link" href="#/">
-            Về danh sách dự án
+            Back to the project list
           </a>
         </Empty>
       </div>
     );
-  if (!project) return <div className="page muted">Đang tải…</div>;
+  if (!project) return <div className="page muted">Loading…</div>;
 
-  const nav = <SideNav items={items} active={active} ariaLabel="Menu dự án" testId="project-nav" />;
+  const nav = <SideNav items={items} active={active} ariaLabel="Project menu" testId="project-nav" />;
   const navRail = sideNavHasRail(items); // thu gọn: còn dải icon, không có icon thì ẩn hẳn
 
   // ---- nội dung
@@ -198,18 +198,18 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
   } else if (!modules.length) {
     content = (
       <div className="page">
-        <Empty title="Chưa có module">
-          Module là một nhóm chức năng (VD: Xác thực, Quản lý sản phẩm). Mỗi module đi qua 5 bước: Tài liệu → Sơ đồ → Prototype → Test case → Truy vết.
-          Tạo module và viết user story ở mục Yêu cầu nghiệp vụ trước.
+        <Empty title="No modules yet">
+          A module is a group of features (e.g. Authentication, Product management). Each module goes through 5 steps: Documents → Diagrams → Prototype → Test Cases → Traceability.
+          Create a module and write user stories under Business Requirements first.
         </Empty>
         <a className="btn btn-primary btn-md" href={storiesHref(pid)} data-testid="go-stories">
           <Icon name="arrowRight" size="sm" />
-          Đến Yêu cầu nghiệp vụ
+          Go to Business Requirements
         </a>
       </div>
     );
   } else if (!validUrlModule || !step) {
-    content = <div className="page muted">Đang mở module…</div>;
+    content = <div className="page muted">Opening module…</div>;
   } else {
     const current = modules.find((m) => m.id === validUrlModule)!;
     const Step = step.component;
@@ -225,9 +225,9 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
           />
           <RowActions
             testId="module"
-            deleteLabel="Xoá module"
+            deleteLabel="Delete module"
             onDelete={() => deleteModule(current)}
-            deleteConfirm={{ title: `Xoá module "${current.name}"?`, message: "Tài liệu, sơ đồ, màn hình và test case của module sẽ bị xoá. User story của module được giữ lại, không còn gắn module.", okLabel: "Xoá" }}
+            deleteConfirm={{ title: `Delete module "${current.name}"?`, message: "The module's documents, diagrams, screens and test cases will be deleted. Its user stories are kept but no longer linked to a module.", okLabel: "Delete" }}
           />
         </div>
         <Step key={`${validUrlModule}/${step.key}`} projectId={pid} moduleId={validUrlModule} params={params} />
@@ -239,7 +239,7 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
     <div className="project-shell" data-testid="project-shell">
       <div className="module-head project-head">
         <div className="crumbs">
-          <a href="#/">Dự án</a> / <span>{project.name}</span>
+          <a href="#/">Projects</a> / <span>{project.name}</span>
         </div>
         <div className="module-title-row">
           <h1>{project.name}</h1>
@@ -266,21 +266,21 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
             <div className="project-nav-bar">
               <IconBtn
                 icon={navCollapsed ? "navExpand" : "navCollapse"}
-                label={navCollapsed ? "Mở rộng menu" : "Thu gọn menu"}
+                label={navCollapsed ? "Expand menu" : "Collapse menu"}
                 aria-expanded={!navCollapsed}
                 aria-controls="project-nav-menu"
                 onClick={toggleNav}
                 data-testid="project-nav-toggle"
               />
             </div>
-            <div id="project-nav-menu">{navCollapsed ? <SideNav items={items} active={active} ariaLabel="Menu dự án" testId="project-nav" collapsed /> : nav}</div>
+            <div id="project-nav-menu">{navCollapsed ? <SideNav items={items} active={active} ariaLabel="Project menu" testId="project-nav" collapsed /> : nav}</div>
           </aside>
           <div className="project-main">{content}</div>
         </div>
       )}
 
       {narrow && menuOpen && (
-        <Drawer title="Menu dự án" onClose={() => setMenuOpen(false)} testId="project-menu-drawer">
+        <Drawer title="Project menu" onClose={() => setMenuOpen(false)} testId="project-menu-drawer">
           {nav}
         </Drawer>
       )}

@@ -67,7 +67,7 @@ export function TasksView({ projectId }: { projectId: string; params?: string[] 
       if (t.artifactType) loadArtifacts();
     } catch (e) {
       put(from);
-      toast(`Không chuyển được thẻ: ${(e as Error).message}`, "err");
+      toast(`Could not move the card: ${(e as Error).message}`, "err");
     }
   };
 
@@ -82,27 +82,27 @@ export function TasksView({ projectId }: { projectId: string; params?: string[] 
   const moduleName = (id: string | null) => (id ? (project?.modules.find((m) => m.id === id)?.name ?? null) : null);
   const filtered = !!(assigneeId || moduleId);
 
-  if (!project || !tasks) return <div className="page muted">Đang tải…</div>;
+  if (!project || !tasks) return <div className="page muted">Loading…</div>;
   return (
     <div className="page" data-testid="tasks-view">
       <div className="page-head">
         <div>
-          <h1>Quản lý công việc</h1>
-          <p className="muted">Kéo thẻ theo luồng Cần làm → Đang làm → Xong → Đã duyệt. Duyệt và Yêu cầu sửa chỉ BA Lead. Bấm vào thẻ để xem chi tiết.</p>
+          <h1>Task Board</h1>
+          <p className="muted">Drag cards along the flow To do → In progress → Done → Approved. Only a BA Lead can approve or request changes. Click a card to see its details.</p>
         </div>
         <div className="filters">
-          <Select value={assigneeId} placeholder="Mọi người làm" options={members.map((m) => ({ value: m.id, label: m.name }))} onChange={setAssigneeId} testId="filter-assignee" />
-          <Select value={moduleId} placeholder="Mọi module" options={project.modules.map((m) => ({ value: m.id, label: m.name }))} onChange={setModuleId} testId="filter-module" />
+          <Select value={assigneeId} placeholder="All assignees" options={members.map((m) => ({ value: m.id, label: m.name }))} onChange={setAssigneeId} testId="filter-assignee" />
+          <Select value={moduleId} placeholder="All modules" options={project.modules.map((m) => ({ value: m.id, label: m.name }))} onChange={setModuleId} testId="filter-module" />
           <Btn kind="primary" onClick={() => setEditing({ task: null })} data-testid="new-task">
             <Icon name="plus" size="sm" />
-            Công việc mới
+            New task
           </Btn>
         </div>
       </div>
 
       {tasks.length === 0 && (
-        <Empty title={filtered ? "Không có công việc khớp bộ lọc" : "Chưa có công việc nào"}>
-          {filtered ? "Đổi người làm hoặc module ở bộ lọc phía trên." : "Bấm “Công việc mới” để giao việc đầu tiên, gắn với màn hình, tài liệu, sơ đồ hoặc bộ test."}
+        <Empty title={filtered ? "No tasks match the filters" : "No tasks yet"}>
+          {filtered ? "Change the assignee or module in the filters above." : "Click “New task” to assign the first task and link it to a screen, document, diagram or test suite."}
         </Empty>
       )}
 
@@ -120,7 +120,7 @@ export function TasksView({ projectId }: { projectId: string; params?: string[] 
                 col.key === "todo" || col.key === "doing" ? (
                   <Btn kind="ghost" size="sm" onClick={() => setEditing({ task: null, status: col.key })} data-testid={`add-${col.key}`}>
                     <Icon name="plus" size="sm" />
-                    Thêm
+                    Add
                   </Btn>
                 ) : undefined
               }
@@ -140,13 +140,13 @@ export function TasksView({ projectId }: { projectId: string; params?: string[] 
                         {t.revisionRequested && <RevisionTag testId={`revision-${t.id}`} />}
                         {priorityBadge(t.priority)}
                         {art && (
-                          <Badge tone={art.missing ? "flag" : "gray"}>
+                          <Badge tone={art.missing ? "flag" : "gray"} title={art.text}>
                             <Icon name={ARTIFACT_ICON[art.kind]} size="xs" />
-                            {art.text}
+                            <span className="badge-text">{art.text}</span>
                           </Badge>
                         )}
                         {!art && mod && <span>{mod}</span>}
-                        {t.dueDate && (isOverdue(t) ? <Badge tone="red">Quá hạn {fmtDate(t.dueDate)}</Badge> : <span>Hạn {fmtDate(t.dueDate)}</span>)}
+                        {t.dueDate && (isOverdue(t) ? <Badge tone="red">Overdue {fmtDate(t.dueDate)}</Badge> : <span>Due {fmtDate(t.dueDate)}</span>)}
                         <span className="spacer" />
                         {who && <span className="small">{who}</span>}
                         <Avatar name={who} size="sm" />

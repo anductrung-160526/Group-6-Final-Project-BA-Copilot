@@ -9,7 +9,7 @@ import { Avatar, Badge, KanbanCard, RevisionTag, StatusBadge } from "./ui.tsx";
 import { fmtDate, isOverdue, priorityBadge, statusInfo } from "../views/TaskDialog.tsx";
 import { tasksHref } from "../projectMenu.ts";
 
-export function RelatedTasks({ kind, id, sub, title = "Công việc liên quan" }: { kind: ArtifactKind; id: string; sub?: string; title?: string }) {
+export function RelatedTasks({ kind, id, sub, title = "Related tasks" }: { kind: ArtifactKind; id: string; sub?: string; title?: string }) {
   const [tasks, setTasks] = useState<Task[] | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   useEffect(() => {
@@ -29,8 +29,8 @@ export function RelatedTasks({ kind, id, sub, title = "Công việc liên quan" 
         {title}
         {tasks ? ` (${tasks.length})` : ""}
       </div>
-      {!tasks && <div className="muted small">Đang tải…</div>}
-      {tasks?.length === 0 && <div className="muted small">Chưa có công việc nào gắn với sản phẩm này.</div>}
+      {!tasks && <div className="muted small">Loading…</div>}
+      {tasks?.length === 0 && <div className="muted small">No tasks are linked to this artifact yet.</div>}
       {tasks?.map((t) => (
         <KanbanCard
           key={t.id}
@@ -43,7 +43,7 @@ export function RelatedTasks({ kind, id, sub, title = "Công việc liên quan" 
               <StatusBadge status={statusInfo(t.status).key} />
               {t.revisionRequested && <RevisionTag testId={`related-revision-${t.id}`} />}
               {priorityBadge(t.priority)}
-              {t.dueDate && (isOverdue(t) ? <Badge tone="red">Quá hạn {fmtDate(t.dueDate)}</Badge> : <span>Hạn {fmtDate(t.dueDate)}</span>)}
+              {t.dueDate && (isOverdue(t) ? <Badge tone="red">Overdue {fmtDate(t.dueDate)}</Badge> : <span>Due {fmtDate(t.dueDate)}</span>)}
               <span className="spacer" />
               <Avatar name={name(t.assigneeId)} size="sm" />
             </>

@@ -54,37 +54,37 @@ const NEUTRAL = [
 ];
 const TONES: BadgeTone[] = ["gray", "blue", "mint", "green", "amber", "orange", "red", "violet", "flag"];
 const MEMBERS: MemberOption[] = [
-  { id: "m1", name: "Hoàng Văn Chí", role: "BA" },
-  { id: "m2", name: "Nguyễn Thị Lan", role: "Dev" },
-  { id: "m3", name: "Trần Minh", role: "QA" },
+  { id: "m1", name: "Chi Hoang", role: "BA" },
+  { id: "m2", name: "Lan Nguyen", role: "Dev" },
+  { id: "m3", name: "Minh Tran", role: "QA" },
 ];
 const ISSUES: IssueItem[] = [
-  { severity: "warn", code: "AMBIGUOUS", message: 'Từ mơ hồ: "nhanh"', suggestion: 'nêu ngưỡng, ví dụ "≤ 2 giây"' },
-  { severity: "error", code: "WELL_FORMED", message: "Thiếu vai trò" },
-  { severity: "info", code: "MINIMAL", message: "Có thể tách thành 2 story" },
+  { severity: "warn", code: "AMBIGUOUS", message: 'Vague term: "fast"', suggestion: 'state a threshold, e.g. "≤ 2 seconds"' },
+  { severity: "error", code: "WELL_FORMED", message: "Missing role" },
+  { severity: "info", code: "MINIMAL", message: "Could be split into 2 stories" },
 ];
 
 const NAV: SideNavItem[] = [
-  { key: "stories", label: "Yêu cầu nghiệp vụ", icon: "folder" },
+  { key: "stories", label: "Business Requirements", icon: "folder" },
   {
     key: "work",
-    label: "Thực hiện công việc",
+    label: "Deliverables",
     icon: "grid",
     children: [
-      { key: "docs", label: "Tài liệu", step: 1, extra: <StatusBadge status="done" /> },
-      { key: "diagrams", label: "Sơ đồ", step: 2, extra: <StatusBadge status="doing" /> },
+      { key: "docs", label: "Documents", step: 1, extra: <StatusBadge status="done" /> },
+      { key: "diagrams", label: "Diagrams", step: 2, extra: <StatusBadge status="doing" /> },
       { key: "proto", label: "Prototype", step: 3 },
       { key: "tests", label: "Test case", step: 4 },
-      { key: "trace", label: "Truy vết", step: 5 },
+      { key: "trace", label: "Traceability", step: 5 },
     ],
   },
-  { key: "tasks", label: "Công việc", icon: "check" },
-  { key: "git", label: "Lịch sử GitHub", icon: "github" },
-  { key: "settings", label: "Cài đặt dự án", icon: "settings" },
+  { key: "tasks", label: "Task Board", icon: "check" },
+  { key: "git", label: "GitHub History", icon: "github" },
+  { key: "settings", label: "Project Settings", icon: "settings" },
 ];
 const ROWS = [
-  { id: "US-01", text: "Là khách hàng, tôi muốn đăng nhập bằng email", status: "approved" },
-  { id: "US-02", text: "Là khách hàng, tôi muốn đặt lại mật khẩu", status: "doing" },
+  { id: "US-01", text: "As a customer, I want to sign in with my email", status: "approved" },
+  { id: "US-02", text: "As a customer, I want to reset my password", status: "doing" },
 ];
 
 function Swatch({ name, hex, color }: { name: string; hex: string; color: string }) {
@@ -122,27 +122,27 @@ export function Gallery() {
   const [lead, setLead] = useState(true);
   const [cards, setCards] = useState<Record<string, string>>({ t1: "todo", t2: "todo", t3: "doing", t4: "done" });
   const cols = [
-    ["todo", "Cần làm"],
-    ["doing", "Đang làm"],
-    ["done", "Xong"],
+    ["todo", "To do"],
+    ["doing", "In progress"],
+    ["done", "Done"],
   ];
 
   return (
     <div className="page gallery" data-testid="gallery">
       <div>
-        <div className="crumbs">Trang nội bộ · #/_gallery</div>
+        <div className="crumbs">Internal page · #/_gallery</div>
         <h1>Design System</h1>
-        <p className="muted">Mọi token và component dùng chung. Quy tắc dùng: docs/design-system.md.</p>
+        <p className="muted">All shared tokens and components. Usage rules: docs/design-system.md.</p>
       </div>
 
-      <Section title="Bảng màu">
-        <div className="gallery-label">Mint (điểm nhấn 10%)</div>
+      <Section title="Colour palette">
+        <div className="gallery-label">Mint (10% accent)</div>
         <div className="gallery-row">
           {MINT.map(([n, h, c]) => (
             <Swatch key={n} name={n} hex={h} color={c} />
           ))}
         </div>
-        <div className="gallery-label">Trung tính (60% nền + 30% chữ, viền)</div>
+        <div className="gallery-label">Neutral (60% background + 30% text, borders)</div>
         <div className="gallery-row">
           {NEUTRAL.map(([n, h, c]) => (
             <Swatch key={n} name={n} hex={h} color={c} />
@@ -158,24 +158,24 @@ export function Gallery() {
           </div>
           <div className="type-row">
             <span className="muted small">H2 · 20 · Space Grotesk</span>
-            <h2>Danh sách module</h2>
+            <h2>Module list</h2>
           </div>
           <div className="type-row">
             <span className="muted small">H3 · 16/600 · Space Grotesk</span>
-            <h3>Yêu cầu nghiệp vụ</h3>
+            <h3>Business Requirements</h3>
           </div>
           <div className="type-row">
             <span className="muted small">body · 14 · Inter</span>
-            <span>Sinh màn hình, tài liệu đặc tả và test case từ yêu cầu.</span>
+            <span>Generate screens, specifications and test cases from requirements.</span>
           </div>
           <div className="type-row">
             <span className="muted small">small · 12.5 · Inter</span>
-            <span className="small muted">Nhãn phụ, chú thích, tiêu đề cột bảng.</span>
+            <span className="small muted">Secondary labels, captions, table column headers.</span>
           </div>
         </div>
       </Section>
 
-      <Section title="Badge (ôm sát chữ)">
+      <Section title="Badge (hugs its text)">
         <div className="gallery-row">
           {TONES.map((t) => (
             <Badge key={t} tone={t}>
@@ -188,14 +188,22 @@ export function Gallery() {
             <StatusBadge key={s} status={s} />
           ))}
         </div>
-        <div className="gallery-label">Trạng thái công việc + tag</div>
+        <div className="gallery-label">Task status + tags</div>
         <div className="gallery-row">
           {["todo", "doing", "done", "approved"].map((s) => (
             <StatusBadge key={s} status={s} />
           ))}
           <RevisionTag />
-          <EditingBadge names={["Nguyễn Thị Lan"]} testId="editing-badge-1" />
-          <EditingBadge names={["Nguyễn Thị Lan", "Trần Minh", "Hoàng Văn Chí", "Lê Hà"]} testId="editing-badge-4" />
+          <RevisionTag compact testId="revision-tag-compact" />
+          <EditingBadge names={["Lan Nguyen"]} testId="editing-badge-1" />
+          <EditingBadge names={["Lan Nguyen", "Minh Tran", "Chi Hoang", "Ha Le"]} testId="editing-badge-4" />
+        </div>
+        <div className="gallery-label">Long text in a narrow container (badge-text → "…", full text in the tooltip)</div>
+        <div className="gallery-row" style={{ maxWidth: 200 }}>
+          <Badge title="API Spec document – Product Management">
+            <Icon name="doc" size="xs" />
+            <span className="badge-text">API Spec document – Product Management</span>
+          </Badge>
         </div>
         <div className="gallery-row">
           <ScoreBadge score={92} />
@@ -207,7 +215,7 @@ export function Gallery() {
 
       <Section title="Icon (Lucide)">
         <div className="muted small">
-          Gọi {'<Icon name="edit" />'} theo tên dưới đây; màu theo chữ của phần tử cha. Cỡ: xs 12 · sm 14 · md 16 (mặc định) · lg 20.
+          Use {'<Icon name="edit" />'} with the names below; colour follows the parent's text colour. Sizes: xs 12 · sm 14 · md 16 (default) · lg 20.
         </div>
         <div className="icon-grid">
           {ICON_NAMES.map((n) => (
@@ -220,40 +228,40 @@ export function Gallery() {
         <div className="gallery-row">
           <Btn kind="primary">
             <Icon name="plus" />
-            Thêm user story
+            Add user story
           </Btn>
           <Btn>
             <Icon name="ai" />
-            Sinh bằng AI
+            Generate with AI
           </Btn>
           <Btn>
             <Icon name="regenerate" />
-            Sinh lại
+            Regenerate
           </Btn>
           <Btn kind="ghost">
             <Icon name="external" />
-            Mở GitHub
+            Open GitHub
           </Btn>
-          <IconBtn icon="more" label="Thêm thao tác" />
-          <IconBtn icon="close" label="Đóng" size="lg" />
-          <IconBtn icon="delete" label="Xoá" tone="danger" disabled />
+          <IconBtn icon="more" label="More actions" />
+          <IconBtn icon="close" label="Close" size="lg" />
+          <IconBtn icon="delete" label="Delete" tone="danger" disabled />
         </div>
       </Section>
 
-      <Section title="Sửa / Xoá (RowActions)">
-        <div className="muted small">Trong bảng: icon ở cột cuối (variant="icons"). Trong ngăn phải: nút chữ (variant="buttons"). Xoá luôn hỏi xác nhận.</div>
+      <Section title="Edit / Delete (RowActions)">
+        <div className="muted small">In tables: icons in the last column (variant="icons"). In drawers: text buttons (variant="buttons"). Delete always asks for confirmation.</div>
         <table className="tbl">
           <thead>
             <tr>
-              <th>Mã</th>
+              <th>ID</th>
               <th>User story</th>
-              <th>Trạng thái</th>
-              <th className="actions" aria-label="Thao tác" />
+              <th>Status</th>
+              <th className="actions" aria-label="Actions" />
             </tr>
           </thead>
           <tbody>
             {ROWS.map((r) => (
-              <tr key={r.id} className="clickable" onClick={() => toast(`Mở ${r.id}`)}>
+              <tr key={r.id} className="clickable" onClick={() => toast(`Open ${r.id}`)}>
                 <td>{r.id}</td>
                 <td>{r.text}</td>
                 <td>
@@ -262,9 +270,9 @@ export function Gallery() {
                 <td className="actions">
                   <RowActions
                     testId={`row-${r.id}`}
-                    onEdit={() => toast(`Sửa ${r.id}`)}
-                    onDelete={() => toast(`Đã xoá ${r.id}`, "ok")}
-                    deleteConfirm={{ title: `Xoá ${r.id}?`, message: "Story và tiêu chí chấp nhận sẽ bị xoá." }}
+                    onEdit={() => toast(`Edit ${r.id}`)}
+                    onDelete={() => toast(`Deleted ${r.id}`, "ok")}
+                    deleteConfirm={{ title: `Delete ${r.id}?`, message: "The story and its acceptance criteria will be deleted." }}
                   />
                 </td>
               </tr>
@@ -272,17 +280,17 @@ export function Gallery() {
           </tbody>
         </table>
         <div className="gallery-row">
-          <RowActions variant="buttons" onEdit={() => toast("Sửa")} onDelete={() => toast("Đã xoá", "ok")} testId="row-buttons" />
+          <RowActions variant="buttons" onEdit={() => toast("Edit")} onDelete={() => toast("Deleted", "ok")} testId="row-buttons" />
         </div>
       </Section>
 
       <div className="gallery-cols">
-        <Section title="SideNav (menu trái nhiều cấp, thu gọn còn dải icon)">
+        <Section title="SideNav (multi-level left menu, collapses to an icon rail)">
           <div className={`gallery-panel ${navCollapsed ? "gallery-panel-rail" : ""}`}>
             <div className="project-nav-bar">
               <IconBtn
                 icon={navCollapsed ? "navExpand" : "navCollapse"}
-                label={navCollapsed ? "Mở rộng menu" : "Thu gọn menu"}
+                label={navCollapsed ? "Expand menu" : "Collapse menu"}
                 aria-expanded={!navCollapsed}
                 onClick={() => setNavCollapsed((v) => !v)}
                 data-testid="gallery-sidenav-toggle"
@@ -297,10 +305,10 @@ export function Gallery() {
               header={
                 <Select
                   value={mod}
-                  placeholder="Chọn module"
+                  placeholder="Select module"
                   options={[
-                    { value: "auth", label: "Module: Xác thực" },
-                    { value: "order", label: "Module: Đặt hàng" },
+                    { value: "auth", label: "Module: Authentication" },
+                    { value: "order", label: "Module: Ordering" },
                   ]}
                   onChange={setMod}
                 />
@@ -309,7 +317,7 @@ export function Gallery() {
           </div>
         </Section>
 
-        <Section title="ApprovalBar (Xong / Duyệt / Yêu cầu sửa)">
+        <Section title="ApprovalBar (Mark as done / Approve / Request changes)">
           <div className="gallery-row">
             <Select
               value={appr}
@@ -322,7 +330,7 @@ export function Gallery() {
             </label>
             <label className="check-inline">
               <input type="checkbox" checked={revision} onChange={(e) => setRevision(e.target.checked)} />
-              Yêu cầu sửa
+              Changes requested
             </label>
           </div>
           <ApprovalBar
@@ -340,88 +348,88 @@ export function Gallery() {
               setRevision(true);
             }}
           />
-          <div className="gallery-label">Task không gắn sản phẩm (todo → Bắt đầu làm; doing → Xong; BA Lead Yêu cầu sửa cả khi Đã duyệt)</div>
-          <ApprovalBar status="todo" isLead={lead} onStart={() => toast("Đã chuyển sang Đang làm", "ok")} testId="approval-bar-task" />
-          <ApprovalBar status="approved" isLead reopenApproved onRequestChange={() => toast("Đã yêu cầu sửa", "ok")} testId="approval-bar-task-approved" />
-          <div className="gallery-label">Bị khoá (disabledReason)</div>
-          <ApprovalBar status="draft" isLead={false} onDone={() => {}} disabledReason="Bước Tài liệu chưa Xong" testId="approval-bar-locked" />
-          <div className="gallery-label">Báo xung đột (409)</div>
-          <ConflictNotice onReload={() => toast("Đã tải bản mới", "ok")} />
+          <div className="gallery-label">Task without a linked artifact (todo → Start work; doing → Mark as done; BA Lead can Request changes even when Approved)</div>
+          <ApprovalBar status="todo" isLead={lead} onStart={() => toast("Moved to In progress", "ok")} testId="approval-bar-task" />
+          <ApprovalBar status="approved" isLead reopenApproved onRequestChange={() => toast("Changes requested", "ok")} testId="approval-bar-task-approved" />
+          <div className="gallery-label">Locked (disabledReason)</div>
+          <ApprovalBar status="draft" isLead={false} onDone={() => {}} disabledReason="The Documents step is not Done yet" testId="approval-bar-locked" />
+          <div className="gallery-label">Conflict notice (409)</div>
+          <ConflictNotice onReload={() => toast("Latest version loaded", "ok")} />
         </Section>
       </div>
 
       <div className="gallery-cols">
-        <Section title="Nút">
+        <Section title="Buttons">
           <div className="gallery-row">
-            <Btn kind="primary">+ Thêm mới</Btn>
+            <Btn kind="primary">+ Add new</Btn>
             <Btn>Secondary</Btn>
             <Btn kind="ghost">Ghost</Btn>
-            <button className="link">Liên kết</button>
-            <Btn kind="danger">Nguy hiểm</Btn>
+            <button className="link">Link</button>
+            <Btn kind="danger">Danger</Btn>
             <Btn kind="primary" disabled>
               Disabled
             </Btn>
           </div>
           <div className="gallery-row">
             <Btn size="sm" kind="primary">
-              + Mới
+              + New
             </Btn>
-            <Btn size="sm">Nhỏ</Btn>
+            <Btn size="sm">Small</Btn>
             <Btn size="sm" kind="ghost">
-              Bỏ qua
+              Skip
             </Btn>
           </div>
         </Section>
 
         <Section title="Form / Tab">
-          <Field label="Tên module" hint="Bắt buộc, tối đa 80 ký tự">
-            <input placeholder="Nhập tên…" />
+          <Field label="Module name" hint="Required, up to 80 characters">
+            <input placeholder="Enter a name…" />
           </Field>
-          <Field label="Trạng thái">
+          <Field label="Status">
             <Select
               value={sel}
-              placeholder="Chọn trạng thái"
+              placeholder="Select status"
               options={[
-                { value: "draft", label: "Bản nháp" },
-                { value: "approved", label: "Đã duyệt" },
+                { value: "draft", label: "Draft" },
+                { value: "approved", label: "Approved" },
               ]}
               onChange={setSel}
             />
           </Field>
-          <Field label="Người phụ trách">
+          <Field label="Assignee">
             <MemberPicker members={MEMBERS} value={member} onChange={setMember} />
           </Field>
           <Tabs
             active={tab}
             onChange={setTab}
             items={[
-              { key: "a", label: "Đang chọn" },
-              { key: "b", label: "Tài liệu", extra: <StatusBadge status="draft" /> },
+              { key: "a", label: "Selected" },
+              { key: "b", label: "Documents", extra: <StatusBadge status="draft" /> },
               { key: "c", label: "Test case" },
             ]}
           />
-          <div className="gallery-label">Tabs variant="pill" (menu thanh trên)</div>
+          <div className="gallery-label">Tabs variant="pill" (top bar menu)</div>
           <Tabs
             variant="pill"
             active={tab}
             onChange={setTab}
             items={[
-              { key: "a", label: "Công việc" },
-              { key: "b", label: "Kho tài liệu" },
-              { key: "c", label: "Thành viên" },
+              { key: "a", label: "Task Board" },
+              { key: "b", label: "Document Repository" },
+              { key: "c", label: "Members" },
             ]}
           />
         </Section>
       </div>
 
       <div className="gallery-cols">
-        <Section title="Menu trái">
+        <Section title="Left menu">
           <div className="doc-nav side-nav" style={{ width: 240 }}>
             {[
               ["modules", "Module"],
-              ["files", "Kho tài liệu"],
-              ["tasks", "Công việc"],
-              ["members", "Thành viên"],
+              ["files", "Document Repository"],
+              ["tasks", "Task Board"],
+              ["members", "Members"],
             ].map(([k, l]) => (
               <button key={k} className={`side-nav-item ${nav === k ? "active" : ""}`} onClick={() => setNav(k)}>
                 {l}
@@ -430,19 +438,19 @@ export function Gallery() {
           </div>
         </Section>
 
-        <Section title="Bảng">
+        <Section title="Table">
           <table className="tbl">
             <thead>
               <tr>
-                <th>Mã</th>
-                <th>Màn hình</th>
-                <th>Trạng thái</th>
+                <th>ID</th>
+                <th>Screen</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
               <tr className="clickable selected">
                 <td>SCR-09</td>
-                <td>Chi tiết dự án</td>
+                <td>Project details</td>
                 <td>
                   <StatusBadge status="approved" />
                 </td>
@@ -456,40 +464,40 @@ export function Gallery() {
               </tr>
             </tbody>
           </table>
-          <div className="muted small">Hàng chọn / hover: nền mint-50, viền trái mint-500.</div>
+          <div className="muted small">Selected / hover row: mint-50 background, mint-500 left border.</div>
         </Section>
       </div>
 
-      <Section title="Hộp thoại, ngăn phải, thông báo">
+      <Section title="Dialogs, drawers, toasts">
         <div className="gallery-row">
-          <Btn onClick={() => setModal(true)}>Mở Modal</Btn>
-          <Btn onClick={() => setDrawer(true)}>Mở Drawer</Btn>
+          <Btn onClick={() => setModal(true)}>Open Modal</Btn>
+          <Btn onClick={() => setDrawer(true)}>Open Drawer</Btn>
           <Btn
             kind="danger"
-            onClick={async () => toast((await confirm({ title: "Xoá module \"Xác thực\"?", message: "Màn hình, tài liệu và test case của module sẽ bị xoá.", okLabel: "Xoá", danger: true })) ? "Đã xoá" : "Đã huỷ")}
+            onClick={async () => toast((await confirm({ title: "Delete module \"Authentication\"?", message: "The module's screens, documents and test cases will be deleted.", okLabel: "Delete", danger: true })) ? "Deleted" : "Cancelled")}
           >
-            Hỏi xác nhận
+            Confirm dialog
           </Btn>
-          <Btn onClick={() => toast("Đã lưu thay đổi", "ok")}>Toast thành công</Btn>
-          <Btn onClick={() => toast("Không lưu được – thử lại", "err")}>Toast lỗi</Btn>
+          <Btn onClick={() => toast("Changes saved", "ok")}>Success toast</Btn>
+          <Btn onClick={() => toast("Could not save – try again", "err")}>Error toast</Btn>
         </div>
         <div className="gallery-row">
-          <ToastItem kind="info">Thông báo thường</ToastItem>
-          <ToastItem kind="ok">Đã lưu thay đổi</ToastItem>
-          <ToastItem kind="err">Không lưu được</ToastItem>
+          <ToastItem kind="info">Regular notice</ToastItem>
+          <ToastItem kind="ok">Changes saved</ToastItem>
+          <ToastItem kind="err">Could not save</ToastItem>
         </div>
       </Section>
 
       <div className="gallery-cols">
-        <Section title="Tải tệp">
-          <FileDrop onFiles={(f) => toast(`Đã chọn ${f.length} tệp`, "info")} />
+        <Section title="File upload">
+          <FileDrop onFiles={(f) => toast(`Selected ${f.length} ${f.length === 1 ? "file" : "files"}`, "info")} />
         </Section>
-        <Section title="Trạng thái rỗng">
-          <Empty title="Chưa có module nào">Bấm "+ Module mới" để bắt đầu.</Empty>
+        <Section title="Empty state">
+          <Empty title="No modules yet">Click "+ New module" to get started.</Empty>
         </Section>
       </div>
 
-      <Section title="Kanban (kéo thả thẻ giữa các cột)">
+      <Section title="Kanban (drag cards between columns)">
         <div className="kanban">
           {cols.map(([cid, label]) => {
             const ids = Object.keys(cards).filter((k) => cards[k] === cid);
@@ -499,11 +507,11 @@ export function Gallery() {
                   <KanbanCard
                     key={k}
                     id={k}
-                    title={`Task ${k.toUpperCase()} – viết SRS màn đăng nhập`}
+                    title={`Task ${k.toUpperCase()} – write the SRS for the sign-in screen`}
                     meta={
                       <>
                         <Badge tone="blue">SRS</Badge>
-                        <Avatar name="Nguyễn Thị Lan" size="sm" />
+                        <Avatar name="Lan Nguyen" size="sm" />
                         <span>20/10</span>
                       </>
                     }
@@ -518,64 +526,64 @@ export function Gallery() {
       <div className="gallery-cols">
         <Section title="IssueList (QUS)">
           <IssueList issues={ISSUES} />
-          <IssueList issues={[]} empty="Đạt chuẩn QUS" />
+          <IssueList issues={[]} empty="Meets the QUS criteria" />
         </Section>
         <Section title="SuggestionCard (SCR-16)">
-          <SuggestionCard title="Quên mật khẩu" reason='Nút "Quên mật khẩu?" ở màn Đăng nhập chưa có đích' onAccept={() => toast("Tạo màn", "ok")} onDismiss={() => toast("Đã bỏ qua")} />
-          <SuggestionCard title="Lịch sử đơn hàng" reason="FR-04 chưa có màn nào phủ" onAccept={() => {}} onDismiss={() => {}} />
+          <SuggestionCard title="Forgot password" reason='The "Forgot password?" button on the Sign in screen has no target' onAccept={() => toast("Create screen", "ok")} onDismiss={() => toast("Dismissed")} />
+          <SuggestionCard title="Order history" reason="FR-04 is not covered by any screen yet" onAccept={() => {}} onDismiss={() => {}} />
         </Section>
       </div>
 
-      <Section title="Bố cục 2 cột (.split-2)">
+      <Section title="2-column layout (.split-2)">
         <div className="split-2">
           <div className="box">
-            <div className="box-title">Mã Mermaid</div>
-            <div className="muted small">Cột trái: soạn</div>
+            <div className="box-title">Mermaid code</div>
+            <div className="muted small">Left column: edit</div>
           </div>
           <div className="box">
-            <div className="box-title">Xem trước</div>
-            <div className="muted small">Cột phải: xem kết quả</div>
+            <div className="box-title">Preview</div>
+            <div className="muted small">Right column: result</div>
           </div>
         </div>
       </Section>
 
       {modal && (
         <Modal
-          title="Tạo module"
+          title="Create module"
           onClose={() => setModal(false)}
           footer={
             <>
-              <Btn onClick={() => setModal(false)}>Huỷ</Btn>
+              <Btn onClick={() => setModal(false)}>Cancel</Btn>
               <Btn kind="primary" onClick={() => setModal(false)}>
-                Tạo
+                Create
               </Btn>
             </>
           }
         >
-          <Field label="Tên module">
+          <Field label="Module name">
             <input autoFocus />
           </Field>
         </Modal>
       )}
       {drawer && (
         <Drawer
-          title="dac-ta-dang-nhap.docx"
+          title="sign-in-specification.docx"
           onClose={() => setDrawer(false)}
           testId="gallery-drawer"
-          actions={<Btn size="sm">Tải về</Btn>}
+          actions={<Btn size="sm">Download</Btn>}
           footer={
             <>
-              <RowActions variant="buttons" onEdit={() => toast("Sửa")} onDelete={() => setDrawer(false)} deleteConfirm={{ title: "Xoá tệp này?", message: "Không khôi phục được." }} testId="drawer-actions" />
+              <RowActions variant="buttons" onEdit={() => toast("Edit")} onDelete={() => setDrawer(false)} deleteConfirm={{ title: "Delete this file?", message: "This cannot be undone." }} testId="drawer-actions" />
               <span className="spacer" />
-              <Btn onClick={() => setDrawer(false)}>Đóng</Btn>
+              <Btn onClick={() => setDrawer(false)}>Close</Btn>
             </>
           }
         >
           <div className="box">
-            <div className="box-title">Nguồn</div>
-            <div>Xuất từ module Xác thực · 20/10/2026</div>
+            <div className="box-title">Source</div>
+            <div>Exported from the Authentication module · 10/20/2026</div>
           </div>
-          <Empty title="Chưa có bản xem trước" />
+          <Empty title="No preview available" />
         </Drawer>
       )}
     </div>

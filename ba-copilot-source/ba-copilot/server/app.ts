@@ -53,7 +53,7 @@ route("POST", "/api/login", ({ req, res, body }) => {
     return { ok: true, member };
   }
   const r = login(req, res, str(body.password, 200));
-  if (!r.ok) throw new BizError(r.error ?? "Đăng nhập thất bại", r.status ?? 401);
+  if (!r.ok) throw new BizError(r.error ?? "Sign-in failed", r.status ?? 401);
   return { ok: true };
 });
 route("POST", "/api/logout", ({ req, res }) => {
@@ -75,7 +75,7 @@ route("PUT", "/api/members/:id/password", (ctx) => {
 function presenceTarget(src: { kind?: unknown; id?: unknown; sub?: unknown }): PresenceTarget {
   const kind = String(src.kind ?? "") as PresenceKind;
   const id = str(src.id, 200);
-  if (!PRESENCE_KINDS.includes(kind) || !id) throw new HttpError("kind/id không hợp lệ", 400);
+  if (!PRESENCE_KINDS.includes(kind) || !id) throw new HttpError("Invalid kind/id", 400);
   const sub = str(src.sub, 40);
   return { kind, id, ...(sub ? { sub } : {}) };
 }
@@ -99,27 +99,27 @@ route("DELETE", "/api/presence", (ctx) => {
 route("GET", "/api/projects", () => repo.listProjects());
 route("POST", "/api/projects", ({ body }) => {
   const name = str(body.name, 200).trim();
-  if (!name) throw new BizError("Tên dự án không được để trống");
+  if (!name) throw new BizError("Project name is required");
   return repo.createProject(name, str(body.description, 2000));
 });
 route("GET", "/api/projects/:id", ({ params }) => {
   const p = repo.getProject(params.id);
-  if (!p) throw new BizError("Không tìm thấy dự án", 404);
+  if (!p) throw new BizError("Project not found", 404);
   return { ...p, modules: repo.listModules(p.id) };
 });
 route("DELETE", "/api/projects/:id", ({ params }) => (repo.deleteProject(params.id), { ok: true }));
 
 route("POST", "/api/projects/:id/modules", ({ params, body }) => {
-  if (!repo.getProject(params.id)) throw new BizError("Không tìm thấy dự án", 404);
+  if (!repo.getProject(params.id)) throw new BizError("Project not found", 404);
   const name = str(body.name, 200).trim();
-  if (!name) throw new BizError("Tên module không được để trống");
+  if (!name) throw new BizError("Module name is required");
   const m = repo.createModule(params.id, name, str(body.requirementInput, 50000));
   saveModuleQus(m.id); // FN-56 (R-020)
   return repo.getModule(m.id);
 });
 route("GET", "/api/modules/:id", ({ params }) => {
   const m = repo.getModuleDetail(params.id);
-  if (!m) throw new BizError("Không tìm thấy module", 404);
+  if (!m) throw new BizError("Module not found", 404);
   return m;
 });
 route("PATCH", "/api/modules/:id", ({ params, body }) => {
@@ -135,7 +135,7 @@ route("GET", "/api/modules/:id/model", ({ params }) => svc.getDesignModel(params
 route("GET", "/api/modules/:id/runs", ({ params }) => repo.listRuns(params.id));
 // Đợt 5: nhật ký AI cấp dự án (màn #/p/:pid/logs của C3), lọc ?moduleId=. Mới nhất trước.
 route("GET", "/api/projects/:id/runs", ({ params, query }) => {
-  if (!repo.getProject(params.id)) throw new BizError("Không tìm thấy dự án", 404);
+  if (!repo.getProject(params.id)) throw new BizError("Project not found", 404);
   const only = query.get("moduleId");
   const runs: PromptRun[] = repo.listModules(params.id).filter((m) => !only || m.id === only).flatMap((m) => repo.listRuns(m.id));
   return runs.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -164,9 +164,9 @@ route("POST", "/api/screens/:id/revert", (ctx) => screenWrite(ctx, () => svc.rev
 route("POST", "/api/screens/:id/approve", ({ params, body }) => svc.setScreenApproval(params.id, body.approved !== false, actor(body)));
 route("POST", "/api/screens/:id/annotations", ({ params, body }) => {
   const s = repo.getScreen(params.id);
-  if (!s || !s.currentVersionId) throw new BizError("Không tìm thấy màn hình", 404);
+  if (!s || !s.currentVersionId) throw new BizError("Screen not found", 404);
   const comment = str(body.comment, 4000).trim();
-  if (!comment) throw new BizError("Bình luận không được để trống");
+  if (!comment) throw new BizError("Comment cannot be empty");
   const b = body.bbox;
   const bbox = b && typeof b === "object" ? { x: Number(b.x) || 0, y: Number(b.y) || 0, w: Number(b.w) || 0, h: Number(b.h) || 0 } : null;
   const id = actor(body);
@@ -175,7 +175,7 @@ route("POST", "/api/screens/:id/annotations", ({ params, body }) => {
 });
 route("PATCH", "/api/annotations/:id", ({ params, body }) => {
   const st = body.status;
-  if (!["open", "sent", "resolved"].includes(st)) throw new BizError("Trạng thái không hợp lệ");
+  if (!["open", "sent", "resolved"].includes(st)) throw new BizError("Invalid status");
   repo.setAnnotationStatus([params.id], st);
   return repo.getAnnotation(params.id);
 });
@@ -195,14 +195,14 @@ route("POST", "/api/screens/:id/layout/accept", (ctx) => {
 });
 route("POST", "/api/screens/:id/manual", (ctx) => {
   const { params, body } = ctx;
-  if (!["remove", "up", "down"].includes(body.op)) throw new svc.BizError("Thao tác không hợp lệ");
+  if (!["remove", "up", "down"].includes(body.op)) throw new svc.BizError("Invalid operation");
   return screenWrite(ctx, () => svc.manualEdit(params.id, { op: body.op, id: str(body.id, 120) }, actor(body)));
 });
 route("POST", "/api/suggestions/events", ({ body }) => {
   const action = body.action;
-  if (!["shown", "applied", "dismissed"].includes(action)) throw new BizError("action không hợp lệ");
+  if (!["shown", "applied", "dismissed"].includes(action)) throw new BizError("Invalid action");
   const screenId = str(body.screenId, 100);
-  if (!repo.getScreen(screenId)) throw new BizError("Không tìm thấy màn hình", 404);
+  if (!repo.getScreen(screenId)) throw new BizError("Screen not found", 404);
   repo.logSuggestionEvent({
     screenId,
     versionId: str(body.versionId, 100) || null,
@@ -229,8 +229,8 @@ route("GET", "/api/modules/:id/trace", ({ params }) => svc.trace(params.id));
 // Export
 route("GET", "/api/modules/:id/export/docx", async ({ params }) => {
   const m = repo.getModuleDetail(params.id);
-  if (!m) throw new BizError("Không tìm thấy module", 404);
-  if (!m.docs.useCases.length) throw new BizError("Chưa có tài liệu để xuất");
+  if (!m) throw new BizError("Module not found", 404);
+  if (!m.docs.useCases.length) throw new BizError("There are no documents to export yet");
   const names = new Map(m.screens.map((s) => [s.id, s.name]));
   const buf = await buildDocx(m.project, m, m.docs, (id) => names.get(id) ?? id);
   const filename = `${fileSafe(m.name)}_UC_SRS_Sequence.docx`;
@@ -240,8 +240,8 @@ route("GET", "/api/modules/:id/export/docx", async ({ params }) => {
 });
 route("GET", "/api/modules/:id/export/xlsx", async ({ params }) => {
   const m = repo.getModuleDetail(params.id);
-  if (!m) throw new BizError("Không tìm thấy module", 404);
-  if (!m.tests.length) throw new BizError("Chưa có test case để xuất");
+  if (!m) throw new BizError("Module not found", 404);
+  if (!m.tests.length) throw new BizError("There are no test cases to export yet");
   const names = new Map(m.screens.map((s) => [s.id, s.name]));
   const buf = await testWorkbook(m.tests, buildTrace(m.docs.useCases, m.docs.requirements, m.tests), (id) => names.get(id) ?? id);
   const filename = `${fileSafe(m.name)}_TestCase.xlsx`;
@@ -252,14 +252,14 @@ route("GET", "/api/modules/:id/export/xlsx", async ({ params }) => {
 route("GET", "/api/screens/:id/export/json", ({ params }) => {
   const s = repo.getScreen(params.id);
   const v = s?.currentVersionId ? repo.getVersion(s.currentVersionId) : null;
-  if (!s || !v) throw new BizError("Không tìm thấy màn hình", 404);
+  if (!s || !v) throw new BizError("Screen not found", 404);
   return new FileResponse(Buffer.from(JSON.stringify(v.tree, null, 2)), `${fileSafe(s.name)}.json`, "application/json");
 });
 
 // Kho tài liệu: server/routes/files.ts
 
 function fileSafe(s: string) {
-  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").replace(/[^\w-]+/g, "_").slice(0, 60) || "export";
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").replace(/[^\w-]+/g, "_").slice(0, 60) || "export"; // vi-keep: bỏ dấu tiếng Việt trong tên tệp
 }
 
 // ---------------------------------------------------------------- HTTP plumbing
@@ -274,14 +274,14 @@ async function readBody(req: IncomingMessage): Promise<any> {
   let size = 0;
   for await (const c of req) {
     size += (c as Buffer).length;
-    if (size > limit) throw new BizError("Dữ liệu gửi lên quá lớn", 413);
+    if (size > limit) throw new BizError("Request payload is too large", 413);
     chunks.push(c as Buffer);
   }
   if (!chunks.length) return {};
   try {
     return JSON.parse(Buffer.concat(chunks).toString("utf8"));
   } catch {
-    throw new BizError("JSON không hợp lệ");
+    throw new BizError("Invalid JSON");
   }
 }
 
@@ -290,8 +290,8 @@ function asciiFilename(name: string): string {
   return name
     .normalize("NFD")
     .replace(/\p{M}/gu, "")
-    .replace(/đ/g, "d")
-    .replace(/Đ/g, "D")
+    .replace(/đ/g, "d") // vi-keep: bỏ dấu tiếng Việt trong tên tệp
+    .replace(/Đ/g, "D") // vi-keep: bỏ dấu tiếng Việt trong tên tệp
     .replace(/[^\x20-\x7e]|["\\;]/g, "_");
 }
 
@@ -320,15 +320,15 @@ export function createApp(opts: { publicDir: string }): Server {
       // Bắt buộc đăng nhập khi đặt APP_PASSWORD (phiên thành viên hợp lệ cũng qua cổng này – đợt 5)
       const member = sessionMember(req);
       if (!isAuthenticated(req) && !member && url.pathname !== "/api/login") {
-        if (url.pathname.startsWith("/api/")) return send(res, 401, { error: "Chưa đăng nhập", code: "UNAUTHENTICATED", mode: "app" });
+        if (url.pathname.startsWith("/api/")) return send(res, 401, { error: "Not signed in", code: "UNAUTHENTICATED", mode: "app" });
         res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" });
         return res.end(LOGIN_HTML);
       }
       if (url.pathname.startsWith("/api/")) {
         // Đợt 5: có thành viên đặt mật khẩu (chế độ member) → mọi API cần phiên thành viên, trừ đăng nhập/đăng xuất/me/settings.
-        if (!member && !PUBLIC_API.has(url.pathname) && memberAuthEnabled()) return send(res, 401, { error: "Chưa đăng nhập", code: "UNAUTHENTICATED", mode: "member" });
+        if (!member && !PUBLIC_API.has(url.pathname) && memberAuthEnabled()) return send(res, 401, { error: "Not signed in", code: "UNAUTHENTICATED", mode: "member" });
         const hit = matchRoute(req.method ?? "GET", url.pathname);
-        if (!hit) return send(res, 404, { error: "API không tồn tại" });
+        if (!hit) return send(res, 404, { error: "API not found" });
         const body = await readBody(req);
         // Actor lấy từ phiên, không tin actorId client gửi (chế độ member). Chế độ demo giữ actorId như cũ.
         if (member && body && typeof body === "object" && !Array.isArray(body)) body.actorId = member.id;
@@ -356,7 +356,7 @@ export function createApp(opts: { publicDir: string }): Server {
       if (e instanceof BizError) return send(res, e.status, { error: e.message });
       if (e instanceof AIError) return send(res, 502, { error: e.message, details: e.details });
       console.error(e);
-      return send(res, 500, { error: `Lỗi máy chủ: ${(e as Error).message}` });
+      return send(res, 500, { error: `Server error: ${(e as Error).message}` });
     }
   });
 }

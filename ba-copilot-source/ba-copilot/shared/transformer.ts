@@ -23,6 +23,7 @@ const SUB_IDX = new Map<string, number>(SUBTYPES.map((s, i) => [s, i]));
 export function subtypeOf(n: UINode): Subtype {
   const p = n.props ?? {};
   const txt = `${p.label ?? ""} ${p.text ?? ""} ${p.name ?? ""} ${p.placeholder ?? ""}`.toLowerCase();
+  // vi-keep-start: từ khoá nhận diện nhãn thành phần (bản thiết kế cũ tiếng Việt), song song tiếng Anh
   switch (n.type) {
     case "Input": {
       const it = String(p.inputType ?? "");
@@ -30,7 +31,7 @@ export function subtypeOf(n: UINode): Subtype {
       if (it === "email" || /e-?mail/.test(txt)) return "email";
       if (/tìm kiếm|tra cứu|từ khóa|search|keyword/.test(txt)) return "search";
       if (it === "tel" || /điện thoại|sđt|phone|mobile/.test(txt)) return "phone";
-      if (it === "number" || /giá|số lượng|tồn kho|amount|price|qty|quantity/.test(txt)) return "number";
+      if (it === "number" || /giá|số lượng|tồn kho|amount|price|qty|quantity|stock/.test(txt)) return "number";
       if (/tên|name|user/.test(txt)) return "name";
       return "text";
     }
@@ -51,15 +52,16 @@ export function subtypeOf(n: UINode): Subtype {
     default:
       return "-";
   }
+  // vi-keep-end
 }
 
 /** Props tối thiểu để một node mới mang đúng loại con (dùng khi mô hình tự hoàn thiện cây lúc đánh giá). */
 export function propsForSubtype(type: string, sub: Subtype): Record<string, unknown> {
   const m: Partial<Record<Subtype, Record<string, unknown>>> = {
-    email: { label: "Email", inputType: "email" }, password: { label: "Mật khẩu", inputType: "password" }, search: { label: "Tìm kiếm" },
-    phone: { label: "Số điện thoại", inputType: "tel" }, number: { label: "Số lượng", inputType: "number" }, name: { label: "Tên" },
-    submit: { label: "Lưu" }, cancel: { label: "Hủy" }, create: { label: "Thêm mới" }, delete: { label: "Xóa" }, icon: { label: "icon", icon: true },
-    auth: { text: "Đăng ký" }, remember: { label: "Ghi nhớ đăng nhập" }, agree: { label: "Đồng ý điều khoản" },
+    email: { label: "Email", inputType: "email" }, password: { label: "Password", inputType: "password" }, search: { label: "Search" },
+    phone: { label: "Phone number", inputType: "tel" }, number: { label: "Quantity", inputType: "number" }, name: { label: "Name" },
+    submit: { label: "Save" }, cancel: { label: "Cancel" }, create: { label: "Add new" }, delete: { label: "Delete" }, icon: { label: "icon", icon: true },
+    auth: { text: "Sign up" }, remember: { label: "Remember me" }, agree: { label: "Agree to the terms" },
   };
   return { ...(m[sub] ?? { label: type }) };
 }
@@ -137,7 +139,7 @@ export function loadTransformer(json: {
   meta?: Record<string, unknown>;
   tensors: Record<string, { shape: number[]; b64: string }>;
 }): TransformerModel {
-  if (json.types.join() !== TOKEN_TYPES.join() || json.subtypes.join() !== SUBTYPES.join()) throw new Error("Từ vựng của mô hình Transformer không khớp với mã nguồn – cần huấn luyện lại");
+  if (json.types.join() !== TOKEN_TYPES.join() || json.subtypes.join() !== SUBTYPES.join()) throw new Error("The Transformer model vocabulary does not match the source code – retrain the model");
   const t: Record<string, Tensor> = {};
   for (const [name, v] of Object.entries(json.tensors)) {
     const bin = typeof Buffer !== "undefined" ? Buffer.from(v.b64, "base64") : Uint8Array.from(atob(v.b64), (c) => c.charCodeAt(0));

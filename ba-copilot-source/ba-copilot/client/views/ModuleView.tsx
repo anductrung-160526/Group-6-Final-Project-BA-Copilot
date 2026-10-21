@@ -17,14 +17,14 @@ export function ModuleView({ id, tab }: { id: string; tab: string }) {
     reload();
   }, [reload]);
 
-  if (!m) return <div className="page muted">Đang tải…</div>;
+  if (!m) return <div className="page muted">Loading…</div>;
   const Active = MODULE_TABS.find((t) => t.key === tab)?.component;
 
   return (
     <div className="module">
       <div className="module-head">
         <div className="crumbs">
-          <a href="#/">Dự án</a> / <a href={`#/p/${m.projectId}`}>{m.project.name}</a> / <span>{m.name}</span>
+          <a href="#/">Projects</a> / <a href={`#/p/${m.projectId}`}>{m.project.name}</a> / <span>{m.name}</span>
         </div>
         <div className="module-title-row">
           <h1>{m.name}</h1>
@@ -40,11 +40,11 @@ export function ModuleView({ id, tab }: { id: string; tab: string }) {
                 .catch(() => setOtherStories([]));
             }}
           >
-            Yêu cầu nghiệp vụ {m.requirementInput ? "✓" : "(trống)"}
+            Business requirements {m.requirementInput ? "✓" : "(empty)"}
           </Btn>
           {/* Link nhanh tới Kho tài liệu của module này */}
           <a href={`#/p/${m.projectId}/files/${m.id}`} className="btn btn-ghost btn-sm" data-testid="module-files-link">
-            📁 Kho tài liệu
+            📁 Document Repository
           </a>
         </div>
         <nav className="tabs" role="tablist">
@@ -64,26 +64,26 @@ export function ModuleView({ id, tab }: { id: string; tab: string }) {
       </div>
       {editReq && (
         <Modal
-          title="Yêu cầu nghiệp vụ / User story"
+          title="Business requirements / User stories"
           wide
           onClose={() => setEditReq(false)}
           footer={
             <>
-              <Btn onClick={() => setEditReq(false)}>Hủy</Btn>
+              <Btn onClick={() => setEditReq(false)}>Cancel</Btn>
               <Btn
                 kind="primary"
                 onClick={async () => {
-                  await run("Đang lưu", () => patch(`/api/modules/${id}`, { requirementInput: reqText }));
+                  await run("Saving", () => patch(`/api/modules/${id}`, { requirementInput: reqText }));
                   setEditReq(false);
                   reload();
                 }}
               >
-                Lưu
+                Save
               </Btn>
             </>
           }
         >
-          <p className="muted small">AI dùng nội dung này làm bối cảnh khi sinh màn hình, Use Case và SRS. Có thể dán user story, function list hoặc mô tả tự do.</p>
+          <p className="muted small">The AI uses this content as context when generating screens, use cases and the SRS. You can paste user stories, a function list or a free-form description.</p>
           <textarea rows={14} value={reqText} onChange={(e) => setReqText(e.target.value)} />
           <QusPanel text={reqText} others={otherStories} />
         </Modal>

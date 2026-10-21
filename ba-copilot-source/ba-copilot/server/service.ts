@@ -26,13 +26,13 @@ export class BizError extends Error {
 
 function mustModule(id: string) {
   const m = repo.getModule(id);
-  if (!m) throw new BizError("Không tìm thấy module", 404);
+  if (!m) throw new BizError("Module not found", 404);
   return m;
 }
 
 function mustScreen(id: string) {
   const s = repo.getScreen(id);
-  if (!s) throw new BizError("Không tìm thấy màn hình", 404);
+  if (!s) throw new BizError("Screen not found", 404);
   return s;
 }
 
@@ -56,13 +56,13 @@ function markStale(moduleId: string, actorId?: string) {
 
 // ------------------------------------------------------------- Design Studio
 // ------------------------------------------------------------- Bối cảnh tài liệu cho AI (đợt 5)
-const STATUS_VI: Record<ArtifactStatus, string> = { none: "Chưa có", draft: "Bản nháp", done: "Xong", approved: "Đã duyệt", outdated: "Bản cũ" };
-const clip = (t: string, n: number) => (t.length > n ? t.slice(0, n) + "\n…(lược bớt)" : t);
+const STATUS_VI: Record<ArtifactStatus, string> = { none: "Not started", draft: "Draft", done: "Done", approved: "Approved", outdated: "Outdated" };
+const clip = (t: string, n: number) => (t.length > n ? t.slice(0, n) + "\n…(truncated)" : t);
 
 function storyLines(moduleId: string): string[] {
   return repo.listModuleStories(moduleId).map((st) => {
     const ac = st.acceptanceCriteria.filter(Boolean);
-    return `- ${st.code} [${st.priority}]: As a ${st.asA || "…"}, I want ${st.iWant || "…"}${st.soThat ? `, so that ${st.soThat}` : ""}${ac.length ? `\n  Tiêu chí chấp nhận: ${ac.join("; ")}` : ""}`;
+    return `- ${st.code} [${st.priority}]: As a ${st.asA || "…"}, I want ${st.iWant || "…"}${st.soThat ? `, so that ${st.soThat}` : ""}${ac.length ? `\n  Acceptance criteria: ${ac.join("; ")}` : ""}`;
   });
 }
 
@@ -83,11 +83,11 @@ export function moduleContext(moduleId: string, full = true): string {
   if (frd && reqs.length)
     parts.push(`### FRD-NFR (${STATUS_VI[frd.status] ?? frd.status})\n${reqs.map((r) => `- ${r.code} (${r.type}, ${r.priority}${r.useCaseCodes.length ? `, ${r.useCaseCodes.join("/")}` : ""}): ${r.statement}`).join("\n")}`);
   else if (frd?.content.trim()) parts.push(`### FRD-NFR (${STATUS_VI[frd.status] ?? frd.status})\n${clip(frd.content.trim(), 6000)}`);
-  if (!parts.length && m.requirementInput.trim()) parts.push(`### Yêu cầu nghiệp vụ (bản cũ)\n${m.requirementInput.trim()}`);
+  if (!parts.length && m.requirementInput.trim()) parts.push(`### Business requirements (legacy)\n${m.requirementInput.trim()}`);
   return parts.join("\n\n");
 }
 
-const foldVi = (x: string) => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d").toLowerCase().trim();
+const foldVi = (x: string) => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d").toLowerCase().trim(); // vi-keep: bỏ dấu tiếng Việt khi so khớp
 
 /** Prompt cho bản Mock (rule-based) khi BA để trống prompt: tên màn + các story/FR nhắc tới tên màn. */
 function mockPromptFor(moduleId: string, name: string): string {
@@ -95,12 +95,12 @@ function mockPromptFor(moduleId: string, name: string): string {
   const hit = (t: string) => words.length > 0 && words.every((w) => foldVi(t).includes(w));
   const reqs = repo.getDocs(moduleId).requirements.filter((r) => r.type === "FR" && hit(r.statement)).map((r) => r.statement);
   const stories = repo.listModuleStories(moduleId).filter((st) => hit(st.iWant)).map((st) => st.iWant);
-  return [`Màn hình ${name}.`, ...stories, ...reqs].join(" ");
+  return [`Screen ${name}.`, ...stories, ...reqs].join(" ");
 }
 
 export async function createScreenFromPrompt(moduleId: string, prompt: string, name: string, actorId?: string) {
   mustModule(moduleId);
-  if (!prompt.trim() && !name.trim()) throw new BizError("Nhập tên màn hình hoặc mô tả màn hình");
+  if (!prompt.trim() && !name.trim()) throw new BizError("Enter a screen name or a screen description");
   const others = repo.listScreens(moduleId).map((s) => s.name);
   const context = moduleContext(moduleId);
   const mockPrompt = prompt.trim() ? undefined : mockPromptFor(moduleId, name.trim());
@@ -115,10 +115,10 @@ export async function createScreenFromPrompt(moduleId: string, prompt: string, n
 
 export async function editScreenWithPrompt(screenId: string, input: { prompt: string; nodeIds: string[]; annotationIds: string[] }, actorId?: string) {
   const screen = mustScreen(screenId);
-  if (!screen.currentVersionId) throw new BizError("Màn hình chưa có phiên bản");
+  if (!screen.currentVersionId) throw new BizError("The screen has no versions yet");
   const current = repo.getVersion(screen.currentVersionId)!;
   const annotations = repo.getAnnotations(input.annotationIds).filter((a) => a.screenId === screenId);
-  if (!input.prompt.trim() && !annotations.length) throw new BizError("Cần nhập yêu cầu sửa hoặc chọn ít nhất một bình luận");
+  if (!input.prompt.trim() && !annotations.length) throw new BizError("Enter an edit request or select at least one comment");
 
   // Vùng sửa = vùng đang chọn ∪ vùng của các bình luận được gửi (chỉ giữ node còn tồn tại)
   const idSet = new Set(collectIds(current.tree));
@@ -135,16 +135,16 @@ export async function editScreenWithPrompt(screenId: string, input: { prompt: st
   });
   const result = applyPatch(current.tree, ops, { selectedIds: selected });
   const valid = validateTree(result.tree);
-  if (!valid.ok) throw new BizError(`Kết quả sửa không hợp lệ: ${valid.errors.slice(0, 3).join("; ")}`);
+  if (!valid.ok) throw new BizError(`Invalid edit result: ${valid.errors.slice(0, 3).join("; ")}`);
   const diff = diffTrees(current.tree, result.tree);
   const changed = [...new Set([...diff.added, ...diff.changed])];
   if (!changed.length && !diff.removed.length) {
-    return { version: null, summary: summary || "Không có thay đổi nào được áp dụng", rejected: result.rejected.map((r) => ({ reason: r.reason })), diff };
+    return { version: null, summary: summary || "No changes were applied", rejected: result.rejected.map((r) => ({ reason: r.reason })), diff };
   }
   const version = tx(() => {
     const version = repo.addVersion(screenId, {
       kind: "edit",
-      prompt: [input.prompt, ...annotations.map((a) => `[Bình luận] ${a.comment}`)].filter(Boolean).join("\n"),
+      prompt: [input.prompt, ...annotations.map((a) => `[Comment] ${a.comment}`)].filter(Boolean).join("\n"),
       scope: selected.length ? "region" : "global",
       selectedIds: selected,
       changedIds: changed,
@@ -161,11 +161,11 @@ export async function editScreenWithPrompt(screenId: string, input: { prompt: st
 export function revertScreen(screenId: string, versionId: string, actorId?: string) {
   const screen = mustScreen(screenId);
   const target = repo.getVersion(versionId);
-  if (!target || target.screenId !== screenId) throw new BizError("Phiên bản không hợp lệ");
+  if (!target || target.screenId !== screenId) throw new BizError("Invalid version");
   const current = screen.currentVersionId ? repo.getVersion(screen.currentVersionId) : null;
   const diff = current ? diffTrees(current.tree, target.tree) : { added: [], changed: [], removed: [] };
   return tx(() => {
-    const version = repo.addVersion(screenId, { kind: "revert", prompt: `Khôi phục phiên bản v${target.number}`, changedIds: [...diff.added, ...diff.changed], tree: target.tree });
+    const version = repo.addVersion(screenId, { kind: "revert", prompt: `Restore version v${target.number}`, changedIds: [...diff.added, ...diff.changed], tree: target.tree });
     draftAfterChange(screen, actorId);
     return version;
   });
@@ -196,13 +196,13 @@ function toPx(m: RecursiveModel, b: Box, pageWidth: number): PxBox {
 
 function mustRecursive() {
   const rm = getRecursive();
-  if (!rm) throw new BizError("Chưa có mô hình gợi ý bố cục (model/recursive-layout.json)", 503);
+  if (!rm) throw new BizError("The layout suggestion model is not available (model/recursive-layout.json)", 503);
   return rm;
 }
 
 function currentVersion(screenId: string) {
   const screen = mustScreen(screenId);
-  if (!screen.currentVersionId) throw new BizError("Màn hình chưa có phiên bản");
+  if (!screen.currentVersionId) throw new BizError("The screen has no versions yet");
   return { screen, v: repo.getVersion(screen.currentVersionId)! };
 }
 
@@ -222,7 +222,7 @@ export function layoutSuggestions(screenId: string, input: { layout?: LayoutBoxe
   const rm = mustRecursive();
   const { v } = currentVersion(screenId);
   const layout = input.layout;
-  if (!layout || !(layout.pageWidth > 0) || !Object.keys(layout.boxes).length) throw new BizError("Thiếu khung bao của các phần tử trên canvas");
+  if (!layout || !(layout.pageWidth > 0) || !Object.keys(layout.boxes).length) throw new BizError("Missing bounding boxes of the elements on the canvas");
   const boxes: Record<string, Box> = {};
   for (const [id, b] of Object.entries(layout.boxes)) boxes[id] = toGrid(rm, { x: b[0], y: b[1], x2: b[2], y2: b[3] }, layout.pageWidth);
   const focus = focusContainer(v.tree, input.nodeIds);
@@ -244,21 +244,21 @@ export interface AcceptItem { ref: string; parentId: string; index: number; type
  */
 export function acceptLayout(screenId: string, input: { versionId: string; items: AcceptItem[] }, actorId?: string) {
   const { screen, v } = currentVersion(screenId);
-  if (input.versionId && input.versionId !== v.id) throw new BizError("Màn hình đã thay đổi – gợi ý cũ không còn đúng, hãy tải lại gợi ý", 409);
-  if (!input.items.length || input.items.length > 100) throw new BizError("Danh sách phần tử không hợp lệ");
+  if (input.versionId && input.versionId !== v.id) throw new BizError("The screen has changed – the old suggestions no longer apply, reload the suggestions", 409);
+  if (!input.items.length || input.items.length > 100) throw new BizError("Invalid element list");
   const refs = new Map<string, UINode>();
   const roots: { item: AcceptItem; node: UINode }[] = [];
   for (const it of input.items) {
     const node = defaultNode(it.type, newId(it.type.toLowerCase()));
-    if (!node) throw new BizError(`Loại phần tử không hợp lệ: ${it.type}`);
+    if (!node) throw new BizError(`Invalid element type: ${it.type}`);
     refs.set(it.ref, node);
     const parentRef = refs.get(it.parentId);
     if (parentRef) {
-      if (!isContainer(parentRef.type)) throw new BizError(`${parentRef.type} không chứa được phần tử con`);
+      if (!isContainer(parentRef.type)) throw new BizError(`${parentRef.type} cannot contain child elements`);
       (parentRef.children ??= []).push(node);
     } else {
       const parent = findNode(v.tree, it.parentId);
-      if (!parent || !isContainer(parent.type)) throw new BizError(`Không tìm thấy container ${it.parentId}`);
+      if (!parent || !isContainer(parent.type)) throw new BizError(`Container ${it.parentId} not found`);
       roots.push({ item: it, node });
     }
   }
@@ -276,12 +276,12 @@ export function acceptLayout(screenId: string, input: { versionId: string; items
   }
   for (const n of refs.values()) added.push(n.id);
   const valid = validateTree(tree);
-  if (!valid.ok) throw new BizError(`Kết quả không hợp lệ: ${valid.errors.slice(0, 3).join("; ")}`);
-  const desc = roots.map((r) => `${r.node.type} vào ${nodeLabel(findNode(v.tree, r.item.parentId)!)}`).join(", ");
+  if (!valid.ok) throw new BizError(`Invalid result: ${valid.errors.slice(0, 3).join("; ")}`);
+  const desc = roots.map((r) => `${r.node.type} into ${nodeLabel(findNode(v.tree, r.item.parentId)!)}`).join(", ");
   const version = tx(() => {
     const version = repo.addVersion(screenId, {
       kind: "layout",
-      prompt: `Chấp nhận gợi ý bố cục (Recursive, Li et al. 2020): thêm ${added.length} phần tử – ${desc}`,
+      prompt: `Accepted layout suggestion (Recursive, Li et al. 2020): added ${added.length} element(s) – ${desc}`,
       scope: "region",
       selectedIds: [...byParent.keys()],
       changedIds: added,
@@ -299,23 +299,23 @@ export function manualEdit(screenId: string, input: { op: "remove" | "up" | "dow
   const tree = cloneTree(v.tree);
   const node = findNode(tree, input.id);
   const parent = node ? findParent(tree, input.id) : null;
-  if (!node || !parent) throw new BizError("Không tìm thấy phần tử (không xóa/di chuyển được gốc Page)");
+  if (!node || !parent) throw new BizError("Element not found (the root Page cannot be deleted or moved)");
   const kids = parent.children!;
   const i = kids.indexOf(node);
   let changed: string[] = [];
   let what = "";
   if (input.op === "remove") {
     kids.splice(i, 1);
-    what = `xóa ${nodeLabel(node)}`;
+    what = `delete ${nodeLabel(node)}`;
   } else {
     const j = input.op === "up" ? i - 1 : i + 1;
-    if (j < 0 || j >= kids.length) throw new BizError("Phần tử đã ở đầu/cuối container");
+    if (j < 0 || j >= kids.length) throw new BizError("The element is already at the start/end of the container");
     [kids[i], kids[j]] = [kids[j], kids[i]];
     changed = [node.id];
-    what = `chuyển ${nodeLabel(node)} ${input.op === "up" ? "lên" : "xuống"}`;
+    what = `move ${nodeLabel(node)} ${input.op === "up" ? "up" : "down"}`;
   }
   const version = tx(() => {
-    const version = repo.addVersion(screenId, { kind: "manual", prompt: `Sửa tay: ${what}`, scope: "region", selectedIds: [parent.id], changedIds: changed, tree });
+    const version = repo.addVersion(screenId, { kind: "manual", prompt: `Manual edit: ${what}`, scope: "region", selectedIds: [parent.id], changedIds: changed, tree });
     draftAfterChange(screen, actorId);
     return version;
   });
@@ -378,25 +378,25 @@ export async function generateDocs(moduleId: string, actorId?: string) {
 
 export async function refineDoc(moduleId: string, target: string, instruction: string, actorId?: string) {
   const m = mustModule(moduleId);
-  if (!instruction.trim()) throw new BizError("Nhập yêu cầu chỉnh");
+  if (!instruction.trim()) throw new BizError("Enter a refinement instruction");
   const docs = repo.getLegacyDocs(moduleId);
   const model = getDesignModel(moduleId);
   if (target.startsWith("SEQ:")) {
     const code = target.slice(4);
     const seq = docs.sequences.find((s) => s.useCaseCode === code);
-    if (!seq) throw new BizError("Không tìm thấy sơ đồ");
+    if (!seq) throw new BizError("Diagram not found");
     const next: SequenceDiagram = await ai.refineSequence({ moduleId, seq, instruction, uc: docs.useCases.find((u) => u.code === code) });
     repo.saveSequence(moduleId, next);
   } else if (target.startsWith("SRS:")) {
     const key = target.slice(4);
-    if (!docs.srs) throw new BizError("Chưa có SRS");
+    if (!docs.srs) throw new BizError("There is no SRS yet");
     const section = docs.srs.sections.find((s) => s.key === key);
-    if (!section) throw new BizError("Không tìm thấy mục SRS");
+    if (!section) throw new BizError("SRS section not found");
     const next = await ai.refineSrsSection({ moduleId, section, instruction, context: `Module ${m.name}. UC: ${docs.useCases.map((u) => `${u.code} ${u.name}`).join("; ")}` });
     repo.saveSrs(moduleId, { sections: docs.srs.sections.map((s) => (s.key === key ? next : s)) });
   } else {
     const uc = docs.useCases.find((u) => u.code === target);
-    if (!uc) throw new BizError("Không tìm thấy Use Case");
+    if (!uc) throw new BizError("Use case not found");
     const next: UseCase = await ai.refineUseCase({ moduleId, uc, instruction, model });
     repo.saveUseCase(moduleId, next);
   }
@@ -418,7 +418,7 @@ export function updateRequirements(moduleId: string, reqs: Requirement[]) {
 
 export function approveDocs(moduleId: string, approved: boolean, actorId?: string) {
   const m = mustModule(moduleId);
-  if (m.docsStatus === "none") throw new BizError("Chưa có tài liệu để duyệt");
+  if (m.docsStatus === "none") throw new BizError("There are no documents to approve yet");
   return tx(() => {
     repo.updateModule(moduleId, { docsStatus: approved ? "approved" : "draft" });
     moduleEvent(approved ? "artifact.approved" : "artifact.unapproved", "docs", moduleId, actorId);
@@ -444,11 +444,11 @@ export function testsReadiness(moduleId: string): TestsReadiness {
   const frd = getArtifactState({ kind: "doc", id: moduleId, moduleId, sub: "FRD_NFR" });
   const st = frd?.status ?? "none";
   if (st === "done" || st === "approved") {
-    if (!repo.getDocs(moduleId).requirements.length) return { ready: false, reason: `${DOC_KIND_LABEL.FRD_NFR} chưa có yêu cầu nào (FR/NFR) để sinh test case`, source: null, frdStatus: st };
+    if (!repo.getDocs(moduleId).requirements.length) return { ready: false, reason: `${DOC_KIND_LABEL.FRD_NFR} has no requirements (FR/NFR) to generate test cases from`, source: null, frdStatus: st };
     return { ready: true, reason: "", source: "v5", frdStatus: st };
   }
   if (st === "none" && m.docsStatus === "approved") return { ready: true, reason: "", source: "legacy", frdStatus: st };
-  return { ready: false, reason: `Cần ${DOC_KIND_LABEL.FRD_NFR} ở trạng thái Xong trước khi sinh test case (hiện: ${STATUS_VI[st]})`, source: null, frdStatus: st };
+  return { ready: false, reason: `${DOC_KIND_LABEL.FRD_NFR} must be Done before generating test cases (current: ${STATUS_VI[st]})`, source: null, frdStatus: st };
 }
 
 /**

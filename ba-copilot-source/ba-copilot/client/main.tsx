@@ -62,7 +62,7 @@ function App() {
   let view: React.ReactNode;
   const page = matchPage(parts);
   const project = matchProjectRoute(parts);
-  if (redirect) view = <div className="page muted">Đang chuyển trang…</div>;
+  if (redirect) view = <div className="page muted">Redirecting…</div>;
   else if (page) view = <page.page.component {...page.props} />;
   else if (project) view = <ProjectShell key={project.projectId} route={project} />;
   else view = <Home />;

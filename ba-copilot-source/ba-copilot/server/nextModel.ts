@@ -18,7 +18,7 @@ export function getRecursive(): RecursiveModel | null {
     try {
       rec = loadRecursive(JSON.parse(readFileSync(file, "utf8")));
     } catch (e) {
-      console.warn(`Không đọc được ${file}: ${(e as Error).message}`);
+      console.warn(`Could not read ${file}: ${(e as Error).message}`);
     }
   }
   return rec;

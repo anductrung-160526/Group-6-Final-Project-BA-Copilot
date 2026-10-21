@@ -33,7 +33,7 @@ Xem trực quan: mở app tại `#/_gallery`.
    - Mọi hộp thoại xác nhận / tạo nhanh → `Modal` (câu hỏi Có/Không → `useUI().confirm(...)`, không dùng `window.confirm`).
    - Mọi panel xem / sửa chi tiết bên phải → `Drawer` (rộng 40% màn hình).
    - Mọi icon → `Icon` (Lucide). **Không** dùng emoji hay ký tự (✦ × ⇪ ▸ …) làm icon; không import `lucide-react` trực tiếp trong màn.
-   - Mọi cặp Sửa / Xoá → `RowActions` (bảng: icon; ngăn phải: nút chữ). Viết thống nhất **"Xoá"**.
+   - Mọi cặp Sửa / Xoá → `RowActions` (bảng: icon; ngăn phải: nút chữ). Nhãn giao diện (tiếng Anh, đợt 6): **"Edit" / "Delete"** – xem `docs/glossary-en.md`.
    - Trạng thái + nút Xong / Duyệt / Yêu cầu sửa trên màn sản phẩm → `ApprovalBar`.
    - Mọi trạng thái rỗng → `Empty`.
    - Mọi thông báo → `useUI().toast(...)`; mọi tác vụ chờ AI → `useUI().run(...)`.
@@ -134,12 +134,12 @@ App chưa có chế độ tối nên chưa có bộ token tối.
 | Component | Props chính | Khi nào dùng |
 |---|---|---|
 | `Btn` | `kind`: `primary` \| `secondary` \| `ghost` \| `danger`; `size`: `sm` \| `md` | `primary` (gradient mint) chỉ cho hành động chính / **Thêm mới**. `secondary` trắng viền xám. `ghost` cho Bỏ qua, Huỷ phụ. `danger` viền đỏ cho xoá. |
-| `Badge` | `tone`: `gray` `blue` `mint` `green` `amber` `orange` `red` `violet` `flag` | Nhãn tuỳ ý. Viền + nền nhạt, bo 4px, ôm sát chữ. `flag` = viền đứt (cảnh báo rủi ro). |
-| `StatusBadge` | `status`, `testId?` | Nhãn tiếng Việt có sẵn. Sản phẩm BA: `none` Chưa có · `draft` Bản nháp · `done` Xong (cam = chờ duyệt) · `approved` Đã duyệt · `outdated` Bản cũ. Công việc: `todo` Cần làm · `doing` Đang làm · `done` Xong · `approved` Đã duyệt. Bình luận: `open` `sent` `resolved`. |
-| `RevisionTag` | `testId?` | Tag đỏ "Yêu cầu sửa" khi task/sản phẩm có cờ `revisionRequested`; giữ tới khi Duyệt. |
-| `EditingBadge` | `names: string[]`, `max?` (2) | "Đang được sửa bởi A, B và N người khác" (badge tím). Danh sách rỗng thì không hiện. Đặt cạnh tiêu đề màn / tài liệu. |
+| `Badge` | `tone`: `gray` `blue` `mint` `green` `amber` `orange` `red` `violet` `flag`, `title?` | Nhãn tuỳ ý. Viền + nền nhạt, bo 4px, ôm sát chữ. `flag` = viền đứt (cảnh báo rủi ro). Chữ có thể dài hơn khung cha (tên sản phẩm gắn task…): bọc chữ trong `<span className="badge-text">` để cắt "…" và truyền `title` làm tooltip (đợt 6 – nhãn tiếng Anh dài hơn). |
+| `StatusBadge` | `status`, `testId?` | Nhãn có sẵn (tiếng Anh, đợt 6). Sản phẩm BA: `none` Not started · `draft` Draft · `done` Done (cam = chờ duyệt) · `approved` Approved · `outdated` Outdated. Công việc: `todo` To do · `doing` In progress · `done` Done · `approved` Approved. Bình luận: `open` Open · `sent` Sent to AI · `resolved` Resolved. |
+| `RevisionTag` | `testId?`, `compact?` | Tag đỏ "Changes requested" (Yêu cầu sửa) khi task/sản phẩm có cờ `revisionRequested`; giữ tới khi Duyệt. `compact`: chỉ icon (tooltip + aria-label) – dùng trong hàng tab chật (bước Tài liệu). |
+| `EditingBadge` | `names: string[]`, `max?` (2) | "Being edited by A, B and N others" (badge tím). Danh sách rỗng thì không hiện. Đặt cạnh tiêu đề màn / tài liệu. |
 | `ConflictNotice` | `onReload`, `message?`, `busy?` | Khung vàng khi lưu bị 409. Mặc định: "Bản đã thay đổi – có người vừa sửa. Tải lại để xem bản mới." + nút **Tải lại**. Đặt ngay trên vùng đang sửa. |
-| `ScoreBadge` | `score` 0–100, `showLabel?` | Điểm QUS: ≥ 80 xanh "Tốt", 60–79 vàng "Khá", < 60 đỏ "Cần sửa" (khớp `shared/qus.ts`). |
+| `ScoreBadge` | `score` 0–100, `showLabel?` | Điểm QUS: ≥ 80 xanh "Good", 60–79 vàng "Fair", < 60 đỏ "Poor" (khớp `shared/qus.ts`). |
 | `Field` | `label`, `hint?`, `children` | Bọc mọi ô nhập có nhãn. |
 | `Select` | `value`, `options`, `onChange`, `placeholder?` | Mọi ô chọn một giá trị. |
 | `MemberPicker` | `members`, `value`, `onChange` | Chọn người phụ trách. Truyền `role` là nhãn đã dịch (`ROLE_LABEL` trong `client/currentMember.ts`: "BA", "BA Lead"), không truyền mã thô. |
@@ -149,7 +149,7 @@ App chưa có chế độ tối nên chưa có bộ token tối.
 | `Drawer` | `title`, `onClose`, `footer?`, `actions?`, `testId?` | **Mọi panel** xem/sửa chi tiết bên phải (SCR-04 xem tệp, SCR-07 task). Rộng **40% màn hình** (`--drawer-w: 40vw`), tối thiểu 360px (`--drawer-min-w`), màn ≤ 768px phủ 100%. Prop `size` cũ **deprecated**: vẫn nhận để không vỡ mã, không còn đổi độ rộng. Sửa / Xoá trong chân ngăn dùng `RowActions variant="buttons"`. |
 | `Icon` | `name: IconName`, `size?`: `xs` 12 \| `sm` 14 \| `md` 16 (mặc định) \| `lg` 20 \| số px, `label?`, `className?` | Icon Lucide theo tên dùng chung (mục 3.1). Màu theo `currentColor` – muốn đổi màu thì đặt màu cho phần tử cha. Có `label` khi icon đứng một mình mang nghĩa; đi kèm chữ thì bỏ trống. Trong `Btn` đặt icon trước chữ. |
 | `IconBtn` | `icon`, `label` (bắt buộc → tooltip + `aria-label`), `tone?`: `default` \| `danger`, `size?` + thuộc tính `<button>` | Nút chỉ có icon: đóng, mở/thu, "thêm thao tác". Không tự tạo nút icon bằng `.icon-btn` + ký tự. |
-| `RowActions` | `onEdit?`, `onDelete?`, `deleteConfirm?` (`title`, `message?`, `okLabel?`), `editLabel?` ("Sửa"), `deleteLabel?` ("Xoá"), `variant?`: `icons` \| `buttons`, `disabled?`, `testId?`, `testIds?` (`{ edit?, delete? }` – giữ testId cũ của màn) | Cặp Sửa / Xoá. Chỉ hiện nút có handler. Xoá **luôn** hỏi xác nhận bằng `useUI().confirm` (danger) rồi mới gọi `onDelete` (thiếu `deleteConfirm` thì hỏi "Xoá mục này?"). Cú bấm không lan lên dòng (`tr.clickable`). testId nút: `<testId>-edit` / `<testId>-delete` (mặc định `row-edit` / `row-delete`). |
+| `RowActions` | `onEdit?`, `onDelete?`, `deleteConfirm?` (`title`, `message?`, `okLabel?`), `editLabel?` ("Edit"), `deleteLabel?` ("Delete"), `variant?`: `icons` \| `buttons`, `disabled?`, `testId?`, `testIds?` (`{ edit?, delete? }` – giữ testId cũ của màn) | Cặp Sửa / Xoá. Chỉ hiện nút có handler. Xoá **luôn** hỏi xác nhận bằng `useUI().confirm` (danger) rồi mới gọi `onDelete` (thiếu `deleteConfirm` thì hỏi "Delete this item?"). Cú bấm không lan lên dòng (`tr.clickable`). testId nút: `<testId>-edit` / `<testId>-delete` (mặc định `row-edit` / `row-delete`). |
 | `SideNav` | `items: SideNavItem[]` (`key`, `label`, `href?`, `icon?`, `children?`, `step?`, `extra?`, `testId?`), `active`, `header?`, `onSelect?(key)`, `ariaLabel?`, `testId?`, `collapsed?` | **Menu trái nhiều cấp** của khung dự án. Mục cha mở/thu bằng nút mũi tên, tự mở khi mục con đang chọn. `step` hiện số bước trong vòng tròn (Tài liệu 1 → Sơ đồ 2 → …). `header` là chỗ chèn bộ chọn module. Mục đang chọn có `aria-current="page"`. Mục có `href` là liên kết, không có thì gọi `onSelect`. **`collapsed`** (đợt 6): dải icon – chỉ còn mục cấp 1 có `icon` và mục con cấp 2 có `step`/`icon`; tên mục (`label` dạng chữ) thành tooltip + `aria-label`; ẩn `header`, nhãn, `extra`. Không mục nào có icon → không hiện gì (kiểm trước bằng `sideNavHasRail(items, selectable?)` để bố cục cho nội dung giãn hết). Nút thu/mở là `IconBtn` `navCollapse` / `navExpand` có `aria-expanded`, đặt trong `.project-nav-bar` đầu menu. |
 | `ApprovalBar` | `status`: `none` \| `draft` \| `done` \| `approved` \| `outdated` \| `todo` \| `doing`, `revisionRequested?`, `isLead`, `onStart?`, `onDone?`, `onApprove?`, `onRequestChange?`, `reopenApproved?`, `busy?`, `disabledReason?`, `testId?` ("approval-bar") | Thanh trạng thái đặt ở đầu **mọi màn sản phẩm** và trong ngăn chi tiết task. Chỉ hiển thị, màn gọi API. **Bắt đầu làm** (secondary) khi `todo` và có `onStart` (task không gắn sản phẩm, R-080). **Xong** (primary) khi `draft`/`outdated`/`doing` và có `onDone`. **Yêu cầu sửa** (secondary) + **Duyệt** (primary) chỉ khi `isLead` và `status = done`; `reopenApproved` cho thêm "Yêu cầu sửa" khi `approved` (task). Không có ô nhập lý do. `disabledReason` khoá mọi nút và hiện lý do; `busy` khoá khi đang gửi. testId nút: `-start`, `-done`, `-approve`, `-request-change`. |
 | `Empty` | `title`, `children?` | **Mọi trạng thái rỗng**: tiêu đề + câu hướng dẫn bước tiếp theo. |
@@ -174,11 +174,11 @@ Thư viện **Lucide** (`lucide-react` 1.x). `ui.tsx` chỉ import đích danh t
 | `folder` | Folder | Kho tài liệu, thư mục |
 | `ai` | Sparkles | Hành động AI (thay ký tự ✦) |
 | `check` | Check | Đánh dấu, công việc |
-| `approve` | BadgeCheck | Duyệt |
+| `approve` | BadgeCheck | Duyệt ("Approve") |
 | `revision` | RotateCcw | Yêu cầu sửa |
 | `done` | CircleCheck | Xong |
 | `reload` | RefreshCw | Tải lại |
-| `regenerate` | RefreshCw | **Sinh lại** bằng AI (tài liệu, sơ đồ, test case…). Nút tạo lần đầu ("Sinh bằng AI", "Sinh test case") vẫn dùng `ai`: `<Icon name={has ? "regenerate" : "ai"} />` |
+| `regenerate` | RefreshCw | **Sinh lại** bằng AI ("Regenerate" – tài liệu, sơ đồ, test case…). Nút tạo lần đầu ("Generate with AI", "Generate test cases") vẫn dùng `ai`: `<Icon name={has ? "regenerate" : "ai"} />` |
 | `arrowRight` | ArrowRight | Bước tiếp theo |
 | `chevronDown` / `chevronRight` / `chevronUp` | ChevronDown / ChevronRight / ChevronUp | Mở/thu, menu thả xuống |
 | `more` | Ellipsis | Thêm thao tác |
@@ -202,9 +202,9 @@ Thư viện **Lucide** (`lucide-react` 1.x). `ui.tsx` chỉ import đích danh t
 | `calendar` | Calendar | Ngày, hạn |
 | `screen` / `doc` / `diagram` / `tests` | LayoutTemplate / FileText / Network / FlaskConical | Loại sản phẩm BA: màn hình, tài liệu, sơ đồ, bộ test case (R-080; `ARTIFACT_ICON` trong `TaskDialog.tsx`) |
 | `squareKanban` `bookText` `workflow` `folderOpen` `scrollText` `github` | SquareKanban, BookText, Workflow, FolderOpen, ScrollText, GitBranch | Menu trái dự án: Quản lý công việc, Yêu cầu nghiệp vụ, Thực hiện công việc, Kho tài liệu, Nhật ký AI, Lịch sử GitHub. `projectMenu.ts` ghi tên Lucide (vd `SquareKanban`), `ProjectShell` tra khoá viết thường chữ đầu (R-040) |
-| `fileText` `network` `layoutTemplate` `flaskConical` `route` | FileText, Network, LayoutTemplate, FlaskConical, Route | Tên Lucide của 5 bước "Thực hiện công việc" (Tài liệu, Sơ đồ, Prototype, Test case, Truy vết) – cùng icon với nhóm loại sản phẩm |
+| `fileText` `network` `layoutTemplate` `flaskConical` `route` | FileText, Network, LayoutTemplate, FlaskConical, Route | Tên Lucide của 5 bước "Deliverables" (Documents, Diagrams, Prototype, Test Cases, Traceability) – cùng icon với nhóm loại sản phẩm |
 
-Icon đứng giữa dòng chữ (ngoài flex) tự thẳng hàng với chữ (`.icon { vertical-align: -0.125em }`). Ký hiệu nằm **trong câu chữ** (≥, ≤, "Cần làm → Đang làm") giữ nguyên – đó là chữ, không phải icon.
+Icon đứng giữa dòng chữ (ngoài flex) tự thẳng hàng với chữ (`.icon { vertical-align: -0.125em }`). Ký hiệu nằm **trong câu chữ** (≥, ≤, "To do → In progress") giữ nguyên – đó là chữ, không phải icon.
 
 ### 3.2. Sửa / Xoá: icon hay nút chữ?
 
@@ -243,7 +243,7 @@ Trong cả hai trường hợp, **không** tự gọi `confirm` trước `onDele
 
 | Màn | Áp dụng |
 |---|---|
-| Thanh trên (mọi màn) | Logo nền gradient mint, tên app Space Grotesk; nền trắng (không tô mint cả thanh để giữ 10%). Menu Công việc / Kho tài liệu / Thành viên dùng `Tabs variant="pill"`. Luôn dính đỉnh, cuộn trang thì thu gọn (`.topbar.is-compact`). |
+| Thanh trên (mọi màn) | Logo nền gradient mint, tên app Space Grotesk; nền trắng (không tô mint cả thanh để giữ 10%). Menu Projects / Administration dùng `Tabs variant="pill"`. Luôn dính đỉnh, cuộn trang thì thu gọn (`.topbar.is-compact`). |
 | SCR-08 Danh sách dự án | H1 30, thẻ `.tile` có tiêu đề Space Grotesk; nút **+ Dự án mới** là primary duy nhất. |
 | SCR-09 Chi tiết dự án | Nút **+ Module mới** primary; tab Module / Kho tài liệu theo `Tabs`; popup Tạo module dùng `Modal` + panel QUS. |
 | SCR-10 Design Studio | Cột trái là menu trái: màn đang chọn in đậm + nền mint-50 + vạch mint-500; nút **+ Mới** primary; khối Gợi ý tiếp theo theo `SuggestionCard`. |

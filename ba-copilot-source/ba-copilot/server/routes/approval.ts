@@ -32,10 +32,10 @@ import {
 
 /** Dựng ArtifactRef từ `:kind/:id` + `sub` (query hoặc body). Kiểm tra giá trị hợp lệ → 400. */
 export function parseArtifactRef(kind: string, id: string, sub: unknown): ArtifactRef {
-  if (!(ARTIFACT_KINDS_V5 as string[]).includes(kind)) throw new HttpError("Loại sản phẩm không hợp lệ", 400);
+  if (!(ARTIFACT_KINDS_V5 as string[]).includes(kind)) throw new HttpError("Invalid artifact type", 400);
   const s = typeof sub === "string" && sub ? sub : undefined;
-  if (kind === "doc" && !(s && (DOC_KINDS as string[]).includes(s))) throw new HttpError("Thiếu hoặc sai loại tài liệu (sub)", 400);
-  if (kind === "diagram" && s && !(DIAGRAM_KINDS as string[]).includes(s)) throw new HttpError("Sai loại sơ đồ (sub)", 400);
+  if (kind === "doc" && !(s && (DOC_KINDS as string[]).includes(s))) throw new HttpError("Missing or invalid document type (sub)", 400);
+  if (kind === "diagram" && s && !(DIAGRAM_KINDS as string[]).includes(s)) throw new HttpError("Invalid diagram type (sub)", 400);
   const sv = s as DocKind | DiagramKind | undefined;
   const moduleId =
     kind === "screen" ? ((getDb().prepare("SELECT module_id FROM screens WHERE id = ?").get(id) as { module_id: string } | undefined)?.module_id ?? "") : id;
@@ -46,7 +46,7 @@ route("GET", "/api/artifacts/:kind/:id/state", (ctx) => {
   requireMember(ctx);
   const ref = parseArtifactRef(ctx.params.kind, ctx.params.id, ctx.query.get("sub"));
   const st = getArtifactState(ref);
-  if (!st) throw new HttpError("Không tìm thấy sản phẩm", 404);
+  if (!st) throw new HttpError("Artifact not found", 404);
   return st;
 });
 
@@ -54,16 +54,16 @@ route("GET", "/api/artifacts/:kind/:id/state", (ctx) => {
 
 export type ApprovalAction = "done" | "approve" | "request-change";
 
-const STATUS_LABEL: Record<ArtifactStatus, string> = { none: "Chưa có", draft: "Bản nháp", done: "Xong", approved: "Đã duyệt", outdated: "Bản cũ" };
+const STATUS_LABEL: Record<ArtifactStatus, string> = { none: "Not started", draft: "Draft", done: "Done", approved: "Approved", outdated: "Outdated" };
 const FROM: Record<ApprovalAction, ArtifactStatus[]> = {
   done: ["draft", "outdated"],
   approve: ["done"],
   "request-change": ["done", "approved"],
 };
 const WRONG_STATE: Record<ApprovalAction, string> = {
-  done: "Chỉ bấm Xong khi sản phẩm đang Bản nháp hoặc Bản cũ",
-  approve: "Chỉ duyệt được sản phẩm đang Xong",
-  "request-change": "Chỉ yêu cầu sửa được sản phẩm đang Xong hoặc Đã duyệt",
+  done: "Only a Draft or Outdated artifact can be marked as done",
+  approve: "Only a Done artifact can be approved",
+  "request-change": "Changes can only be requested on a Done or Approved artifact",
 };
 const forbidden = (msg: string) => new HttpError(msg, 403, "FORBIDDEN");
 
@@ -72,19 +72,19 @@ function actorFor(action: ApprovalAction, ctx: Pick<HandlerCtx, "req" | "body" |
   requireMember(ctx);
   const m = currentMember(ctx);
   if (action === "done") {
-    if (!m) throw forbidden("Chọn người ở ô “Tôi là…” trước khi bấm Xong");
+    if (!m) throw forbidden("Select a person in the “Acting as” box before marking as done");
     return m;
   }
-  if (!m || m.role !== "BA_LEAD") throw forbidden(action === "approve" ? "Chỉ BA Lead được duyệt" : "Chỉ BA Lead được yêu cầu sửa");
+  if (!m || m.role !== "BA_LEAD") throw forbidden(action === "approve" ? "Only a BA Lead can approve" : "Only a BA Lead can request changes");
   return m;
 }
 
 /** Trạng thái hiện tại, kiểm tra tồn tại + đúng trạng thái nguồn. */
 function stateFor(action: ApprovalAction, ref: ArtifactRef): ArtifactState {
   const st = getArtifactState(ref);
-  if (!st) throw new HttpError("Không tìm thấy sản phẩm", 404);
-  if (st.status === "none") throw new HttpError("Sản phẩm chưa có nội dung – hãy sinh hoặc soạn trước", 400);
-  if (!FROM[action].includes(st.status)) throw new HttpError(`${WRONG_STATE[action]} (hiện: ${STATUS_LABEL[st.status]})`, 400);
+  if (!st) throw new HttpError("Artifact not found", 404);
+  if (st.status === "none") throw new HttpError("The artifact has no content yet – generate or write it first", 400);
+  if (!FROM[action].includes(st.status)) throw new HttpError(`${WRONG_STATE[action]} (current: ${STATUS_LABEL[st.status]})`, 400);
   if (action !== "request-change") {
     const reason = artifactBlockReason(ref, action);
     if (reason) throw new HttpError(reason, 400);
@@ -130,13 +130,13 @@ export async function applyApproval(action: ApprovalAction, ref: ArtifactRef, ct
   try {
     git = await pushApproved(ref, actor.id);
   } catch (e) {
-    const msg = (e as Error)?.message || "lỗi không rõ";
-    throw new HttpError(`Không đẩy được lên GitHub – chưa duyệt. Lý do: ${msg}`, e instanceof HttpError && e.status >= 400 && e.status < 500 ? e.status : 502);
+    const msg = (e as Error)?.message || "unknown error";
+    throw new HttpError(`Could not push to GitHub – not approved. Reason: ${msg}`, e instanceof HttpError && e.status >= 400 && e.status < 500 ? e.status : 502);
   }
   tx(() => {
     // Trong lúc đẩy có người sửa / thao tác khác → không duyệt bản đã đổi.
     const now = getArtifactState(ref);
-    if (!now || now.status !== "done" || now.rev !== st.rev) throw new HttpError("Bản đã thay đổi – tải lại", 409, "CONFLICT", { rev: now?.rev ?? 0 });
+    if (!now || now.status !== "done" || now.rev !== st.rev) throw new HttpError("This version has changed – reload", 409, "CONFLICT", { rev: now?.rev ?? 0 });
     const reason = artifactBlockReason(ref, "approve"); // bước trước vừa đổi trong lúc đẩy GitHub
     if (reason) throw new HttpError(reason, 400);
     setArtifactState(ref, { status: "approved", revisionRequested: false });

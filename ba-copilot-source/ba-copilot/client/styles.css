@@ -468,6 +468,13 @@ select:focus {
   border: 1px solid currentColor;
   border-radius: var(--radius-xs);
   white-space: nowrap;
+  overflow: hidden;
+}
+/* Chữ dài trong badge (vd tên sản phẩm gắn task): cắt "…" khi chạm mép khung cha, badge vẫn ôm sát chữ khi đủ chỗ */
+.badge-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .badge-gray {
   background: var(--color-hover);
@@ -853,6 +860,8 @@ select:focus {
 }
 .seg-full button {
   flex: 1;
+  white-space: nowrap; /* nhãn tiếng Anh dài hơn ("Versions (3)"): không xuống dòng */
+  padding-inline: var(--space-2);
 }
 .check-inline {
   display: flex;

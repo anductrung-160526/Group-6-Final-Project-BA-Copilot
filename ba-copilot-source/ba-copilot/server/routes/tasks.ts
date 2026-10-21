@@ -13,11 +13,11 @@ import { applyApproval, parseArtifactRef } from "./approval.ts";
 import { DIAGRAM_KINDS, DOC_KINDS, type ArtifactKind, type DiagramKind, type DocKind, type Task, type TaskPriority, type TaskStatus } from "../../shared/types.ts";
 
 const mustProject = (id: string) => {
-  if (!repo.getProject(id)) throw new BizError("Không tìm thấy dự án", 404);
+  if (!repo.getProject(id)) throw new BizError("Project not found", 404);
 };
 const mustTask = (id: string): Task => {
   const t = tasks.getTask(id);
-  if (!t) throw new BizError("Không tìm thấy công việc", 404);
+  if (!t) throw new BizError("Task not found", 404);
   return t;
 };
 
@@ -25,7 +25,7 @@ const mustTask = (id: string): Task => {
 const opt = (v: unknown, max = 200): string | null | undefined => (v === undefined ? undefined : v === null ? null : str(v, max).trim() || null);
 
 const status = (v: unknown): TaskStatus => {
-  if (!tasks.TASK_STATUSES.includes(v as TaskStatus)) throw new BizError("Trạng thái phải là Cần làm, Đang làm, Xong hoặc Đã duyệt");
+  if (!tasks.TASK_STATUSES.includes(v as TaskStatus)) throw new BizError("Status must be To do, In progress, Done or Approved");
   return v as TaskStatus;
 };
 
@@ -49,11 +49,11 @@ function artifactModule(projectId: string, kind: ArtifactKind, id: string): stri
 function artifactSub(kind: ArtifactKind | null, v: unknown): DocKind | DiagramKind | null {
   const s = typeof v === "string" && v ? v : null;
   if (kind === "doc") {
-    if (!s || !(DOC_KINDS as string[]).includes(s)) throw new BizError("Chọn loại tài liệu (BRD, UC Specification, SRS, FRD-NFR, API Spec)");
+    if (!s || !(DOC_KINDS as string[]).includes(s)) throw new BizError("Choose a document type (BRD, UC Specification, SRS, FRD-NFR, API Spec)");
     return s as DocKind;
   }
   if (kind === "diagram") {
-    if (s && !(DIAGRAM_KINDS as string[]).includes(s)) throw new BizError("Loại sơ đồ không hợp lệ");
+    if (s && !(DIAGRAM_KINDS as string[]).includes(s)) throw new BizError("Invalid diagram type");
     return (s ?? "UC") as DiagramKind;
   }
   return null;
@@ -66,43 +66,43 @@ function artifactSub(kind: ArtifactKind | null, v: unknown): DocKind | DiagramKi
  */
 function fields(projectId: string, body: any, base?: Task): tasks.TaskFields {
   const title = body.title !== undefined ? str(body.title, 300).trim() : (base?.title ?? "");
-  if (!title) throw new BizError("Tiêu đề công việc không được để trống");
+  if (!title) throw new BizError("Task title is required");
   const description = body.description !== undefined ? str(body.description, 20000) : (base?.description ?? "");
 
   const priority = (body.priority !== undefined && body.priority !== null ? body.priority : (base?.priority ?? "Medium")) as TaskPriority;
-  if (!tasks.TASK_PRIORITIES.includes(priority)) throw new BizError("Ưu tiên phải là Cao, Trung bình hoặc Thấp");
+  if (!tasks.TASK_PRIORITIES.includes(priority)) throw new BizError("Priority must be High, Medium or Low");
 
   const due = opt(body.dueDate, 10);
   const dueDate = due !== undefined ? due : (base?.dueDate ?? null);
-  if (due && (!/^\d{4}-\d{2}-\d{2}$/.test(due) || isNaN(Date.parse(due)))) throw new BizError("Hạn phải có dạng YYYY-MM-DD");
+  if (due && (!/^\d{4}-\d{2}-\d{2}$/.test(due) || isNaN(Date.parse(due)))) throw new BizError("Due date must be in YYYY-MM-DD format");
 
   const asg = opt(body.assigneeId, 100);
   const assigneeId = asg !== undefined ? asg : (base?.assigneeId ?? null);
-  if (asg && !tasks.memberExists(asg)) throw new BizError("Người làm không tồn tại");
+  if (asg && !tasks.memberExists(asg)) throw new BizError("Assignee does not exist");
 
   const mod = opt(body.moduleId, 100);
   let moduleId = mod !== undefined ? mod : (base?.moduleId ?? null);
   if (mod) {
     const m = repo.getModule(mod);
-    if (!m || m.projectId !== projectId) throw new BizError("Module không thuộc dự án này");
+    if (!m || m.projectId !== projectId) throw new BizError("The module does not belong to this project");
   }
 
   const touchArtifact = body.artifactType !== undefined || body.artifactId !== undefined || body.artifactSub !== undefined;
   const artifactType = (touchArtifact ? (opt(body.artifactType, 20) ?? null) : (base?.artifactType ?? null)) as ArtifactKind | null;
   const artifactId = touchArtifact ? (opt(body.artifactId, 100) ?? null) : (base?.artifactId ?? null);
   let sub = touchArtifact ? null : (base?.artifactSub ?? null);
-  if (!!artifactType !== !!artifactId) throw new BizError("Loại sản phẩm và sản phẩm gắn kèm phải cùng có hoặc cùng để trống");
+  if (!!artifactType !== !!artifactId) throw new BizError("Artifact type and linked artifact must both be set or both be empty");
   if (artifactType && touchArtifact) {
-    if (!tasks.ARTIFACT_KINDS.includes(artifactType)) throw new BizError("Loại sản phẩm phải là màn hình, tài liệu, sơ đồ hoặc bộ test");
+    if (!tasks.ARTIFACT_KINDS.includes(artifactType)) throw new BizError("Artifact type must be screen, document, diagram or test suite");
     sub = artifactSub(artifactType, body.artifactSub);
     const am = artifactModule(projectId, artifactType, artifactId!);
-    if (!am) throw new BizError("Sản phẩm gắn kèm không thuộc dự án này");
+    if (!am) throw new BizError("The linked artifact does not belong to this project");
     if (mod === undefined && !moduleId) moduleId = am;
-    if (moduleId !== am) throw new BizError("Sản phẩm gắn kèm phải thuộc đúng module của công việc");
+    if (moduleId !== am) throw new BizError("The linked artifact must belong to the task's module");
   } else if (artifactType && mod !== undefined) {
     // Chỉ đổi module: sản phẩm đang gắn (nếu còn) phải nằm trong module mới.
     const am = artifactModule(projectId, artifactType, artifactId!);
-    if (am && am !== moduleId) throw new BizError("Sản phẩm gắn kèm phải thuộc đúng module của công việc");
+    if (am && am !== moduleId) throw new BizError("The linked artifact must belong to the task's module");
   }
   return { moduleId, title, description, assigneeId, dueDate, priority, artifactType, artifactId, artifactSub: sub };
 }
@@ -115,7 +115,7 @@ route("GET", "/api/projects/:id/tasks", ({ params, query }) => {
 route("POST", "/api/projects/:id/tasks", ({ params, body }) => {
   mustProject(params.id);
   const st = body.status === undefined || body.status === null ? "todo" : status(body.status);
-  if (st !== "todo" && st !== "doing") throw new BizError("Công việc mới chỉ ở Cần làm hoặc Đang làm");
+  if (st !== "todo" && st !== "doing") throw new BizError("A new task can only be To do or In progress");
   return tasks.createTask(params.id, fields(params.id, body), st, { byMemberId: byMember(body) });
 });
 
@@ -131,7 +131,7 @@ route("GET", "/api/tasks/:id", ({ params }) => {
 
 route("PATCH", "/api/tasks/:id", ({ params, body }) => {
   const t = mustTask(params.id);
-  if (body.status !== undefined) throw new BizError("Không đổi trạng thái ở đây – hãy kéo thẻ sang cột khác (PATCH /api/tasks/:id/status)");
+  if (body.status !== undefined) throw new BizError("Status cannot be changed here – drag the card to another column (PATCH /api/tasks/:id/status)");
   return tasks.updateTask(t.id, fields(t.projectId, body, t));
 });
 
@@ -174,6 +174,6 @@ route("PATCH", "/api/tasks/:id/status", async (ctx: HandlerCtx) => {
 });
 
 route("GET", "/api/artifacts/:kind/:id/tasks", ({ params, query }) => {
-  if (!tasks.ARTIFACT_KINDS.includes(params.kind as ArtifactKind) && params.kind !== "docs") throw new BizError("Loại sản phẩm không hợp lệ");
+  if (!tasks.ARTIFACT_KINDS.includes(params.kind as ArtifactKind) && params.kind !== "docs") throw new BizError("Invalid artifact type");
   return tasks.listTasksByArtifact(params.kind as ArtifactKind, params.id, query.get("sub") || undefined);
 });

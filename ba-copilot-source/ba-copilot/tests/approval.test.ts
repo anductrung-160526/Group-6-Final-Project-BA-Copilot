@@ -75,14 +75,14 @@ test("vòng đầy đủ: Xong → Yêu cầu sửa → Xong → Duyệt; task g
   assert.equal(d1.data.state.status, "done");
   assert.equal(d1.data.state.rev, 1, "đổi trạng thái không tăng rev");
   assert.deepEqual(d1.data.tasks.map((x: any) => [x.id, x.status]), [[tid, "done"]]);
-  assert.equal(lastEvent(tid).reason, "BA bấm Xong Tài liệu BRD – Xác thực");
+  assert.equal(lastEvent(tid).reason, "BA marked BRD document – Xác thực as done");
   assert.equal(lastEvent(tid).by_member_id, ba);
 
   const rc = await reqChange(`doc/${mid}`, { sub: "BRD", actorId: lead });
   assert.equal(rc.status, 200, JSON.stringify(rc.data));
   assert.deepEqual([rc.data.state.status, rc.data.state.revisionRequested], ["draft", true]);
   assert.deepEqual(taskRow(tid), { status: "doing", rr: 1 });
-  assert.equal(lastEvent(tid).reason, "BA Lead yêu cầu sửa Tài liệu BRD – Xác thực");
+  assert.equal(lastEvent(tid).reason, "BA Lead requested changes to BRD document – Xác thực");
 
   const d2 = await done(`doc/${mid}`, { sub: "BRD", actorId: ba });
   assert.equal(d2.status, 200);
@@ -92,9 +92,9 @@ test("vòng đầy đủ: Xong → Yêu cầu sửa → Xong → Duyệt; task g
   const ap = await approve(`doc/${mid}`, { sub: "BRD", actorId: lead });
   assert.equal(ap.status, 200, JSON.stringify(ap.data));
   assert.deepEqual([ap.data.state.status, ap.data.state.revisionRequested], ["approved", false]);
-  assert.deepEqual(ap.data.git, { pushed: false, message: "Chưa cấu hình GitHub – chưa đẩy" });
+  assert.deepEqual(ap.data.git, { pushed: false, message: "GitHub is not configured – nothing was pushed" });
   assert.deepEqual(taskRow(tid), { status: "approved", rr: 0 });
-  assert.equal(lastEvent(tid).reason, "BA Lead duyệt Tài liệu BRD – Xác thực");
+  assert.equal(lastEvent(tid).reason, "BA Lead approved BRD document – Xác thực");
 
   // Task gắn tài liệu khác của cùng module không bị động tới
   assert.deepEqual(taskRow(other.data.id), { status: "todo", rr: 0 });
@@ -110,7 +110,7 @@ test("quyền: BA không Duyệt / Yêu cầu sửa được; thiếu actorId b�
   for (const body of [{ sub: "UC_SPEC", actorId: ba }, { sub: "UC_SPEC" }, { sub: "UC_SPEC", actorId: "khong-co" }]) {
     const r = await approve(`doc/${mid}`, body);
     assert.equal(r.status, 403, JSON.stringify(body));
-    assert.equal(r.data.error, "Chỉ BA Lead được duyệt");
+    assert.equal(r.data.error, "Only a BA Lead can approve");
     assert.equal(r.data.code, "FORBIDDEN");
     const c = await reqChange(`doc/${mid}`, body);
     assert.equal(c.status, 403);
@@ -132,7 +132,7 @@ test("pushApproved lỗi → trạng thái giữ nguyên, báo rõ; thành công
   });
   const bad = await approve(`doc/${mid}`, { sub: "FRD_NFR", actorId: lead });
   assert.equal(bad.status, 502);
-  assert.match(bad.data.error, /chưa duyệt.*Token hết hạn/);
+  assert.match(bad.data.error, /not approved.*Token hết hạn/);
   assert.equal(docState("FRD_NFR").status, "done");
   assert.equal(taskRow(t.data.id).status, "todo");
 
@@ -173,7 +173,7 @@ test("màn hình: Xong / Duyệt qua endpoint chung, task gắn màn đi theo", 
   assert.equal(ap.status, 200, JSON.stringify(ap.data));
   assert.equal(ap.data.state.status, "approved");
   assert.equal(taskRow(t.data.id).status, "approved");
-  assert.equal(lastEvent(t.data.id).reason, "BA Lead duyệt Màn hình “Đăng nhập”");
+  assert.equal(lastEvent(t.data.id).reason, "BA Lead approved Screen “Đăng nhập”");
 });
 
 test("kéo thẻ task gắn sản phẩm (PATCH status) đi qua luồng duyệt của sản phẩm", async () => {

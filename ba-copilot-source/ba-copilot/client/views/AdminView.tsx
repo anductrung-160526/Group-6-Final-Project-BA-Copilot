@@ -29,24 +29,24 @@ export function AdminView(_: PageProps) {
   const save = async () => {
     if (!form) return;
     const body = withActor({ name: form.name.trim(), role: form.role });
-    const r = await run("Đang lưu", () => (form.id ? updateMember(form.id, body) : createMember(body)));
+    const r = await run("Saving", () => (form.id ? updateMember(form.id, body) : createMember(body)));
     if (!r) return;
-    toast(form.id ? `Đã cập nhật ${r.name}` : `Đã thêm ${r.name}`, "ok");
+    toast(form.id ? `${r.name} updated` : `${r.name} added`, "ok");
     setForm(null);
     await reload();
   };
   const remove = async (id: string, name: string) => {
-    const r = await run("Đang xoá", () => deleteMemberAsActor(id));
+    const r = await run("Deleting", () => deleteMemberAsActor(id));
     if (!r) return;
-    toast(`Đã xoá ${name}`, "ok");
+    toast(`${name} deleted`, "ok");
     await reload();
   };
 
-  if (!loaded) return <div className="page muted">Đang tải…</div>;
+  if (!loaded) return <div className="page muted">Loading…</div>;
   if (!allowed)
     return (
       <div className="page" data-testid="admin-forbidden">
-        <Empty title="Chỉ BA Lead truy cập được">Chọn tên một BA Lead ở ô "Tôi là…" trên thanh trên để quản trị thành viên.</Empty>
+        <Empty title="Only a BA Lead can access this page">Select a BA Lead's name in the "Acting as" box on the top bar to manage members.</Empty>
       </div>
     );
 
@@ -54,31 +54,31 @@ export function AdminView(_: PageProps) {
     <div className="page" data-testid="members-view">
       <div className="page-head">
         <div>
-          <h1>Quản trị hệ thống</h1>
-          <p className="muted">Thành viên nhóm và vai trò. BA Lead duyệt sản phẩm và quản trị thành viên; người được chọn ở ô "Tôi là…" được ghi làm người thao tác.</p>
+          <h1>Administration</h1>
+          <p className="muted">Team members and roles. A BA Lead approves artifacts and manages members; the person selected in the "Acting as" box is recorded as the actor.</p>
         </div>
         <Btn kind="primary" onClick={() => setForm({ id: null, name: "", role: hasLead ? "BA" : "BA_LEAD" })} data-testid="new-member">
           <Icon name="plus" size="sm" />
-          Thêm thành viên
+          Add member
         </Btn>
       </div>
 
       {!hasLead && (
         <div className="notice notice-warn" role="status" data-testid="admin-no-lead">
-          <span className="notice-text">Hệ thống chưa có BA Lead nên ai cũng quản trị được. Hãy thêm một BA Lead trước – sau đó chỉ BA Lead mới thêm, sửa, xoá thành viên.</span>
+          <span className="notice-text">There is no BA Lead yet, so anyone can manage members. Add a BA Lead first – after that only a BA Lead can add, edit or delete members.</span>
         </div>
       )}
 
       {!members.length ? (
-        <Empty title="Chưa có thành viên nào">Thêm các BA trong nhóm để giao việc và ghi tên người làm.</Empty>
+        <Empty title="No members yet">Add the BAs in your team to assign tasks and record who did the work.</Empty>
       ) : (
         <div className="table-wrap">
           <table className="tbl" data-testid="members-table">
             <thead>
               <tr>
-                <th>Tên</th>
-                <th>Vai trò</th>
-                <th>Ngày thêm</th>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Added on</th>
                 <th className="actions" />
               </tr>
             </thead>
@@ -89,7 +89,7 @@ export function AdminView(_: PageProps) {
                     <span className="member-picker">
                       <Avatar name={m.name} size="sm" />
                       <strong>{m.name}</strong>
-                      {m.id === me?.id && <Badge tone="mint">Bạn</Badge>}
+                      {m.id === me?.id && <Badge tone="mint">You</Badge>}
                     </span>
                   </td>
                   <td>
@@ -102,8 +102,8 @@ export function AdminView(_: PageProps) {
                       onEdit={() => setForm({ id: m.id, name: m.name, role: m.role })}
                       onDelete={() => remove(m.id, m.name)}
                       deleteConfirm={{
-                        title: `Xoá ${m.name} khỏi nhóm?`,
-                        message: "Tên người này vẫn được giữ trên các bình luận và phiên bản đã tạo. Không xoá được nếu người này còn công việc chưa xong.",
+                        title: `Remove ${m.name} from the team?`,
+                        message: "This person's name is kept on the comments and versions they created. Members with unfinished tasks cannot be deleted.",
                       }}
                     />
                   </td>
@@ -116,29 +116,29 @@ export function AdminView(_: PageProps) {
 
       {form && (
         <Modal
-          title={form.id ? "Sửa thành viên" : "Thêm thành viên"}
+          title={form.id ? "Edit member" : "Add member"}
           onClose={() => setForm(null)}
           footer={
             <>
-              <Btn onClick={() => setForm(null)}>Huỷ</Btn>
+              <Btn onClick={() => setForm(null)}>Cancel</Btn>
               <Btn kind="primary" disabled={!form.name.trim()} onClick={save} data-testid="save-member">
-                {form.id ? "Lưu" : "Thêm"}
+                {form.id ? "Save" : "Add"}
               </Btn>
             </>
           }
         >
-          <Field label="Họ tên">
+          <Field label="Full name">
             <input
               autoFocus
               value={form.name}
               maxLength={80}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               onKeyDown={(e) => e.key === "Enter" && form.name.trim() && save()}
-              placeholder="VD: Nguyễn Thị Lan"
+              placeholder="e.g. Sarah Johnson"
               data-testid="member-name"
             />
           </Field>
-          <Field label="Vai trò" hint="BA Lead duyệt tài liệu, sơ đồ, prototype, test case và quản trị thành viên.">
+          <Field label="Role" hint="A BA Lead approves documents, diagrams, prototypes and test cases, and manages members.">
             <Select value={form.role} options={ROLE_OPTIONS} onChange={(v) => v && setForm({ ...form, role: v })} testId="member-role" />
           </Field>
         </Modal>

@@ -110,12 +110,12 @@ test("FN-16 (đợt 5): danh sách sản phẩm gồm màn, mỗi tài liệu / 
   }
   assert.ok(!keys.some((k: string) => k.startsWith("docs:")), "không còn bộ tài liệu cũ");
   const scr = r.data.find((a: any) => a.kind === "screen");
-  assert.deepEqual({ label: scr.label, moduleId: scr.moduleId, moduleName: scr.moduleName, status: scr.status }, { label: "Màn Đăng nhập", moduleId: modA, moduleName: "Xác thực", status: "draft" });
+  assert.deepEqual({ label: scr.label, moduleId: scr.moduleId, moduleName: scr.moduleName, status: scr.status }, { label: "Screen Đăng nhập", moduleId: modA, moduleName: "Xác thực", status: "draft" });
   const uc = r.data.find((a: any) => a.kind === "diagram" && a.id === modA && a.sub === "UC");
-  assert.deepEqual([uc.status, uc.label], ["approved", "Sơ đồ Use Case – Xác thực"]);
+  assert.deepEqual([uc.status, uc.label], ["approved", "Use Case diagram – Xác thực"]);
   assert.equal(r.data.find((a: any) => a.kind === "diagram" && a.id === modB && a.sub === "UC").status, "none", "chưa sinh sơ đồ");
   const brd = r.data.find((a: any) => a.kind === "doc" && a.id === modB && a.sub === "BRD");
-  assert.deepEqual([brd.status, brd.label], ["none", "Tài liệu BRD – Giỏ hàng"]);
+  assert.deepEqual([brd.status, brd.label], ["none", "BRD document – Giỏ hàng"]);
   assert.equal((await api("GET", `/api/projects/${otherPid}/artifacts`)).data.length, 11, "chỉ sản phẩm của dự án đó (1 module: 5 + 5 + 1)");
   assert.equal((await api("GET", `/api/projects/khong-co/artifacts`)).status, 404);
 });
@@ -193,7 +193,7 @@ test("FN-18 (đợt 5): đổi trạng thái theo mũi tên, ghi task_events; Du
   assert.equal((await move("done", lan)).status, 200);
   assert.equal((await move("done", lan)).status, 200, "trùng trạng thái: không ghi");
   const noLead = await move("approved", lan);
-  assert.deepEqual([noLead.status, noLead.data.error], [403, "Chỉ BA Lead được duyệt"]);
+  assert.deepEqual([noLead.status, noLead.data.error], [403, "Only a BA Lead can approve"]);
   assert.equal((await move("approved")).status, 403, "thiếu actorId cũng bị chặn");
   assert.equal((await move("doing", minh)).status, 403, "BA không yêu cầu sửa");
   const rc = await move("doing", hung);
@@ -223,10 +223,10 @@ test("FN-18 (đợt 5): đổi trạng thái theo mũi tên, ghi task_events; Du
 
 test("A7 dùng chung repo: setTaskStatus bySystem ghi reason", () => {
   const t = tasks.createTask(pid, { moduleId: null, title: "Tự động", description: "", assigneeId: null, dueDate: null, priority: "Medium", artifactType: null, artifactId: null });
-  tasks.setTaskStatus(t.id, "doing", { bySystem: true, reason: "BA Lead yêu cầu sửa Màn hình" }, true);
+  tasks.setTaskStatus(t.id, "doing", { bySystem: true, reason: "BA Lead requested changes to Screen" }, true);
   const d = tasks.getTaskDetail(t.id)!;
   const ev = d.events.at(-1)!;
-  assert.deepEqual([ev.fromStatus, ev.toStatus, ev.bySystem, ev.reason, ev.byMemberId], ["todo", "doing", true, "BA Lead yêu cầu sửa Màn hình", null]);
+  assert.deepEqual([ev.fromStatus, ev.toStatus, ev.bySystem, ev.reason, ev.byMemberId], ["todo", "doing", true, "BA Lead requested changes to Screen", null]);
   assert.equal(d.revisionRequested, true);
 });
 

@@ -90,7 +90,7 @@ export function storiesText(moduleId: string): string {
     .map((s) => {
       const lines = [`${s.code} (${s.priority}): ${storySentence(s)}`];
       const ac = s.acceptanceCriteria.filter((c) => c.trim());
-      if (ac.length) lines.push("  Tiêu chí chấp nhận:", ...ac.map((c) => `  - ${c.trim()}`));
+      if (ac.length) lines.push("  Acceptance criteria:", ...ac.map((c) => `  - ${c.trim()}`));
       return lines.join("\n");
     })
     .join("\n");
@@ -101,7 +101,7 @@ export function storiesText(moduleId: string): string {
 const text = (v: unknown) => (typeof v === "string" ? v.trim().slice(0, MAX_TEXT) : "");
 
 function criteriaOf(v: unknown): string[] {
-  if (!Array.isArray(v)) throw new HttpError("Tiêu chí chấp nhận phải là danh sách", 400);
+  if (!Array.isArray(v)) throw new HttpError("Acceptance criteria must be a list", 400);
   return v
     .map((x) => (typeof x === "string" ? x.trim().slice(0, MAX_TEXT) : ""))
     .filter(Boolean)
@@ -109,7 +109,7 @@ function criteriaOf(v: unknown): string[] {
 }
 
 function priorityOf(v: unknown): StoryPriority {
-  if (!STORY_PRIORITIES.includes(v as StoryPriority)) throw new HttpError("Độ ưu tiên phải là High, Medium hoặc Low", 400);
+  if (!STORY_PRIORITIES.includes(v as StoryPriority)) throw new HttpError("Priority must be High, Medium or Low", 400);
   return v as StoryPriority;
 }
 
@@ -122,13 +122,13 @@ function moduleOf(projectId: string, v: unknown): string {
   if (v === null || v === undefined || (typeof v === "string" && !v.trim())) {
     const has = getDb().prepare("SELECT 1 FROM modules WHERE project_id = ? LIMIT 1").get(projectId);
     throw new HttpError(
-      has ? "Chưa chọn module – mỗi user story phải gắn một module của dự án" : "Dự án chưa có module – tạo module trước rồi mới thêm user story",
+      has ? "No module selected – every user story must belong to a module of the project" : "The project has no modules – create a module before adding user stories",
       400,
     );
   }
   const id = String(v);
   if (!getDb().prepare("SELECT 1 FROM modules WHERE id = ? AND project_id = ?").get(id, projectId)) {
-    throw new HttpError("Module không tồn tại hoặc không thuộc dự án này", 400);
+    throw new HttpError("The module does not exist or does not belong to this project", 400);
   }
   return id;
 }
@@ -170,7 +170,7 @@ export interface StoryChange {
 
 export function createStory(projectId: string, input: UserStoryInput, actorId?: string | null): StoryChange {
   const d = getDb();
-  if (!d.prepare("SELECT 1 FROM projects WHERE id = ?").get(projectId)) throw new HttpError("Không tìm thấy dự án", 404);
+  if (!d.prepare("SELECT 1 FROM projects WHERE id = ?").get(projectId)) throw new HttpError("Project not found", 404);
   const moduleId = moduleOf(projectId, input.moduleId);
   const priority = input.priority === undefined ? "Medium" : priorityOf(input.priority);
   const criteria = input.acceptanceCriteria === undefined ? [] : criteriaOf(input.acceptanceCriteria);
@@ -195,7 +195,7 @@ const sameList = (a: string[], b: string[]) => a.length === b.length && a.every(
 export function updateStory(id: string, input: UserStoryInput, baseRev?: number, actorId?: string | null): StoryChange {
   return tx(() => {
     const cur = getStory(id);
-    if (!cur) throw new HttpError("Không tìm thấy user story", 404);
+    if (!cur) throw new HttpError("User story not found", 404);
     assertRev(cur.rev, baseRev);
     const next: UserStory = {
       ...cur,
@@ -230,7 +230,7 @@ export function updateStory(id: string, input: UserStoryInput, baseRev?: number,
 export function deleteStory(id: string, baseRev?: number, actorId?: string | null): { projectId: string; modules: string[] } {
   return tx(() => {
     const cur = getStory(id);
-    if (!cur) throw new HttpError("Không tìm thấy user story", 404);
+    if (!cur) throw new HttpError("User story not found", 404);
     assertRev(cur.rev, baseRev);
     getDb().prepare("DELETE FROM user_stories WHERE id = ?").run(id);
     if (!isBlankStory(cur)) markModuleDocsOutdated(cur.moduleId, actorId);
@@ -247,7 +247,7 @@ export function reorderStories(projectId: string, ids: string[]): UserStory[] {
   const known = new Set(all.map((s) => s.id));
   const uniq = [...new Set(ids.map(String))];
   const bad = uniq.find((id) => !known.has(id));
-  if (bad) throw new HttpError("Danh sách sắp xếp có user story không thuộc dự án", 400);
+  if (bad) throw new HttpError("The ordering list contains user stories that do not belong to the project", 400);
   const picked = new Set(uniq);
   const ordered = [...uniq, ...all.filter((s) => !picked.has(s.id)).map((s) => s.id)];
   tx(() => {

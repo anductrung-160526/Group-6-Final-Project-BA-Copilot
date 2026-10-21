@@ -8,16 +8,16 @@ import { Badge, Empty, Select, fmtTime, useUI } from "../components/ui.tsx";
 import { logsHref } from "../projectMenu.ts";
 
 const TYPE_VI: Record<string, string> = {
-  generate_screen: "Sinh màn hình",
-  edit_screen_region: "Sửa theo vùng",
-  edit_screen_global: "Sửa toàn màn hình",
-  generate_use_cases: "Sinh UC + yêu cầu",
-  generate_srs: "Sinh SRS",
-  generate_sequences: "Sinh sequence",
-  generate_tests: "Sinh test case",
-  refine_use_case: "Chỉnh UC",
-  refine_srs: "Chỉnh SRS",
-  refine_sequence: "Chỉnh sequence",
+  generate_screen: "Generate screen",
+  edit_screen_region: "Edit region",
+  edit_screen_global: "Edit whole screen",
+  generate_use_cases: "Generate use cases + requirements",
+  generate_srs: "Generate SRS",
+  generate_sequences: "Generate sequence diagrams",
+  generate_tests: "Generate test cases",
+  refine_use_case: "Refine use case",
+  refine_srs: "Refine SRS",
+  refine_sequence: "Refine sequence diagram",
 };
 
 export function LogsTab({ projectId, params = [], moduleId: fixedModule }: { projectId?: string; params?: string[]; moduleId?: string }) {
@@ -51,26 +51,26 @@ export function LogsTab({ projectId, params = [], moduleId: fixedModule }: { pro
 
   const body =
     runs === null ? (
-      <div className="muted pad">Đang tải…</div>
+      <div className="muted pad">Loading…</div>
     ) : !runs.length ? (
-      <Empty title="Chưa có lần gọi AI nào">{filter ? "Module này chưa gọi AI lần nào." : "Các lần sinh tài liệu, sơ đồ, màn hình, test case bằng AI sẽ hiện ở đây."}</Empty>
+      <Empty title="No AI calls yet">{filter ? "This module has not called the AI yet." : "Every AI generation of documents, diagrams, screens and test cases will appear here."}</Empty>
     ) : (
       <>
         <p className="muted small">
-          {runs.length} lần gọi · thành công {ok.length} · token vào {sum("inputTokens").toLocaleString("vi-VN")} · token ra {sum("outputTokens").toLocaleString("vi-VN")} · độ trễ TB{" "}
-          {Math.round(sum("latencyMs") / runs.length).toLocaleString("vi-VN")} ms
+          {runs.length} {runs.length === 1 ? "call" : "calls"} · {ok.length} succeeded · input tokens {sum("inputTokens").toLocaleString("en-US")} · output tokens {sum("outputTokens").toLocaleString("en-US")} · avg. latency{" "}
+          {Math.round(sum("latencyMs") / runs.length).toLocaleString("en-US")} ms
         </p>
         <div className="table-wrap">
           <table className="tbl" data-testid="logs-table">
             <thead>
               <tr>
-                <th>Thời gian</th>
+                <th>Time</th>
                 {showModule && <th>Module</th>}
-                <th>Tác vụ</th>
-                <th>Mô hình</th>
-                <th>Kết quả</th>
-                <th className="right">Token vào/ra</th>
-                <th className="right">Độ trễ</th>
+                <th>Task</th>
+                <th>Model</th>
+                <th>Result</th>
+                <th className="right">Tokens in/out</th>
+                <th className="right">Latency</th>
               </tr>
             </thead>
             <tbody>
@@ -82,7 +82,7 @@ export function LogsTab({ projectId, params = [], moduleId: fixedModule }: { pro
                     <td>{TYPE_VI[r.type] ?? r.type}</td>
                     <td className="small">{r.provider === "mock" ? "rule-based" : r.model}</td>
                     <td>
-                      {r.ok ? <Badge tone="green">OK</Badge> : <Badge tone="red">Lỗi</Badge>} {r.error && <span className="small muted">{r.error.slice(0, 80)}</span>}
+                      {r.ok ? <Badge tone="green">OK</Badge> : <Badge tone="red">Error</Badge>} {r.error && <span className="small muted">{r.error.slice(0, 80)}</span>}
                     </td>
                     <td className="right nowrap">
                       {r.inputTokens} / {r.outputTokens}
@@ -94,7 +94,7 @@ export function LogsTab({ projectId, params = [], moduleId: fixedModule }: { pro
                       <td colSpan={cols}>
                         <div className="box-title">Prompt</div>
                         <pre className="code small">{r.input}</pre>
-                        <div className="box-title">Kết quả</div>
+                        <div className="box-title">Result</div>
                         <pre className="code small">{r.output}</pre>
                       </td>
                     </tr>
@@ -114,11 +114,11 @@ export function LogsTab({ projectId, params = [], moduleId: fixedModule }: { pro
     <div className="page" data-testid="logs-view">
       <div className="page-head">
         <div>
-          <h1>Nhật ký AI</h1>
-          <p className="muted">Mọi lần gọi AI trong dự án (mới nhất trước) – bấm một dòng để xem prompt và kết quả.</p>
+          <h1>AI Log</h1>
+          <p className="muted">Every AI call in the project (newest first) – click a row to see the prompt and the result.</p>
         </div>
         <div className="filters">
-          <Select value={filter} placeholder="Mọi module" options={modules.map((m) => ({ value: m.id, label: m.name }))} onChange={pickModule} testId="logs-filter-module" />
+          <Select value={filter} placeholder="All modules" options={modules.map((m) => ({ value: m.id, label: m.name }))} onChange={pickModule} testId="logs-filter-module" />
         </div>
       </div>
       {body}

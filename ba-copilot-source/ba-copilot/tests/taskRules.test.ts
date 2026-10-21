@@ -80,24 +80,24 @@ test("taskMove + moveError: chỉ theo mũi tên, Xong cần người bấm, Duy
 
   assert.equal(moveError("todo", "doing", null), null);
   assert.equal(moveError("doing", "done", ba), null);
-  assert.match(moveError("doing", "done", null)!, /Tôi là/);
-  assert.equal(moveError("done", "approved", ba), "Chỉ BA Lead được duyệt");
-  assert.equal(moveError("done", "approved", null), "Chỉ BA Lead được duyệt");
+  assert.match(moveError("doing", "done", null)!, /Acting as/);
+  assert.equal(moveError("done", "approved", ba), "Only a BA Lead can approve");
+  assert.equal(moveError("done", "approved", null), "Only a BA Lead can approve");
   assert.equal(moveError("done", "approved", lead), null);
-  assert.equal(moveError("approved", "doing", ba), "Chỉ BA Lead được yêu cầu sửa");
+  assert.equal(moveError("approved", "doing", ba), "Only a BA Lead can request changes");
   assert.equal(moveError("done", "doing", lead), null);
-  assert.match(moveError("todo", "approved", lead)!, /Không chuyển thẳng từ “Cần làm” sang “Đã duyệt”/);
+  assert.match(moveError("todo", "approved", lead)!, /Cannot move directly from “To do” to “Approved”/);
   assert.equal(moveError("doing", "doing", null), null, "không đổi thì không lỗi");
 });
 
 test("statusReason / artifactTitle: lý do tiếng Việt ghi rõ sản phẩm", () => {
-  assert.equal(statusReason("artifact.revision_requested", "doc", "Xác thực", "BRD"), "BA Lead yêu cầu sửa Tài liệu BRD – Xác thực");
-  assert.equal(statusReason("artifact.approved", "screen", "Đăng nhập"), "BA Lead duyệt Màn hình “Đăng nhập”");
-  assert.equal(statusReason("artifact.done", "diagram", "Xác thực", "ERD"), "BA bấm Xong Sơ đồ ERD – Xác thực");
-  assert.equal(statusReason("artifact.drafted", "screen", "Đăng nhập"), "Màn hình “Đăng nhập” có bản nháp mới");
-  assert.equal(statusReason("artifact.drafted", "tests"), "Bộ test vừa được sinh");
-  assert.equal(statusReason("artifact.stale", "doc", "Xác thực", "SRS"), "Tài liệu SRS – Xác thực thành Bản cũ do bước trước thay đổi");
-  assert.equal(statusReason("artifact.unapproved", "docs", "Xác thực"), "Tài liệu (cũ) – Xác thực bị bỏ duyệt");
-  assert.equal(artifactTitle("diagram", null, "M"), "Sơ đồ Use Case – M", "sơ đồ thiếu sub = UC");
-  assert.equal(artifactTitle("doc", "UC_SPEC", "M"), "Tài liệu UC Specification – M");
+  assert.equal(statusReason("artifact.revision_requested", "doc", "Xác thực", "BRD"), "BA Lead requested changes to BRD document – Xác thực");
+  assert.equal(statusReason("artifact.approved", "screen", "Đăng nhập"), "BA Lead approved Screen “Đăng nhập”");
+  assert.equal(statusReason("artifact.done", "diagram", "Xác thực", "ERD"), "BA marked ERD diagram – Xác thực as done");
+  assert.equal(statusReason("artifact.drafted", "screen", "Đăng nhập"), "Screen “Đăng nhập” has a new draft");
+  assert.equal(statusReason("artifact.drafted", "tests"), "Test suite was generated");
+  assert.equal(statusReason("artifact.stale", "doc", "Xác thực", "SRS"), "SRS document – Xác thực became Outdated because a previous step changed");
+  assert.equal(statusReason("artifact.unapproved", "docs", "Xác thực"), "Documents (legacy) – Xác thực approval was withdrawn");
+  assert.equal(artifactTitle("diagram", null, "M"), "Use Case diagram – M", "sơ đồ thiếu sub = UC");
+  assert.equal(artifactTitle("doc", "UC_SPEC", "M"), "UC Specification document – M");
 });

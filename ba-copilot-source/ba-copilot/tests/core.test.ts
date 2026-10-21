@@ -56,7 +56,7 @@ test("applyPatch: sửa trong vùng được chấp nhận, ngoài vùng bị t�
   assert.equal(findNode(r.tree, "email")!.props.label, "Địa chỉ email");
   assert.equal(findNode(r.tree, "footer")!.props.text, "© 2026");
   assert.equal(r.rejected.length, 1);
-  assert.match(r.rejected[0].reason, /ngoài vùng/);
+  assert.match(r.rejected[0].reason, /outside the selected region/);
   assert.equal(findNode(r.tree, "form")!.children!.length, 4, "được chèn anh em vào cha trực tiếp của vùng");
   assert.equal(findNode(tree, "email")!.props.label, "Email", "cây gốc không bị đổi");
 });
@@ -89,7 +89,7 @@ test("extractModel trích trường, ràng buộc, thao tác và điều hướn
   const s = m.screens[0];
   assert.equal(s.fields.length, 2);
   assert.ok(s.fields[0].required);
-  assert.ok(s.fields[0].constraints.includes("định dạng email"));
+  assert.ok(s.fields[0].constraints.includes("email format"));
   assert.ok(s.fields[1].constraints.includes("minLength=8"));
   assert.equal(s.actions[0].formId, "form");
   assert.deepEqual(m.navigation[0], { from: "Đăng nhập", to: "Trang chủ", via: "Đăng nhập" });

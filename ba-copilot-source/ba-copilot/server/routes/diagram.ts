@@ -42,7 +42,7 @@ function diagramEvent(type: ArtifactEventType, moduleId: string, actorId?: strin
 
 function mustModule(id: string) {
   const m = repo.getModule(id);
-  if (!m) throw new BizError("Không tìm thấy module", 404);
+  if (!m) throw new BizError("Module not found", 404);
   return m;
 }
 
@@ -66,7 +66,7 @@ route("GET", "/api/modules/:id/diagram", ({ params }) => {
 route("POST", "/api/modules/:id/diagram/generate", async ({ params, body }) => {
   const m = mustModule(params.id);
   const useCases = repo.getDocs(m.id).useCases;
-  if (!useCases.length) throw new BizError("Module chưa có Use Case. Hãy sinh tài liệu trước khi vẽ sơ đồ.");
+  if (!useCases.length) throw new BizError("The module has no use cases yet. Generate the documents before drawing the diagram.");
   const { code } = await generateUcDiagram({ moduleId: m.id, moduleName: m.name, useCases });
   return saveDraft(m.id, code, actor(body));
 });
@@ -74,10 +74,10 @@ route("POST", "/api/modules/:id/diagram/generate", async ({ params, body }) => {
 // FN-12: BA sửa mã Mermaid và lưu.
 route("PUT", "/api/modules/:id/diagram", ({ params, body }) => {
   mustModule(params.id);
-  if (typeof body?.code !== "string") throw new BizError("Thiếu mã sơ đồ (code)");
-  if (body.code.length > MAX_CODE) throw new BizError("Mã sơ đồ quá dài", 413);
+  if (typeof body?.code !== "string") throw new BizError("Missing diagram code (code)");
+  if (body.code.length > MAX_CODE) throw new BizError("Diagram code is too long", 413);
   const code = str(body.code, MAX_CODE);
-  if (!code.trim()) throw new BizError("Mã sơ đồ không được để trống");
+  if (!code.trim()) throw new BizError("Diagram code cannot be empty");
   return saveDraft(params.id, code, actor(body));
 });
 
@@ -87,7 +87,7 @@ route("POST", "/api/modules/:id/diagram/approve", ({ params, body }) => {
   const approved = body?.approved !== false;
   return tx(() => {
     const d = getDiagram(params.id);
-    if (!d) throw new BizError("Chưa có sơ đồ để duyệt");
+    if (!d) throw new BizError("There is no diagram to approve yet");
     if (approved && d.status !== "approved") {
       write(params.id, { code: d.code, status: "approved", approvedAt: new Date().toISOString() });
       diagramEvent("artifact.approved", params.id, actor(body));

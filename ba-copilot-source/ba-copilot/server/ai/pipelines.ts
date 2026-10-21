@@ -9,11 +9,11 @@ import { mockEditOps, mockScreen, mockSequence, mockSrs, mockTests, mockUseCases
 import { mockUcDiagram } from "./mock.ts";
 import { buildUcMermaid, type UcRelation } from "../../shared/ucDiagram.ts";
 
-const SYSTEM_BASE = `Bạn là trợ lý của Business Analyst trong hệ thống BA Copilot.
-Nguyên tắc:
-- Viết toàn bộ nội dung bằng tiếng Việt, rõ ràng, súc tích, đúng thuật ngữ phân tích nghiệp vụ.
-- Chỉ dựa trên dữ liệu đầu vào. Điều gì phải suy diễn thì ghi vào assumptions/isAssumption để BA xác nhận, KHÔNG trình bày như sự thật.
-- Luôn trả kết quả bằng cách gọi đúng tool được yêu cầu.`;
+const SYSTEM_BASE = `You are a Business Analyst's assistant in the BA Copilot system.
+Principles:
+- Write ALL content in English: clear, concise, using standard business analysis terminology (BABOK, IEEE 830 / ISO/IEC/IEEE 29148).
+- Rely only on the input data. Anything you have to infer goes into assumptions/isAssumption for the BA to confirm – NEVER present it as fact.
+- Always return the result by calling exactly the requested tool.`;
 
 const catalogText = Object.entries(COMPONENT_CATALOG)
   .map(([k, v]) => `- ${k}: ${v}`)
@@ -21,7 +21,7 @@ const catalogText = Object.entries(COMPONENT_CATALOG)
 
 const NODE_SCHEMA = {
   type: "object",
-  description: "Node giao diện: { id, type, props, children? }. children chỉ có ở component dạng container.",
+  description: "UI node: { id, type, props, children? }. children only exists on container components.",
   properties: {
     id: { type: "string" },
     type: { type: "string" },
@@ -46,43 +46,43 @@ export async function generateScreen(args: {
   otherScreens: string[];
   mockPrompt?: string;
 }): Promise<{ name: string; tree: UINode }> {
-  const prompt = `Thiết kế MỘT màn hình web theo yêu cầu của BA.
+  const prompt = `Design ONE web screen according to the BA's request.
 
-## Yêu cầu của BA
-${args.prompt.trim() || `(BA không ghi thêm – thiết kế màn "${args.name}" theo tài liệu bên dưới)`}
+## BA request
+${args.prompt.trim() || `(No extra notes from the BA – design the "${args.name}" screen from the documents below)`}
 
-## Bối cảnh module (user story, SRS, FRD-NFR)
-${args.context || args.requirementInput || "(chưa có tài liệu)"}
+## Module context (user stories, SRS, FRD-NFR)
+${args.context || args.requirementInput || "(no documents yet)"}
 
-## Các màn hình đã có trong module (dùng đúng tên này cho navigateTo)
-${args.otherScreens.length ? args.otherScreens.map((s) => `- ${s}`).join("\n") : "(chưa có)"}
+## Existing screens in the module (use exactly these names for navigateTo)
+${args.otherScreens.length ? args.otherScreens.map((s) => `- ${s}`).join("\n") : "(none yet)"}
 
-## Thư viện component được phép dùng
+## Allowed component library
 ${catalogText}
 
-## Quy tắc
-- Node gốc là Page với props.title.
-- Mỗi node có id ngắn, duy nhất, dạng snake_case có nghĩa (vd: login_form, btn_submit).
-- Trường nhập phải có label, name và ràng buộc hợp lý (required, minLength, maxLength, inputType, pattern).
-- Nút có action (động từ tiếng Anh ngắn) và navigateTo nếu chuyển màn hình.
-- Dữ liệu mẫu trong Table tối đa 3 dòng, thực tế, tiếng Việt.
-- Màn hình phải đáp ứng các yêu cầu chức năng (FR) và user story liên quan tới màn này; trường dữ liệu và ràng buộc lấy theo SRS/FRD-NFR khi có.
-- Bố cục gọn gàng, chuyên nghiệp; tối đa khoảng 40 node.`;
+## Rules
+- The root node is a Page with props.title.
+- Every node has a short, unique, meaningful snake_case id (e.g. login_form, btn_submit).
+- Input fields must have a label, a name and sensible constraints (required, minLength, maxLength, inputType, pattern).
+- Buttons have an action (a short English verb) and navigateTo when they lead to another screen.
+- Sample data in a Table: at most 3 realistic rows, in English.
+- The screen must satisfy the functional requirements (FR) and user stories related to it; take fields and constraints from the SRS/FRD-NFR when available.
+- Clean, professional layout; about 40 nodes at most.`;
   return runAI({
     type: "generate_screen",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nBạn đóng vai Senior UI/UX designer.",
+    system: SYSTEM_BASE + "\nYou act as a Senior UI/UX designer.",
     prompt,
     tool: {
       name: "submit_screen",
-      description: "Trả về thiết kế màn hình dạng component tree",
-      input_schema: { type: "object", properties: { name: { type: "string", description: "Tên màn hình ngắn gọn" }, tree: NODE_SCHEMA }, required: ["name", "tree"] },
+      description: "Return the screen design as a component tree",
+      input_schema: { type: "object", properties: { name: { type: "string", description: "Short screen name" }, tree: NODE_SCHEMA }, required: ["name", "tree"] },
     },
     maxTokens: 12000,
     parse: (raw: any) => {
       const tree = normalizeTree(raw?.tree);
       const v = validateTree(tree);
-      return v.ok ? { value: { name: String(raw?.name || args.name || tree.props.title || "Màn hình"), tree } } : { errors: v.errors };
+      return v.ok ? { value: { name: String(raw?.name || args.name || tree.props.title || "Screen"), tree } } : { errors: v.errors };
     },
     mock: () => {
       const tree = mockScreen(args.mockPrompt || args.prompt, args.name);
@@ -106,55 +106,55 @@ export async function editScreen(args: {
     ? args.selectedIds
         .map((id) => {
           const n = findNode(args.tree, id);
-          return n ? `### Vùng ${id} – ${nodeLabel(n)}\n${JSON.stringify(compactTree(n))}` : "";
+          return n ? `### Region ${id} – ${nodeLabel(n)}\n${JSON.stringify(compactTree(n))}` : "";
         })
         .join("\n\n")
-    : "(Không khoanh vùng – được phép sửa toàn màn hình)";
+    : "(No region selected – the whole screen may be edited)";
   const commentText = args.comments.length
-    ? args.comments.map((c, i) => `${i + 1}. [vùng: ${c.nodeIds.join(", ") || "toàn màn hình"}] ${c.comment}`).join("\n")
-    : "(không có)";
+    ? args.comments.map((c, i) => `${i + 1}. [region: ${c.nodeIds.join(", ") || "whole screen"}] ${c.comment}`).join("\n")
+    : "(none)";
   const fullInstruction = [args.instruction, ...args.comments.map((c) => c.comment)].filter(Boolean).join("\n");
 
-  const prompt = `Sửa thiết kế màn hình theo yêu cầu của BA bằng các thao tác patch.
+  const prompt = `Edit the screen design according to the BA's request using patch operations.
 
-## Toàn bộ màn hình hiện tại (để hiểu bối cảnh)
+## Whole current screen (for context)
 ${JSON.stringify(compactTree(args.tree))}
 
-## Vùng được khoanh (CHỈ được sửa trong các vùng này)
+## Selected regions (edit ONLY inside these regions)
 ${regionText}
 
-## Bình luận gửi kèm
+## Attached comments
 ${commentText}
 
-## Yêu cầu sửa
-${args.instruction || "(xem bình luận)"}
+## Edit request
+${args.instruction || "(see comments)"}
 ${args.context ? `
-## Tài liệu của module (tham khảo, không được làm trái)
+## Module documents (for reference – must not be contradicted)
 ${args.context}
 ` : ""}
-## Thư viện component
+## Component library
 ${catalogText}
 
-## Các thao tác hợp lệ
-- {"op":"update","id":"<id>","props":{...}}  – gộp props (giá trị null để xóa prop)
-- {"op":"replace","id":"<id>","node":{...}}   – thay cả node/cây con
-- {"op":"insert","parentId":"<id container>","index":<số>,"node":{...}} – chèn node mới (id mới, duy nhất)
+## Valid operations
+- {"op":"update","id":"<id>","props":{...}}  – merge props (null value removes a prop)
+- {"op":"replace","id":"<id>","node":{...}}   – replace the whole node/subtree
+- {"op":"insert","parentId":"<container id>","index":<number>,"node":{...}} – insert a new node (new, unique id)
 - {"op":"remove","id":"<id>"}
-${scoped ? "- CHỈ thao tác trên node thuộc vùng khoanh (kể cả con cháu) hoặc chèn phần tử anh em vào node cha trực tiếp của vùng. Thao tác ngoài vùng sẽ bị hệ thống từ chối." : ""}
-- Giữ nguyên id của node không bị thay đổi. Dùng số thao tác tối thiểu.`;
+${scoped ? "- Operate ONLY on nodes inside the selected regions (including descendants), or insert siblings into the region's direct parent. Operations outside the regions are rejected by the system." : ""}
+- Keep the ids of unchanged nodes. Use the minimum number of operations.`;
 
   return runAI({
     type: scoped ? "edit_screen_region" : "edit_screen_global",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nBạn đóng vai Senior UI/UX designer, sửa thiết kế chính xác và tối thiểu.",
+    system: SYSTEM_BASE + "\nYou act as a Senior UI/UX designer and make precise, minimal design edits.",
     prompt,
     tool: {
       name: "submit_patch",
-      description: "Trả về danh sách thao tác sửa thiết kế",
+      description: "Return the list of design edit operations",
       input_schema: {
         type: "object",
         properties: {
-          summary: { type: "string", description: "Tóm tắt 1 câu những gì đã sửa" },
+          summary: { type: "string", description: "One-sentence summary of what was changed" },
           ops: {
             type: "array",
             items: {
@@ -175,7 +175,7 @@ ${scoped ? "- CHỈ thao tác trên node thuộc vùng khoanh (kể cả con ch�
       },
     },
     parse: (raw: any) => {
-      if (!Array.isArray(raw?.ops)) return { errors: ["ops phải là mảng"] };
+      if (!Array.isArray(raw?.ops)) return { errors: ["ops must be an array"] };
       return { value: { ops: raw.ops as PatchOp[], summary: String(raw.summary ?? "") } };
     },
     mock: () => mockEditOps(args.tree, args.selectedIds, fullInstruction),
@@ -269,31 +269,31 @@ function modelForPrompt(model: DesignModel) {
 
 export async function generateUseCases(args: { moduleId: string; moduleName: string; requirementInput: string; model: DesignModel }) {
   const screenIds = new Set(args.model.screens.map((s) => s.screenId));
-  const prompt = `Từ mô hình thiết kế (trích tự động từ các màn hình đã duyệt) và yêu cầu nghiệp vụ, hãy lập:
-1. Danh sách Use Case và đặc tả đầy đủ (main flow, alternate flows A1.., exceptions E1.., business rules).
-2. Danh sách yêu cầu: FR (chức năng, mỗi UC ít nhất 1 FR; mỗi ràng buộc dữ liệu quan trọng thành FR kiểm tra) và NFR (chỉ gợi ý, isAssumption = true).
+  const prompt = `From the design model (extracted automatically from the approved screens) and the business requirements, produce:
+1. The list of use cases with full specifications (main flow, alternative flows A1.., exception flows E1.., business rules).
+2. The list of requirements: FR (functional; at least 1 FR per use case; every important data constraint becomes a validation FR) and NFR (suggestions only, isAssumption = true).
 
 ## Module: ${args.moduleName}
-## Yêu cầu nghiệp vụ / user story
-${args.requirementInput || "(không có)"}
+## Business requirements / user stories
+${args.requirementInput || "(none)"}
 
-## Mô hình thiết kế (screens: fields, actions, displays, forms; navigation)
+## Design model (screens: fields, actions, displays, forms; navigation)
 ${modelForPrompt(args.model)}
 
-## Quy tắc
-- Mã UC: UC-01, UC-02...; mã yêu cầu: FR-01..., NFR-01...
-- Mỗi bước main flow ghi actor là tên tác nhân hoặc "Hệ thống"; gắn screenId (đúng id màn hình ở trên) và nodeId của phần tử liên quan nếu có.
-- screenIds của UC phải là id màn hình có trong mô hình.
-- Một UC tương ứng một mục tiêu nghiệp vụ của tác nhân (không tách theo từng nút lặt vặt như "Hủy").
-- Điều chưa có trên thiết kế (xử lý phía server, phân quyền...) ghi vào assumptions.`;
+## Rules
+- Use case IDs: UC-01, UC-02...; requirement IDs: FR-01..., NFR-01...
+- Each main-flow step names its actor (an actor name or "System"); attach screenId (an exact screen id from above) and the nodeId of the related element when there is one.
+- A use case's screenIds must be screen ids present in the model.
+- One use case corresponds to one business goal of an actor (do not split per minor button such as "Cancel").
+- Anything not visible in the design (server-side processing, permissions...) goes into assumptions.`;
   return runAI({
     type: "generate_use_cases",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nBạn đóng vai Senior Business Analyst.",
+    system: SYSTEM_BASE + "\nYou act as a Senior Business Analyst.",
     prompt,
     tool: {
       name: "submit_use_cases",
-      description: "Trả về Use Case và yêu cầu",
+      description: "Return the use cases and requirements",
       input_schema: {
         type: "object",
         properties: { useCases: { type: "array", items: UC_SCHEMA }, requirements: { type: "array", items: REQ_SCHEMA } },
@@ -303,14 +303,14 @@ ${modelForPrompt(args.model)}
     maxTokens: 16000,
     parse: (raw: any) => {
       const errors: string[] = [];
-      if (!Array.isArray(raw?.useCases) || !raw.useCases.length) errors.push("useCases rỗng");
-      if (!Array.isArray(raw?.requirements)) errors.push("requirements phải là mảng");
+      if (!Array.isArray(raw?.useCases) || !raw.useCases.length) errors.push("useCases is empty");
+      if (!Array.isArray(raw?.requirements)) errors.push("requirements must be an array");
       if (errors.length) return { errors };
       const useCases = raw.useCases.map((u: any) => coerceUseCase(u, screenIds));
       const requirements = raw.requirements.map(coerceRequirement);
       const ucCodes = new Set(useCases.map((u: UseCase) => u.code));
-      for (const r of requirements) for (const c of r.useCaseCodes) if (!ucCodes.has(c)) errors.push(`${r.code} tham chiếu UC không tồn tại: ${c}`);
-      if (new Set(useCases.map((u: UseCase) => u.code)).size !== useCases.length) errors.push("Trùng mã UC");
+      for (const r of requirements) for (const c of r.useCaseCodes) if (!ucCodes.has(c)) errors.push(`${r.code} references a use case that does not exist: ${c}`);
+      if (new Set(useCases.map((u: UseCase) => u.code)).size !== useCases.length) errors.push("Duplicate use case ID");
       return errors.length ? { errors } : { value: { useCases, requirements } };
     },
     mock: () => mockUseCases(args.model, args.requirementInput),
@@ -319,33 +319,33 @@ ${modelForPrompt(args.model)}
 
 // ---------------------------------------------------------------- SRS
 export async function generateSrs(args: { moduleId: string; moduleName: string; requirementInput: string; model: DesignModel; useCases: UseCase[]; requirements: Requirement[] }): Promise<SrsDoc> {
-  const prompt = `Soạn tài liệu SRS theo cấu trúc ISO/IEC/IEEE 29148 cho module "${args.moduleName}".
-Các mục bắt buộc (key – tiêu đề):
-- intro – 1. Giới thiệu (mục đích, phạm vi, thuật ngữ, tài liệu tham chiếu)
-- overview – 2. Mô tả tổng quan (bối cảnh sản phẩm, tác nhân, màn hình, điều hướng, ràng buộc chung)
-- functional – 3. Yêu cầu chức năng (bảng markdown | Mã | Yêu cầu | Ưu tiên | Use Case | dùng đúng các FR đã cho)
-- nonfunctional – 4. Yêu cầu phi chức năng (dùng NFR đã cho; được bổ sung nhưng phải ghi "(Giả định – cần xác nhận)")
-- interfaces – 5. Giao diện người dùng (từng màn hình: mục đích, trường, thao tác)
-- data – 6. Từ điển dữ liệu (bảng markdown: Màn hình | Trường | Kiểu | Bắt buộc | Ràng buộc)
-- assumptions – 7. Giả định và vấn đề mở
-Nội dung mỗi mục là markdown (### tiêu đề con, gạch đầu dòng, bảng).
+  const prompt = `Write an SRS following the ISO/IEC/IEEE 29148 structure for module "${args.moduleName}".
+Required sections (key – title):
+- intro – 1. Introduction (purpose, scope, definitions, references)
+- overview – 2. Overall Description (product perspective, actors, screens, navigation, general constraints)
+- functional – 3. Functional Requirements (markdown table | ID | Requirement | Priority | Use Case | using exactly the given FRs)
+- nonfunctional – 4. Non-functional Requirements (use the given NFRs; additions allowed but must be marked "(Assumption – to be confirmed)")
+- interfaces – 5. User Interfaces (per screen: purpose, fields, actions)
+- data – 6. Data Dictionary (markdown table: Screen | Field | Type | Required | Constraints)
+- assumptions – 7. Assumptions and Open Issues
+Each section's content is markdown (### sub-headings, bullet lists, tables).
 
-## Yêu cầu nghiệp vụ
-${args.requirementInput || "(không có)"}
-## Mô hình thiết kế
+## Business requirements
+${args.requirementInput || "(none)"}
+## Design model
 ${modelForPrompt(args.model)}
-## Use Case
+## Use cases
 ${JSON.stringify(args.useCases.map((u) => ({ code: u.code, name: u.name, actors: u.actors, assumptions: u.assumptions })))}
-## Yêu cầu
+## Requirements
 ${JSON.stringify(args.requirements)}`;
   return runAI({
     type: "generate_srs",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nBạn đóng vai Senior Business Analyst viết tài liệu SRS.",
+    system: SYSTEM_BASE + "\nYou act as a Senior Business Analyst writing an SRS.",
     prompt,
     tool: {
       name: "submit_srs",
-      description: "Trả về các mục của SRS",
+      description: "Return the SRS sections",
       input_schema: {
         type: "object",
         properties: { sections: { type: "array", items: { type: "object", properties: { key: { type: "string" }, title: { type: "string" }, content: { type: "string" } }, required: ["key", "title", "content"] } } },
@@ -357,7 +357,7 @@ ${JSON.stringify(args.requirements)}`;
       const sections: SrsSection[] = Array.isArray(raw?.sections) ? raw.sections.map((s: any) => ({ key: String(s.key), title: String(s.title), content: String(s.content) })) : [];
       const need = ["intro", "overview", "functional", "nonfunctional", "interfaces", "data", "assumptions"];
       const missing = need.filter((k) => !sections.some((s) => s.key === k));
-      return missing.length ? { errors: [`Thiếu mục: ${missing.join(", ")}`] } : { value: { sections } };
+      return missing.length ? { errors: [`Missing sections: ${missing.join(", ")}`] } : { value: { sections } };
     },
     mock: () => mockSrs(args.moduleName, args.requirementInput, args.model, args.useCases, args.requirements),
   });
@@ -367,37 +367,38 @@ ${JSON.stringify(args.requirements)}`;
 export function validateMermaid(src: string): string[] {
   const errs: string[] = [];
   const lines = src.split("\n").map((l) => l.trim()).filter(Boolean);
-  if (lines[0] !== "sequenceDiagram") errs.push('Dòng đầu phải là "sequenceDiagram"');
+  if (lines[0] !== "sequenceDiagram") errs.push('The first line must be "sequenceDiagram"');
   let depth = 0;
   for (const l of lines.slice(1)) {
     if (/^(alt|opt|loop|par|critical|rect)\b/.test(l)) depth++;
     if (l === "end") depth--;
-    if (depth < 0) errs.push('Thừa "end"');
-    if (/^[^%].*->>?/.test(l) && !/^\s*[\wÀ-ỹ]+\s*-?-[>x)]{1,2}\+?-?\s*[\wÀ-ỹ]+\s*:/u.test(l)) errs.push(`Mũi tên sai cú pháp: ${l}`);
+    if (depth < 0) errs.push('Extra "end"');
+    // vi-keep: cho phép tên tham gia có dấu tiếng Việt (sơ đồ cũ)
+    if (/^[^%].*->>?/.test(l) && !/^\s*[\wÀ-ỹ]+\s*-?-[>x)]{1,2}\+?-?\s*[\wÀ-ỹ]+\s*:/u.test(l)) errs.push(`Invalid arrow syntax: ${l}`);
   }
-  if (depth > 0) errs.push('Thiếu "end" cho khối alt/opt/loop');
+  if (depth > 0) errs.push('Missing "end" for alt/opt/loop block');
   return errs;
 }
 
 export async function generateSequences(args: { moduleId: string; useCases: UseCase[]; model: DesignModel }): Promise<SequenceDiagram[]> {
-  const titleOf = (id: string) => args.model.screens.find((s) => s.screenId === id)?.title ?? "Giao diện";
-  const prompt = `Vẽ sequence diagram (cú pháp Mermaid) cho TỪNG Use Case dưới đây.
-Thành phần: actor (tác nhân) → UI (tên màn hình) → API (Máy chủ API) → DB (Cơ sở dữ liệu).
-- Dòng đầu: sequenceDiagram; dùng "autonumber".
-- Khai báo: actor A as <tên>, participant UI as <tên màn hình>, participant API as Máy chủ API, participant DB as Cơ sở dữ liệu.
-- Dùng alias A/UI/API/DB trong các mũi tên (->> gọi, -->> phản hồi). Thể hiện luồng chính, và ít nhất 1 khối alt cho ngoại lệ quan trọng.
-- Nhãn không chứa ký tự ; # : hoặc dấu ngoặc kép.
+  const titleOf = (id: string) => args.model.screens.find((s) => s.screenId === id)?.title ?? "User interface";
+  const prompt = `Draw a sequence diagram (Mermaid syntax) for EACH use case below.
+Participants: actor → UI (screen name) → API (API server) → DB (Database).
+- First line: sequenceDiagram; use "autonumber".
+- Declarations: actor A as <name>, participant UI as <screen name>, participant API as API Server, participant DB as Database.
+- Use the aliases A/UI/API/DB in the arrows (->> request, -->> response). Show the main flow and at least 1 alt block for an important exception.
+- Labels must not contain ; # : or double quotes.
 
-## Use Case
+## Use cases
 ${JSON.stringify(args.useCases.map((u) => ({ ...u, screens: u.screenIds.map(titleOf) })))}`;
   return runAI({
     type: "generate_sequences",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nBạn đóng vai Solution Architect.",
+    system: SYSTEM_BASE + "\nYou act as a Solution Architect.",
     prompt,
     tool: {
       name: "submit_sequences",
-      description: "Trả về sequence diagram cho từng UC",
+      description: "Return a sequence diagram for each use case",
       input_schema: {
         type: "object",
         properties: { sequences: { type: "array", items: { type: "object", properties: { useCaseCode: { type: "string" }, title: { type: "string" }, mermaid: { type: "string" } }, required: ["useCaseCode", "title", "mermaid"] } } },
@@ -409,7 +410,7 @@ ${JSON.stringify(args.useCases.map((u) => ({ ...u, screens: u.screenIds.map(titl
       const seqs: SequenceDiagram[] = Array.isArray(raw?.sequences) ? raw.sequences.map((s: any) => ({ useCaseCode: String(s.useCaseCode), title: String(s.title), mermaid: String(s.mermaid).trim() })) : [];
       const errors = seqs.flatMap((s) => validateMermaid(s.mermaid).map((e) => `${s.useCaseCode}: ${e}`));
       const missing = args.useCases.filter((u) => !seqs.some((s) => s.useCaseCode === u.code)).map((u) => u.code);
-      if (missing.length) errors.push(`Thiếu sơ đồ cho: ${missing.join(", ")}`);
+      if (missing.length) errors.push(`Missing diagrams for: ${missing.join(", ")}`);
       return errors.length ? { errors } : { value: seqs };
     },
     mock: () => args.useCases.map((u) => mockSequence(u, titleOf)),
@@ -418,31 +419,31 @@ ${JSON.stringify(args.useCases.map((u) => ({ ...u, screens: u.screenIds.map(titl
 
 // ---------------------------------------------------------------- Test case
 export async function generateTests(args: { moduleId: string; useCases: UseCase[]; requirements: Requirement[]; model: DesignModel }): Promise<TestCase[]> {
-  const prompt = `Sinh bộ test case thủ công (manual) cho module dựa trên UC Specification và FRD-NFR (đã Xong).
-Kỹ thuật bắt buộc:
-- Kịch bản: mỗi luồng (main, từng A*, từng E*) của mỗi UC có ít nhất 1 test; flowRef = "main" hoặc mã luồng.
-- Phân vùng tương đương & giá trị biên: mỗi trường có minLength/maxLength/min/max → test Boundary (dưới biên, đúng biên, vượt biên).
-- Mỗi test tham chiếu ít nhất 1 mã yêu cầu (requirementCodes) có trong danh sách.
-- Mỗi yêu cầu chức năng (FR) có ít nhất 1 test. Nếu không có Use Case thì useCaseCode để trống ("").
-- Mã test: TC-001, TC-002...; type: Positive | Negative | Boundary; priority: High | Medium | Low.
-- steps là các bước thao tác cụ thể; testData là dữ liệu cụ thể; expected là kết quả kiểm chứng được.
+  const prompt = `Generate a manual test suite for the module based on the UC Specification and the FRD-NFR (both Done).
+Required techniques:
+- Scenario testing: every flow (main, each A*, each E*) of every use case has at least 1 test; flowRef = "main" or the flow ID.
+- Equivalence partitioning & boundary value analysis: every field with minLength/maxLength/min/max → Boundary tests (below, at and above the boundary).
+- Every test references at least 1 requirement ID (requirementCodes) from the list.
+- Every functional requirement (FR) has at least 1 test. If there are no use cases, leave useCaseCode empty ("").
+- Test IDs: TC-001, TC-002...; type: Positive | Negative | Boundary; priority: High | Medium | Low.
+- steps are concrete test steps; testData is concrete test data; expected is a verifiable expected result.
 
-## Use Case
+## Use cases
 ${JSON.stringify(args.useCases)}
-## Yêu cầu
+## Requirements
 ${JSON.stringify(args.requirements)}
-## Trường dữ liệu và ràng buộc
+## Data fields and constraints
 ${JSON.stringify(args.model.screens.map((s) => ({ screen: s.title, fields: s.fields })))}`;
   const reqCodes = new Set(args.requirements.map((r) => r.code));
   const ucCodes = new Set(args.useCases.map((u) => u.code));
   return runAI({
     type: "generate_tests",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nBạn đóng vai Senior QA Engineer.",
+    system: SYSTEM_BASE + "\nYou act as a Senior QA Engineer.",
     prompt,
     tool: {
       name: "submit_test_cases",
-      description: "Trả về danh sách test case",
+      description: "Return the list of test cases",
       input_schema: {
         type: "object",
         properties: {
@@ -488,10 +489,10 @@ ${JSON.stringify(args.model.screens.map((s) => ({ screen: s.title, fields: s.fie
           }))
         : [];
       const errors: string[] = [];
-      if (!tcs.length) errors.push("Không có test case");
+      if (!tcs.length) errors.push("No test cases");
       for (const t of tcs) {
-        if (ucCodes.size ? !ucCodes.has(t.useCaseCode) : t.useCaseCode !== "") errors.push(`${t.code}: useCaseCode không tồn tại (${t.useCaseCode})`);
-        if (!t.requirementCodes.length) errors.push(`${t.code}: thiếu requirementCodes hợp lệ (BR-04)`);
+        if (ucCodes.size ? !ucCodes.has(t.useCaseCode) : t.useCaseCode !== "") errors.push(`${t.code}: useCaseCode does not exist (${t.useCaseCode})`);
+        if (!t.requirementCodes.length) errors.push(`${t.code}: missing valid requirementCodes (BR-04)`);
       }
       return errors.length ? { errors } : { value: tcs };
     },
@@ -505,11 +506,11 @@ export async function refineUseCase(args: { moduleId: string; uc: UseCase; instr
   return runAI({
     type: "refine_use_case",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nBạn đóng vai Senior Business Analyst.",
-    prompt: `Chỉnh sửa đặc tả Use Case theo yêu cầu của BA. Giữ nguyên mã UC và những phần không liên quan.\n\n## Yêu cầu chỉnh\n${args.instruction}\n\n## Use Case hiện tại\n${JSON.stringify(args.uc)}\n\n## Mô hình thiết kế\n${modelForPrompt(args.model)}`,
-    tool: { name: "submit_use_case", description: "Trả về Use Case đã chỉnh", input_schema: UC_SCHEMA },
+    system: SYSTEM_BASE + "\nYou act as a Senior Business Analyst.",
+    prompt: `Revise the use case specification according to the BA's request. Keep the use case ID and all unrelated parts unchanged.\n\n## Revision request\n${args.instruction}\n\n## Current use case\n${JSON.stringify(args.uc)}\n\n## Design model\n${modelForPrompt(args.model)}`,
+    tool: { name: "submit_use_case", description: "Return the revised use case", input_schema: UC_SCHEMA },
     parse: (raw: any) => ({ value: { ...coerceUseCase(raw, screenIds), code: args.uc.code } }),
-    mock: () => ({ ...args.uc, assumptions: [...args.uc.assumptions, `BA yêu cầu: ${args.instruction} (chế độ rule-based chưa tự áp dụng – cần chỉnh tay)`] }),
+    mock: () => ({ ...args.uc, assumptions: [...args.uc.assumptions, `BA request: ${args.instruction} (rule-based mode cannot apply this automatically – edit manually)`] }),
   });
 }
 
@@ -517,15 +518,15 @@ export async function refineSequence(args: { moduleId: string; seq: SequenceDiag
   return runAI({
     type: "refine_sequence",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nBạn đóng vai Solution Architect.",
-    prompt: `Chỉnh sequence diagram Mermaid theo yêu cầu. Giữ cú pháp hợp lệ (dòng đầu sequenceDiagram, alias A/UI/API/DB).\n\n## Yêu cầu\n${args.instruction}\n\n## Sơ đồ hiện tại\n${args.seq.mermaid}\n\n## Use Case\n${JSON.stringify(args.uc ?? {})}`,
-    tool: { name: "submit_sequence", description: "Trả về sơ đồ đã chỉnh", input_schema: { type: "object", properties: { mermaid: { type: "string" } }, required: ["mermaid"] } },
+    system: SYSTEM_BASE + "\nYou act as a Solution Architect.",
+    prompt: `Revise the Mermaid sequence diagram as requested. Keep the syntax valid (first line sequenceDiagram, aliases A/UI/API/DB).\n\n## Request\n${args.instruction}\n\n## Current diagram\n${args.seq.mermaid}\n\n## Use case\n${JSON.stringify(args.uc ?? {})}`,
+    tool: { name: "submit_sequence", description: "Return the revised diagram", input_schema: { type: "object", properties: { mermaid: { type: "string" } }, required: ["mermaid"] } },
     parse: (raw: any) => {
       const m = String(raw?.mermaid ?? "").trim();
       const errors = validateMermaid(m);
       return errors.length ? { errors } : { value: { ...args.seq, mermaid: m } };
     },
-    mock: () => ({ ...args.seq, mermaid: `${args.seq.mermaid}\n  Note over A,UI: BA yêu cầu – ${args.instruction.replace(/[;#:"]/g, " ").slice(0, 80)}` }),
+    mock: () => ({ ...args.seq, mermaid: `${args.seq.mermaid}\n  Note over A,UI: BA request – ${args.instruction.replace(/[;#:"]/g, " ").slice(0, 80)}` }),
   });
 }
 
@@ -533,11 +534,11 @@ export async function refineSrsSection(args: { moduleId: string; section: SrsSec
   return runAI({
     type: "refine_srs",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nBạn đóng vai Senior Business Analyst viết SRS.",
-    prompt: `Chỉnh mục SRS "${args.section.title}" theo yêu cầu. Trả lại toàn bộ nội dung markdown của mục.\n\n## Yêu cầu\n${args.instruction}\n\n## Nội dung hiện tại\n${args.section.content}\n\n## Bối cảnh\n${args.context}`,
-    tool: { name: "submit_section", description: "Trả về nội dung mục đã chỉnh", input_schema: { type: "object", properties: { content: { type: "string" } }, required: ["content"] } },
-    parse: (raw: any) => (raw?.content ? { value: { ...args.section, content: String(raw.content) } } : { errors: ["Thiếu content"] }),
-    mock: () => ({ ...args.section, content: `${args.section.content}\n\n> **Ghi chú BA:** ${args.instruction}` }),
+    system: SYSTEM_BASE + "\nYou act as a Senior Business Analyst writing an SRS.",
+    prompt: `Revise the SRS section "${args.section.title}" as requested. Return the full markdown content of the section.\n\n## Request\n${args.instruction}\n\n## Current content\n${args.section.content}\n\n## Context\n${args.context}`,
+    tool: { name: "submit_section", description: "Return the revised section content", input_schema: { type: "object", properties: { content: { type: "string" } }, required: ["content"] } },
+    parse: (raw: any) => (raw?.content ? { value: { ...args.section, content: String(raw.content) } } : { errors: ["Missing content"] }),
+    mock: () => ({ ...args.section, content: `${args.section.content}\n\n> **BA note:** ${args.instruction}` }),
   });
 }
 
@@ -545,23 +546,23 @@ export async function refineSrsSection(args: { moduleId: string; section: SrsSec
 // AI chỉ chọn actor và quan hệ «include»/«extend»; mã Mermaid do buildUcMermaid dựng nên luôn đúng cú pháp.
 export async function generateUcDiagram(args: { moduleId: string; moduleName: string; useCases: UseCase[] }): Promise<{ code: string }> {
   const ucCodes = new Set(args.useCases.map((u) => u.code));
-  const prompt = `Lập UC diagram cho module "${args.moduleName}" từ danh sách Use Case dưới đây.
-- actors: tác nhân bên ngoài hệ thống (không ghi "Hệ thống").
-- relations: quan hệ giữa các UC, chỉ dùng mã UC có trong danh sách.
-  - type "include": from là UC gốc, to là UC luôn được gọi trong luồng chính của UC gốc.
-  - type "extend": from là UC mở rộng (chỉ xảy ra trong điều kiện riêng), to là UC gốc.
-- Không bịa quan hệ. Không có quan hệ nào rõ ràng thì trả relations rỗng.
+  const prompt = `Build the use case diagram for module "${args.moduleName}" from the use cases below.
+- actors: actors outside the system (do not list "System").
+- relations: relationships between use cases, using only use case IDs from the list.
+  - type "include": from is the base use case, to is the use case always invoked in the base use case's main flow.
+  - type "extend": from is the extending use case (only happens under specific conditions), to is the base use case.
+- Do not invent relationships. If no relationship is clear, return an empty relations list.
 
-## Use Case
+## Use cases
 ${JSON.stringify(args.useCases.map((u) => ({ code: u.code, name: u.name, actors: u.actors, mainFlow: u.mainFlow.map((s) => `${s.actor}: ${s.text}`), altFlows: u.altFlows.map((f) => f.name), exceptions: u.exceptions.map((f) => f.name) })))}`;
   return runAI({
     type: "generate_uc_diagram",
     moduleId: args.moduleId,
-    system: SYSTEM_BASE + "\nBạn đóng vai Senior Business Analyst vẽ UC diagram theo UML.",
+    system: SYSTEM_BASE + "\nYou act as a Senior Business Analyst drawing a UML use case diagram.",
     prompt,
     tool: {
       name: "submit_uc_diagram",
-      description: "Trả về actor và quan hệ include/extend của UC diagram",
+      description: "Return the actors and include/extend relationships of the use case diagram",
       input_schema: {
         type: "object",
         properties: {
@@ -576,7 +577,7 @@ ${JSON.stringify(args.useCases.map((u) => ({ code: u.code, name: u.name, actors:
     },
     parse: (raw: any) => {
       const relations: UcRelation[] = Array.isArray(raw?.relations) ? raw.relations.map((r: any) => ({ from: String(r.from ?? ""), to: String(r.to ?? ""), type: r.type === "extend" ? "extend" : "include" })) : [];
-      const errors = relations.filter((r) => !ucCodes.has(r.from) || !ucCodes.has(r.to)).map((r) => `Quan hệ tham chiếu UC không tồn tại: ${r.from} → ${r.to}`);
+      const errors = relations.filter((r) => !ucCodes.has(r.from) || !ucCodes.has(r.to)).map((r) => `Relationship references a use case that does not exist: ${r.from} → ${r.to}`);
       if (errors.length) return { errors };
       const actors = Array.isArray(raw?.actors) ? raw.actors.map(String) : [];
       return { value: { code: buildUcMermaid(args.useCases, actors, relations) } };

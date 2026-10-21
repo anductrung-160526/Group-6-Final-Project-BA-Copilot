@@ -11,7 +11,7 @@ import { DIAGRAM_SOURCES } from "./diagrams.ts";
 import { DIAGRAM_KIND_LABEL, DOC_KINDS, DOC_KIND_LABEL, type ArtifactKind, type ArtifactStatus, type DiagramKind, type DocKind } from "./types.ts";
 
 /** Nhãn trạng thái sản phẩm trong câu lý do (khớp StatusBadge). */
-export const PREREQ_STATUS_LABEL: Record<ArtifactStatus, string> = { none: "Chưa có", draft: "Đang làm", done: "Xong", approved: "Đã duyệt", outdated: "Bản cũ" };
+export const PREREQ_STATUS_LABEL: Record<ArtifactStatus, string> = { none: "Not started", draft: "Draft", done: "Done", approved: "Approved", outdated: "Outdated" };
 
 export const isReady = (s: ArtifactStatus | string | null | undefined) => s === "done" || s === "approved";
 
@@ -36,11 +36,11 @@ export type PrereqAction = "generate" | "done" | "approve";
 
 const label = (t: PrereqTarget): string => {
   if (t.kind === "doc") return DOC_KIND_LABEL[t.sub as DocKind] ?? String(t.sub);
-  if (t.kind === "diagram") return `sơ đồ ${DIAGRAM_KIND_LABEL[(t.sub as DiagramKind) ?? "UC"] ?? t.sub}`;
-  if (t.kind === "tests") return "bộ test case";
-  return "sản phẩm";
+  if (t.kind === "diagram") return `the ${DIAGRAM_KIND_LABEL[(t.sub as DiagramKind) ?? "UC"] ?? t.sub} diagram`;
+  if (t.kind === "tests") return "the test suite";
+  return "the artifact";
 };
-const verb = (a: PrereqAction, t: PrereqTarget) => (a === "generate" ? `sinh ${label(t)}` : a === "done" ? `bấm Xong cho ${label(t)}` : `duyệt ${label(t)}`);
+const verb = (a: PrereqAction, t: PrereqTarget) => (a === "generate" ? `generating ${label(t)}` : a === "done" ? `marking ${label(t)} as done` : `approving ${label(t)}`);
 
 /** Tài liệu tiên quyết (trực tiếp) của sản phẩm. Dùng cho kiểm tra và cho lan "Bản cũ" khi nguồn không còn Xong. */
 export function prereqDocs(t: PrereqTarget): DocKind[] {
@@ -60,24 +60,24 @@ export function prereqDocs(t: PrereqTarget): DocKind[] {
 export function prereqBlockReason(t: PrereqTarget, f: PrereqFacts, action: PrereqAction): string | null {
   const st = (k: DocKind): ArtifactStatus => f.docStatus(k) ?? "none";
   if (t.kind === "doc" && t.sub === "BRD") {
-    return f.storyCount === 0 ? `Module chưa có user story. Hãy thêm ít nhất một user story ở mục Yêu cầu nghiệp vụ trước khi ${verb(action, t)}.` : null;
+    return f.storyCount === 0 ? `This module has no user stories yet. Add at least one user story under Business Requirements before ${verb(action, t)}.` : null;
   }
   if (t.kind === "doc") {
     const [prev] = prereqDocs(t);
     if (!prev || isReady(st(prev))) return null;
-    const head = action === "generate" ? `Bước trước (${DOC_KIND_LABEL[prev]}) chưa Xong` : `Bước trước (${DOC_KIND_LABEL[prev]}) chưa Xong (hiện: ${PREREQ_STATUS_LABEL[st(prev)]})`;
-    return `${head}. Hãy hoàn thành và bấm Xong cho ${DOC_KIND_LABEL[prev]} trước khi ${verb(action, t)}.`;
+    const head = action === "generate" ? `The previous step (${DOC_KIND_LABEL[prev]}) is not Done` : `The previous step (${DOC_KIND_LABEL[prev]}) is not Done (current: ${PREREQ_STATUS_LABEL[st(prev)]})`;
+    return `${head}. Complete ${DOC_KIND_LABEL[prev]} and mark it as done before ${verb(action, t)}.`;
   }
   if (t.kind === "diagram") {
     const missing = prereqDocs(t).filter((k) => !isReady(st(k)));
     if (!missing.length) return null;
-    return `Cần tài liệu ${missing.map((k) => `${DOC_KIND_LABEL[k]} (hiện: ${PREREQ_STATUS_LABEL[st(k)]})`).join(", ")} ở trạng thái Xong trước khi ${verb(action, t)}.`;
+    return `Source document ${missing.map((k) => `${DOC_KIND_LABEL[k]} (current: ${PREREQ_STATUS_LABEL[st(k)]})`).join(", ")} must be Done before ${verb(action, t)}.`;
   }
   if (t.kind === "tests") {
     const frd = st("FRD_NFR");
     if (isReady(frd)) return null;
     if (frd === "none" && f.legacyDocsApproved) return null; // luồng cũ: bộ tài liệu cũ đã duyệt
-    return `Cần ${DOC_KIND_LABEL.FRD_NFR} ở trạng thái Xong trước khi ${verb(action, t)} (hiện: ${PREREQ_STATUS_LABEL[frd]}).`;
+    return `${DOC_KIND_LABEL.FRD_NFR} must be Done before ${verb(action, t)} (current: ${PREREQ_STATUS_LABEL[frd]}).`;
   }
   return null; // màn hình prototype, bộ tài liệu cũ: không có bước tiên quyết
 }

@@ -87,7 +87,7 @@ export function Renderer({ node, onNavigate }: Props): React.ReactElement {
     case "Modal":
       return (
         <div {...common} className="ds-modal">
-          <div className="ds-modal-head">{s(p.title, "Hộp thoại")}</div>
+          <div className="ds-modal-head">{s(p.title, "Dialog")}</div>
           {kids}
         </div>
       );
@@ -104,7 +104,7 @@ export function Renderer({ node, onNavigate }: Props): React.ReactElement {
     case "Button":
       return (
         <span {...common} role="button" className={`ds-btn ds-btn-${s(p.variant, "primary")}`} onClick={nav(p.navigateTo)} title={p.navigateTo ? `→ ${s(p.navigateTo)}` : undefined}>
-          {s(p.label, "Nút")}
+          {s(p.label, "Button")}
         </span>
       );
     case "Link":
@@ -188,7 +188,7 @@ export function Renderer({ node, onNavigate }: Props): React.ReactElement {
                 {cols.map((c, i) => (
                   <th key={i}>{c}</th>
                 ))}
-                {acts.length ? <th>Thao tác</th> : null}
+                {acts.length ? <th>Actions</th> : null}
               </tr>
             </thead>
             <tbody>
@@ -216,7 +216,7 @@ export function Renderer({ node, onNavigate }: Props): React.ReactElement {
     case "Image":
       return (
         <div {...common} className="ds-image" style={{ height: Number(p.height ?? 140) }}>
-          <span>{s(p.alt, "Ảnh")}</span>
+          <span>{s(p.alt, "Image")}</span>
         </div>
       );
     case "Badge":

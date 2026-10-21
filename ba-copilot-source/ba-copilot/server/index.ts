@@ -21,6 +21,6 @@ openDb(process.env.DB_FILE ?? join(root, "data", "ba-copilot.db"));
 const server = createApp({ publicDir: join(root, "public") });
 server.listen(port, () => {
   const c = aiConfig();
-  console.log(`\n  BA Copilot đang chạy: http://localhost:${port}`);
-  console.log(`  AI: ${c.provider === "claude" ? `Claude API (${c.model})` : "Chế độ Mock (rule-based) – đặt ANTHROPIC_API_KEY trong .env để dùng Claude"}\n`);
+  console.log(`\n  BA Copilot is running: http://localhost:${port}`);
+  console.log(`  AI: ${c.provider === "claude" ? `Claude API (${c.model})` : "Mock mode (rule-based) – set ANTHROPIC_API_KEY in .env to use Claude"}\n`);
 });

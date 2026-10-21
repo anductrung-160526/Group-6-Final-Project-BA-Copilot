@@ -28,7 +28,7 @@ function readBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const r = new FileReader();
     r.onload = () => resolve(String(r.result).split(",")[1] ?? "");
-    r.onerror = () => reject(new Error(`Không đọc được tệp "${file.name}"`));
+    r.onerror = () => reject(new Error(`Could not read file "${file.name}"`));
     r.readAsDataURL(file);
   });
 }
@@ -37,9 +37,9 @@ function readBase64(file: File): Promise<string> {
 function invalidReason(f: File): string | null {
   const dot = f.name.lastIndexOf(".");
   const ext = dot >= 0 ? f.name.slice(dot).toLowerCase() : "";
-  if (!ALLOWED_EXTS.includes(ext)) return "chỉ nhận Word, PDF, Excel, ảnh";
-  if (f.size === 0) return "tệp rỗng";
-  if (f.size > MAX_FILE_BYTES) return "quá 10 MB";
+  if (!ALLOWED_EXTS.includes(ext)) return "only Word, PDF, Excel and images are accepted";
+  if (f.size === 0) return "empty file";
+  if (f.size > MAX_FILE_BYTES) return "larger than 10 MB";
   return null;
 }
 
@@ -48,17 +48,17 @@ function SourceFields({ value, onChange, modules }: { value: Source; onChange: (
   const set = (k: keyof Source) => (v: string) => onChange({ ...value, [k]: v });
   return (
     <>
-      <Field label="Module" hint="Để trống nếu tài liệu dùng chung cho cả dự án">
-        <Select value={value.moduleId} onChange={set("moduleId")} placeholder="Cấp dự án (không thuộc module)" options={modules.map((m) => ({ value: m.id, label: m.name }))} testId="src-module" />
+      <Field label="Module" hint="Leave blank if the document applies to the whole project">
+        <Select value={value.moduleId} onChange={set("moduleId")} placeholder="Project level (no module)" options={modules.map((m) => ({ value: m.id, label: m.name }))} testId="src-module" />
       </Field>
-      <Field label="Stakeholder gửi">
-        <input value={value.sender} onChange={(e) => set("sender")(e.target.value)} placeholder="Ví dụ: Chị Lan – Phòng Kinh doanh" maxLength={200} data-testid="src-sender" />
+      <Field label="Sent by (stakeholder)">
+        <input value={value.sender} onChange={(e) => set("sender")(e.target.value)} placeholder="E.g. Lan – Sales Department" maxLength={200} data-testid="src-sender" />
       </Field>
-      <Field label="Ngày nhận">
+      <Field label="Received on">
         <input type="date" value={value.receivedAt} onChange={(e) => set("receivedAt")(e.target.value)} data-testid="src-date" />
       </Field>
-      <Field label="Ghi chú">
-        <textarea rows={3} value={value.note} onChange={(e) => set("note")(e.target.value)} maxLength={2000} placeholder="Nội dung chính, phiên bản, việc cần làm…" data-testid="src-note" />
+      <Field label="Notes">
+        <textarea rows={3} value={value.note} onChange={(e) => set("note")(e.target.value)} maxLength={2000} placeholder="Key content, version, follow-up actions…" data-testid="src-note" />
       </Field>
     </>
   );
@@ -90,7 +90,7 @@ export function FilesView({ projectId, params }: PageProps) {
   useEffect(() => setModuleFilter(params[0] ?? ""), [params[0]]);
 
   const modules = project?.modules ?? [];
-  const moduleName = (id: string | null) => (id ? (modules.find((m) => m.id === id)?.name ?? "Module đã xoá") : "Cấp dự án");
+  const moduleName = (id: string | null) => (id ? (modules.find((m) => m.id === id)?.name ?? "Deleted module") : "Project level");
 
   // FN-08: tìm theo tên (không phân biệt dấu) và lọc theo module
   const shown = useMemo(() => {
@@ -114,7 +114,7 @@ export function FilesView({ projectId, params }: PageProps) {
   // ---------------------------------------------------------------- FN-04: tải lên nhiều tệp
   const pick = (list: File[]) => {
     const bad = list.map((f) => [f, invalidReason(f)] as const).filter(([, r]) => r);
-    if (bad.length) toast(`Bỏ qua ${bad.map(([f, r]) => `"${f.name}" (${r})`).join(", ")}`, "err");
+    if (bad.length) toast(`Skipped ${bad.map(([f, r]) => `"${f.name}" (${r})`).join(", ")}`, "err");
     const ok = list.filter((f) => !invalidReason(f));
     if (!ok.length) return;
     if (!pending) setSource({ moduleId: moduleFilter && moduleFilter !== PROJECT_LEVEL ? moduleFilter : "", sender: "", receivedAt: today(), note: "" });
@@ -123,7 +123,7 @@ export function FilesView({ projectId, params }: PageProps) {
 
   const upload = async () => {
     if (!pending?.length) return;
-    const results = await run(`Đang tải lên ${pending.length} tệp…`, () =>
+    const results = await run(`Uploading ${pending.length} ${pending.length === 1 ? "file" : "files"}…`, () =>
       Promise.allSettled(
         pending.map(async (f) =>
           uploadFile(projectId, withActor({
@@ -140,7 +140,7 @@ export function FilesView({ projectId, params }: PageProps) {
     if (!results) return;
     const failed = pending.filter((_, i) => results[i].status === "rejected");
     const okCount = pending.length - failed.length;
-    if (okCount) toast(`Đã tải lên ${okCount} tệp`, "ok");
+    if (okCount) toast(`Uploaded ${okCount} ${okCount === 1 ? "file" : "files"}`, "ok");
     results.forEach((r, i) => r.status === "rejected" && toast(`"${pending[i].name}": ${(r.reason as Error).message}`, "err"));
     setPending(failed.length ? failed : null);
     load();
@@ -153,26 +153,26 @@ export function FilesView({ projectId, params }: PageProps) {
   const saveEdit = async () => {
     if (!editing) return;
     const { file, name, src } = editing;
-    if (!name.trim()) return toast("Tên tệp không được để trống", "err");
-    const res = await run("Đang lưu…", () =>
+    if (!name.trim()) return toast("File name cannot be empty", "err");
+    const res = await run("Saving…", () =>
       updateFile(file.id, { name, moduleId: src.moduleId || null, sender: src.sender, receivedAt: src.receivedAt || null, note: src.note }),
     );
     if (!res) return;
-    toast("Đã lưu thông tin tệp", "ok");
+    toast("File details saved", "ok");
     setEditing(null);
     load();
   };
 
   // Xoá sau khi RowActions đã hỏi xác nhận.
   const removeFile = async (file: FileItem) => {
-    const res = await run("Đang xoá…", () => deleteFile(file.id));
+    const res = await run("Deleting…", () => deleteFile(file.id));
     if (!res) return;
-    toast(`Đã xoá "${file.name}"`, "ok");
+    toast(`Deleted "${file.name}"`, "ok");
     if (viewing === file.id) setViewing(null);
     load();
   };
 
-  if (!files || !project) return <div className="page muted">Đang tải…</div>;
+  if (!files || !project) return <div className="page muted">Loading…</div>;
   const viewed = viewing ? files.find((f) => f.id === viewing) : null;
   const filtering = !!q.trim() || !!moduleFilter;
 
@@ -180,36 +180,36 @@ export function FilesView({ projectId, params }: PageProps) {
     <div className="page" data-testid="files-view">
       <div className="page-head">
         <div>
-          <h1>Kho tài liệu</h1>
-          <p className="muted">{files.length} tệp · Tài liệu stakeholder gửi và bản xuất Word/Excel của từng module</p>
+          <h1>Document Repository</h1>
+          <p className="muted">{files.length} {files.length === 1 ? "file" : "files"} · Documents sent by stakeholders and Word/Excel exports of each module</p>
         </div>
       </div>
 
       <FileDrop
         onFiles={pick}
         accept={ACCEPT}
-        title="Kéo thả tài liệu vào đây (nhiều tệp cùng lúc)"
-        hint="hoặc bấm để chọn · Word, PDF, Excel, ảnh · tối đa 10 MB mỗi tệp"
+        title="Drag and drop documents here (several files at once)"
+        hint="or click to browse · Word, PDF, Excel, images · up to 10 MB per file"
         testId="files-drop"
       />
 
       <div className="filters" style={{ margin: "var(--space-5) 0 var(--space-4)" }}>
-        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm theo tên tệp…" aria-label="Tìm theo tên tệp" data-testid="files-search" />
+        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by file name…" aria-label="Search by file name" data-testid="files-search" />
         <Select
           value={moduleFilter}
           onChange={setModuleFilter}
-          placeholder="Tất cả module"
-          options={[{ value: PROJECT_LEVEL, label: "Cấp dự án" }, ...modules.map((m) => ({ value: m.id, label: m.name }))]}
+          placeholder="All modules"
+          options={[{ value: PROJECT_LEVEL, label: "Project level" }, ...modules.map((m) => ({ value: m.id, label: m.name }))]}
           testId="files-module-filter"
         />
       </div>
 
       {files.length === 0 ? (
-        <Empty title="Kho chưa có tài liệu nào">
-          Kéo thả tài liệu stakeholder gửi vào ô phía trên, hoặc xuất Word/Excel ở tab Tài liệu / Test case của module – bản xuất mới nhất tự lưu vào đây.
+        <Empty title="The repository is empty">
+          Drag stakeholder documents into the box above, or export Word/Excel from a module's Documents / Test Cases tab – the latest export is saved here automatically.
         </Empty>
       ) : groups.length === 0 ? (
-        <Empty title="Không có tệp phù hợp">{filtering ? "Thử từ khoá khác hoặc chọn Tất cả module." : null}</Empty>
+        <Empty title="No matching files">{filtering ? "Try another keyword or select All modules." : null}</Empty>
       ) : (
         groups.map((g) => (
           <section key={g.id ?? PROJECT_LEVEL} id={`files-module-${g.id ?? PROJECT_LEVEL}`} style={{ marginBottom: "var(--space-6)" }}>
@@ -220,12 +220,12 @@ export function FilesView({ projectId, params }: PageProps) {
               <table className="tbl" data-testid="files-table">
                 <thead>
                   <tr>
-                    <th>Tên tệp</th>
-                    <th>Loại</th>
-                    <th>Stakeholder gửi</th>
-                    <th>Ngày nhận</th>
-                    <th>Kích thước</th>
-                    <th>Ngày lưu</th>
+                    <th>File name</th>
+                    <th>Type</th>
+                    <th>Sent by</th>
+                    <th>Received</th>
+                    <th>Size</th>
+                    <th>Saved</th>
                     <th className="actions" />
                   </tr>
                 </thead>
@@ -236,7 +236,7 @@ export function FilesView({ projectId, params }: PageProps) {
                         <button className="link" onClick={(e) => (e.stopPropagation(), setViewing(f.id))}>
                           {f.name}
                         </button>{" "}
-                        {f.source === "export" && <Badge tone="violet">Bản xuất</Badge>}
+                        {f.source === "export" && <Badge tone="violet">Export</Badge>}
                       </td>
                       <td className="nowrap">{kindLabel(f.mime)}</td>
                       <td>{f.sender || <span className="muted">—</span>}</td>
@@ -245,7 +245,7 @@ export function FilesView({ projectId, params }: PageProps) {
                       <td className="muted small nowrap">{fmtTime(f.createdAt)}</td>
                       <td className="actions" onClick={(e) => e.stopPropagation()}>
                         <span className="row-actions">
-                          <IconBtn icon="download" label="Tải về" onClick={() => dl(f)} data-testid={`dl-${f.id}`} />
+                          <IconBtn icon="download" label="Download" onClick={() => dl(f)} data-testid={`dl-${f.id}`} />
                           <RowActions
                             onEdit={() => startEdit(f)}
                             onDelete={() => removeFile(f)}
@@ -265,13 +265,13 @@ export function FilesView({ projectId, params }: PageProps) {
 
       {pending && (
         <Modal
-          title={`Tải lên ${pending.length} tệp`}
+          title={`Upload ${pending.length} ${pending.length === 1 ? "file" : "files"}`}
           onClose={() => setPending(null)}
           footer={
             <>
-              <Btn onClick={() => setPending(null)}>Huỷ</Btn>
+              <Btn onClick={() => setPending(null)}>Cancel</Btn>
               <Btn kind="primary" onClick={upload} disabled={!pending.length} data-testid="confirm-upload">
-                Tải lên
+                Upload
               </Btn>
             </>
           }
@@ -283,32 +283,32 @@ export function FilesView({ projectId, params }: PageProps) {
                   <td>{f.name}</td>
                   <td className="muted small nowrap">{fmtSize(f.size)}</td>
                   <td className="right">
-                    <IconBtn icon="close" label={`Bỏ ${f.name}`} onClick={() => setPending((p) => (p && p.length > 1 ? p.filter((_, j) => j !== i) : null))} />
+                    <IconBtn icon="close" label={`Remove ${f.name}`} onClick={() => setPending((p) => (p && p.length > 1 ? p.filter((_, j) => j !== i) : null))} />
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <FileDrop onFiles={pick} accept={ACCEPT} title="Thêm tệp" hint="kéo thả hoặc bấm để chọn" />
-          <p className="muted small">Thông tin nguồn dưới đây áp dụng cho tất cả tệp trong lần tải lên này.</p>
+          <FileDrop onFiles={pick} accept={ACCEPT} title="Add files" hint="drag and drop or click to browse" />
+          <p className="muted small">The source details below apply to every file in this upload.</p>
           <SourceFields value={source} onChange={setSource} modules={modules} />
         </Modal>
       )}
 
       {editing && (
         <Modal
-          title="Sửa thông tin tệp"
+          title="Edit file details"
           onClose={() => setEditing(null)}
           footer={
             <>
-              <Btn onClick={() => setEditing(null)}>Huỷ</Btn>
+              <Btn onClick={() => setEditing(null)}>Cancel</Btn>
               <Btn kind="primary" onClick={saveEdit} data-testid="save-edit">
-                Lưu
+                Save
               </Btn>
             </>
           }
         >
-          <Field label="Tên tệp" hint="Giữ nguyên đuôi tệp; bỏ đuôi thì hệ thống tự thêm lại">
+          <Field label="File name" hint="Keep the file extension; if you remove it, the system adds it back">
             <input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} maxLength={150} autoFocus data-testid="edit-name" />
           </Field>
           <SourceFields value={editing.src} onChange={(src) => setEditing({ ...editing, src })} modules={modules} />

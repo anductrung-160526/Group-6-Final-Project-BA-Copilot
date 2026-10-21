@@ -3,9 +3,9 @@ import { get, post, del } from "../api.ts";
 import { Btn, Empty, Field, Modal, ScoreBadge, StatusBadge, useUI } from "../components/ui.tsx";
 import { QusPanel } from "../components/QusPanel.tsx";
 
-const SAMPLE = `- As a Khách hàng, I want đăng nhập bằng email và mật khẩu, so that tôi mua hàng nhanh hơn.
-- As a Khách hàng, I want đăng ký tài khoản mới.
-- Cho phép quản trị viên quản lý sản phẩm (tìm kiếm, thêm, sửa, xóa).`;
+const SAMPLE = `- As a customer, I want to sign in with my email and password, so that I can shop faster.
+- As a customer, I want to register a new account.
+- Allow administrators to manage products (search, add, edit, delete).`;
 
 export function ProjectView({ id, tab, initialModuleId }: { id: string; tab: string; initialModuleId?: string | null }) {
   const { run, toast, confirm } = useUI();
@@ -24,24 +24,24 @@ export function ProjectView({ id, tab, initialModuleId }: { id: string; tab: str
   }, [id]);
 
   const create = async () => {
-    const m = await run("Đang tạo module", () => post(`/api/projects/${id}/modules`, { name, requirementInput: req }));
+    const m = await run("Creating module", () => post(`/api/projects/${id}/modules`, { name, requirementInput: req }));
     if (m) window.location.hash = `#/m/${m.id}/design`;
   };
 
-  if (!data) return <div className="page muted">Đang tải…</div>;
+  if (!data) return <div className="page muted">Loading…</div>;
   return (
     <div className="page">
       <div className="crumbs">
-        <a href="#/">Dự án</a> / <span>{data.name}</span>
+        <a href="#/">Projects</a> / <span>{data.name}</span>
       </div>
       <div className="page-head">
         <div>
           <h1>{data.name}</h1>
-          <p className="muted">{data.description || "Không có mô tả"}</p>
+          <p className="muted">{data.description || "No description"}</p>
         </div>
         {tab === "modules" && (
           <Btn kind="primary" onClick={() => setOpen(true)} data-testid="new-module">
-            + Module mới
+            + New module
           </Btn>
         )}
       </div>
@@ -64,22 +64,22 @@ export function ProjectView({ id, tab, initialModuleId }: { id: string; tab: str
           className={`tab ${tab === "files" ? "active" : ""}`}
           data-testid="tab-files"
         >
-          📁 Kho tài liệu
+          📁 Document Repository
         </a>
       </nav>
 
       {/* Tab "Kho tài liệu" (#/p/:id/files) mở FilesView qua client/routes.ts */}
       {data.modules.length === 0 ? (
-        <Empty title="Chưa có module">Module là một nhóm chức năng (VD: Xác thực, Quản lý sản phẩm). Tạo module rồi prompt để AI thiết kế màn hình.</Empty>
+        <Empty title="No modules yet">A module is a group of features (e.g. Authentication, Product management). Create a module, then prompt the AI to design its screens.</Empty>
       ) : (
         <div className="table-wrap">
           <table className="tbl">
             <thead>
               <tr>
                 <th>Module</th>
-                <th>Chất lượng</th>
-                <th>Màn hình</th>
-                <th>Tài liệu</th>
+                <th>Quality</th>
+                <th>Screens</th>
+                <th>Documents</th>
                 <th>Test case</th>
                 <th />
               </tr>
@@ -92,7 +92,7 @@ export function ProjectView({ id, tab, initialModuleId }: { id: string; tab: str
                       {m.name}
                     </a>
                   </td>
-                  <td>{m.qusScore == null ? <span className="muted small">Chưa chấm</span> : <ScoreBadge score={m.qusScore} />}</td>
+                  <td>{m.qusScore == null ? <span className="muted small">Not scored</span> : <ScoreBadge score={m.qusScore} />}</td>
                   <td>{m.screenCount}</td>
                   <td>
                     <StatusBadge status={m.docsStatus} />
@@ -104,12 +104,12 @@ export function ProjectView({ id, tab, initialModuleId }: { id: string; tab: str
                     <button
                       className="link-danger"
                       onClick={async () => {
-                        if (!(await confirm({ title: `Xóa module "${m.name}"?`, message: "Màn hình, tài liệu và test case của module sẽ bị xoá.", okLabel: "Xóa", danger: true }))) return;
-                        await run("Đang xóa", () => del(`/api/modules/${m.id}`));
+                        if (!(await confirm({ title: `Delete module "${m.name}"?`, message: "The module's screens, documents and test cases will be deleted.", okLabel: "Delete", danger: true }))) return;
+                        await run("Deleting", () => del(`/api/modules/${m.id}`));
                         load();
                       }}
                     >
-                      Xóa
+                      Delete
                     </button>
                   </td>
                 </tr>
@@ -121,26 +121,26 @@ export function ProjectView({ id, tab, initialModuleId }: { id: string; tab: str
 
       {open && (
         <Modal
-          title="Module mới"
+          title="New module"
           wide
           onClose={() => setOpen(false)}
           footer={
             <>
-              <Btn onClick={() => setOpen(false)}>Hủy</Btn>
+              <Btn onClick={() => setOpen(false)}>Cancel</Btn>
               <Btn kind="primary" disabled={!name.trim()} onClick={create} data-testid="create-module">
-                Tạo module
+                Create module
               </Btn>
             </>
           }
         >
-          <Field label="Tên module">
-            <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="VD: Xác thực người dùng" />
+          <Field label="Module name">
+            <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. User authentication" />
           </Field>
-          <Field label="Yêu cầu nghiệp vụ / User story (không bắt buộc)" hint="Dán user story hoặc danh sách chức năng ở dạng tự do. AI dùng làm bối cảnh khi thiết kế và viết tài liệu.">
+          <Field label="Business requirements / User stories (optional)" hint="Paste user stories or a free-form feature list. The AI uses it as context when designing and writing documents.">
             <textarea rows={7} value={req} onChange={(e) => setReq(e.target.value)} placeholder={SAMPLE} />
           </Field>
           <button className="link" onClick={() => setReq(SAMPLE)}>
-            Dùng ví dụ mẫu
+            Use a sample
           </button>
           {/* SCR-15 đặt ngoài <Field> (thẻ label) để bấm bung/thu story không nhảy con trỏ về ô nhập */}
           <QusPanel text={req} others={otherStories} />

@@ -48,7 +48,7 @@ export const DUPLICATE_THRESHOLD = 0.8;
 
 // Xếp hạng điểm (FN-52): Tốt ≥ 80, Khá 60–79, Cần sửa < 60.
 export type QusRating = "good" | "fair" | "poor";
-export const RATING_LABEL: Record<QusRating, string> = { good: "Tốt", fair: "Khá", poor: "Cần sửa" };
+export const RATING_LABEL: Record<QusRating, string> = { good: "Good", fair: "Fair", poor: "Poor" };
 export function qusRating(score: number): QusRating {
   return score >= 80 ? "good" : score >= 60 ? "fair" : "poor";
 }
@@ -64,8 +64,10 @@ export interface ParsedStory {
   template: StoryTemplate;
 }
 
+// vi-keep-start: từ khoá NLP tiếng Việt (nhận diện story cũ viết tiếng Việt trong DB), có bản tiếng Anh song song
 const AMBIGUOUS_WORDS: string[] = [
   "user-friendly",
+  "user friendly",
   "thân thiện",
   "linh hoạt",
   "hiệu quả",
@@ -79,6 +81,15 @@ const AMBIGUOUS_WORDS: string[] = [
   "v.v",
   "fast",
   "easy",
+  "easily",
+  "quick",
+  "quickly",
+  "flexible",
+  "efficient",
+  "intuitive",
+  "optimal",
+  "simple",
+  "and so on",
 ];
 
 const ACTION_VERBS: string[] = [
@@ -179,7 +190,29 @@ const ACTION_VERBS: string[] = [
   "confirm",
   "print",
   "generate",
+  "modify",
+  "change",
+  "save",
+  "store",
+  "enter",
+  "input",
+  "cancel",
+  "submit",
+  "assign",
+  "transfer",
+  "refund",
+  "activate",
+  "lock",
+  "unlock",
+  "sign in",
+  "sign up",
+  "sign out",
+  "log in",
+  "log out",
+  "list",
+  "browse",
 ];
+// vi-keep-end
 
 // Regex kiểm tra từ mơ hồ với Unicode boundary an toàn (không dùng \b với tiếng Việt)
 function findAmbiguous(text: string): string[] {
@@ -239,7 +272,7 @@ export function splitStories(text: string): string[] {
       if (subLines.length > 1) {
         const allLookLikeStories = subLines.every(
           (l) =>
-            /^(?:as\s+an?|với\s+tư\s+cách(?:\s+là)?|là(?:\s+một)?|cho\s+phép)\b/i.test(l.normalize("NFC")) ||
+            /^(?:as\s+an?|với\s+tư\s+cách(?:\s+là)?|là(?:\s+một)?|cho\s+phép)\b/i.test(l.normalize("NFC")) || // vi-keep: nhận diện story tiếng Việt cũ
             l.split(/\s+/).length >= 4,
         );
         if (allLookLikeStories) {
@@ -259,7 +292,7 @@ export function splitStories(text: string): string[] {
 }
 
 // Ranh giới câu ngay trước "As a/an", "Là", "Với tư cách" viết hoa (giữa câu không viết hoa nên không bị tách nhầm).
-const SENTENCE_STORY_START = /(?<=[.!?])\s+(?=(?:As\s+an?|Là|Với\s+tư\s+cách)\s)/u;
+const SENTENCE_STORY_START = /(?<=[.!?])\s+(?=(?:As\s+an?|Là|Với\s+tư\s+cách)\s)/u; // vi-keep: nhận diện story tiếng Việt cũ
 function splitSentences(story: string): string[] {
   return story
     .normalize("NFC")
@@ -271,14 +304,14 @@ function splitSentences(story: string): string[] {
 export function parseStory(rawText: string): ParsedStory {
   const norm = rawText.normalize("NFC").toLowerCase();
 
-  const roleStarter = /^(?:as\s+an?|với\s+tư\s+cách(?:\s+là)?|là(?:\s+một)?)\s+/u;
+  const roleStarter = /^(?:as\s+an?|với\s+tư\s+cách(?:\s+là)?|là(?:\s+một)?)\s+/u; // vi-keep: khuôn mẫu story tiếng Việt cũ
   const roleMatch = norm.match(roleStarter);
   if (!roleMatch) {
     return { isTemplate: false, template: "free" };
   }
 
   const afterRolePrefix = norm.slice(roleMatch[0].length);
-  const meansStarter = /[,;\s]+(?:i\s+want|tôi\s+muốn)\s+/u;
+  const meansStarter = /[,;\s]+(?:i\s+want|tôi\s+muốn)\s+/u; // vi-keep: khuôn mẫu story tiếng Việt cũ
   const meansMatch = afterRolePrefix.match(meansStarter);
   if (!meansMatch || meansMatch.index === undefined) {
     return { isTemplate: false, template: "free" };
@@ -289,7 +322,7 @@ export function parseStory(rawText: string): ParsedStory {
   const role = afterRolePrefix.slice(0, meansMatch.index).trim();
   const afterMeansPrefix = afterRolePrefix.slice(meansMatch.index + meansMatch[0].length);
 
-  const endStarter = /(?:^|[,;\s]+)(?:so\s+that|để)\s+/u;
+  const endStarter = /(?:^|[,;\s]+)(?:so\s+that|để)\s+/u; // vi-keep: khuôn mẫu story tiếng Việt cũ
   const endMatch = afterMeansPrefix.match(endStarter);
 
   let means = "";
@@ -316,11 +349,13 @@ function checkAtomic(means: string): string | null {
   if (means.includes(";")) return ";";
 
   const verbsPattern = ACTION_VERBS.join("|");
-  const re = new RegExp(`(?:và|and)\\s+(?:có\\s+thể\\s+)?(?:${verbsPattern})(?=[^\\p{L}\\p{N}_]|$)`, "u");
+  // vi-keep: từ nối tiếng Việt song song tiếng Anh
+  const re = new RegExp(`(?:và|and)\\s+(?:có\\s+thể\\s+|can\\s+|also\\s+)?(?:${verbsPattern})(?=[^\\p{L}\\p{N}_]|$)`, "u");
   const m = means.match(re);
   if (m) return m[0];
 
-  const reDongThoi = new RegExp(`(?:đồng\\s+thời|cũng\\s+như)\\s+(?:${verbsPattern})(?=[^\\p{L}\\p{N}_]|$)`, "u");
+  // vi-keep: từ nối tiếng Việt song song tiếng Anh
+  const reDongThoi = new RegExp(`(?:đồng\\s+thời|cũng\\s+như|as\\s+well\\s+as)\\s+(?:${verbsPattern})(?=[^\\p{L}\\p{N}_]|$)`, "u");
   const m2 = means.match(reDongThoi);
   if (m2) return m2[0];
 
@@ -330,7 +365,7 @@ function checkAtomic(means: string): string | null {
 // Kiểm tra ghi chú dài trong ngoặc hoặc chứa các từ ví dụ, lưu ý, e.g., note: – trả về đoạn chữ gây lỗi (FN-55), không vi phạm thì null.
 function checkMinimal(text: string): string | null {
   const norm = text.normalize("NFC").toLowerCase();
-  const note = norm.match(/(?:ví\s+dụ|lưu\s+ý|e\.g\.|note:)/u);
+  const note = norm.match(/(?:ví\s+dụ|lưu\s+ý|e\.g\.|note:|for\s+example|for\s+instance)/u); // vi-keep: từ khoá ghi chú tiếng Việt song song tiếng Anh
   if (note) return note[0];
   const parenMatches = norm.match(/\(([^)]+)\)/g);
   if (parenMatches) {
@@ -345,7 +380,7 @@ function checkMinimal(text: string): string | null {
 }
 
 // Từ khung của khuôn mẫu story: bỏ đi khi so trùng để chỉ so phần nội dung (G1).
-const TEMPLATE_WORDS = new Set(["as", "a", "an", "i", "want", "to", "so", "that", "là", "một", "tôi", "muốn", "để", "với", "tư", "cách"]);
+const TEMPLATE_WORDS = new Set(["as", "a", "an", "i", "want", "to", "so", "that", "là", "một", "tôi", "muốn", "để", "với", "tư", "cách"]); // vi-keep: từ khung khuôn mẫu tiếng Việt
 
 // Chuẩn hoá và tách từ cho độ đo Jaccard: NFC, chữ thường, bỏ dấu câu, bỏ từ khung khuôn mẫu.
 export function extractWords(text: string): Set<string> {
@@ -385,8 +420,8 @@ export function storyScore(issues: QusIssue[]): number {
 
 const TEMPLATE_LABEL: Record<StoryTemplate, string> = {
   en: '"As a… I want… so that…"',
-  vi: '"Là… tôi muốn… để…"',
-  free: "viết tự do",
+  vi: 'Vietnamese "Là… tôi muốn… để…"', // vi-keep: tên khuôn mẫu story tiếng Việt (chỉ hiện khi story cũ viết tiếng Việt)
+  free: "free-form text",
 };
 
 // Khuôn mẫu chiếm đa số trong module (G2): chỉ xét 2 khuôn mẫu chuẩn "As a…" (en) và "Là…" (vi), hoà thì lấy
@@ -432,8 +467,8 @@ function scoreTexts(rawStories: string[], options: ScoreOptions = {}, ex: TextEx
       issues.push({
         code: "FULL_SENTENCE",
         severity: "warn",
-        message: `Story quá ngắn (${words.length} từ), chưa đủ cấu trúc tối thiểu 4 từ.`,
-        suggestion: "Bổ sung thông tin người dùng, hành động và mục đích để câu có tối thiểu 4 từ.",
+        message: `Story is too short (${words.length} words); a well-formed story needs at least 4 words.`,
+        suggestion: "Add the user role, the action and the goal so the sentence has at least 4 words.",
       });
     }
 
@@ -442,8 +477,8 @@ function scoreTexts(rawStories: string[], options: ScoreOptions = {}, ex: TextEx
       issues.push({
         code: "WELL_FORMED",
         severity: "error",
-        message: "Story thiếu vai trò hoặc thiếu hành động (means) theo cấu trúc chuẩn.",
-        suggestion: "Viết theo mẫu: 'As a <vai trò>, I want <hành động> so that <mục đích>' hoặc 'Là một <vai trò>, tôi muốn <hành động> để <mục đích>'.",
+        message: "Story is missing the role or the action (means) of the standard template.",
+        suggestion: "Use the template: 'As a <role>, I want <action> so that <benefit>'.",
       });
     } else {
       // NO_END: có role và means nhưng thiếu mục đích
@@ -451,8 +486,8 @@ function scoreTexts(rawStories: string[], options: ScoreOptions = {}, ex: TextEx
         issues.push({
           code: "NO_END",
           severity: "warn",
-          message: "Story thiếu mục đích hoặc giá trị kinh doanh (end).",
-          suggestion: "Bổ sung 'so that <mục đích>' hoặc 'để <mục đích>' để làm rõ giá trị mang lại.",
+          message: "Story is missing the goal or business value (end).",
+          suggestion: "Add 'so that <benefit>' to make the delivered value explicit.",
         });
       }
 
@@ -462,8 +497,8 @@ function scoreTexts(rawStories: string[], options: ScoreOptions = {}, ex: TextEx
         issues.push({
           code: "ATOMIC",
           severity: "warn",
-          message: `Phần hành động (means) chứa nhiều hành động, nối bằng "${atomic}".`,
-          suggestion: "Tách thành các user story riêng biệt cho từng hành động để đảm bảo tính độc lập (atomic).",
+          message: `The action part (means) contains more than one action, joined by "${atomic}".`,
+          suggestion: "Split it into separate user stories, one per action, so each story is atomic.",
           excerpt: atomic,
         });
       }
@@ -475,8 +510,8 @@ function scoreTexts(rawStories: string[], options: ScoreOptions = {}, ex: TextEx
       issues.push({
         code: "MINIMAL",
         severity: "info",
-        message: `Story chứa ghi chú, ví dụ hoặc chi tiết phụ: "${minimal}".`,
-        suggestion: "Chuyển các ghi chú chi tiết hoặc ví dụ vào Acceptance Criteria (tiêu chí nghiệm thu).",
+        message: `Story contains notes, examples or extra detail: "${minimal}".`,
+        suggestion: "Move detailed notes and examples into the Acceptance Criteria.",
         excerpt: minimal,
       });
     }
@@ -488,8 +523,8 @@ function scoreTexts(rawStories: string[], options: ScoreOptions = {}, ex: TextEx
       issues.push({
         code: "AMBIGUOUS",
         severity: "warn",
-        message: `Story chứa từ ngữ mơ hồ: "${wordsStr}".`,
-        suggestion: `Thay "${wordsStr}" bằng tiêu chí đo được, ví dụ "≤ 2 giây" hoặc "tối đa 3 bước".`,
+        message: `Story contains ambiguous terms: "${wordsStr}".`,
+        suggestion: `Replace "${wordsStr}" with a measurable criterion, e.g. "≤ 2 seconds" or "at most 3 steps".`,
         excerpt: wordsStr,
       });
     }
@@ -508,16 +543,16 @@ function scoreTexts(rawStories: string[], options: ScoreOptions = {}, ex: TextEx
     for (let i = 0; i < j && !dupMessage; i++) {
       const sim = jaccardSimilarity(wordSets[i], wordSets[j]);
       if (sim >= DUPLICATE_THRESHOLD) {
-        dupMessage = `Trùng nội dung với story ${label(i)} trong module (độ tương đồng ${Math.round(sim * 100)}%).`;
-        dupSuggestion = `Gộp hoặc bỏ một trong hai story ${label(i)} và ${label(j)}.`;
+        dupMessage = `Duplicates story ${label(i)} in this module (similarity ${Math.round(sim * 100)}%).`;
+        dupSuggestion = `Merge stories ${label(i)} and ${label(j)}, or remove one of them.`;
       }
     }
     for (const o of others) {
       if (dupMessage) break;
       const sim = jaccardSimilarity(o.words, wordSets[j]);
       if (sim >= DUPLICATE_THRESHOLD) {
-        dupMessage = `Trùng nội dung với một story của module "${o.moduleName}" (độ tương đồng ${Math.round(sim * 100)}%).`;
-        dupSuggestion = `Kiểm tra lại phạm vi: story này nên thuộc module hiện tại hay module "${o.moduleName}".`;
+        dupMessage = `Duplicates a story in module "${o.moduleName}" (similarity ${Math.round(sim * 100)}%).`;
+        dupSuggestion = `Review the scope: should this story belong to the current module or to module "${o.moduleName}"?`;
       }
     }
     if (dupMessage) issuesList[j].push({ code: "DUPLICATE", severity: "warn", message: dupMessage, suggestion: dupSuggestion });
@@ -531,8 +566,8 @@ function scoreTexts(rawStories: string[], options: ScoreOptions = {}, ex: TextEx
         issuesList[idx].push({
           code: "NOT_UNIFORM",
           severity: "info",
-          message: `Story viết theo khuôn mẫu ${TEMPLATE_LABEL[p.template]}, khác khuôn mẫu chiếm đa số trong module (${TEMPLATE_LABEL[majority]}).`,
-          suggestion: `Viết lại theo khuôn mẫu ${TEMPLATE_LABEL[majority]} để cả module đồng nhất.`,
+          message: `Story uses the ${TEMPLATE_LABEL[p.template]} template, unlike most stories in this module (${TEMPLATE_LABEL[majority]}).`,
+          suggestion: `Rewrite it using the ${TEMPLATE_LABEL[majority]} template so the whole module is uniform.`,
         });
       }
     });
@@ -565,9 +600,11 @@ export interface StructuredStory {
   acceptanceCriteria?: string[];
 }
 
+// vi-keep-start: cụm mở đầu khuôn mẫu story tiếng Việt cũ, song song tiếng Anh
 const ROLE_PREFIX = /^(?:as\s+an?|với\s+tư\s+cách(?:\s+là)?|là(?:\s+một)?)\s+/iu;
 const MEANS_PREFIX = /^(?:i\s+want|tôi\s+muốn)\s+/iu;
 const END_PREFIX = /^(?:so\s+that|để)\s+/iu;
+// vi-keep-end
 // Bỏ cụm mở đầu BA lỡ gõ lại trong ô (vd "As a Khách hàng" trong ô vai trò) và dấu câu cuối.
 const cleanPart = (v: string | undefined, prefix: RegExp) =>
   (v ?? "").normalize("NFC").trim().replace(prefix, "").replace(/[\s,;.]+$/u, "").trim();
@@ -595,8 +632,8 @@ function criteriaIssues(criteria: string[]): QusIssue[] {
       {
         code: "NO_CRITERIA",
         severity: "info",
-        message: "Story chưa có tiêu chí chấp nhận.",
-        suggestion: "Thêm ít nhất một tiêu chí kiểm chứng được, ví dụ \"Hiện tối đa 20 đơn, mới nhất trước\".",
+        message: "Story has no acceptance criteria.",
+        suggestion: "Add at least one verifiable criterion, e.g. \"Shows at most 20 orders, newest first\".",
       },
     ];
   }
@@ -608,8 +645,8 @@ function criteriaIssues(criteria: string[]): QusIssue[] {
     {
       code: "AMBIGUOUS",
       severity: "warn",
-      message: `Tiêu chí chấp nhận (dòng ${rows}) chứa từ ngữ mơ hồ: "${words}".`,
-      suggestion: `Thay "${words}" bằng điều kiện đo được để kiểm thử được, ví dụ "≤ 2 giây".`,
+      message: `Acceptance criteria (line ${rows}) contain ambiguous terms: "${words}".`,
+      suggestion: `Replace "${words}" with a measurable, testable condition, e.g. "≤ 2 seconds".`,
       excerpt: words,
     },
   ];

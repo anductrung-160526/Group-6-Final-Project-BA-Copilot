@@ -33,11 +33,11 @@ const READY = (s: string) => s === "done" || s === "approved";
 
 /** Nguồn đầu vào của từng bước (hiện ở trạng thái rỗng). */
 const SOURCE: Record<DocKind, string> = {
-  BRD: "AI viết BRD từ các user story của module (mục Yêu cầu nghiệp vụ).",
-  UC_SPEC: "AI lập đặc tả Use Case từ BRD và user story.",
-  SRS: "AI soạn SRS từ UC Specification.",
-  FRD_NFR: "AI lập yêu cầu chức năng (FR) và phi chức năng (NFR) từ SRS và Use Case.",
-  API_SPEC: "AI viết đặc tả API (endpoint, request/response, mã lỗi) từ FRD-NFR và Use Case.",
+  BRD: "The AI writes the BRD from the module's user stories (Business Requirements).",
+  UC_SPEC: "The AI writes the use case specifications from the BRD and user stories.",
+  SRS: "The AI writes the SRS from the UC Specification.",
+  FRD_NFR: "The AI derives the functional (FR) and non-functional (NFR) requirements from the SRS and use cases.",
+  API_SPEC: "The AI writes the API specification (endpoints, request/response, error codes) from the FRD-NFR and use cases.",
 };
 
 /** Tên tệp tải về, theo bố cục GitHub của kế hoạch (01-BRD.md … 05-API-Spec.md). */
@@ -119,10 +119,10 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
   const lockReason =
     idx === 0
       ? storyCount === 0
-        ? "Module chưa có user story – thêm ở mục Yêu cầu nghiệp vụ trước."
+        ? "This module has no user stories yet – add them under Business Requirements first."
         : ""
       : prev && !READY(prev.status)
-        ? `Bước trước (${DOC_KIND_LABEL[prev.kind]}) chưa Xong.`
+        ? `The previous step (${DOC_KIND_LABEL[prev.kind]}) is not Done.`
         : "";
 
   /** Chạy thao tác ghi: lỗi 409 → hiện ConflictNotice; lỗi khác → toast (qua run). */
@@ -145,8 +145,8 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
     await load();
   };
 
-  if (loadError) return <div className="page"><Empty title="Không tải được tài liệu">{loadError}</Empty></div>;
-  if (!list || !doc) return <div className="page"><div className="muted">Đang tải…</div></div>;
+  if (loadError) return <div className="page"><Empty title="Could not load the documents">{loadError}</Empty></div>;
+  if (!list || !doc) return <div className="page"><div className="muted">Loading…</div></div>;
 
   const has = doc.status !== "none";
   const who = doc.updatedBy ? (members.find((m) => m.id === doc.updatedBy)?.name ?? "") : "";
@@ -160,39 +160,39 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
     if (
       has &&
       !(await confirm({
-        title: `Sinh lại ${label}?`,
-        message: `Nội dung hiện tại sẽ được thay bằng bản AI mới. Các bước sau đang có sẽ thành Bản cũ.`,
-        okLabel: "Sinh lại",
+        title: `Regenerate ${label}?`,
+        message: `The current content will be replaced by a new AI version. Later steps that already exist will become Outdated.`,
+        okLabel: "Regenerate",
       }))
     )
       return;
-    const r = await guard(`AI đang viết ${label}…`, () => generateModuleDoc(moduleId, kind, withActor({ baseRev: doc.rev })));
+    const r = await guard(`AI is writing ${label}…`, () => generateModuleDoc(moduleId, kind, withActor({ baseRev: doc.rev })));
     if (r) {
-      toast(`Đã sinh ${label}`, "ok");
+      toast(`${label} generated`, "ok");
       await load();
     }
   };
 
   const saveDraft = async () => {
     if (draft === null) return;
-    if (!draft.trim()) return toast("Nội dung không được để trống", "err");
-    const r = await guard("Đang lưu…", () => saveModuleDoc(moduleId, kind, withActor({ content: draft, baseRev: draftRev })));
+    if (!draft.trim()) return toast("Content cannot be empty", "err");
+    const r = await guard("Saving…", () => saveModuleDoc(moduleId, kind, withActor({ content: draft, baseRev: draftRev })));
     if (r) {
       setDraft(null);
-      toast(`Đã lưu ${label}`, "ok");
+      toast(`${label} saved`, "ok");
       await load();
     }
   };
 
   const refine = async () => {
-    if (!instruction.trim()) return toast("Nhập yêu cầu chỉnh", "err");
-    const r = await guard(`AI đang chỉnh ${label}…`, () =>
+    if (!instruction.trim()) return toast("Enter a refinement instruction", "err");
+    const r = await guard(`AI is refining ${label}…`, () =>
       refineModuleDoc(moduleId, kind, withActor({ instruction: instruction.trim(), ...(section ? { section } : {}), baseRev: doc.rev })),
     );
     setRefining(false);
     if (r) {
       setInstruction("");
-      toast(section ? `Đã chỉnh mục "${section}"` : `Đã chỉnh ${label}`, "ok");
+      toast(section ? `Section "${section}" refined` : `${label} refined`, "ok");
       await load();
     }
   };
@@ -215,13 +215,13 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
     <div className="page" data-testid="docs-view">
       <div className="page-head">
         <div>
-          <div className="crumbs">Thực hiện công việc · Tài liệu · Bước {idx + 1}/{DOC_KINDS.length}</div>
+          <div className="crumbs">Deliverables · Documents · Step {idx + 1}/{DOC_KINDS.length}</div>
           <h1>{label}</h1>
           {has && (
             <div className="muted small" data-testid="doc-meta">
-              Bản {doc.rev}
-              {doc.updatedAt ? ` · cập nhật ${fmtTime(doc.updatedAt)}` : ""}
-              {who ? ` bởi ${who}` : ""}
+              Version {doc.rev}
+              {doc.updatedAt ? ` · updated ${fmtTime(doc.updatedAt)}` : ""}
+              {who ? ` by ${who}` : ""}
             </div>
           )}
         </div>
@@ -234,7 +234,7 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
           )}
           <Btn kind={has ? "secondary" : "primary"} onClick={generate} disabled={!!lockReason || draft !== null} title={lockReason} data-testid="doc-generate">
             <Icon name={has ? "regenerate" : "ai"} size="sm" />
-            {has ? "Sinh lại" : "Sinh bằng AI"}
+            {has ? "Regenerate" : "Generate with AI"}
           </Btn>
           {has && (
             <>
@@ -248,15 +248,15 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
                 data-testid="doc-edit"
               >
                 <Icon name="edit" size="sm" />
-                Sửa
+                Edit
               </Btn>
               <Btn onClick={() => setRefining(true)} disabled={draft !== null} data-testid="doc-refine">
                 <Icon name="ai" size="sm" />
-                Chỉnh bằng AI
+                Refine with AI
               </Btn>
               <Btn kind="ghost" onClick={() => downloadMd(kind, doc.content)} data-testid="doc-download">
                 <Icon name="download" size="sm" />
-                Tải .md
+                Download .md
               </Btn>
             </>
           )}
@@ -274,7 +274,7 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
               extra: (
                 <>
                   <StatusBadge status={d?.status ?? "none"} testId={`doc-step-${k}-status`} />
-                  {d?.revisionRequested && <RevisionTag testId={`doc-step-${k}-revision`} />}
+                  {d?.revisionRequested && <RevisionTag compact testId={`doc-step-${k}-revision`} />}
                 </>
               ),
               href: stepHref(projectId, moduleId, k),
@@ -288,27 +288,27 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
             revisionRequested={doc.revisionRequested}
             isLead={isLead}
             busy={busy}
-            disabledReason={draft !== null ? "Đang sửa – lưu hoặc huỷ trước" : doneLock}
-            onDone={() => flow("Đang cập nhật…", () => markArtifactDone("doc", moduleId, { ...actorBody, baseRev: doc.rev }), `${label} đã Xong`)}
-            onApprove={() => flow("Đang duyệt…", () => approveArtifact("doc", moduleId, { ...actorBody, baseRev: doc.rev }), `Đã duyệt ${label}`)}
-            onRequestChange={() => flow("Đang cập nhật…", () => requestArtifactChange("doc", moduleId, actorBody), `Đã yêu cầu sửa ${label}`)}
+            disabledReason={draft !== null ? "Editing – save or cancel first" : doneLock}
+            onDone={() => flow("Updating…", () => markArtifactDone("doc", moduleId, { ...actorBody, baseRev: doc.rev }), `${label} marked as done`)}
+            onApprove={() => flow("Approving…", () => approveArtifact("doc", moduleId, { ...actorBody, baseRev: doc.rev }), `${label} approved`)}
+            onRequestChange={() => flow("Updating…", () => requestArtifactChange("doc", moduleId, actorBody), `Changes requested for ${label}`)}
           />
         )}
-        {doc.status === "outdated" && <div className="warn-banner">Bước trước đã thay đổi sau khi tài liệu này được viết. Hãy xem lại và bấm "Sinh lại" hoặc sửa cho khớp.</div>}
+        {doc.status === "outdated" && <div className="warn-banner">A previous step changed after this document was written. Review it and click "Regenerate" or edit it to match.</div>}
         {conflict && <ConflictNotice onReload={reload} />}
 
         {draft !== null ? (
           <div className="paper" data-testid="doc-editor">
-            <Field label="Nội dung Markdown" hint='Tiêu đề mục dùng "## ", mục con "### ". UC Spec và FRD-NFR giữ đúng mẫu mã (UC-xx, FR-xx) để test case và truy vết đọc được.'>
+            <Field label="Markdown content" hint='Section headings use "## ", sub-sections "### ". Keep the ID patterns (UC-xx, FR-xx) in the UC Spec and FRD-NFR so test cases and traceability can read them.'>
               <textarea rows={24} value={draft} onChange={(e) => setDraft(e.target.value)} data-testid="doc-editor-text" />
             </Field>
             <div className="refine-row">
               <span className="spacer" />
               <Btn kind="ghost" onClick={() => setDraft(null)} data-testid="doc-editor-cancel">
-                Huỷ
+                Cancel
               </Btn>
               <Btn kind="primary" onClick={saveDraft} data-testid="doc-editor-save">
-                Lưu
+                Save
               </Btn>
             </div>
           </div>
@@ -317,33 +317,33 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
             <Markdown text={viewText(doc.content)} />
           </article>
         ) : (
-          <Empty title={`Chưa có ${label}`}>
-            {SOURCE[kind]} {lockReason ? lockReason : 'Bấm "Sinh bằng AI" để bắt đầu.'}
+          <Empty title={`No ${label} yet`}>
+            {SOURCE[kind]} {lockReason ? lockReason : 'Click "Generate with AI" to start.'}
           </Empty>
         )}
       </div>
 
       {refining && (
         <Modal
-          title={`Chỉnh ${label} bằng AI`}
+          title={`Refine ${label} with AI`}
           onClose={() => setRefining(false)}
           footer={
             <>
               <Btn kind="ghost" onClick={() => setRefining(false)}>
-                Huỷ
+                Cancel
               </Btn>
               <Btn kind="primary" onClick={refine} disabled={!instruction.trim()} data-testid="doc-refine-submit">
                 <Icon name="ai" size="sm" />
-                Chỉnh bằng AI
+                Refine with AI
               </Btn>
             </>
           }
         >
-          <Field label="Mục cần chỉnh" hint="Chỉ mục được chọn bị thay đổi; các mục khác giữ nguyên.">
-            <Select value={section} onChange={(v) => setSection(v)} placeholder="Toàn bộ tài liệu" options={titles.map((t) => ({ value: t, label: t }))} testId="doc-refine-section" />
+          <Field label="Section to refine" hint="Only the selected section changes; the other sections stay the same.">
+            <Select value={section} onChange={(v) => setSection(v)} placeholder="Whole document" options={titles.map((t) => ({ value: t, label: t }))} testId="doc-refine-section" />
           </Field>
-          <Field label="Yêu cầu chỉnh">
-            <textarea rows={4} value={instruction} onChange={(e) => setInstruction(e.target.value)} placeholder="Ví dụ: bổ sung luồng ngoại lệ khi mất kết nối" data-testid="doc-refine-text" autoFocus />
+          <Field label="Refinement instruction">
+            <textarea rows={4} value={instruction} onChange={(e) => setInstruction(e.target.value)} placeholder="e.g. add an exception flow for a lost connection" data-testid="doc-refine-text" autoFocus />
           </Field>
         </Modal>
       )}

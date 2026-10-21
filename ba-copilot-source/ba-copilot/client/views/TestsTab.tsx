@@ -11,7 +11,7 @@ import { usePresence } from "../presence.ts";
 import { currentMemberId, useCurrentMember } from "../currentMember.ts";
 import { ApprovalBar, Badge, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Icon, useUI } from "../components/ui.tsx";
 
-const TYPE_VI: Record<string, [string, string]> = { Positive: ["Tích cực", "green"], Negative: ["Tiêu cực", "red"], Boundary: ["Giá trị biên", "amber"] };
+const TYPE_VI: Record<string, [string, string]> = { Positive: ["Positive", "green"], Negative: ["Negative", "red"], Boundary: ["Boundary", "amber"] };
 
 interface Readiness {
   ready: boolean;
@@ -41,7 +41,7 @@ export function useModuleDetail(moduleId: string) {
 export function NoModule({ what }: { what: string }) {
   return (
     <div className="page">
-      <Empty title="Chưa chọn module">Chọn module ở đầu trang để xem {what}.</Empty>
+      <Empty title="No module selected">Select a module at the top of the page to see {what}.</Empty>
     </div>
   );
 }
@@ -50,7 +50,7 @@ export function NoModule({ what }: { what: string }) {
 export function TestsStep({ moduleId }: WorkStepProps) {
   const { m, reload } = useModuleDetail(moduleId);
   if (!moduleId) return <NoModule what="test case" />;
-  if (!m) return <div className="page muted">Đang tải…</div>;
+  if (!m) return <div className="page muted">Loading…</div>;
   return <TestsTab m={m} reload={reload} />;
 }
 
@@ -80,24 +80,24 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
     } catch (e) {
       if (isConflict(e)) {
         setConflict(true);
-        throw new Error("Bộ test vừa được người khác sửa – bấm Tải lại để xem bản mới");
+        throw new Error("Someone else just edited the test suite – click Reload to see the latest version");
       }
       throw e;
     }
   };
 
   const generate = async () => {
-    if (tests.length && !(await confirm({ title: "Sinh lại test case?", message: "Sinh lại sẽ thay thế toàn bộ test case hiện có và đưa bộ test về Bản nháp.", okLabel: "Sinh lại" }))) return;
-    const r = await run("AI đang sinh test case…", () => guard(() => post<TestCase[]>(`/api/modules/${encodeURIComponent(m.id)}/tests/generate`, { baseRev: m.testsRev ?? 0, actorId: currentMemberId() })));
+    if (tests.length && !(await confirm({ title: "Regenerate test cases?", message: "Regenerating replaces all current test cases and returns the test suite to Draft.", okLabel: "Regenerate" }))) return;
+    const r = await run("AI is generating test cases…", () => guard(() => post<TestCase[]>(`/api/modules/${encodeURIComponent(m.id)}/tests/generate`, { baseRev: m.testsRev ?? 0, actorId: currentMemberId() })));
     if (r) {
-      toast(`Đã sinh ${r.length} test case`, "ok");
+      toast(`${r.length} test case(s) generated`, "ok");
       reload();
     }
   };
 
   const approval = async (action: "done" | "approve" | "request-change") => {
     const actorId = currentMemberId();
-    const r = await run(action === "done" ? "Đang đánh dấu Xong" : action === "approve" ? "Đang duyệt" : "Đang gửi yêu cầu sửa", () =>
+    const r = await run(action === "done" ? "Marking as done" : action === "approve" ? "Approving" : "Requesting changes", () =>
       guard(() =>
         action === "done"
           ? markArtifactDone("tests", m.id, { baseRev: m.testsRev, actorId })
@@ -108,12 +108,12 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
     );
     if (!r) return;
     if (action === "approve" && r.git) toast(<GitOutcome git={r.git} />, r.git.pushed ? "ok" : "info");
-    else toast(action === "done" ? "Đã đánh dấu Xong – chờ BA Lead duyệt" : action === "approve" ? "Đã duyệt bộ test case" : "Đã gửi yêu cầu sửa", "ok");
+    else toast(action === "done" ? "Marked as done – awaiting BA Lead approval" : action === "approve" ? "Test suite approved" : "Changes requested", "ok");
     reload();
   };
 
   const canGenerate = !!ready?.ready;
-  const blockReason = ready ? ready.reason : "Đang kiểm tra điều kiện";
+  const blockReason = ready ? ready.reason : "Checking prerequisites";
   // Nút Xong khoá khi FRD-NFR chưa Xong (cùng luật với nút Sinh – shared/prereq.ts, giữ nhánh legacy); server cũng chặn.
   const doneLock =
     ready && (m.testsStatus === "draft" || m.testsStatus === "outdated")
@@ -127,20 +127,20 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
         <strong>Test case</strong>
         {tests.length > 0 && (
           <span className="muted small">
-            {tests.length} test · {count("Positive")} tích cực · {count("Negative")} tiêu cực · {count("Boundary")} biên
+            {tests.length} {tests.length === 1 ? "test" : "tests"} · {count("Positive")} positive · {count("Negative")} negative · {count("Boundary")} boundary
           </span>
         )}
         <div className="spacer" />
         {others.length > 0 && <EditingBadge names={others.map((o) => o.name)} />}
         {tests.length > 0 && (
-          <Btn size="sm" onClick={() => run("Đang tạo file Excel", () => download(`/api/modules/${encodeURIComponent(m.id)}/export/xlsx`))} data-testid="export-xlsx">
+          <Btn size="sm" onClick={() => run("Creating the Excel file", () => download(`/api/modules/${encodeURIComponent(m.id)}/export/xlsx`))} data-testid="export-xlsx">
             <Icon name="download" size="sm" />
-            Xuất Excel
+            Export Excel
           </Btn>
         )}
         <Btn kind={tests.length ? "secondary" : "primary"} size="sm" disabled={!canGenerate} onClick={generate} title={canGenerate ? "" : blockReason} data-testid="generate-tests">
           <Icon name={tests.length ? "regenerate" : "ai"} size="sm" />
-          {tests.length ? "Sinh lại" : "Sinh test case"}
+          {tests.length ? "Regenerate" : "Generate test cases"}
         </Btn>
       </div>
       {tests.length > 0 && (
@@ -165,34 +165,34 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
       )}
       {m.testsStatus === "outdated" && (
         <div className="warn-banner" data-testid="tests-outdated">
-          <strong>Bản cũ:</strong> tài liệu hoặc prototype đã thay đổi sau lần sinh test case gần nhất. Kiểm tra lại rồi bấm "Sinh lại" (hoặc bấm Xong nếu bộ test vẫn đúng).
+          <strong>Outdated:</strong> the documents or prototype changed after the test cases were last generated. Review them, then click "Regenerate" (or mark as done if the test suite is still correct).
         </div>
       )}
       {!canGenerate && ready && tests.length > 0 && (
         <div className="muted small" data-testid="tests-blocked">
-          Chưa sinh lại được: {ready.reason}
+          Cannot regenerate yet: {ready.reason}
         </div>
       )}
       {!tests.length ? (
-        <Empty title={canGenerate ? "Sẵn sàng sinh test case" : "Chưa sinh được test case"}>
+        <Empty title={canGenerate ? "Ready to generate test cases" : "Test cases cannot be generated yet"}>
           <span data-testid="tests-empty-reason">
             {canGenerate
-              ? "Test case được sinh từ UC Specification và FRD-NFR: mỗi luồng UC (chính, thay thế, ngoại lệ), mỗi yêu cầu chức năng và giá trị biên của các trường có ràng buộc. Mỗi test tham chiếu yêu cầu."
-              : `${blockReason}. Vào bước "Tài liệu", hoàn thành FRD-NFR rồi bấm Xong.`}
+              ? "Test cases are generated from the UC Specification and FRD-NFR: every use case flow (main, alternative, exception), every functional requirement and the boundary values of constrained fields. Every test references a requirement."
+              : `${blockReason}. Go to the "Documents" step, complete the FRD-NFR and mark it as done.`}
           </span>
         </Empty>
       ) : (
         <>
           <div className="filters">
-            <input placeholder="Tìm theo mã/tiêu đề…" value={q} onChange={(e) => setQ(e.target.value)} />
+            <input placeholder="Search by ID/title…" value={q} onChange={(e) => setQ(e.target.value)} />
             <select value={type} onChange={(e) => setType(e.target.value)}>
-              <option value="">Mọi loại</option>
-              <option value="Positive">Tích cực</option>
-              <option value="Negative">Tiêu cực</option>
-              <option value="Boundary">Giá trị biên</option>
+              <option value="">All types</option>
+              <option value="Positive">Positive</option>
+              <option value="Negative">Negative</option>
+              <option value="Boundary">Boundary</option>
             </select>
             <select value={uc} onChange={(e) => setUc(e.target.value)}>
-              <option value="">Mọi Use Case</option>
+              <option value="">All use cases</option>
               {m.docs.useCases.map((u) => (
                 <option key={u.code} value={u.code}>
                   {u.code} – {u.name}
@@ -204,12 +204,12 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
           <table className="tbl tbl-tests">
             <thead>
               <tr>
-                <th>Mã</th>
-                <th>Tiêu đề</th>
-                <th>Loại</th>
-                <th>Ưu tiên</th>
-                <th>UC / Luồng</th>
-                <th>Yêu cầu</th>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Priority</th>
+                <th>UC / Flow</th>
+                <th>Requirements</th>
               </tr>
             </thead>
             <tbody>
@@ -221,7 +221,7 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
                     <td>
                       <Badge tone={TYPE_VI[t.type]?.[1]}>{TYPE_VI[t.type]?.[0] ?? t.type}</Badge>
                     </td>
-                    <td>{({ High: "Cao", Medium: "TB", Low: "Thấp" } as Record<string, string>)[t.priority]}</td>
+                    <td>{({ High: "High", Medium: "Medium", Low: "Low" } as Record<string, string>)[t.priority]}</td>
                     <td className="nowrap">
                       {t.useCaseCode || "—"} / {t.flowRef}
                     </td>
@@ -232,15 +232,15 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
                       <td colSpan={6}>
                         <div className="tc-detail">
                           <div>
-                            <div className="box-title">Tiền điều kiện</div>
+                            <div className="box-title">Preconditions</div>
                             {t.preconditions || "—"}
                           </div>
                           <div>
-                            <div className="box-title">Dữ liệu test</div>
+                            <div className="box-title">Test Data</div>
                             {t.testData || "—"}
                           </div>
                           <div>
-                            <div className="box-title">Các bước</div>
+                            <div className="box-title">Test Steps</div>
                             <ol>
                               {t.steps.map((s, i) => (
                                 <li key={i}>{s}</li>
@@ -248,7 +248,7 @@ export function TestsTab({ m, reload }: { m: ModuleDetail; reload: () => Promise
                             </ol>
                           </div>
                           <div>
-                            <div className="box-title">Kết quả mong đợi</div>
+                            <div className="box-title">Expected Result</div>
                             {t.expected}
                           </div>
                         </div>

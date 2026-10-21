@@ -79,28 +79,28 @@ async function api(method, path, body) {
 
 try {
   // Đợt 5: thành viên + user story qua API; dự án, module bằng giao diện; vào bước Prototype theo URL mới
-  const lead = await api("POST", "/api/members", { name: "Trưởng nhóm BA", role: "BA_LEAD" });
-  const ba = await api("POST", "/api/members", { name: "BA Kiểm thử", role: "BA", actorId: lead.id });
+  const lead = await api("POST", "/api/members", { name: "Lead Analyst", role: "BA_LEAD" });
+  const ba = await api("POST", "/api/members", { name: "Test Analyst", role: "BA", actorId: lead.id });
   await page.goto(BASE);
   await page.getByTestId("me-picker").selectOption(ba.id);
   await page.getByTestId("new-project").click();
-  await page.getByTestId("project-name").fill("Cửa hàng online");
+  await page.getByTestId("project-name").fill("Online Store");
   await page.getByTestId("create-project").click();
   await page.waitForURL(/#\/p\/[^/]+\/tasks/);
   const pid = decodeURIComponent(page.url().match(/#\/p\/([^/]+)\//)[1]);
   // Đợt 6 (D3): tạo module ở màn Yêu cầu nghiệp vụ (module trước, story sau)
   await page.getByTestId("pnav-stories").click();
   await page.getByTestId("new-module").click();
-  await page.getByTestId("module-name").fill("Xác thực");
+  await page.getByTestId("module-name").fill("Authentication");
   await page.getByTestId("create-module").click();
   await page.waitForURL(/#\/p\/[^/]+\/stories\/[^/]+/);
   const mid = decodeURIComponent(page.url().match(/\/stories\/([^/]+)/)[1]);
   await api("POST", `/api/projects/${pid}/stories`, {
     moduleId: mid,
-    asA: "khách hàng",
-    iWant: "đăng nhập bằng email và mật khẩu",
-    soThat: "xem lịch sử đơn hàng của mình",
-    acceptanceCriteria: ["Sai mật khẩu thì báo lỗi", "Có link Quên mật khẩu"],
+    asA: "customer",
+    iWant: "sign in with my email and password",
+    soThat: "I can view my order history",
+    acceptanceCriteria: ["A wrong password shows an error", "There is a Forgot password link"],
     priority: "High",
     actorId: ba.id,
   });
@@ -116,24 +116,24 @@ try {
 
   // Sinh 2 màn hình
   await page.getByTestId("new-screen").click();
-  await page.getByTestId("screen-name").fill("Đăng nhập");
-  await page.getByTestId("screen-prompt").fill("Màn hình đăng nhập bằng email và mật khẩu, nút Đăng nhập, có quên mật khẩu và link đăng ký");
+  await page.getByTestId("screen-name").fill("Sign in");
+  await page.getByTestId("screen-prompt").fill("Sign-in screen with email and password, a Sign in button, forgot password and a sign up link");
   await page.getByTestId("generate-screen").click();
   await page.locator('[data-node-id="btn_login"]').waitFor();
   check(true, "AI sinh màn hình Đăng nhập");
   await page.getByTestId("new-screen").click();
-  await page.getByTestId("screen-name").fill("Trang chủ");
-  await page.getByTestId("screen-prompt").fill("Trang chủ tổng quan cho khách hàng");
+  await page.getByTestId("screen-name").fill("Home");
+  await page.getByTestId("screen-prompt").fill("Customer overview home page");
   await page.getByTestId("generate-screen").click();
   await page.locator('[data-node-id="stats"]').waitFor();
-  await page.locator(".screen-item", { hasText: "Đăng nhập" }).click();
+  await page.locator(".screen-item", { hasText: "Sign in" }).click();
   await page.locator('[data-node-id="btn_login"]').waitFor();
   await shot("design-generated");
 
   // Khoanh vùng bằng click
   await page.locator('[data-node-id="btn_login"]').click();
-  check((await page.getByTestId("selection").innerText()).includes("Đăng nhập"), "chọn phần tử bằng click");
-  await page.getByTestId("comment-input").fill('Đổi chữ thành "Vào hệ thống"');
+  check((await page.getByTestId("selection").innerText()).includes("Sign in"), "chọn phần tử bằng click");
+  await page.getByTestId("comment-input").fill('Change the text to "Enter the system"');
   await page.getByTestId("add-comment").click();
   await page.locator(".pin").first().waitFor();
   check(await page.getByTestId("ann-check").first().isChecked(), "bình luận mới được tick sẵn để gửi vào prompt");
@@ -141,30 +141,31 @@ try {
 
   // Khoanh vùng bằng kéo khung quanh ô mật khẩu
   await page.getByTestId("mode-region").click();
-  const pwd = await page.locator('[data-node-type="Input"]', { hasText: "Mật khẩu" }).first().boundingBox();
+  const pwd = await page.locator('[data-node-type="Input"]', { hasText: "Password" }).first().boundingBox();
   await page.mouse.move(pwd.x - 6, pwd.y - 6);
   await page.mouse.down();
   await page.mouse.move(pwd.x + pwd.width + 6, pwd.y + pwd.height + 6, { steps: 8 });
   await page.mouse.up();
   const sel = await page.getByTestId("selection").innerText();
-  check(sel.includes("Mật khẩu") && !sel.includes("Vào hệ thống"), "kéo khung chọn đúng ô Mật khẩu (thay vùng chọn cũ)");
+  check(sel.includes("Password") && !sel.includes("Enter the system"), "kéo khung chọn đúng ô Mật khẩu (thay vùng chọn cũ)");
 
   // Gửi bình luận + vùng chọn hiện tại → AI sửa
   await page.getByTestId("mode-select").click();
   await page.locator('[data-node-id="btn_login"]').click();
   await page.getByTestId("apply-edit").click();
-  await page.locator('[data-node-id="btn_login"]', { hasText: "Vào hệ thống" }).waitFor();
+  await page.locator('[data-node-id="btn_login"]', { hasText: "Enter the system" }).waitFor();
   check(true, "gửi bình luận vào prompt → AI sửa đúng vùng");
   await page.waitForTimeout(300);
   await shot("edited-region");
 
   // Prompt sửa thêm nút trong form
   await page.locator('[data-node-id="login_form"]').click({ position: { x: 5, y: 5 } });
-  await page.getByTestId("edit-prompt").fill('Thêm nút "Đăng nhập bằng Google"');
+  await page.getByTestId("edit-prompt").fill('Add button "Sign in with Google"');
   await page.getByTestId("apply-edit").click();
-  await page.getByText("Đăng nhập bằng Google").first().waitFor();
+  await page.getByText("Sign in with Google").first().waitFor();
   check(true, "prompt sửa thêm phần tử trong vùng");
   await page.getByTestId("versions-tab").click();
+  await page.locator(".ver-head").nth(2).waitFor(); // danh sách phiên bản tải sau khi mở tab
   check((await page.locator(".ver-head").count()) === 3, "lịch sử có 3 phiên bản");
   await shot("versions");
 
@@ -174,11 +175,11 @@ try {
   check(true, "màn Đăng nhập: bấm Xong");
   // Nút mở lại panel "Sửa" không có data-testid: tải lại màn để về panel mặc định
   await page.reload();
-  await page.locator(".screen-item", { hasText: "Đăng nhập" }).click();
+  await page.locator(".screen-item", { hasText: "Sign in" }).click();
   await page.locator('[data-node-type="Heading"]').first().click();
-  await page.getByTestId("edit-prompt").fill("Đổi chữ thành Đăng nhập hệ thống");
+  await page.getByTestId("edit-prompt").fill("Change the text to System sign-in");
   await page.getByTestId("apply-edit").click();
-  await page.locator('[data-node-type="Heading"]', { hasText: "Đăng nhập hệ thống" }).waitFor();
+  await page.locator('[data-node-type="Heading"]', { hasText: "System sign-in" }).waitFor();
   await page.locator('[data-testid="screen-approval"][data-status="draft"]').waitFor({ timeout: 5000 });
   check(true, "sửa màn đang Xong → về Đang làm (phải bấm Xong lại)");
 
@@ -201,7 +202,7 @@ try {
   await shot("trace");
 
   await page.goto(work("prototype"));
-  await page.locator(".screen-item", { hasText: "Đăng nhập" }).click();
+  await page.locator(".screen-item", { hasText: "Sign in" }).click();
   await page.locator('[data-node-type="Form"]').first().waitFor();
 
   // Gợi ý bố cục (Recursive Transformer, Li et al. 2020): chọn form → phần tử tiếp theo (top-3) → chấp nhận
@@ -212,7 +213,7 @@ try {
   await shot("layout-suggest");
   await page.getByTestId("accept-next").click();
   await page.getByTestId("versions-tab").click();
-  await page.getByText("Gợi ý bố cục").first().waitFor();
+  await page.getByText("Layout suggestion").first().waitFor();
   check(true, "chấp nhận gợi ý bố cục → phiên bản mới");
   await page.getByTestId("pnav-logs").click();
   await page.getByTestId("log-row").first().waitFor();

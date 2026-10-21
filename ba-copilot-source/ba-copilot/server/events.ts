@@ -40,5 +40,5 @@ export function registerApprovedPusher(fn: ApprovedPusher | null): void {
   approvedPusher = fn;
 }
 export function pushApproved(ref: ArtifactRef, actorId: string | null): Promise<GitPushOutcome> {
-  return approvedPusher ? approvedPusher(ref, actorId) : Promise.resolve({ pushed: false, message: "Chưa cấu hình GitHub – chưa đẩy" });
+  return approvedPusher ? approvedPusher(ref, actorId) : Promise.resolve({ pushed: false, message: "GitHub is not configured – nothing was pushed" });
 }

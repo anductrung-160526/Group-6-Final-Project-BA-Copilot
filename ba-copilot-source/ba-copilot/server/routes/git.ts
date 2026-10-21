@@ -22,13 +22,13 @@ import {
 import type { GitHistory } from "../../shared/types.ts";
 
 function assertProject(id: string): void {
-  if (!getDb().prepare("SELECT 1 FROM projects WHERE id = ?").get(id)) throw new HttpError("Không tìm thấy dự án", 404);
+  if (!getDb().prepare("SELECT 1 FROM projects WHERE id = ?").get(id)) throw new HttpError("Project not found", 404);
 }
 
 /** Chỉ BA Lead (kể cả chế độ demo): không rõ người thao tác hoặc là BA → 403. */
 function strictLead(ctx: HandlerCtx): string {
   const m = requireMember(ctx);
-  if (!m || m.role !== "BA_LEAD") throw new HttpError("Chỉ BA Lead được cài đặt GitHub cho dự án", 403, "FORBIDDEN");
+  if (!m || m.role !== "BA_LEAD") throw new HttpError("Only a BA Lead can configure GitHub for the project", 403, "FORBIDDEN");
   return m.id;
 }
 
@@ -43,10 +43,10 @@ route("PUT", "/api/projects/:id/git", (ctx) => {
   assertProject(ctx.params.id);
   const b = ctx.body ?? {};
   const repo = typeof b.repo === "string" ? b.repo.trim() : "";
-  if (repo && !parseRepo(repo)) throw new HttpError("Link repo không hợp lệ – dán dạng https://github.com/<tổ chức>/<repo>", 400);
+  if (repo && !parseRepo(repo)) throw new HttpError("Invalid repository link – paste it as https://github.com/<organization>/<repo>", 400);
   const branch = typeof b.branch === "string" && b.branch.trim() ? b.branch.trim() : "main";
-  if (!validBranch(branch)) throw new HttpError(`Tên nhánh "${branch}" không hợp lệ`, 400);
-  if (b.token !== undefined && b.token !== null && typeof b.token !== "string") throw new HttpError("Token không hợp lệ", 400);
+  if (!validBranch(branch)) throw new HttpError(`Invalid branch name "${branch}"`, 400);
+  if (b.token !== undefined && b.token !== null && typeof b.token !== "string") throw new HttpError("Invalid token", 400);
   return saveProjectGit(ctx.params.id, { repo, branch, token: typeof b.token === "string" ? b.token : undefined }, by);
 });
 
@@ -78,7 +78,7 @@ route("GET", "/api/projects/:id/git/history", async (ctx) => {
     try {
       out.commits = await listCommits(new GitHubClient(cfg.repo, cfg.token), cfg.branch);
     } catch (e) {
-      out.commitsError = e instanceof GitHubError ? e.message : "Không đọc được lịch sử commit từ GitHub.";
+      out.commitsError = e instanceof GitHubError ? e.message : "Could not read the commit history from GitHub.";
     }
   }
   return out;

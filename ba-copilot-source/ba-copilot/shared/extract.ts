@@ -54,8 +54,8 @@ function slug(s: string): string {
   return s
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
-    .replace(/đ/g, "d")
-    .replace(/Đ/g, "D")
+    .replace(/đ/g, "d") // vi-keep: bỏ dấu tiếng Việt khi tạo slug (dữ liệu cũ)
+    .replace(/Đ/g, "D") // vi-keep: bỏ dấu tiếng Việt khi tạo slug
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_|_$/g, "");
@@ -86,8 +86,8 @@ export function extractScreen(screenId: string, screenName: string, tree: UINode
       const constraints: string[] = [];
       for (const k of ["minLength", "maxLength", "min", "max", "pattern"]) if (p[k] !== undefined && p[k] !== "") constraints.push(`${k}=${p[k]}`);
       const inputType = String(p.inputType ?? (n.type === "DatePicker" ? "date" : n.type === "Input" ? "text" : n.type.toLowerCase()));
-      if (inputType === "email") constraints.push("định dạng email");
-      if (inputType === "number") constraints.push("chỉ nhận số");
+      if (inputType === "email") constraints.push("email format");
+      if (inputType === "number") constraints.push("numbers only");
       m.fields.push({
         nodeId: n.id,
         label: String(p.label ?? ""),

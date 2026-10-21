@@ -95,7 +95,7 @@ test("kho tài liệu: từ chối đuôi không cho phép (.exe)", async () => 
     contentBase64: fakeExe.toString("base64"),
   });
   assert.equal(res.status, 400);
-  assert.match(res.data.error, /không được hỗ trợ/);
+  assert.match(res.data.error, /Unsupported file format/);
 });
 
 test("kho tài liệu: từ chối file vượt quá 10MB", async () => {
@@ -108,7 +108,7 @@ test("kho tài liệu: từ chối file vượt quá 10MB", async () => {
     contentBase64: bigBuf.toString("base64"),
   });
   assert.ok(res.status === 400 || res.status === 413, `Status was ${res.status}`);
-  assert.match(res.data.error, /10MB|quá lớn/);
+  assert.match(res.data.error, /10 ?MB/);
 });
 
 test("kho tài liệu: từ chối chữ ký sai (tên .pdf nhưng nội dung không phải PDF)", async () => {
@@ -119,7 +119,7 @@ test("kho tài liệu: từ chối chữ ký sai (tên .pdf nhưng nội dung kh
     contentBase64: fakePdf.toString("base64"),
   });
   assert.equal(res.status, 400);
-  assert.match(res.data.error, /chữ ký %PDF/);
+  assert.match(res.data.error, /%PDF signature/);
 });
 
 test("kho tài liệu: từ chối moduleId của dự án khác", async () => {
@@ -134,7 +134,7 @@ test("kho tài liệu: từ chối moduleId của dự án khác", async () => {
     contentBase64: fakePdf.toString("base64"),
   });
   assert.equal(res.status, 400);
-  assert.match(res.data.error, /Module không thuộc dự án/);
+  assert.match(res.data.error, /module does not belong to this project/);
 });
 
 test("kho tài liệu: tên file chứa '../' bị làm sạch và không ghi ra ngoài uploadDir", async () => {
@@ -357,7 +357,7 @@ test("A4: tải lên 3 tệp cùng lúc kèm thông tin nguồn (FN-04, FN-05)",
 
   const badDate = await api("POST", `/api/projects/${pid}/files`, { name: "x.pdf", contentBase64: b64(PDF), receivedAt: "2026-02-30" });
   assert.equal(badDate.status, 400);
-  assert.match(badDate.data.error, /Ngày nhận/);
+  assert.match(badDate.data.error, /received date/);
 });
 
 test("A4: xem trước PDF/ảnh inline, loại khác 415; tải về giữ tên tiếng Việt (FN-09, FN-10)", async () => {

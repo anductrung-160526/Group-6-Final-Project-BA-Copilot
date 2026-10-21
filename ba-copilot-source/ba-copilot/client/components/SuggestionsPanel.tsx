@@ -63,10 +63,10 @@ export function SuggestionsPanel({ m, onCreate }: { m: ModuleDetail; onCreate: (
   return (
     <div className="suggest-block" data-testid="suggest-block">
       <div className="side-head">
-        <span>Gợi ý tiếp theo ({items.length})</span>
+        <span>Next suggestions ({items.length})</span>
         {dismissed.length > 0 && (
-          <button className="link small" onClick={() => setShowDismissed((v) => !v)} title="Xem các gợi ý đã bỏ qua để khôi phục" data-testid="suggest-show-dismissed">
-            {showDismissed ? "Thu gọn" : `Đã ẩn ${dismissed.length}`}
+          <button className="link small" onClick={() => setShowDismissed((v) => !v)} title="Show dismissed suggestions so you can restore them" data-testid="suggest-show-dismissed">
+            {showDismissed ? "Collapse" : `${dismissed.length} hidden`}
           </button>
         )}
       </div>
@@ -74,17 +74,17 @@ export function SuggestionsPanel({ m, onCreate }: { m: ModuleDetail; onCreate: (
         {items.map((s) => (
           <SuggestionCard key={s.key} title={s.name} reason={reasonOf(s)} disabled={busy} onAccept={() => onCreate(s.name, s.prompt)} onDismiss={() => act(() => dismissSuggestion(m.id, s.key))} />
         ))}
-        {!items.length && <div className="muted small">Đã phủ đủ yêu cầu</div>}
+        {!items.length && <div className="muted small">All requirements are covered</div>}
         {showDismissed && (
           <>
-            <div className="muted small">Đã bỏ qua</div>
+            <div className="muted small">Dismissed</div>
             {dismissed.map((s) => (
               <SuggestionCard
                 key={s.key}
                 title={s.name}
                 reason={reasonOf(s)}
                 disabled={busy}
-                dismissLabel="Khôi phục"
+                dismissLabel="Restore"
                 onAccept={() => onCreate(s.name, s.prompt)}
                 onDismiss={() => act(() => restoreSuggestion(m.id, s.key))}
               />

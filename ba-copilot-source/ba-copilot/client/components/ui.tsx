@@ -205,10 +205,10 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
           footer={
             <>
               <Btn kind="ghost" onClick={() => answer(false)} data-testid="confirm-cancel">
-                Huỷ
+                Cancel
               </Btn>
               <Btn kind={ask.danger ? "danger" : "primary"} onClick={() => answer(true)} autoFocus data-testid="confirm-ok">
-                {ask.okLabel ?? "Đồng ý"}
+                {ask.okLabel ?? "OK"}
               </Btn>
             </>
           }
@@ -222,7 +222,7 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
             <div className="spinner" />
             <div>
               <strong>{busy}</strong>
-              <div className="muted small">{elapsed}s · AI có thể mất 10–60 giây</div>
+              <div className="muted small">{elapsed}s · AI may take 10–60 seconds</div>
             </div>
           </div>
         </div>
@@ -275,18 +275,18 @@ export function Btn(props: React.ButtonHTMLAttributes<HTMLButtonElement> & { kin
 
 const STATUS: Record<string, [string, BadgeTone]> = {
   // Sản phẩm BA (ArtifactStatus)
-  none: ["Chưa có", "gray"],
-  draft: ["Bản nháp", "blue"],
-  done: ["Xong", "orange"], // chờ BA Lead duyệt – dùng chung cho task "done"
-  approved: ["Đã duyệt", "green"],
-  outdated: ["Bản cũ", "amber"],
+  none: ["Not started", "gray"],
+  draft: ["Draft", "blue"],
+  done: ["Done", "orange"], // chờ BA Lead duyệt – dùng chung cho task "done"
+  approved: ["Approved", "green"],
+  outdated: ["Outdated", "amber"],
   // Công việc (TaskStatus)
-  todo: ["Cần làm", "gray"],
-  doing: ["Đang làm", "blue"],
+  todo: ["To do", "gray"],
+  doing: ["In progress", "blue"],
   // Bình luận
-  open: ["Mở", "blue"],
-  sent: ["Đã gửi AI", "violet"],
-  resolved: ["Đã xử lý", "green"],
+  open: ["Open", "blue"],
+  sent: ["Sent to AI", "violet"],
+  resolved: ["Resolved", "green"],
 };
 /** Nhãn trạng thái tiếng Việt cho sản phẩm BA, công việc và bình luận. Trạng thái lạ → hiện nguyên mã, màu xám. */
 export function StatusBadge({ status, testId }: { status: string; testId?: string }) {
@@ -299,11 +299,12 @@ export function StatusBadge({ status, testId }: { status: string; testId?: strin
 }
 
 /** Tag "Yêu cầu sửa" – hiện khi BA Lead trả task về (cờ `revisionRequested`), giữ tới khi Duyệt. */
-export function RevisionTag({ testId = "revision-tag" }: { testId?: string }) {
+/** `compact`: chỉ hiện icon (tooltip + aria-label "Changes requested") – dùng trong hàng tab chật. */
+export function RevisionTag({ testId = "revision-tag", compact }: { testId?: string; compact?: boolean }) {
   return (
-    <span className="badge badge-red" data-testid={testId}>
+    <span className="badge badge-red" data-testid={testId} title={compact ? "Changes requested" : undefined} aria-label={compact ? "Changes requested" : undefined}>
       <Icon name="revision" size="xs" />
-      Yêu cầu sửa
+      {!compact && "Changes requested"}
     </span>
   );
 }
@@ -316,8 +317,8 @@ export function EditingBadge({ names, max = 2, testId = "editing-badge" }: { nam
   return (
     <span className="badge badge-violet" title={list.join(", ")} data-testid={testId}>
       <Icon name="edit" size="xs" />
-      Đang được sửa bởi {list.slice(0, max).join(", ")}
-      {rest > 0 ? ` và ${rest} người khác` : ""}
+      Being edited by {list.slice(0, max).join(", ")}
+      {rest > 0 ? ` and ${rest} ${rest === 1 ? "other" : "others"}` : ""}
     </span>
   );
 }
@@ -325,7 +326,7 @@ export function EditingBadge({ names, max = 2, testId = "editing-badge" }: { nam
 /** Báo lưu bị chặn vì bản đã đổi (HTTP 409). Đặt ngay trên vùng đang sửa; nút "Tải lại" lấy bản mới. */
 export function ConflictNotice({
   onReload,
-  message = "Bản đã thay đổi – có người vừa sửa. Tải lại để xem bản mới.",
+  message = "This version has changed – someone just edited it. Reload to see the latest version.",
   busy,
   testId = "conflict-notice",
 }: {
@@ -339,7 +340,7 @@ export function ConflictNotice({
       <span className="notice-text">{message}</span>
       <Btn size="sm" onClick={onReload} disabled={busy} data-testid={`${testId}-reload`}>
         <Icon name="reload" size="sm" />
-        Tải lại
+        Reload
       </Btn>
     </div>
   );
@@ -361,8 +362,8 @@ export function RowActions({
   onEdit,
   onDelete,
   deleteConfirm,
-  editLabel = "Sửa",
-  deleteLabel = "Xoá",
+  editLabel = "Edit",
+  deleteLabel = "Delete",
   variant = "icons",
   disabled,
   testId,
@@ -388,7 +389,7 @@ export function RowActions({
   const del = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!onDelete) return;
-    const c = deleteConfirm ?? { title: `${deleteLabel} mục này?` };
+    const c = deleteConfirm ?? { title: `${deleteLabel} this item?` };
     if (await confirm({ title: c.title, message: c.message, okLabel: c.okLabel ?? deleteLabel, danger: true })) await onDelete();
   };
   if (variant === "buttons")
@@ -459,7 +460,7 @@ export function ApprovalBar({
   return (
     <div className="approval-bar" data-testid={testId} data-status={status}>
       <span className="approval-state">
-        <span className="muted small">Trạng thái</span>
+        <span className="muted small">Status</span>
         <StatusBadge status={status} testId={`${testId}-status`} />
         {revisionRequested && <RevisionTag testId={`${testId}-revision`} />}
       </span>
@@ -469,25 +470,25 @@ export function ApprovalBar({
           {canStart && (
             <Btn size="sm" onClick={onStart} disabled={off} title={disabledReason} data-testid={`${testId}-start`}>
               <Icon name="play" size="sm" />
-              Bắt đầu làm
+              Start work
             </Btn>
           )}
           {canDone && (
             <Btn kind="primary" size="sm" onClick={onDone} disabled={off} title={disabledReason} data-testid={`${testId}-done`}>
               <Icon name="done" size="sm" />
-              Xong
+              Mark as done
             </Btn>
           )}
           {canRequest && (
             <Btn size="sm" onClick={onRequestChange} disabled={off} title={disabledReason} data-testid={`${testId}-request-change`}>
               <Icon name="revision" size="sm" />
-              Yêu cầu sửa
+              Request changes
             </Btn>
           )}
           {canApprove && (
             <Btn kind="primary" size="sm" onClick={onApprove} disabled={off} title={disabledReason} data-testid={`${testId}-approve`}>
               <Icon name="approve" size="sm" />
-              Duyệt
+              Approve
             </Btn>
           )}
         </span>
@@ -498,8 +499,13 @@ export function ApprovalBar({
 
 export type BadgeTone = "gray" | "blue" | "mint" | "green" | "amber" | "orange" | "red" | "violet" | "flag";
 /** Nhãn trạng thái – luôn ôm sát chữ. Giữ kiểu string để không vỡ chỗ gọi cũ; mã mới dùng BadgeTone. */
-export function Badge({ tone = "gray", children }: { tone?: BadgeTone | (string & {}); children: React.ReactNode }) {
-  return <span className={`badge badge-${tone}`}>{children}</span>;
+/** `title`: tooltip (dùng khi chữ dài có thể bị cắt "…" – bọc chữ trong `<span className="badge-text">`). */
+export function Badge({ tone = "gray", title, children }: { tone?: BadgeTone | (string & {}); title?: string; children: React.ReactNode }) {
+  return (
+    <span className={`badge badge-${tone}`} title={title}>
+      {children}
+    </span>
+  );
 }
 
 export function Modal({ title, onClose, children, footer, wide }: { title: string; onClose: () => void; children: React.ReactNode; footer?: React.ReactNode; wide?: boolean }) {
@@ -513,7 +519,7 @@ export function Modal({ title, onClose, children, footer, wide }: { title: strin
       <div className={`modal ${wide ? "modal-wide" : ""}`} role="dialog" aria-modal="true" aria-label={title}>
         <div className="modal-head">
           <h3>{title}</h3>
-          <IconBtn icon="close" label="Đóng" size="lg" onClick={onClose} />
+          <IconBtn icon="close" label="Close" size="lg" onClick={onClose} />
         </div>
         <div className="modal-body">{children}</div>
         {footer && <div className="modal-foot">{footer}</div>}
@@ -576,7 +582,7 @@ export function Drawer({
         <div className="drawer-head">
           <h3>{title}</h3>
           {actions}
-          <IconBtn icon="close" label="Đóng" size="lg" onClick={onClose} />
+          <IconBtn icon="close" label="Close" size="lg" onClick={onClose} />
         </div>
         <div className="drawer-body">{children}</div>
         {footer && <div className="drawer-foot">{footer}</div>}
@@ -735,7 +741,7 @@ export function SideNav({
           {needToggleBtn ? (
             <div className="side-nav-row">
               {main}
-              <IconBtn icon={expanded ? "chevronDown" : "chevronRight"} size="sm" label={expanded ? "Thu gọn" : "Mở rộng"} aria-expanded={expanded} aria-controls={childId} onClick={toggle} />
+              <IconBtn icon={expanded ? "chevronDown" : "chevronRight"} size="sm" label={expanded ? "Collapse" : "Expand"} aria-expanded={expanded} aria-controls={childId} onClick={toggle} />
             </div>
           ) : (
             main
@@ -846,7 +852,7 @@ const initials = (name: string) =>
 /** Ảnh đại diện bằng chữ cái đầu. */
 export function Avatar({ name, size = "md" }: { name?: string | null; size?: "sm" | "md" }) {
   return (
-    <span className={`avatar ${size === "sm" ? "avatar-sm" : ""} ${name ? "" : "avatar-empty"}`} title={name ?? "Chưa giao"} aria-hidden="true">
+    <span className={`avatar ${size === "sm" ? "avatar-sm" : ""} ${name ? "" : "avatar-empty"}`} title={name ?? "Unassigned"} aria-hidden="true">
       {name ? initials(name) : "?"}
     </span>
   );
@@ -862,7 +868,7 @@ export function MemberPicker({
   members,
   value,
   onChange,
-  placeholder = "Chưa giao",
+  placeholder = "Unassigned",
   disabled,
   testId,
 }: {
@@ -895,8 +901,8 @@ export function FileDrop({
   accept,
   multiple = true,
   disabled,
-  title = "Kéo thả tệp vào đây",
-  hint = "hoặc bấm để chọn tệp từ máy",
+  title = "Drag and drop files here",
+  hint = "or click to choose files from your computer",
   testId,
 }: {
   onFiles: (files: File[]) => void;
@@ -1042,7 +1048,7 @@ export function KanbanCard({
 export type ScoreLevel = "good" | "fair" | "poor";
 /** Ngưỡng giống shared/qus.ts (FN-52): Tốt ≥ 80, Khá 60–79, Cần sửa < 60. */
 export const scoreLevel = (score: number): ScoreLevel => (score >= 80 ? "good" : score >= 60 ? "fair" : "poor");
-const SCORE_LABEL: Record<ScoreLevel, string> = { good: "Tốt", fair: "Khá", poor: "Cần sửa" };
+const SCORE_LABEL: Record<ScoreLevel, string> = { good: "Good", fair: "Fair", poor: "Poor" };
 
 /** Điểm chất lượng 0–100 với 3 ngưỡng màu. */
 export function ScoreBadge({ score, showLabel = true, testId }: { score: number; showLabel?: boolean; testId?: string }) {
@@ -1063,10 +1069,10 @@ export interface IssueItem {
   message: React.ReactNode;
   suggestion?: React.ReactNode;
 }
-const SEVERITY: Record<IssueSeverity, [string, BadgeTone]> = { error: ["Lỗi", "red"], warn: ["Cảnh báo", "amber"], info: ["Gợi ý", "blue"] };
+const SEVERITY: Record<IssueSeverity, [string, BadgeTone]> = { error: ["Error", "red"], warn: ["Warning", "amber"], info: ["Suggestion", "blue"] };
 
 /** Danh sách lỗi theo mức error / warn / info, lỗi nặng xếp trước. */
-export function IssueList({ issues, empty = "Không có vấn đề nào." }: { issues: IssueItem[]; empty?: React.ReactNode }) {
+export function IssueList({ issues, empty = "No issues found." }: { issues: IssueItem[]; empty?: React.ReactNode }) {
   if (!issues.length) return <div className="muted small">{empty}</div>;
   const order: IssueSeverity[] = ["error", "warn", "info"];
   const sorted = [...issues].sort((a, b) => order.indexOf(a.severity) - order.indexOf(b.severity));
@@ -1079,7 +1085,7 @@ export function IssueList({ issues, empty = "Không có vấn đề nào." }: { 
             <span>{i.message}</span>
           </div>
           {i.suggestion && <div className="issue-sugg">
-              <Icon name="arrowRight" size="xs" /> Gợi ý: {i.suggestion}
+              <Icon name="arrowRight" size="xs" /> Suggestion: {i.suggestion}
             </div>}
         </div>
       ))}
@@ -1093,8 +1099,8 @@ export function SuggestionCard({
   reason,
   onAccept,
   onDismiss,
-  acceptLabel = "Tạo",
-  dismissLabel = "Bỏ qua",
+  acceptLabel = "Create",
+  dismissLabel = "Dismiss",
   disabled,
 }: {
   title: React.ReactNode;
@@ -1121,4 +1127,4 @@ export function SuggestionCard({
   );
 }
 
-export const fmtTime = (iso: string) => new Date(iso).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" });
+export const fmtTime = (iso: string) => new Date(iso).toLocaleString("en-US", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" });

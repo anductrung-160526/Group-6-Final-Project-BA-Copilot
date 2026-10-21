@@ -70,7 +70,7 @@ export interface ProjectMenuItem {
 
 /** Trang giữ chỗ cho màn chưa làm: "Đang xây dựng (Cx)". */
 export function placeholder<P extends object>(title: string, owner: string): ComponentType<P> {
-  const C = () => createElement("div", { className: "page" }, createElement(Empty, { title }, `Đang xây dựng (${owner}).`));
+  const C = () => createElement("div", { className: "page" }, createElement(Empty, { title }, `Under construction (${owner}).`));
   C.displayName = `Placeholder_${owner}`;
   return C;
 }
@@ -79,21 +79,21 @@ export const DOC_SUBS: MenuSub[] = DOC_KINDS.map((k) => ({ key: k, label: DOC_KI
 export const DIAGRAM_SUBS: MenuSub[] = DIAGRAM_KINDS.map((k) => ({ key: k, label: DIAGRAM_KIND_LABEL[k] }));
 
 export const WORK_STEPS: WorkStepItem[] = [
-  { key: "docs", no: 1, label: "Tài liệu", icon: "FileText", owner: "C5", component: DocsView, subs: DOC_SUBS },
-  { key: "diagrams", no: 2, label: "Sơ đồ", icon: "Network", owner: "C6", component: DiagramsView, subs: DIAGRAM_SUBS },
+  { key: "docs", no: 1, label: "Documents", icon: "FileText", owner: "C5", component: DocsView, subs: DOC_SUBS },
+  { key: "diagrams", no: 2, label: "Diagrams", icon: "Network", owner: "C6", component: DiagramsView, subs: DIAGRAM_SUBS },
   { key: "prototype", no: 3, label: "Prototype", icon: "LayoutTemplate", owner: "C9", component: PrototypeStep },
-  { key: "tests", no: 4, label: "Test case", icon: "FlaskConical", owner: "C9", component: TestsStep },
-  { key: "trace", no: 5, label: "Truy vết", icon: "Route", owner: "C9", component: TraceStep },
+  { key: "tests", no: 4, label: "Test Cases", icon: "FlaskConical", owner: "C9", component: TestsStep },
+  { key: "trace", no: 5, label: "Traceability", icon: "Route", owner: "C9", component: TraceStep },
 ];
 
 export const PROJECT_MENU: ProjectMenuItem[] = [
   // tasks: Kanban 4 cột Cần làm · Đang làm · Xong · Đã duyệt (C7).
-  { key: "tasks", label: "Quản lý công việc", icon: "SquareKanban", owner: "C7", component: TasksView },
-  { key: "stories", label: "Yêu cầu nghiệp vụ", icon: "BookText", owner: "C4", component: StoriesView },
-  { key: "work", label: "Thực hiện công việc", icon: "Workflow", owner: "C3", steps: WORK_STEPS },
-  { key: "files", label: "Kho tài liệu", icon: "FolderOpen", owner: "A4", component: FilesView },
-  { key: "logs", label: "Nhật ký AI", icon: "ScrollText", owner: "C3", component: LogsTab },
-  { key: "git", label: "Lịch sử GitHub", icon: "GitBranch", owner: "C8", component: GitHistoryView },
+  { key: "tasks", label: "Task Board", icon: "SquareKanban", owner: "C7", component: TasksView },
+  { key: "stories", label: "Business Requirements", icon: "BookText", owner: "C4", component: StoriesView },
+  { key: "work", label: "Deliverables", icon: "Workflow", owner: "C3", steps: WORK_STEPS },
+  { key: "files", label: "Document Repository", icon: "FolderOpen", owner: "A4", component: FilesView },
+  { key: "logs", label: "AI Log", icon: "ScrollText", owner: "C3", component: LogsTab },
+  { key: "git", label: "GitHub History", icon: "GitBranch", owner: "C8", component: GitHistoryView },
 ];
 
 /** Mục mở mặc định khi bấm vào dự án (quyết định mục 3 "C3"). */

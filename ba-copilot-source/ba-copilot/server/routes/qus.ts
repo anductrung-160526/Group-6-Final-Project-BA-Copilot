@@ -44,7 +44,7 @@ export function saveProjectQus(projectId: string): void {
 
 route("GET", "/api/modules/:id/qus", ({ params }): ModuleQus => {
   const m = repo.getModule(params.id);
-  if (!m) throw new BizError("Không tìm thấy module", 404);
+  if (!m) throw new BizError("Module not found", 404);
   const saved = getDb().prepare("SELECT qus_score, qus_checked_at FROM modules WHERE id = ?").get(m.id) as
     | { qus_score: number | null; qus_checked_at: string | null }
     | undefined;

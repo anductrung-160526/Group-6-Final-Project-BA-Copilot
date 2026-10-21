@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS files (
 CREATE INDEX IF NOT EXISTS idx_files_project ON files(project_id);
 CREATE INDEX IF NOT EXISTS idx_files_module ON files(module_id);
 
--- v2 (mục 5 tài liệu v2) – sơ đồ quan hệ: docs/erd.md
+-- v2 (mục 5 tài liệu v2) – sơ đồ quan hệ: docs/erd.md  -- vi-keep: chú thích SQL
 CREATE TABLE IF NOT EXISTS members (
   id TEXT PRIMARY KEY, name TEXT NOT NULL,
   role TEXT NOT NULL DEFAULT 'BA' CHECK(role IN ('BA','BA_LEAD')), created_at TEXT NOT NULL
@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS suggestion_dismissals (
   PRIMARY KEY (module_id, key)
 );
 
--- Đợt 5 (C2) – docs/erd.md mục "Đợt 5"
+-- Đợt 5 (C2) – docs/erd.md mục "Đợt 5"  -- vi-keep: chú thích SQL
 CREATE TABLE IF NOT EXISTS app_meta (
   key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL
 );
@@ -278,7 +278,7 @@ export function openDb(file: string): DatabaseSync {
 }
 
 export function getDb(): DatabaseSync {
-  if (!db) throw new Error("Database chưa được mở");
+  if (!db) throw new Error("Database is not open");
   return db;
 }
 
@@ -367,7 +367,7 @@ function normalizePrereqStates(d: DatabaseSync): void {
   const at = nowIso();
   const docStatus = (m: string, k: DocKind) =>
     ((d.prepare("SELECT status FROM module_docs WHERE module_id = ? AND kind = ?").get(m, k) as { status: ArtifactStatus } | undefined)?.status ?? "none");
-  const reason = "Bước trước chưa Xong – chuẩn hoá dữ liệu cũ, sản phẩm thành Bản cũ";
+  const reason = "Previous step is not Done – legacy data normalised, artifact set to Outdated";
   const syncTasks = (where: string, args: string[]) => {
     const rows = d.prepare(`SELECT id, status FROM tasks WHERE status IN ('done','approved') AND ${where}`).all(...args) as { id: string; status: string }[];
     for (const t of rows) {
@@ -427,7 +427,7 @@ function upgradeTasksTable(d: DatabaseSync): boolean {
       d.exec("CREATE INDEX IF NOT EXISTS idx_tasks_project ON tasks(project_id)");
       d.exec("CREATE INDEX IF NOT EXISTS idx_tasks_artifact ON tasks(artifact_type, artifact_id)");
       const broken = d.prepare("PRAGMA foreign_key_check").all();
-      if (broken.length && fkOn) throw new Error(`Nâng cấp bảng tasks làm hỏng khoá ngoại (${broken.length} dòng)`);
+      if (broken.length && fkOn) throw new Error(`Upgrading the tasks table broke foreign keys (${broken.length} rows)`);
       d.exec("COMMIT");
     } catch (e) {
       d.exec("ROLLBACK");
@@ -494,6 +494,7 @@ function migrateLegacyDiagrams(d: DatabaseSync): void {
 /** Tách "As a … I want … so that …" / "Là …, tôi muốn … để …"; giữ nguyên chữ hoa thường. Không khớp → null. */
 export function parseStoryParts(text: string): { asA: string; iWant: string; soThat: string } | null {
   const s = text.normalize("NFC").trim();
+  // vi-keep-start: tách story tiếng Việt cũ khi chuyển dữ liệu
   const role = s.match(/^(?:as\s+an?|với\s+tư\s+cách(?:\s+là)?|là(?:\s+một)?)\s+/iu);
   if (!role) return null;
   const rest = s.slice(role[0].length);
@@ -502,6 +503,7 @@ export function parseStoryParts(text: string): { asA: string; iWant: string; soT
   const asA = rest.slice(0, means.index).trim();
   const after = rest.slice(means.index + means[0].length);
   const end = after.match(/[,;\s]+(?:so\s+that|để)\s+/iu);
+  // vi-keep-end
   const clean = (x: string) => x.trim().replace(/[\s,;.]+$/u, "");
   const iWant = clean(end && end.index !== undefined ? after.slice(0, end.index) : after);
   const soThat = end && end.index !== undefined ? clean(after.slice(end.index + end[0].length)) : "";
@@ -546,14 +548,14 @@ function ucMarkdown(ucs: UseCase[]): string {
   for (const uc of ucs) {
     out.push(`## ${uc.code} – ${uc.name}`, "");
     if (uc.actors?.length) out.push(`**Actor:** ${uc.actors.join(", ")}`, "");
-    if (uc.description) out.push(`**Mô tả:** ${uc.description}`, "");
-    if (uc.trigger) out.push(`**Kích hoạt:** ${uc.trigger}`, "");
-    out.push(...bullets("Tiền điều kiện", uc.preconditions), ...bullets("Hậu điều kiện", uc.postconditions));
-    if (uc.mainFlow?.length) out.push("**Luồng chính:**", ...uc.mainFlow.map((s, i) => `${s.no ?? i + 1}. ${s.actor ? `${s.actor}: ` : ""}${s.text}`), "");
+    if (uc.description) out.push(`**Description:** ${uc.description}`, "");
+    if (uc.trigger) out.push(`**Trigger:** ${uc.trigger}`, "");
+    out.push(...bullets("Preconditions", uc.preconditions), ...bullets("Postconditions", uc.postconditions));
+    if (uc.mainFlow?.length) out.push("**Main flow:**", ...uc.mainFlow.map((s, i) => `${s.no ?? i + 1}. ${s.actor ? `${s.actor}: ` : ""}${s.text}`), "");
     for (const f of [...(uc.altFlows ?? []), ...(uc.exceptions ?? [])]) {
-      out.push(`**${f.code} – ${f.name}** (rẽ từ bước ${f.branchFrom}):`, ...(f.steps ?? []).map((s, i) => `${i + 1}. ${s}`), "");
+      out.push(`**${f.code} – ${f.name}** (branches from step ${f.branchFrom}):`, ...(f.steps ?? []).map((s, i) => `${i + 1}. ${s}`), "");
     }
-    out.push(...bullets("Quy tắc nghiệp vụ", uc.businessRules), ...bullets("Giả định", uc.assumptions));
+    out.push(...bullets("Business rules", uc.businessRules), ...bullets("Assumptions", uc.assumptions));
   }
   return out.join("\n").trim() + "\n";
 }
@@ -563,11 +565,11 @@ function reqMarkdown(reqs: Requirement[]): string {
     const rows = reqs.filter((r) => r.type === type);
     if (!rows.length) return [];
     return [
-      `## ${type === "FR" ? "Yêu cầu chức năng (FR)" : "Yêu cầu phi chức năng (NFR)"}`,
+      `## ${type === "FR" ? "Functional Requirements (FR)" : "Non-functional Requirements (NFR)"}`,
       "",
-      "| Mã | Nội dung | Ưu tiên | Use case |",
+      "| ID | Statement | Priority | Use case |",
       "|---|---|---|---|",
-      ...rows.map((r) => `| ${cell(r.code)} | ${cell(r.statement)}${r.isAssumption ? " _(giả định)_" : ""} | ${cell(r.priority)} | ${cell((r.useCaseCodes ?? []).join(", "))} |`),
+      ...rows.map((r) => `| ${cell(r.code)} | ${cell(r.statement)}${r.isAssumption ? " _(assumption)_" : ""} | ${cell(r.priority)} | ${cell((r.useCaseCodes ?? []).join(", "))} |`),
       "",
     ];
   };
@@ -597,7 +599,7 @@ function stateTarget(ref: ArtifactRef): StateTarget {
     case "screen":
       return { table: "screens", where: "id = ?", args: [ref.id], status: "status", rr: "revision_requested", rev: "rev", by: "updated_by", at: "updated_at" };
     case "doc":
-      if (!ref.sub) throw new Error("ArtifactRef doc cần sub (DocKind)");
+      if (!ref.sub) throw new Error("ArtifactRef doc requires sub (DocKind)");
       return { table: "module_docs", where: "module_id = ? AND kind = ?", args: [ref.id, ref.sub], status: "status", rr: "revision_requested", rev: "rev", by: "updated_by", at: "updated_at" };
     case "diagram":
       return { table: "module_diagrams", where: "module_id = ? AND kind = ?", args: [ref.id, ref.sub ?? "UC"], status: "status", rr: "revision_requested", rev: "rev", by: "updated_by", at: "updated_at" };

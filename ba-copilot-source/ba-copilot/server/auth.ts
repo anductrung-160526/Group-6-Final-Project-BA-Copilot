@@ -66,10 +66,10 @@ function rateLimited(ip: string): number {
 
 export function login(req: IncomingMessage, res: ServerResponse, password: string): { ok: boolean; error?: string; status?: number } {
   const wait = rateLimited(clientIp(req));
-  if (wait) return { ok: false, status: 429, error: `Thử sai quá nhiều lần. Vui lòng chờ ${Math.ceil(wait / 60)} phút.` };
+  if (wait) return { ok: false, status: 429, error: `Too many failed attempts. Please wait ${Math.ceil(wait / 60)} minute(s).` };
   const expected = process.env.APP_PASSWORD?.trim() ?? "";
   const h = (s: string) => createHash("sha256").update(s).digest("hex");
-  if (!expected || !safeEq(h(password), h(expected))) return { ok: false, status: 401, error: "Mật khẩu không đúng" };
+  if (!expected || !safeEq(h(password), h(expected))) return { ok: false, status: 401, error: "Incorrect password" };
   const exp = String(Date.now() + TTL_MS);
   res.setHeader("set-cookie", `${COOKIE}=${exp}.${sign(`v1:${exp}`)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${TTL_MS / 1000}${isHttps(req) ? "; Secure" : ""}`);
   attempts.delete(clientIp(req));
@@ -81,8 +81,8 @@ export function logout(req: IncomingMessage, res: ServerResponse): void {
 }
 
 export const LOGIN_HTML = `<!doctype html>
-<html lang="vi"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Đăng nhập – BA Copilot</title>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Sign in – BA Copilot</title>
 <style>
 *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f6f8;font:14px Inter,"Segoe UI",system-ui,-apple-system,Arial,sans-serif;color:#1c2430}
 .card{background:#fff;border:1px solid #e3e6eb;border-radius:12px;padding:28px;width:min(360px,92vw);box-shadow:0 8px 30px rgba(16,24,40,.08)}
@@ -92,11 +92,11 @@ input{width:100%;font:inherit;padding:10px 12px;border:1px solid #cfd4dc;border-
 button{width:100%;font:inherit;font-weight:600;padding:10px;border:0;border-radius:8px;background:#2f5bea;color:#fff;cursor:pointer}
 .err{color:#b42318;min-height:20px;margin-top:10px;font-size:13px}
 </style></head><body>
-<form class="card" id="f"><div class="logo">BA</div><h1>BA Copilot</h1><p>Nhập mật khẩu truy cập để tiếp tục.</p>
-<input id="p" type="password" placeholder="Mật khẩu" autocomplete="current-password" autofocus required/>
-<button type="submit">Đăng nhập</button><div class="err" id="e"></div></form>
+<form class="card" id="f"><div class="logo">BA</div><h1>BA Copilot</h1><p>Enter the access password to continue.</p>
+<input id="p" type="password" placeholder="Password" autocomplete="current-password" autofocus required/>
+<button type="submit">Sign in</button><div class="err" id="e"></div></form>
 <script>
 document.getElementById('f').addEventListener('submit',async function(ev){ev.preventDefault();var e=document.getElementById('e');e.textContent='';
 var r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:document.getElementById('p').value})});
-if(r.ok){location.reload()}else{var d=await r.json().catch(function(){return{}});e.textContent=d.error||'Đăng nhập thất bại'}});
+if(r.ok){location.reload()}else{var d=await r.json().catch(function(){return{}});e.textContent=d.error||'Sign-in failed'}});
 </script></body></html>`;

@@ -22,7 +22,7 @@ export interface AppPage {
 }
 
 export const PAGES: AppPage[] = [
-  { key: "admin", label: "Quản trị hệ thống", scope: "global", component: AdminView, leadOnly: true },
+  { key: "admin", label: "Administration", scope: "global", component: AdminView, leadOnly: true },
   { key: "_gallery", label: "Gallery", scope: "global", component: Gallery, hidden: true },
 ];
 

@@ -36,12 +36,12 @@ const LIVE = (s: string) => s !== "none" && s !== "outdated";
 
 function mustModule(id: string) {
   const m = docs.getModuleInfo(id);
-  if (!m) throw new HttpError("Không tìm thấy module", 404);
+  if (!m) throw new HttpError("Module not found", 404);
   return m;
 }
 
 function mustKind(k: string): DocKind {
-  if (!docs.isDocKind(k)) throw new HttpError(`Loại tài liệu không hợp lệ: ${k} (cần một trong ${DOC_KINDS.join(", ")})`, 400);
+  if (!docs.isDocKind(k)) throw new HttpError(`Invalid document type: ${k} (expected one of ${DOC_KINDS.join(", ")})`, 400);
   return k;
 }
 
@@ -141,8 +141,8 @@ route("PUT", "/api/modules/:id/docs/:kind", (ctx) => {
   const m = mustModule(ctx.params.id);
   const kind = mustKind(ctx.params.kind);
   const body = ctx.body ?? {};
-  if (typeof body.content !== "string" && !body.data) throw new HttpError("Thiếu nội dung tài liệu (content)", 400);
-  if (typeof body.content === "string" && body.content.length > MAX_CONTENT) throw new HttpError("Tài liệu quá dài", 413);
+  if (typeof body.content !== "string" && !body.data) throw new HttpError("Missing document content (content)", 400);
+  if (typeof body.content === "string" && body.content.length > MAX_CONTENT) throw new HttpError("The document is too long", 413);
   let content = str(body.content, MAX_CONTENT);
   const prev = docs.getDoc(m.id, kind);
   let data: ModuleDocData | null;
@@ -155,7 +155,7 @@ route("PUT", "/api/modules/:id/docs/:kind", (ctx) => {
     data = { requirements };
     if (!content.trim()) content = reqMarkdown(requirements, m.name);
   } else data = deriveDocData(kind, content, prev.data);
-  if (!content.trim()) throw new HttpError("Nội dung tài liệu không được để trống", 400);
+  if (!content.trim()) throw new HttpError("Document content cannot be empty", 400);
   return commit(m.id, kind, content, data, { actorId: actor(body), baseRev: baseRevOf(body), mode: "edit" });
 });
 
@@ -190,14 +190,14 @@ route("POST", "/api/modules/:id/docs/:kind/refine", async (ctx) => {
   const kind = mustKind(ctx.params.kind);
   const body = ctx.body ?? {};
   const instruction = str(body.instruction, 4000).trim();
-  if (!instruction) throw new HttpError("Nhập yêu cầu chỉnh", 400);
+  if (!instruction) throw new HttpError("Enter a refinement instruction", 400);
   const baseRev = baseRevOf(body);
   const doc = docs.getDoc(m.id, kind);
-  if (doc.status === "none" || !doc.content.trim()) throw new HttpError(`Chưa có ${label(kind)} để chỉnh – hãy sinh tài liệu trước`, 400);
+  if (doc.status === "none" || !doc.content.trim()) throw new HttpError(`There is no ${label(kind)} to refine yet – generate the document first`, 400);
   assertRev(doc.rev, baseRev);
   const section = str(body.section, 300).trim() || null;
   const target = section ? splitSections(doc.content).sections.find((s) => s.title === section) : null;
-  if (section && !target) throw new HttpError(`Không tìm thấy mục "${section}" trong ${label(kind)}`, 400);
+  if (section && !target) throw new HttpError(`Section "${section}" not found in ${label(kind)}`, 400);
   const ucList = genInput(m).ucSpec?.useCases.map((u) => `${u.code} – ${u.name}`).join("; ");
   const next = await refineDocSection({
     moduleId: m.id,
@@ -206,7 +206,7 @@ route("POST", "/api/modules/:id/docs/:kind/refine", async (ctx) => {
     section,
     markdown: target ? target.text : doc.content,
     instruction,
-    context: `Module ${m.name}. Use case: ${ucList || "(chưa có)"}`,
+    context: `Module ${m.name}. Use cases: ${ucList || "(none yet)"}`,
   });
   const content = target ? replaceSection(doc.content, target.title, next) : next;
   return commit(m.id, kind, content, deriveDocData(kind, content, doc.data), { actorId: actor(body), baseRev: baseRev ?? doc.rev, mode: "edit" });
