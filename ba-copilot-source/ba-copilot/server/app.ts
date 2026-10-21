@@ -1,5 +1,6 @@
 // HTTP server + REST API (không phụ thuộc framework để dễ chạy, dễ đọc).
 
+import "../shared/nlp-node.ts"; // mô hình NLP cho bộ chấm QUS (AQUSA)
 import { createServer, IncomingMessage, ServerResponse, Server } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { join, extname, resolve } from "node:path";

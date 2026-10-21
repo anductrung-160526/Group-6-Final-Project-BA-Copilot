@@ -3,7 +3,7 @@
 // Story tiếng Anh: well-formed / atomic / minimal / uniform / unique chấm bằng AQUSA (shared/aqusa.ts, Lucassen et al. 2016).
 // Story tiếng Việt cũ: giữ bộ luật cũ. FULL_SENTENCE, NO_END, AMBIGUOUS, NO_CRITERIA, trùng gần đúng (Jaccard) và thang điểm
 // 100 − 30/15/5 là thiết kế của nhóm (ngoài bài báo).
-import { analyzeSet, isEnglishStory, type AqusaDefect, type QusCriterion } from "./aqusa.ts";
+import { analyzeSet, isEnglishStory, nlpReady, type AqusaDefect, type QusCriterion } from "./aqusa.ts";
 
 export const BASE_SCORE = 100;
 export const PENALTY_ERROR = 30;
@@ -468,7 +468,8 @@ function scoreTexts(rawStories: string[], options: ScoreOptions = {}, ex: TextEx
 
   const parsedList = rawStories.map(parseStory);
   // Story tiếng Anh chấm bằng AQUSA (cùng một bộ để kiểm uniform/unique); story tiếng Việt cũ giữ bộ luật cũ.
-  const eng = rawStories.map((t, i) => isEnglishStory(t) && parsedList[i].template !== "vi");
+  const useAqusa = nlpReady();
+  const eng = rawStories.map((t, i) => useAqusa && isEnglishStory(t) && parsedList[i].template !== "vi");
   const engIdx = rawStories.map((_, i) => i).filter((i) => eng[i]);
   const aq: AqusaDefect[][] = rawStories.map(() => []);
   analyzeSet(engIdx.map((i) => rawStories[i])).forEach((d, k) => (aq[engIdx[k]] = d));

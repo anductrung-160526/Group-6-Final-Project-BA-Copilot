@@ -4,12 +4,20 @@
 // - Gán nhãn từ loại bằng wink-nlp thay cho Stanford CoreNLP (lựa chọn của nhóm – ngoài bài báo).
 // - Các tiêu chí ngữ nghĩa (conceptually sound, problem-oriented, unambiguous, conflict-free…) KHÔNG kiểm ở đây: bài báo
 //   loại chúng vì cần hiểu nội dung (§4).
-// Hàm thuần, chạy được cả client và server.
-import winkNLP from "wink-nlp";
-import model from "wink-eng-lite-web-model";
-
-const nlp = winkNLP(model);
-const its = nlp.its;
+// Hàm thuần, chạy được cả client và server. Mô hình wink-nlp (~3,5 MB) được nạp từ ngoài để không vào bundle app.js:
+// server nạp qua shared/nlp-node.ts; trình duyệt tải public/nlp.js khi cần (client/useAqusa.ts). Chưa nạp → qus.ts dùng bộ luật cũ.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Nlp = any;
+let nlp: Nlp = (globalThis as { __winkNlp?: Nlp }).__winkNlp ?? null;
+let its: Nlp = nlp?.its;
+export function setNlp(n: Nlp) {
+  nlp = n;
+  its = n.its;
+}
+export const nlpReady = () => {
+  if (!nlp && (globalThis as { __winkNlp?: Nlp }).__winkNlp) setNlp((globalThis as { __winkNlp?: Nlp }).__winkNlp);
+  return !!nlp;
+};
 
 export type QusCriterion = "well-formed" | "atomic" | "minimal" | "uniform" | "unique";
 /** Các cải tiến v2 (§6) – bật/tắt riêng để làm ablation. */

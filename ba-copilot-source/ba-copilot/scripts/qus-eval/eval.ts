@@ -3,6 +3,7 @@
 // Dùng: npx tsx scripts/qus-eval/eval.ts --stories dataset/qus-eval/stories.jsonl --labels dataset/qus-eval/labels.jsonl
 //        [--split dev|test|all] [--out dataset/export/eval/qus-eval.json]
 // stories.jsonl: { id, set, text, split? }   labels.jsonl: { id, defects: { "well-formed": bool, atomic, minimal, uniform, unique } }
+import "../../shared/nlp-node.ts";
 import { readFileSync, writeFileSync } from "node:fs";
 import { ALL_V2, analyzeSet, type QusCriterion, type V2Feature } from "../../shared/aqusa.ts";
 import { scoreStories as legacyScore } from "./qus-legacy.ts";

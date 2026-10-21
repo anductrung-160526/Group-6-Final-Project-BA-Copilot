@@ -1,0 +1,432 @@
+{
+ "split": "test",
+ "nStories": 156,
+ "nSets": 2,
+ "goldStoriesWithDefectPct": 11.5,
+ "msPerStory": 0.3,
+ "results": [
+  {
+   "name": "legacy (main)",
+   "perCriterion": {
+    "well-formed": {
+     "def": 4,
+     "tp": 2,
+     "fp": 2,
+     "fn": 1,
+     "recall": 66.7,
+     "precision": 50,
+     "f1": 57.1
+    },
+    "atomic": {
+     "def": 1,
+     "tp": 1,
+     "fp": 0,
+     "fn": 6,
+     "recall": 14.3,
+     "precision": 100,
+     "f1": 25
+    },
+    "minimal": {
+     "def": 0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 1,
+     "recall": 0,
+     "precision": null,
+     "f1": 0
+    },
+    "uniform": {
+     "def": 4,
+     "tp": 4,
+     "fp": 0,
+     "fn": 1,
+     "recall": 80,
+     "precision": 100,
+     "f1": 88.9
+    },
+    "unique": {
+     "def": 6,
+     "tp": 4,
+     "fp": 2,
+     "fn": 0,
+     "recall": 100,
+     "precision": 66.7,
+     "f1": 80
+    }
+   },
+   "micro": {
+    "def": 15,
+    "tp": 11,
+    "fp": 4,
+    "fn": 9,
+    "recall": 55,
+    "precision": 73.3,
+    "f1": 62.9
+   },
+   "macro": {
+    "recall": 52.1,
+    "precision": 73.9
+   },
+   "storiesWithDefectPct": 7.1,
+   "recall95": [
+    33.3,
+    77.3
+   ],
+   "precision95": [
+    50,
+    90
+   ]
+  },
+  {
+   "name": "AQUSA v1",
+   "perCriterion": {
+    "well-formed": {
+     "def": 7,
+     "tp": 3,
+     "fp": 4,
+     "fn": 0,
+     "recall": 100,
+     "precision": 42.9,
+     "f1": 60
+    },
+    "atomic": {
+     "def": 13,
+     "tp": 3,
+     "fp": 10,
+     "fn": 4,
+     "recall": 42.9,
+     "precision": 23.1,
+     "f1": 30
+    },
+    "minimal": {
+     "def": 2,
+     "tp": 0,
+     "fp": 2,
+     "fn": 1,
+     "recall": 0,
+     "precision": 0,
+     "f1": 0
+    },
+    "uniform": {
+     "def": 4,
+     "tp": 4,
+     "fp": 0,
+     "fn": 1,
+     "recall": 80,
+     "precision": 100,
+     "f1": 88.9
+    },
+    "unique": {
+     "def": 4,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0,
+     "recall": 100,
+     "precision": 100,
+     "f1": 100
+    }
+   },
+   "micro": {
+    "def": 30,
+    "tp": 14,
+    "fp": 16,
+    "fn": 6,
+    "recall": 70,
+    "precision": 46.7,
+    "f1": 56
+   },
+   "macro": {
+    "recall": 66.7,
+    "precision": 47.8
+   },
+   "storiesWithDefectPct": 15.4,
+   "recall95": [
+    50,
+    90.9
+   ],
+   "precision95": [
+    32,
+    64.3
+   ]
+  },
+  {
+   "name": "AQUSA v1+v2",
+   "perCriterion": {
+    "well-formed": {
+     "def": 5,
+     "tp": 2,
+     "fp": 3,
+     "fn": 1,
+     "recall": 66.7,
+     "precision": 40,
+     "f1": 50
+    },
+    "atomic": {
+     "def": 16,
+     "tp": 6,
+     "fp": 10,
+     "fn": 1,
+     "recall": 85.7,
+     "precision": 37.5,
+     "f1": 52.2
+    },
+    "minimal": {
+     "def": 2,
+     "tp": 0,
+     "fp": 2,
+     "fn": 1,
+     "recall": 0,
+     "precision": 0,
+     "f1": 0
+    },
+    "uniform": {
+     "def": 4,
+     "tp": 4,
+     "fp": 0,
+     "fn": 1,
+     "recall": 80,
+     "precision": 100,
+     "f1": 88.9
+    },
+    "unique": {
+     "def": 4,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0,
+     "recall": 100,
+     "precision": 100,
+     "f1": 100
+    }
+   },
+   "micro": {
+    "def": 31,
+    "tp": 16,
+    "fp": 15,
+    "fn": 4,
+    "recall": 80,
+    "precision": 51.6,
+    "f1": 62.7
+   },
+   "macro": {
+    "recall": 81.3,
+    "precision": 56.5
+   },
+   "storiesWithDefectPct": 17.3,
+   "recall95": [
+    62.5,
+    95.5
+   ],
+   "precision95": [
+    37.5,
+    68.4
+   ]
+  }
+ ],
+ "ablation": [
+  {
+   "without": "ends-indicators",
+   "def": 34,
+   "tp": 17,
+   "fp": 17,
+   "fn": 3,
+   "recall": 85,
+   "precision": 50,
+   "f1": 63
+  },
+  {
+   "without": "chunk-repetition",
+   "def": 31,
+   "tp": 16,
+   "fp": 15,
+   "fn": 4,
+   "recall": 80,
+   "precision": 51.6,
+   "f1": 62.7
+  },
+  {
+   "without": "slash-gt",
+   "def": 30,
+   "tp": 16,
+   "fp": 14,
+   "fn": 4,
+   "recall": 80,
+   "precision": 53.3,
+   "f1": 64
+  },
+  {
+   "without": "verb-exceptions",
+   "def": 28,
+   "tp": 13,
+   "fp": 15,
+   "fn": 7,
+   "recall": 65,
+   "precision": 46.4,
+   "f1": 54.2
+  },
+  {
+   "without": "symbol-role",
+   "def": 31,
+   "tp": 16,
+   "fp": 15,
+   "fn": 4,
+   "recall": 80,
+   "precision": 51.6,
+   "f1": 62.7
+  },
+  {
+   "without": "starting-text",
+   "def": 31,
+   "tp": 16,
+   "fp": 15,
+   "fn": 4,
+   "recall": 80,
+   "precision": 51.6,
+   "f1": 62.7
+  },
+  {
+   "without": "abbreviation",
+   "def": 31,
+   "tp": 16,
+   "fp": 15,
+   "fn": 4,
+   "recall": 80,
+   "precision": 51.6,
+   "f1": 62.7
+  }
+ ],
+ "errors": [
+  {
+   "id": "g02-012",
+   "set": "g02",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a Broker user, I want to Upload and Validate the error message to have accurate text."
+  },
+  {
+   "id": "g02-018",
+   "set": "g02",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a Developer, I want D Files generation requests to be managed and cached, so that duplicate requests do not cause performance issues."
+  },
+  {
+   "id": "g02-035",
+   "set": "g02",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a Developer , I want to ensure that attempts to correct or delete non-existent records don't create new published data."
+  },
+  {
+   "id": "g02-040",
+   "set": "g02",
+   "criterion": "uniform",
+   "type": "FN",
+   "text": "As an Agency user, I want FABS deployed into production, so I can submit my Financial Assistance data."
+  },
+  {
+   "id": "g02-052",
+   "set": "g02",
+   "criterion": "well-formed",
+   "type": "FP",
+   "text": "As a user, I don't want to see NASA grants displayed as contracts."
+  },
+  {
+   "id": "g02-059",
+   "set": "g02",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a Broker user, I want to have PPoPZIP+4 work the same as the Legal Entity ZIP validations."
+  },
+  {
+   "id": "g02-061",
+   "set": "g02",
+   "criterion": "well-formed",
+   "type": "FP",
+   "text": "As an Agency user, I want FPDS data to be up-to-date daily."
+  },
+  {
+   "id": "g02-063",
+   "set": "g02",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a Developer , I want to determine how agencies will generate and validate D Files from FABS and FPDS data."
+  },
+  {
+   "id": "g02-078",
+   "set": "g02",
+   "criterion": "well-formed",
+   "type": "FN",
+   "text": "As an owner, I only want zero-padded fields, so that I can justify padding."
+  },
+  {
+   "id": "g02-081",
+   "set": "g02",
+   "criterion": "atomic",
+   "type": "FN",
+   "text": "As a Developer, I want to prevent duplicate transactions from being published and deal with the time gap between validation and the publishing decision."
+  },
+  {
+   "id": "g02-082",
+   "set": "g02",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a FABS user, I want to submit a citywide as a PPoPZIP and pass validations."
+  },
+  {
+   "id": "g02-083",
+   "set": "g02",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a Broker user, I want to have updated error codes that accurately reflect the logic and provide enough information, so that I can fix my submission."
+  },
+  {
+   "id": "g02-091",
+   "set": "g02",
+   "criterion": "well-formed",
+   "type": "FP",
+   "text": "As a FABS user, I want the language on FABS pages to be appropriate for me, so that I am not confused."
+  },
+  {
+   "id": "g02-092",
+   "set": "g02",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a FABS user, I do not want  DABS banner messages and vice versa, so that I have the appropriate information for my application."
+  },
+  {
+   "id": "g02-097",
+   "set": "g02",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As an agency user, I want a landing page to navigate to either FABS or DABS pages, so that I can access both sides of the site."
+  },
+  {
+   "id": "g03-008",
+   "set": "g03",
+   "criterion": "minimal",
+   "type": "FN",
+   "text": "As an Applicant, I want to Check the Status of a transaction, so that I can understand where the provisioning of my service is in the process, such as information related to service levels, fees, plan review, permit, or inspection results."
+  },
+  {
+   "id": "g03-020",
+   "set": "g03",
+   "criterion": "minimal",
+   "type": "FP",
+   "text": "As a staff member, I want to denote an application with a Final Action status. So that I can finish it."
+  },
+  {
+   "id": "g03-021",
+   "set": "g03",
+   "criterion": "minimal",
+   "type": "FP",
+   "text": "As a Planning Staff member, I want to Conduct and Track Plan Amendments and Planning Studies, so that I can record work in process, outcome, and location-based information related to the Plan(s)."
+  },
+  {
+   "id": "g03-055",
+   "set": "g03",
+   "criterion": "atomic",
+   "type": "FP",
+   "text": "As a County Staff Member, I want to create a custom query/report outside of the common querying/reporting functionality, so that I can fulfill a request."
+  }
+ ]
+}
