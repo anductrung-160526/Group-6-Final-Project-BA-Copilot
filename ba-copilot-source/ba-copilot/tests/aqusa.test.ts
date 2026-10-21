@@ -54,3 +54,27 @@ test("unique: trùng chính xác (bỏ qua hoa thường, dấu câu)", () => {
   assert.ok(crit(set, 1).has("unique"));
   assert.ok(!crit(set, 0).has("unique"));
 });
+
+test("vòng 2: liên từ trong mệnh đề phụ, '+' dính chữ, '/' sau tính từ không tính atomic", () => {
+  assert.ok(!crit(["As a clerk, I want reports that summarise sales and highlight trends."]).has("atomic"));
+  assert.ok(!crit(["As a dev, I want to learn how teams build and deploy apps."]).has("atomic"));
+  assert.ok(!crit(["As a dev, I want to write C++ bindings."]).has("atomic"));
+  assert.ok(!crit(["As an analyst, I want to save a custom chart/table."]).has("atomic"));
+  assert.ok(crit(["As an analyst, I want to import a file and share it."]).has("atomic"));
+});
+
+test("vòng 2: 'be + tính từ' là hành động; 'I don't want' là cụm chỉ dấu, lệch mẫu uniform", () => {
+  assert.ok(!crit(["As a viewer, I want prices to be accurate."]).has("well-formed"));
+  const set = ["As a user, I want to log in.", "As a user, I want to log out.", "As a user, I don't want to see ads."];
+  assert.ok(!crit(set, 2).has("well-formed"));
+  assert.ok(crit(set, 2).has("uniform"));
+});
+
+test("vòng 2: uniform xét phần ends trong các story có ends; '(s)' và '. So that' không tính minimal", () => {
+  const set = ["As a user, I want to log in.", "As a user, I want to log out.", "As a user, I want to pay so that I get goods.", "As a user, I want to rate so that others know.", "As a user, I want to chat, so I can ask."];
+  assert.ok(crit(set, 4).has("uniform"));
+  assert.ok(!crit(set, 0).has("uniform"));
+  assert.ok(!crit(["As a planner, I want to edit the Plan(s) so that they stay current."]).has("minimal"));
+  assert.ok(!crit(["As a clerk, I want to close a case. So that I can finish it."]).has("minimal"));
+  assert.ok(crit(["As a clerk, I want to see fees, so that I can plan, such as permit fees."]).has("minimal"));
+});

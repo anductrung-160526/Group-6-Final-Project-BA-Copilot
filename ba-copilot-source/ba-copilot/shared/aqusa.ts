@@ -53,7 +53,7 @@ export interface Chunks {
 // Cụm chỉ dấu (§4.1). Bản v1: "As a", "I want (to)", "so that". v2 §6.1: thêm các cách viết khác.
 const ROLE_IND = ["as an", "as a", "as the", "as"];
 const MEANS_IND_V1 = ["i want to", "i want"];
-const MEANS_IND_V2 = ["i'd like to", "i would like to", "i would like", "i need to", "i need", "i can", "i am able to", "i should be able to", "i want to be able to"];
+const MEANS_IND_V2 = ["i don't want to", "i don't want", "i do not want to", "i do not want", "i only want to", "i only want", "i'd like to", "i would like to", "i would like", "i need to", "i need", "i can", "i am able to", "i should be able to", "i want to be able to"];
 const ENDS_IND_V1 = ["so that"];
 const ENDS_IND_V2 = ["in order to", "so i can", "so we can", "so as to", "this way", "to be able to", "so"];
 
@@ -99,7 +99,8 @@ function hasVerb(s: string, o: AqusaOptions): boolean {
   const doc = nlp.readDoc(s);
   const words = doc.tokens().out(its.normal) as string[];
   const pos = doc.tokens().out(its.pos) as string[];
-  return pos.some((p, i) => p === "VERB" || (on(o, "verb-exceptions") && VERB_EXCEPTIONS.has(words[i])));
+  // "to be up-to-date", "to be appropriate": "be" + tính từ là vị ngữ hợp lệ (vòng 2, thiết kế của nhóm).
+  return pos.some((p, i) => p === "VERB" || (words[i] === "be" && i + 1 < pos.length) || (on(o, "verb-exceptions") && VERB_EXCEPTIONS.has(words[i])));
 }
 
 function hasNoun(s: string): boolean {
@@ -138,8 +139,14 @@ function atomic(c: Chunks, raw: string, o: AqusaOptions): AqusaDefect[] {
     const isV = (i: number) => p[i] === "VERB" || (on(o, "verb-exceptions") && VERB_EXCEPTIONS.has(w[i]));
     const conj = new Set(["and", "or", ...(on(o, "slash-gt") ? ["/", "\\", ">"] : [])]);
     const skip = new Set(["to", "also", "then", "can", "be", "able", "directly"]);
+    // Liên từ nằm trong mệnh đề phụ ("codes that reflect … and provide", "determine how agencies will generate and validate")
+    // nối hai vị ngữ của mệnh đề phụ, không phải hai tính năng (vòng 2, thiết kế của nhóm).
+    const SUB = new Set(["that", "which", "who", "how", "what", "when", "where", "whether", "if", "while"]);
+    const subAt = w.findIndex((x, k) => k > 0 && SUB.has(x));
     for (let i = 1; i < w.length - 1; i++) {
       if (!conj.has(w[i])) continue;
+      if (subAt > 0 && i > subAt) break;
+      if (w[i] === "/" && ["DET", "ADJ", "NUM"].includes(p[i - 2] ?? "")) continue; // "a custom query/report": danh từ ghép
       let j = i + 1;
       while (j < w.length && skip.has(w[j])) j++;
       const leftVerb = w.slice(0, i).some((_, k) => isV(k));
@@ -152,7 +159,7 @@ function atomic(c: Chunks, raw: string, o: AqusaOptions): AqusaDefect[] {
       }
     }
     if (!out.length) {
-      const m = means.match(/[;+]|\s&\s/);
+      const m = means.match(/;|\s[&+]\s/); // "ZIP+4", "C++" không phải liên từ
       if (m) out.push({ criterion: "atomic", code: "AT_SYMBOL", message: `The means contains "${m[0].trim()}", which usually joins two requirements.`, suggestion: "Split it into one story per action.", excerpt: m[0].trim(), paperRef: "§4.3" });
     }
   }
@@ -208,12 +215,15 @@ function minimal(c: Chunks, raw: string, o: AqusaOptions): AqusaDefect[] {
   // Ngoặc (§3.1 minimal, §4.3); v2 §6.6 bỏ qua viết tắt.
   for (const m of raw.matchAll(/[([{]([^)\]}]*)[)\]}]/g)) {
     if (on(o, "abbreviation") && isAbbreviation(raw.slice(0, m.index), m[1])) continue;
+    if (/^(s|es)$/i.test(m[1])) continue; // "Plan(s)": dấu số nhiều, không phải chú thích (vòng 2)
     out.push({ criterion: "minimal", code: "MN_BRACKET", message: `Extra detail in brackets: "${m[0]}".`, suggestion: "Move notes and examples to the acceptance criteria or the description.", excerpt: m[0], paperRef: on(o, "abbreviation") ? "§3.1, §6.6" : "§3.1" });
     break;
   }
   // Câu thêm sau story, hoặc ví dụ / ghi chú (§3.1: chỉ gồm role, means, ends).
   const body = raw.trim().replace(/[.!]+$/u, "");
-  const extra = body.match(/[.!?;:]\s+(\S.*)$/u) ?? body.match(/(?<![\p{L}])(e\.g\.|i\.e\.|for example|for instance|note:|etc\.?|like:)/iu);
+  // Câu thứ hai bắt đầu bằng "So that" chính là phần ends (vòng 2); "such as" là dấu hiệu ví dụ (vòng 2).
+  const second = body.match(/[.!?;:]\s+(\S.*)$/u);
+  const extra = (second && !/^so\s+that\b/i.test(second[1]) ? second : null) ?? body.match(/(?<![\p{L}])(e\.g\.|i\.e\.|for example|for instance|such as|note:|etc\.?|like:)/iu);
   if (extra && !out.some((d) => d.code === "MN_BRACKET"))
     out.push({ criterion: "minimal", code: "MN_EXTRA", message: `The story contains more than role, means and ends: "${extra[0].trim().slice(0, 60)}".`, suggestion: "Keep only role, means and ends; move the rest to the acceptance criteria.", excerpt: extra[0].trim().slice(0, 60), paperRef: "§3.1" });
   return out;
@@ -221,7 +231,7 @@ function minimal(c: Chunks, raw: string, o: AqusaOptions): AqusaDefect[] {
 
 /** Mẫu story = chuỗi cụm chỉ dấu đã dùng (UniformAnalyzer, §4.3), vd "as a|i want to|so that". */
 // Họ cụm chỉ dấu: "I want to", "I want to be able to" cùng mẫu "I want" (tinh chỉnh của nhóm trên tập dev).
-const family = (ind?: string) => (!ind ? "-" : ind === "as an" ? "as a" : ind.replace(/^i want( to( be able to)?)?$/, "i want").replace(/^i would like( to)?$|^i'd like to$/, "i would like").replace(/^i need( to)?$/, "i need"));
+const family = (ind?: string) => (!ind ? "-" : ind === "as an" ? "as a" : ind.replace(/^i (don't|do not) want( to)?$/, "i don't want").replace(/^i only want( to)?$/, "i only want").replace(/^i want( to( be able to)?)?$/, "i want").replace(/^i would like( to)?$|^i'd like to$/, "i would like").replace(/^i need( to)?$/, "i need"));
 export function templateOf(c: Chunks): string {
   return [family(c.roleIndicator), family(c.meansIndicator), family(c.endsIndicator)].join("|");
 }
@@ -232,19 +242,20 @@ const normText = (s: string) => s.normalize("NFC").toLowerCase().replace(/[^\p{L
 export function analyzeSet(texts: string[], o: AqusaOptions = {}): AqusaDefect[][] {
   const chunks = texts.map((t) => chunk(t, o));
   const res = texts.map((t, i) => [...wellFormed(chunks[i], o), ...atomic(chunks[i], t, o), ...minimal(chunks[i], t, o), ...endsRepeat(chunks[i], o)]);
-  // Uniform: lệch mẫu chiếm đa số trong bộ (cần ít nhất 2 story).
+  // Uniform: lệch mẫu chiếm đa số trong bộ (cần ít nhất 2 story). Đa số xác định riêng cho từng phần (vai trò, hành động,
+  // lý do); phần lý do chỉ xét các story có lý do – vì ends là tuỳ chọn (§3.1), story thiếu ends không tính là lệch (vòng 2).
   if (texts.length > 1) {
-    const count = new Map<string, number>();
-    for (const c of chunks) count.set(templateOf(c), (count.get(templateOf(c)) ?? 0) + 1);
-    const [major, n] = [...count.entries()].sort((a, b) => b[1] - a[1])[0];
-    if (n > 1)
-      chunks.forEach((c, i) => {
-        const t = templateOf(c);
-        // Thiếu phần ends không tính là lệch mẫu (ends là tuỳ chọn, §3.1); chỉ so các cụm chỉ dấu có mặt.
-        const [mr, mm, me] = major.split("|");
-        const [r, m, e] = t.split("|");
-        if (r !== mr || m !== mm || (e !== "-" && me !== "-" && e !== me)) res[i].push({ criterion: "uniform", code: "UN_TEMPLATE", message: `The story uses the template "${t.replace(/\|/g, " … ")}", unlike most stories ("${major.replace(/\|/g, " … ")}").`, suggestion: "Use the same template as the rest of the set.", paperRef: "§3.3 uniform, §4.3" });
-      });
+    const slots = chunks.map((c) => templateOf(c).split("|"));
+    const major = [0, 1, 2].map((k) => {
+      const count = new Map<string, number>();
+      for (const t of slots) if (k < 2 || t[2] !== "-") count.set(t[k], (count.get(t[k]) ?? 0) + 1);
+      const top = [...count.entries()].sort((a, b) => b[1] - a[1])[0];
+      return top && top[1] > 1 ? top[0] : null;
+    });
+    slots.forEach((t, i) => {
+      const off = (major[0] !== null && t[0] !== major[0]) || (major[1] !== null && t[1] !== major[1]) || (major[2] !== null && t[2] !== "-" && t[2] !== major[2]);
+      if (off) res[i].push({ criterion: "uniform", code: "UN_TEMPLATE", message: `The story uses the template "${t.join(" … ")}", unlike most stories ("${major.map((m) => m ?? "…").join(" … ")}").`, suggestion: "Use the same template as the rest of the set.", paperRef: "§3.3 uniform, §4.3" });
+    });
   }
   // Unique: trùng chính xác (sau khi chuẩn hoá chữ hoa và dấu câu), như AQUSA v1 (§5.1).
   const seen = new Map<string, number>();
