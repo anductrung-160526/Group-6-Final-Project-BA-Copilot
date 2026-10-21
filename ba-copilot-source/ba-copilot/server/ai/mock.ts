@@ -434,7 +434,8 @@ export function mockEditOps(tree: UINode, selectedIds: string[], instruction: st
     if (addButton) {
       // đọc "variant primary" / "action login" nếu prompt có ghi (vd từ gợi ý thành phần)
       const variant = text.match(/variant\s+(primary|secondary|danger|ghost)/i)?.[1] ?? "secondary";
-      const label = cap((quoted ?? addButton[1]).replace(/\s+(vào|ở|bên|cho|to|into|in|on|at|for)\s.*$/i, "").trim()); // vi-keep: giới từ tiếng Việt cũ
+      // Nhãn trong ngoặc kép giữ nguyên ("Sign in with Google"); không có ngoặc thì bỏ phần chỉ vị trí phía sau
+      const label = cap(quoted ? quoted.trim() : addButton[1].replace(/\s+(vào|ở|bên|cho|to|into|in|on|at|for)\s.*$/i, "").trim()); // vi-keep: giới từ tiếng Việt cũ
       const action = text.match(/action\s+([a-z_]+)/i)?.[1] ?? (actionOf(label) !== "click" ? actionOf(label) : undefined);
       insertNear(n, { type: "Button", props: { label, variant, ...(action ? { action } : {}) } });
     }
@@ -461,7 +462,7 @@ export function mockEditOps(tree: UINode, selectedIds: string[], instruction: st
       } else insertNear(n, node);
     }
     if (addField) {
-      const label = cap((quoted ?? addField[1]).replace(/\s+(vào|ở|bên|cho|to|into|in|on|at|for)\s.*$/i, "").trim()); // vi-keep: giới từ tiếng Việt cũ
+      const label = cap(quoted ? quoted.trim() : addField[1].replace(/\s+(vào|ở|bên|cho|to|into|in|on|at|for)\s.*$/i, "").trim()); // vi-keep: giới từ tiếng Việt cũ
       const search = /tìm kiếm|search/i.test(label); // vi-keep: nhãn "Tìm kiếm" cũ
       insertNear(n, { type: "Input", props: { label, name: search ? "keyword" : snake(label), placeholder: search ? "Enter keywords..." : `Enter ${label.toLowerCase()}`, ...(setType ? { inputType: setType } : {}), ...(minLen ? { minLength: Number(minLen) } : {}), ...(isRequired ? { required: true } : {}) } });
     }

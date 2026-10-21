@@ -145,9 +145,9 @@ async function step(name, fn) {
 
 // ------------------------------------------------------------------ thao tác dùng lại
 const tid = (id, p = page) => p.getByTestId(id);
-const LEAD = "Trần Thu Hà";
-const BA = "Nguyễn Văn Minh";
-const MODULE = "Quản lý đơn hàng";
+const LEAD = "Ha Tran";
+const BA = "Minh Nguyen";
+const MODULE = "Order Management";
 let projectId = "";
 let moduleId = "";
 let leadId = "";
@@ -183,9 +183,9 @@ async function columnOf(title) {
   for (const s of ["todo", "doing", "done", "approved"]) if (await card(s, title).count()) return s;
   return null;
 }
-const COL = { todo: "Cần làm", doing: "Đang làm", done: "Xong", approved: "Đã duyệt" };
+const COL = { todo: "To do", doing: "In progress", done: "Done", approved: "Approved" };
 const DOCS = ["BRD", "UC_SPEC", "SRS", "FRD_NFR", "API_SPEC"];
-const TASK_TITLE = "Viết API Spec module Đơn hàng";
+const TASK_TITLE = "Write the API Spec for the Orders module";
 
 try {
   // ================================================================ 1. Chuẩn bị
@@ -197,7 +197,7 @@ try {
     await page.reload();
     check((await tid("me-picker").locator("option:checked").innerText()).includes(BA), `"Tôi là" nhớ ${BA} sau khi tải lại`);
     await tid("new-project").click();
-    await tid("project-name").fill("Bán hàng đa kênh (E2E)");
+    await tid("project-name").fill("Omnichannel Sales (E2E)");
     await tid("create-project").click();
     await page.waitForURL(/#\/p\/[^/]+\/tasks/);
     projectId = decodeURIComponent(page.url().match(/#\/p\/([^/]+)\//)[1]);
@@ -212,7 +212,7 @@ try {
     await tid("go-stories").click();
     await tid("stories-view").waitFor();
     check(await tid("story-add").isDisabled(), "dự án chưa có module → nút Thêm user story bị khoá");
-    check((await tid("story-add-hint").innerText()).includes("Tạo module trước"), 'có lời nhắc "Tạo module trước…"');
+    check((await tid("story-add-hint").innerText()).includes("Create a module before"), 'có lời nhắc "Tạo module trước…"');
     await shot("02a-chua-co-module");
     await tid("new-module").click();
     await tid("module-name").fill(MODULE);
@@ -223,8 +223,8 @@ try {
     // Task gắn tài liệu API Spec (BA Lead giao) – để kiểm tra task đi theo vòng Xong / Yêu cầu sửa / Duyệt
     taskId = (await api("POST", `/api/projects/${projectId}/tasks`, { title: TASK_TITLE, moduleId, assigneeId: baId, artifactType: "doc", artifactId: moduleId, artifactSub: "API_SPEC", actorId: leadId })).id;
     const stories = [
-      { asA: "nhân viên bán hàng", iWant: "xem danh sách đơn hàng theo trạng thái", soThat: "xử lý đơn mới trong ngày", ac: ["Mặc định lọc đơn Mới", "Hiện tối đa 20 đơn, mới nhất trước"], priority: "High" },
-      { asA: "nhân viên bán hàng", iWant: "huỷ đơn hàng chưa giao", soThat: "trả lại tồn kho khi khách đổi ý", ac: ["Bắt buộc nhập lý do huỷ"], priority: "Medium" },
+      { asA: "sales clerk", iWant: "view the list of orders by status", soThat: "I can process new orders the same day", ac: ["Filter defaults to New orders", "Show at most 20 orders, newest first"], priority: "High" },
+      { asA: "sales clerk", iWant: "cancel an order that has not been delivered", soThat: "stock is returned when the customer changes their mind", ac: ["A cancellation reason is required"], priority: "Medium" },
     ];
     for (const [i, s] of stories.entries()) {
       await tid("story-add").click();
@@ -294,10 +294,10 @@ try {
   await step("5. Prototype", async () => {
     await page.goto(work("prototype"));
     await tid("new-screen").click();
-    await tid("screen-name").fill("Danh sách đơn hàng");
-    await tid("screen-prompt").fill("Danh sách đơn hàng: lọc theo trạng thái, bảng có cột Mã đơn, Khách hàng, Tổng tiền, Ngày đặt, Trạng thái; nút Huỷ đơn.");
+    await tid("screen-name").fill("Order List");
+    await tid("screen-prompt").fill("Order list: filter by status, a table with columns Order no, Customer, Total, Order date, Status; Cancel order button.");
     await tid("generate-screen").click();
-    await page.locator(".screen-item", { hasText: "Danh sách đơn hàng" }).waitFor({ timeout: 20000 });
+    await page.locator(".screen-item", { hasText: "Order List" }).waitFor({ timeout: 20000 });
     await tid("canvas").waitFor();
     check(true, "AI (Mock) sinh 1 màn");
     const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 10000 }), tid("export-html").click()]);
@@ -350,7 +350,7 @@ try {
     await waitStatus("draft");
     await tid("doc-edit").click();
     const box = tid("doc-editor-text");
-    await box.fill((await box.inputValue()) + "\n\n## Ghi chú\n- Bổ sung mã lỗi 409 khi huỷ đơn đã giao.\n");
+    await box.fill((await box.inputValue()) + "\n\n## Notes\n- Add error code 409 when cancelling a delivered order.\n");
     await tid("doc-editor-save").click();
     await tid("doc-editor").waitFor({ state: "detached" });
     await tid("approval-bar-done").click();
@@ -366,7 +366,7 @@ try {
     await page.goto(work("docs", "API_SPEC"));
     await waitStatus("done");
     await tid("approval-bar-approve").click();
-    const gitMsg = await toastWith("Chưa cấu hình GitHub");
+    const gitMsg = await toastWith("GitHub is not configured");
     await waitStatus("approved");
     check(true, "API Spec → Đã duyệt");
     expect(gitMsg, 'màn Tài liệu báo "Chưa cấu hình GitHub – chưa đẩy" khi duyệt (dự án chưa cấu hình repo)');
@@ -379,7 +379,7 @@ try {
     await page.goto(work("tests"));
     await waitStatus("done", "tests-approval");
     await tid("tests-approval-approve").click();
-    expect(await toastWith("Chưa cấu hình GitHub"), 'màn Test case báo "Chưa cấu hình GitHub – chưa đẩy" khi duyệt');
+    expect(await toastWith("GitHub is not configured"), 'màn Test case báo "Chưa cấu hình GitHub – chưa đẩy" khi duyệt');
     await waitStatus("approved", "tests-approval");
     const hist = await api("GET", `/api/projects/${projectId}/git/history`);
     check(hist.configured === false, "Lịch sử GitHub: dự án chưa cấu hình, không đẩy");
@@ -397,18 +397,18 @@ try {
       await tid("story-US-01-edit", p).click();
       await tid("story-editor", p).waitFor();
     }
-    await tid("story-iWant").fill("xem danh sách đơn hàng theo trạng thái và kênh bán");
+    await tid("story-iWant").fill("view the list of orders by status and sales channel");
     await tid("story-save").click();
     await tid("story-editor").waitFor({ state: "detached" });
-    await tid("story-iWant", page2).fill("xem danh sách đơn hàng mới nhất");
+    await tid("story-iWant", page2).fill("view the latest orders");
     await tid("story-save", page2).click();
     const notice = tid("conflict-notice", page2);
     await notice.waitFor({ timeout: 5000 });
-    check(/Bản đã thay đổi/.test(await notice.innerText()), 'tab lưu sau thấy "Bản đã thay đổi – tải lại"');
+    check(/This version has changed/.test(await notice.innerText()), 'tab lưu sau thấy "Bản đã thay đổi – tải lại"');
     await shot("ca-2-tab-xung-dot", page2);
     await tid("conflict-notice-reload", page2).click();
     const fresh = await page2
-      .waitForFunction(() => document.querySelector('[data-testid="story-iWant"]')?.value.includes("kênh bán"), null, { timeout: 5000 })
+      .waitForFunction(() => document.querySelector('[data-testid="story-iWant"]')?.value.includes("sales channel"), null, { timeout: 5000 })
       .then(() => true)
       .catch(() => false);
     check(fresh && (await tid("conflict-notice", page2).count()) === 0, "bấm Tải lại → nhận bản mới của tab kia, hết thông báo");
