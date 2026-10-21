@@ -22,3 +22,4 @@ Ca biên đã chốt:
 - Chia theo bộ gốc: **dev = g04** (dùng để chỉnh luật), **test = g02 + g03** (chấm một lần sau khi khoá luật).
 - Nhãn (`labels.jsonl`) do AI gán theo hướng dẫn này, mỗi lỗi kèm lý do, **commit trước khi chạy bộ chấm mới lên dữ liệu**.
 - Ca biên đã quyết khi gán: "Upload and Validate" (g02-012) là tên trang, không tính atomic; "enter my zip code and get a list" (g04-003), "browse … and see …" (g04-048) là một luồng tìm kiếm, không tính atomic; "I want to" và "I want to be able to" cùng mẫu "I want"; câu tách đôi ". So that" (g03-020) không tính lỗi; lỗi chính tả không tính lỗi.
+- **Sửa nhãn trên tập dev (sau lần chạy dev đầu tiên):** g04-006 uniform đổi sai → đúng, vì nhãn ban đầu mâu thuẫn với quy tắc đã áp cho g02-040 ("so I can" lệch mẫu). Không sửa nhãn nào của tập test.

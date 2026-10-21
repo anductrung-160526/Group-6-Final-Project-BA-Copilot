@@ -85,7 +85,7 @@ export function chunk(text: string, o: AqusaOptions = {}): Chunks {
 }
 
 // §6.4: động từ hay bị bộ gán nhãn hiểu nhầm thành danh từ trong ngữ cảnh phần mềm.
-const VERB_EXCEPTIONS = new Set(["select", "support", "import", "export", "filter", "search", "view", "update", "upload", "download", "edit", "print", "sort", "share", "log", "sign", "access", "manage", "review", "track", "tag", "comment", "rate", "book", "order", "schedule", "post", "list", "copy", "move", "archive", "save", "add", "delete", "remove", "create", "change"]);
+const VERB_EXCEPTIONS = new Set(["select", "support", "import", "export", "filter", "search", "view", "update", "upload", "download", "edit", "print", "sort", "share", "log", "sign", "access", "manage", "review", "track", "tag", "comment", "rate", "book", "order", "schedule", "post", "list", "copy", "move", "archive", "save", "add", "delete", "remove", "create", "change", "do", "get", "keep", "check", "enter", "browse", "give", "receive", "send", "post"]);
 
 function hasVerb(s: string, o: AqusaOptions): boolean {
   const doc = nlp.readDoc(s);
@@ -120,21 +120,33 @@ const CONJ_WORDS = ["and", "or", "as well as", "and/or"];
 function atomic(c: Chunks, raw: string, o: AqusaOptions): AqusaDefect[] {
   const out: AqusaDefect[] = [];
   const means = c.means ?? "";
-  // Liên từ trong phần hành động: vi phạm khi cả hai bên đều có động từ (§4.3, §6.4).
-  const re = new RegExp(`\\s(${CONJ_WORDS.map(esc).join("|")})\\s`, "iu");
-  const parts = means.split(re);
-  for (let i = 1; i + 1 < parts.length; i += 2) {
-    const left = parts.slice(0, i).join(" ");
-    const right = parts.slice(i + 1).join(" ");
-    if (hasVerb(left, o) && hasVerb(right.split(/[,.;]/)[0], o)) {
-      out.push({ criterion: "atomic", code: "AT_CONJ", message: `The means joins two actions with "${parts[i]}".`, suggestion: "Split it into one story per action.", excerpt: `${left.split(/\s+/).slice(-2).join(" ")} ${parts[i]} ${right.split(/\s+/).slice(0, 2).join(" ")}`, paperRef: "§3.1 atomic, §4.3, §6.4" });
-      break;
+  // Liên từ (and/or, và v2 §6.3: "/", "\\", ">") trong phần hành động: vi phạm khi hai vế đều là cụm động từ (§4.3, §6.4).
+  // Gán nhãn từ loại trên cả câu "I want to <means>" để bộ gán nhãn có ngữ cảnh. Vế sau phải MỞ ĐẦU bằng động từ
+  // (bỏ qua "to/also/then/can"), để "update my info and the type of material I accept" không bị tính – tinh chỉnh của nhóm trên tập dev.
+  if (means) {
+    const doc = nlp.readDoc(`I want to ${means}`);
+    const w = (doc.tokens().out(its.normal) as string[]).slice(3);
+    const p = (doc.tokens().out(its.pos) as string[]).slice(3);
+    const isV = (i: number) => p[i] === "VERB" || (on(o, "verb-exceptions") && VERB_EXCEPTIONS.has(w[i]));
+    const conj = new Set(["and", "or", ...(on(o, "slash-gt") ? ["/", "\\", ">"] : [])]);
+    const skip = new Set(["to", "also", "then", "can", "be", "able", "directly"]);
+    for (let i = 1; i < w.length - 1; i++) {
+      if (!conj.has(w[i])) continue;
+      let j = i + 1;
+      while (j < w.length && skip.has(w[j])) j++;
+      const leftVerb = w.slice(0, i).some((_, k) => isV(k));
+      const rightVerb = j < w.length && isV(j);
+      // "/" chỉ nối khi hai từ kề nhau đều là động từ ("create/edit"), không tính "UI/UX", "query/report".
+      const ok = w[i] === "and" || w[i] === "or" ? leftVerb && rightVerb : isV(i - 1) && isV(i + 1);
+      if (ok) {
+        out.push({ criterion: "atomic", code: "AT_CONJ", message: `The means joins two actions with "${w[i]}".`, suggestion: "Split it into one story per action.", excerpt: w.slice(Math.max(0, i - 2), j + 1).join(" "), paperRef: w[i] === "and" || w[i] === "or" ? "§3.1 atomic, §4.3, §6.4" : "§6.3" });
+        break;
+      }
     }
-  }
-  if (!out.length) {
-    const sym = on(o, "slash-gt") ? /[&+;/\\>]/ : /[&+;]/; // §6.3: "/", "\", ">" là liên từ
-    const m = means.match(sym);
-    if (m && !/\bhttps?:|\w\/\w+\//.test(means)) out.push({ criterion: "atomic", code: "AT_SYMBOL", message: `The means contains "${m[0]}", which usually joins two requirements.`, suggestion: "Split it into one story per action.", excerpt: m[0], paperRef: on(o, "slash-gt") ? "§4.3, §6.3" : "§4.3" });
+    if (!out.length) {
+      const m = means.match(/[;+]|\s&\s/);
+      if (m) out.push({ criterion: "atomic", code: "AT_SYMBOL", message: `The means contains "${m[0].trim()}", which usually joins two requirements.`, suggestion: "Split it into one story per action.", excerpt: m[0].trim(), paperRef: "§4.3" });
+    }
   }
   // Ký hiệu trong vai trò (§6.5): "R&D Manager" không phải hai vai trò.
   const role = c.role ?? "";
@@ -161,6 +173,13 @@ function atomic(c: Chunks, raw: string, o: AqusaOptions): AqusaDefect[] {
       out.push({ criterion: "atomic", code: "AT_REPEAT", message: `An indicator occurs twice ("${roles.length > 1 ? roles[1] : wants[1]}"), so the story probably holds two requirements.`, suggestion: "Split it into separate stories.", paperRef: "§6.2" });
   }
   return out;
+}
+
+// §6.2 mở rộng cho phần ends: hai cụm lý do lồng nhau ("…, so I have …, so that …") – xếp vào minimal (thiết kế của nhóm).
+function endsRepeat(c: Chunks, o: AqusaOptions): AqusaDefect[] {
+  if (!on(o, "chunk-repetition") || !c.ends) return [];
+  const m = c.ends.match(/(?<![\p{L}])so that(?![\p{L}])/iu);
+  return m ? [{ criterion: "minimal", code: "MN_ENDS_REPEAT", message: "The story has two reasons (ends) one after another.", suggestion: "Keep one reason; move the rest to the description.", excerpt: c.ends.slice(0, 50), paperRef: "§6.2" }] : [];
 }
 
 // §6.6: một cụm trong ngoặc là viết tắt của các chữ ngay trước nó, vd "Content Management System (CMS)".
@@ -193,8 +212,10 @@ function minimal(c: Chunks, raw: string, o: AqusaOptions): AqusaDefect[] {
 }
 
 /** Mẫu story = chuỗi cụm chỉ dấu đã dùng (UniformAnalyzer, §4.3), vd "as a|i want to|so that". */
+// Họ cụm chỉ dấu: "I want to", "I want to be able to" cùng mẫu "I want" (tinh chỉnh của nhóm trên tập dev).
+const family = (ind?: string) => (!ind ? "-" : ind === "as an" ? "as a" : ind.replace(/^i want( to( be able to)?)?$/, "i want").replace(/^i would like( to)?$|^i'd like to$/, "i would like").replace(/^i need( to)?$/, "i need"));
 export function templateOf(c: Chunks): string {
-  return [c.roleIndicator === "as an" ? "as a" : (c.roleIndicator ?? "-"), c.meansIndicator ?? "-", c.endsIndicator ?? "-"].join("|");
+  return [family(c.roleIndicator), family(c.meansIndicator), family(c.endsIndicator)].join("|");
 }
 
 const normText = (s: string) => s.normalize("NFC").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
@@ -202,7 +223,7 @@ const normText = (s: string) => s.normalize("NFC").toLowerCase().replace(/[^\p{L
 /** Chấm một bộ story (cùng module/dự án). Trả về lỗi theo từng story. */
 export function analyzeSet(texts: string[], o: AqusaOptions = {}): AqusaDefect[][] {
   const chunks = texts.map((t) => chunk(t, o));
-  const res = texts.map((t, i) => [...wellFormed(chunks[i], o), ...atomic(chunks[i], t, o), ...minimal(chunks[i], t, o)]);
+  const res = texts.map((t, i) => [...wellFormed(chunks[i], o), ...atomic(chunks[i], t, o), ...minimal(chunks[i], t, o), ...endsRepeat(chunks[i], o)]);
   // Uniform: lệch mẫu chiếm đa số trong bộ (cần ít nhất 2 story).
   if (texts.length > 1) {
     const count = new Map<string, number>();

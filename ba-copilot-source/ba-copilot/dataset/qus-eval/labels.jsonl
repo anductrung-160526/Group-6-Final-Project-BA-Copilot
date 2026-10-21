@@ -159,7 +159,7 @@
 {"id": "g04-003", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g04-004", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g04-005", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
-{"id": "g04-006", "defects": {"well-formed": false, "atomic": true, "minimal": true, "uniform": false, "unique": false}, "reasons": {"atomic": "hai hành động: select types … so I have and get a list", "minimal": "hai phần lý do lồng nhau (\"so I have and get …, so that …\")"}}
+{"id": "g04-006", "defects": {"well-formed": false, "atomic": true, "minimal": true, "uniform": true, "unique": false}, "reasons": {"atomic": "hai hành động: select types … so I have and get a list", "minimal": "hai phần lý do lồng nhau (\"so I have and get …, so that …\")", "uniform": "ends dùng \"so I have\" thay \"so that\" (cùng quy tắc với g02-040)"}}
 {"id": "g04-007", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g04-008", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
 {"id": "g04-009", "defects": {"well-formed": false, "atomic": false, "minimal": false, "uniform": false, "unique": false}, "reasons": {}}
