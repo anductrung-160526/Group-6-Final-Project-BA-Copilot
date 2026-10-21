@@ -96,7 +96,7 @@ test("statusReason / artifactTitle: lý do tiếng Việt ghi rõ sản phẩm",
   assert.equal(statusReason("artifact.done", "diagram", "Xác thực", "ERD"), "BA bấm Xong Sơ đồ ERD – Xác thực");
   assert.equal(statusReason("artifact.drafted", "screen", "Đăng nhập"), "Màn hình “Đăng nhập” có bản nháp mới");
   assert.equal(statusReason("artifact.drafted", "tests"), "Bộ test vừa được sinh");
-  assert.equal(statusReason("artifact.stale", "doc", "Xác thực", "SRS"), "Tài liệu SRS – Xác thực thành Lỗi thời do bước trước thay đổi");
+  assert.equal(statusReason("artifact.stale", "doc", "Xác thực", "SRS"), "Tài liệu SRS – Xác thực thành Bản cũ do bước trước thay đổi");
   assert.equal(statusReason("artifact.unapproved", "docs", "Xác thực"), "Tài liệu (cũ) – Xác thực bị bỏ duyệt");
   assert.equal(artifactTitle("diagram", null, "M"), "Sơ đồ Use Case – M", "sơ đồ thiếu sub = UC");
   assert.equal(artifactTitle("doc", "UC_SPEC", "M"), "Tài liệu UC Specification – M");

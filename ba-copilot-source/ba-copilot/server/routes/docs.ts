@@ -4,7 +4,7 @@
 //  - Sinh bước N cần bước N−1 ở trạng thái Xong/Đã duyệt (quyết định 8); BRD cần ≥ 1 user story của module.
 //    Bỏ BR-01: không cần màn hình đã duyệt.
 //  - Mọi lần ghi nội dung: assertRev → ghi → bumpRev → về `draft` (sinh lại luôn về draft; sửa tay / chỉnh AI khi đang
-//    none/done/approved, Lỗi thời giữ nguyên) → phát `artifact.drafted` { kind "doc", sub }.
+//    none/done/approved, Bản cũ giữ nguyên) → phát `artifact.drafted` { kind "doc", sub }.
 //  - Các bước sau đang có (không phải none/outdated) → `outdated` + `artifact.stale`. Bước BRD…FRD-NFR đổi → bộ test
 //    của module (kind "tests") đang có → `outdated` + `artifact.stale` (test dựa trên UC/FRD, đổi bắc cầu).
 //  - Nhật ký AI (prompt_runs) do runAI ghi.
@@ -16,6 +16,7 @@ import { emit } from "../events.ts";
 import { DOC_KINDS, DOC_KIND_LABEL } from "../../shared/types.ts";
 import type { ArtifactRef, DocKind, ModuleDoc, ModuleDocData, Requirement } from "../../shared/types.ts";
 import * as docs from "../repo/docs.ts";
+import { prereqBlockReason } from "../../shared/prereq.ts";
 import {
   coerceDocRequirement,
   coerceDocUseCase,
@@ -32,7 +33,6 @@ import {
 
 const MAX_CONTENT = 400_000;
 const LIVE = (s: string) => s !== "none" && s !== "outdated";
-const READY = (s: string) => s === "done" || s === "approved";
 
 function mustModule(id: string) {
   const m = docs.getModuleInfo(id);
@@ -48,18 +48,22 @@ function mustKind(k: string): DocKind {
 const label = (k: DocKind) => DOC_KIND_LABEL[k];
 const prevKind = (k: DocKind): DocKind | null => DOC_KINDS[DOC_KINDS.indexOf(k) - 1] ?? null;
 
-/** Lý do chưa sinh được bước `kind` (null = sinh được). Dùng cho kiểm tra trước và sau khi gọi AI. */
+/**
+ * Lý do chưa sinh được bước `kind` (null = sinh được). Dùng cho kiểm tra trước và sau khi gọi AI.
+ * Luật chung với nút Xong / Duyệt: shared/prereq.ts (D2 đợt 6).
+ */
 export function generateBlockReason(moduleId: string, kind: DocKind): string | null {
-  const prev = prevKind(kind);
-  if (!prev) return docs.listModuleStories(moduleId).length ? null : "Module chưa có user story. Hãy thêm ít nhất một user story ở mục Yêu cầu nghiệp vụ trước khi sinh BRD.";
-  const p = docs.getDoc(moduleId, prev);
-  return READY(p.status) ? null : `Bước trước (${label(prev)}) chưa Xong. Hãy hoàn thành và bấm Xong cho ${label(prev)} trước khi sinh ${label(kind)}.`;
+  return prereqBlockReason(
+    { kind: "doc", sub: kind },
+    { docStatus: (k) => docs.getDoc(moduleId, k).status, storyCount: prevKind(kind) ? undefined : docs.listModuleStories(moduleId).length },
+    "generate",
+  );
 }
 
 /**
  * Ghi nội dung một tài liệu trong một giao dịch, theo quy ước chung đợt 5. `mode`:
  * - "generate": sinh lại → luôn về `draft`;
- * - "edit": sửa tay / chỉnh AI → về `draft` khi đang none/done/approved (Lỗi thời giữ nguyên).
+ * - "edit": sửa tay / chỉnh AI → về `draft` khi đang none/done/approved (Bản cũ giữ nguyên).
  */
 function commit(
   moduleId: string,
@@ -77,7 +81,7 @@ function commit(
     bumpRev(ref, opts.actorId);
     if ((opts.mode === "generate" || before.status !== "outdated") && before.status !== "draft") setArtifactState(ref, { status: "draft" });
     emit({ type: "artifact.drafted", artifact: ref, actorId: opts.actorId });
-    // Các bước sau thành Lỗi thời
+    // Các bước sau thành Bản cũ
     for (const k of DOC_KINDS.slice(DOC_KINDS.indexOf(kind) + 1)) {
       const r = docs.docRef(moduleId, k);
       const s = getArtifactState(r);

@@ -121,7 +121,7 @@ test("Mock: sinh đủ chuỗi 5 bước, chặn khi bước trước chưa Xong
   assert.deepEqual(runs.map((r) => r.type), ["generate_doc_brd", "generate_doc_uc_spec", "generate_doc_srs", "generate_doc_frd_nfr", "generate_doc_api_spec"]);
 });
 
-test("Sinh lại bước trước → các bước sau và bộ test thành Lỗi thời + artifact.stale; sửa bản đang Xong về draft", async () => {
+test("Sinh lại bước trước → các bước sau và bộ test thành Bản cũ + artifact.stale; sửa bản đang Xong về draft", async () => {
   const { pid, mid } = await setup("Kho");
   addStory(pid, mid, { asA: "thủ kho", iWant: "nhập kho hàng hoá", ac: ["Số lượng phải lớn hơn 0"] });
   for (const k of ["BRD", "UC_SPEC", "SRS", "FRD_NFR"] as DocKind[]) {
@@ -146,7 +146,7 @@ test("Sinh lại bước trước → các bước sau và bộ test thành Lỗ
     ["artifact.drafted:doc:UC_SPEC", "artifact.stale:doc:SRS", "artifact.stale:doc:FRD_NFR", "artifact.stale:tests:"],
   );
 
-  // SRS đang Lỗi thời → không sinh được FRD-NFR
+  // SRS đang Bản cũ → không sinh được FRD-NFR
   assert.equal((await gen(mid, "FRD_NFR")).status, 400);
 });
 

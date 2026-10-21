@@ -21,6 +21,7 @@ import { workHref, type WorkStepProps } from "../projectMenu.ts";
 import { Mermaid, parseMermaid } from "../components/Mermaid.tsx";
 import { ApprovalBar, Badge, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Icon, StatusBadge, Tabs, useUI } from "../components/ui.tsx";
 import { BPMN_NOTE, checkDiagram, diagramBlockReason, diagramMarkdown, DIAGRAM_FILE, DIAGRAM_HINT, DIAGRAM_SOURCES } from "../../shared/diagrams.ts";
+import { doneBlockReason } from "../../shared/prereq.ts";
 import { DIAGRAM_KINDS, DIAGRAM_KIND_LABEL, type ApprovalResult, type ArtifactStatus, type DiagramKind, type DiagramPart, type DocKind, type ModuleDiagram } from "../../shared/types.ts";
 
 const PREVIEW_DELAY_MS = 400;
@@ -63,6 +64,8 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
   const dirty = !!d && (isSeq ? JSON.stringify(parts) !== JSON.stringify(d.parts) : code !== d.code);
   const blockReason = diagramBlockReason(kind, (k) => docStatus[k] ?? "none");
   const exists = !!d && d.status !== "none";
+  // Nút Xong khoá khi tài liệu nguồn chưa Xong (cùng luật với nút Sinh – shared/prereq.ts); server cũng chặn.
+  const doneLock = d && (d.status === "draft" || d.status === "outdated") ? (doneBlockReason({ kind: "diagram", sub: kind }, { docStatus: (k) => docStatus[k] }) ?? undefined) : undefined;
 
   const applyDiagram = (x: ModuleDiagram | null) => {
     setCode(x?.code ?? "");
@@ -239,7 +242,7 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
             revisionRequested={d.revisionRequested}
             isLead={isLead}
             busy={busy}
-            disabledReason={dirty ? "Lưu mã trước khi bấm Xong" : undefined}
+            disabledReason={dirty ? "Lưu mã trước khi bấm Xong" : doneLock}
             onDone={() => approval("Đã đánh dấu Xong", () => markArtifactDone("diagram", moduleId, ref()))}
             onApprove={() => approval("Đã duyệt sơ đồ", () => approveArtifact("diagram", moduleId, ref()))}
             onRequestChange={() => approval("Đã yêu cầu sửa", () => requestArtifactChange("diagram", moduleId, { sub: kind, actorId: currentMemberId() }))}

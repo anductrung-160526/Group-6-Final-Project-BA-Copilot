@@ -362,7 +362,7 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
               <RowActions
                 onEdit={() => startEdit(draftOf(s))}
                 onDelete={() => remove(s)}
-                deleteConfirm={{ title: `Xoá ${s.code}?`, message: "Tài liệu đang có của module sẽ chuyển Lỗi thời." }}
+                deleteConfirm={{ title: `Xoá ${s.code}?`, message: "Tài liệu đang có của module sẽ thành Bản cũ." }}
                 testId={`story-${s.code}`}
               />
             </span>

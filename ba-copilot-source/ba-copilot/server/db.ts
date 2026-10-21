@@ -7,6 +7,8 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { randomUUID } from "node:crypto";
 import { splitStories } from "../shared/qus.ts";
+import { isReady, prereqBlockReason, type PrereqFacts, type PrereqTarget } from "../shared/prereq.ts";
+import { DOC_KINDS } from "../shared/types.ts";
 import type {
   ArtifactRef,
   ArtifactState,
@@ -350,7 +352,49 @@ export function migrateData(d: DatabaseSync): string[] {
   once("d5.docs", ["module_docs", "use_cases", "requirements", "srs"], () => migrateLegacyDocs(d));
   once("d5.diagrams", ["module_diagrams", "sequences", "uc_diagrams"], () => migrateLegacyDiagrams(d));
   once("d5.stories", ["user_stories", "projects"], () => migrateRequirementInput(d));
+  once("d6.prereq", ["module_docs", "module_diagrams", "tasks", "task_events"], () => normalizePrereqStates(d));
   return done;
+}
+
+/**
+ * Đợt 6 (D2): dữ liệu cũ vi phạm luật bước tiên quyết (shared/prereq.ts) → Bản cũ.
+ * Nguồn gốc: "d5.docs"/"d5.diagrams" chép nguyên `modules.docs_status` (vd Đã duyệt) sang UC Spec / SRS / FRD-NFR /
+ * Sequence trong khi BRD (và Context, BPMN, ERD) chưa từng có – nên có UC Spec Đã duyệt khi BRD chưa Xong.
+ * Sản phẩm Xong / Đã duyệt có bước tiên quyết chưa Xong → `outdated` (giữ nội dung, rev, cờ Yêu cầu sửa); task gắn kèm
+ * đang Xong / Đã duyệt → Đang làm (ghi task_events của hệ thống). Luật user story của BRD không xét (không đoán dữ liệu).
+ */
+function normalizePrereqStates(d: DatabaseSync): void {
+  const at = nowIso();
+  const docStatus = (m: string, k: DocKind) =>
+    ((d.prepare("SELECT status FROM module_docs WHERE module_id = ? AND kind = ?").get(m, k) as { status: ArtifactStatus } | undefined)?.status ?? "none");
+  const reason = "Bước trước chưa Xong – chuẩn hoá dữ liệu cũ, sản phẩm thành Bản cũ";
+  const syncTasks = (where: string, args: string[]) => {
+    const rows = d.prepare(`SELECT id, status FROM tasks WHERE status IN ('done','approved') AND ${where}`).all(...args) as { id: string; status: string }[];
+    for (const t of rows) {
+      d.prepare("UPDATE tasks SET status = 'doing', updated_at = ? WHERE id = ?").run(at, t.id);
+      d.prepare("INSERT INTO task_events (id, task_id, from_status, to_status, by_member_id, by_system, reason, created_at) VALUES (?, ?, ?, 'doing', NULL, 1, ?, ?)").run(randomUUID(), t.id, t.status, reason, at);
+    }
+  };
+  const modules = d.prepare("SELECT id, docs_status FROM modules").all() as { id: string; docs_status: string }[];
+  for (const m of modules) {
+    const facts: PrereqFacts = { docStatus: (k) => docStatus(m.id, k), legacyDocsApproved: m.docs_status === "approved" };
+    const bad = (t: PrereqTarget, st: string) => isReady(st) && !!prereqBlockReason(t, facts, "done");
+    for (const k of DOC_KINDS) {
+      if (!bad({ kind: "doc", sub: k }, docStatus(m.id, k))) continue;
+      d.prepare("UPDATE module_docs SET status = 'outdated' WHERE module_id = ? AND kind = ?").run(m.id, k);
+      syncTasks("artifact_type = 'doc' AND artifact_id = ? AND artifact_sub = ?", [m.id, k]);
+    }
+    for (const r of d.prepare("SELECT kind, status FROM module_diagrams WHERE module_id = ?").all(m.id) as { kind: DiagramKind; status: string }[]) {
+      if (!bad({ kind: "diagram", sub: r.kind }, r.status)) continue;
+      d.prepare("UPDATE module_diagrams SET status = 'outdated' WHERE module_id = ? AND kind = ?").run(m.id, r.kind);
+      syncTasks("artifact_type = 'diagram' AND artifact_id = ? AND COALESCE(artifact_sub, 'UC') = ?", [m.id, r.kind]);
+    }
+    const tests = d.prepare("SELECT tests_status AS s FROM modules WHERE id = ?").get(m.id) as { s: string } | undefined;
+    if (tests && bad({ kind: "tests" }, tests.s)) {
+      d.prepare("UPDATE modules SET tests_status = 'outdated' WHERE id = ?").run(m.id);
+      syncTasks("artifact_type = 'tests' AND artifact_id = ?", [m.id]);
+    }
+  }
 }
 
 /**

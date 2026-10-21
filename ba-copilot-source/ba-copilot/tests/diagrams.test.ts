@@ -1,5 +1,5 @@
 // Test sơ đồ theo bước (C6): Mock sinh đủ 5 loại hợp lệ, chặn khi nguồn chưa Xong, 409, lưu mã sai bị từ chối,
-// nguồn đổi → Lỗi thời. Mã sinh ra được kiểm bằng bộ kiểm tra của shared/diagrams.ts VÀ trình phân tích Mermaid thật.
+// nguồn đổi → Bản cũ. Mã sinh ra được kiểm bằng bộ kiểm tra của shared/diagrams.ts VÀ trình phân tích Mermaid thật.
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import type { Server } from "node:http";
@@ -166,7 +166,7 @@ test("sinh: chặn khi tài liệu nguồn chưa Xong, báo rõ tài liệu nào
   setDoc("FRD_NFR", "outdated", "", { requirements: REQS });
   r = await gen("ERD");
   assert.equal(r.status, 400);
-  assert.match(r.body.error, /FRD-NFR \(hiện: Lỗi thời\)/);
+  assert.match(r.body.error, /FRD-NFR \(hiện: Bản cũ\)/);
   assert.equal((await call("GET", `/api/modules/${moduleId}/diagrams/ERD`)).body.status, "none");
 });
 
@@ -271,7 +271,7 @@ test("sửa sơ đồ đã Xong / Đã duyệt → về Đang làm, giữ cờ Y
   assert.equal(r.body.revisionRequested, true);
 });
 
-test("tài liệu nguồn có bản mới → sơ đồ phụ thuộc thành Lỗi thời + artifact.stale", () => {
+test("tài liệu nguồn có bản mới → sơ đồ phụ thuộc thành Bản cũ + artifact.stale", () => {
   events.length = 0;
   emit({ type: "artifact.drafted", artifact: { kind: "doc", id: moduleId, moduleId, sub: "BRD" } });
   const st = (k: DiagramKind) => getArtifactState({ kind: "diagram", id: moduleId, moduleId, sub: k })!.status;

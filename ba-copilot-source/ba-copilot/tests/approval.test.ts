@@ -50,6 +50,10 @@ before(async () => {
   sid = repo.createScreen(mid, "Đăng nhập").id;
   ba = member("Lan", "BA");
   lead = member("Hùng", "BA_LEAD");
+  // BRD chỉ Xong được khi module có ≥ 1 user story (shared/prereq.ts, D2 đợt 6)
+  getDb()
+    .prepare("INSERT INTO user_stories (id, project_id, module_id, code, as_a, i_want, so_that, created_at, updated_at) VALUES (?, ?, ?, 'US-01', 'khách', 'đăng nhập', 'mua hàng', ?, ?)")
+    .run(randomUUID(), pid, mid, new Date().toISOString(), new Date().toISOString());
 });
 after(() => server.close());
 afterEach(() => registerApprovedPusher(null));
@@ -174,6 +178,8 @@ test("màn hình: Xong / Duyệt qua endpoint chung, task gắn màn đi theo", 
 
 test("kéo thẻ task gắn sản phẩm (PATCH status) đi qua luồng duyệt của sản phẩm", async () => {
   const m2 = repo.createModule(pid, "Giỏ hàng").id;
+  makeDoc(m2, "BRD", "done"); // nguồn của BPMN phải Xong mới bấm Xong sơ đồ được (D2 đợt 6)
+  makeDoc(m2, "UC_SPEC", "approved");
   getDb().prepare("INSERT INTO module_diagrams (module_id, kind, code, status, rev, updated_at) VALUES (?, 'BPMN', 'flowchart LR', 'draft', 1, ?)").run(m2, new Date().toISOString());
   const t = (await api("POST", `/api/projects/${pid}/tasks`, { title: "Vẽ BPMN", artifactType: "diagram", artifactId: m2, artifactSub: "BPMN" })).data;
   const st = () => ({ ...(getDb().prepare("SELECT status, revision_requested AS rr FROM module_diagrams WHERE module_id = ? AND kind = 'BPMN'").get(m2) as object) }) as any;

@@ -34,7 +34,7 @@ const TEMPLATES = [
 
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase().trim();
 
-const STATUS_VI: Record<ArtifactStatus, string> = { none: "chưa có", draft: "bản nháp", done: "Xong", approved: "đã duyệt", outdated: "lỗi thời" };
+const STATUS_VI: Record<ArtifactStatus, string> = { none: "chưa có", draft: "bản nháp", done: "Xong", approved: "đã duyệt", outdated: "bản cũ" };
 
 /** Bước 3 "Prototype" trong "Thực hiện công việc": nạp ModuleDetail của module đang chọn rồi dựng Design Studio. */
 export function PrototypeStep({ projectId, moduleId, params }: WorkStepProps) {

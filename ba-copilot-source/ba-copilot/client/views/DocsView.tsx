@@ -18,6 +18,7 @@ import {
 } from "../api.ts";
 import { DOC_KINDS, DOC_KIND_LABEL } from "../../shared/types.ts";
 import type { ApprovalResult, DocKind, ModuleDoc } from "../../shared/types.ts";
+import { doneBlockReason } from "../../shared/prereq.ts";
 import { ApprovalBar, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Field, Icon, Modal, RevisionTag, Select, StatusBadge, Tabs, fmtTime, useUI } from "../components/ui.tsx";
 import { Markdown } from "../components/Markdown.tsx";
 import { currentMemberId, useCurrentMember, withActor } from "../currentMember.ts";
@@ -149,13 +150,18 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
 
   const has = doc.status !== "none";
   const who = doc.updatedBy ? (members.find((m) => m.id === doc.updatedBy)?.name ?? "") : "";
+  // Nút Xong khoá khi bước trước chưa Xong (cùng luật với nút Sinh – shared/prereq.ts); server cũng chặn.
+  const doneLock =
+    doc.status === "draft" || doc.status === "outdated"
+      ? (doneBlockReason({ kind: "doc", sub: kind }, { docStatus: (k) => list.find((x) => x.kind === k)?.status, storyCount: storyCount ?? undefined }) ?? undefined)
+      : undefined;
 
   const generate = async () => {
     if (
       has &&
       !(await confirm({
         title: `Sinh lại ${label}?`,
-        message: `Nội dung hiện tại sẽ được thay bằng bản AI mới. Các bước sau đang có sẽ thành Lỗi thời.`,
+        message: `Nội dung hiện tại sẽ được thay bằng bản AI mới. Các bước sau đang có sẽ thành Bản cũ.`,
         okLabel: "Sinh lại",
       }))
     )
@@ -282,7 +288,7 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
             revisionRequested={doc.revisionRequested}
             isLead={isLead}
             busy={busy}
-            disabledReason={draft !== null ? "Đang sửa – lưu hoặc huỷ trước" : undefined}
+            disabledReason={draft !== null ? "Đang sửa – lưu hoặc huỷ trước" : doneLock}
             onDone={() => flow("Đang cập nhật…", () => markArtifactDone("doc", moduleId, { ...actorBody, baseRev: doc.rev }), `${label} đã Xong`)}
             onApprove={() => flow("Đang duyệt…", () => approveArtifact("doc", moduleId, { ...actorBody, baseRev: doc.rev }), `Đã duyệt ${label}`)}
             onRequestChange={() => flow("Đang cập nhật…", () => requestArtifactChange("doc", moduleId, actorBody), `Đã yêu cầu sửa ${label}`)}

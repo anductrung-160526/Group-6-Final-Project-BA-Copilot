@@ -274,7 +274,7 @@ const STATUS: Record<string, [string, BadgeTone]> = {
   draft: ["Bản nháp", "blue"],
   done: ["Xong", "orange"], // chờ BA Lead duyệt – dùng chung cho task "done"
   approved: ["Đã duyệt", "green"],
-  outdated: ["Lỗi thời", "amber"],
+  outdated: ["Bản cũ", "amber"],
   // Công việc (TaskStatus)
   todo: ["Cần làm", "gray"],
   doing: ["Đang làm", "blue"],

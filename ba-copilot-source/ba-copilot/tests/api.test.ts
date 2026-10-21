@@ -191,7 +191,7 @@ test("luồng end-to-end đợt 5 (mock): story → tài liệu → màn (bối 
   assert.ok(row.tests.length >= 1);
   assert.equal(tr.data.coverage.flowsWithTests, tr.data.coverage.flowsTotal);
 
-  // Màn đang Xong bị sửa → bộ test (bước sau) thành Lỗi thời
+  // Màn đang Xong bị sửa → bộ test (bước sau) thành Bản cũ
   setArtifactState({ kind: "tests", id: mid, moduleId: mid }, { status: "done" });
   setArtifactState({ kind: "screen", id: sid, moduleId: mid }, { status: "done" });
   const st = await api("GET", `/api/artifacts/screen/${sid}/state`);

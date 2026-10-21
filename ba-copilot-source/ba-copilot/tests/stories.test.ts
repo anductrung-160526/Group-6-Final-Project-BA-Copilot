@@ -1,4 +1,4 @@
-// User story cấp dự án (C4, đợt 5): CRUD, mã US tăng dần, chặn đè 409, sửa story làm BRD lỗi thời, QUS lưu theo module.
+// User story cấp dự án (C4, đợt 5): CRUD, mã US tăng dần, chặn đè 409, sửa story làm BRD thành Bản cũ, QUS lưu theo module.
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import type { Server } from "node:http";
@@ -121,7 +121,7 @@ test("Sắp xếp: ids theo thứ tự mới, story không gửi xếp sau, id l
   assert.equal((await api("POST", `/api/projects/${p.id}/stories/reorder`, { ids: ["la"] })).status, 400);
 });
 
-test("Sửa story làm tài liệu đang có của module thành Lỗi thời + phát artifact.stale; người sửa được ghi", async () => {
+test("Sửa story làm tài liệu đang có của module thành Bản cũ + phát artifact.stale; người sửa được ghi", async () => {
   const { p, m1, m2 } = await setup("BRD");
   const member = (await api("POST", "/api/members", { name: "Lan", role: "BA" })).data;
   const s = (await api("POST", `/api/projects/${p.id}/stories`, { ...GOOD, moduleId: m1.id })).data;
@@ -146,11 +146,11 @@ test("Sửa story làm tài liệu đang có của module thành Lỗi thời + 
         ["doc", m1.id, "UC_SPEC", member.id],
       ],
     );
-    // Đổi thứ tự không làm tài liệu lỗi thời
+    // Đổi thứ tự không làm tài liệu thành Bản cũ
     events.length = 0;
     await api("POST", `/api/projects/${p.id}/stories/reorder`, { ids: [s.id] });
     assert.equal(events.length, 0);
-    // Chuyển story sang module 2 → BRD module 2 cũng lỗi thời
+    // Chuyển story sang module 2 → BRD module 2 cũng thành Bản cũ
     await api("PATCH", `/api/stories/${s.id}`, { moduleId: m2.id });
     assert.equal(status(m2.id, "BRD"), "outdated");
   } finally {

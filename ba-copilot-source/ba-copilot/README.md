@@ -42,7 +42,7 @@ Không có màn đăng nhập: chọn tên mình ở ô **"Tôi là…"** trên 
 | Mã | Quy tắc |
 | --- | --- |
 | BR-01 | *(Bỏ ở đợt 5)* Tài liệu sinh từ user story, không cần màn hình đã duyệt. Bước tài liệu sau chỉ sinh khi bước trước *Xong*. |
-| BR-02 | Khi sửa, khôi phục hoặc bỏ duyệt một thiết kế đã duyệt, tài liệu và test hiện có chuyển sang *Lỗi thời*. |
+| BR-02 | Khi sửa, khôi phục hoặc bỏ duyệt một thiết kế đã duyệt, tài liệu và test hiện có chuyển sang *Bản cũ*. |
 | BR-03 | Nội dung AI phải suy diễn được gắn nhãn *Giả định* (trường `assumptions`, `isAssumption`). |
 | BR-04 | Mỗi test case phải tham chiếu ít nhất 1 yêu cầu. Kết quả AI vi phạm quy tắc này sẽ bị trả về để AI tự sửa. |
 

@@ -3,7 +3,7 @@ import type { QusResult } from "./qus.ts";
 
 /**
  * Đợt 5 (C2): trạng thái chung của mọi sản phẩm (màn, tài liệu, sơ đồ, test case).
- * none = chưa có · draft = Đang làm · done = Xong (BA bấm) · approved = Đã duyệt (BA Lead) · outdated = Lỗi thời (bước trước đổi).
+ * none = chưa có · draft = Đang làm · done = Xong (BA bấm) · approved = Đã duyệt (BA Lead) · outdated = Bản cũ (bước trước đổi).
  * Cờ "Yêu cầu sửa" đi riêng (`revisionRequested`), không phải một trạng thái.
  */
 export type ArtifactStatus = "none" | "draft" | "done" | "approved" | "outdated";
@@ -319,7 +319,7 @@ export interface GitPushOutcome {
 // ---------- Sự kiện (server/events.ts)
 /**
  * Đợt 5: drafted (có bản nháp mới / sửa nội dung) · done (BA bấm Xong) · approved (BA Lead Duyệt) ·
- * revision_requested (BA Lead Yêu cầu sửa) · stale (bước trước đổi → Lỗi thời).
+ * revision_requested (BA Lead Yêu cầu sửa) · stale (bước trước đổi → Bản cũ).
  * "artifact.unapproved" là sự kiện cũ (bỏ duyệt) **chỉ còn để mã v2 chạy**; mã mới không phát. C0 bỏ sau đợt 2 (R-030).
  */
 export type ArtifactEventType =
