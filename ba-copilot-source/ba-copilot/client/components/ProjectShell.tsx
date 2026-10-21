@@ -1,13 +1,14 @@
 // Khung trong dự án (đợt 5, kế hoạch mục 3 "C3"): đầu trang (tên dự án + nút GitHub) + menu trái (SideNav) dựng từ
 // registry client/projectMenu.ts + vùng nội dung. "Thực hiện công việc" có bộ chọn module ở đầu vùng nội dung, nhớ
 // module chọn gần nhất theo dự án; tạo / xoá module ở đây. Màn hẹp: menu trái thu thành nút "Menu" mở ngăn phải.
+// Màn rộng: nút thu gọn / mở rộng menu trái (thu gọn còn dải icon), nhớ theo người xem trong localStorage.
 // Chủ sở hữu: C3. Nội dung từng màn do agent chủ màn làm (cột owner trong projectMenu.ts).
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import type { Module, Project } from "../../shared/types.ts";
 import { del, get, post } from "../api.ts";
 import { useCurrentMember } from "../currentMember.ts";
 import { PROJECT_MENU, WORK_STEPS, gitHref, projectHref, workHref, type ProjectRoute, type WorkStepItem } from "../projectMenu.ts";
-import { Btn, Drawer, Empty, Field, ICON_NAMES, Icon, Modal, RowActions, Select, SideNav, useUI, type IconName, type SideNavItem } from "./ui.tsx";
+import { Btn, Drawer, Empty, Field, ICON_NAMES, Icon, IconBtn, Modal, RowActions, Select, SideNav, sideNavHasRail, useUI, type IconName, type SideNavItem } from "./ui.tsx";
 
 type ProjectData = Project & { modules: Module[] };
 
@@ -40,6 +41,23 @@ function writeModule(pid: string, mid: string) {
   }
 }
 
+// ---------------------------------------------------------------- menu trái thu gọn (nhớ theo người xem, mọi dự án)
+const NAV_COLLAPSED_KEY = "bacopilot.nav.collapsed";
+function readNavCollapsed(): boolean {
+  try {
+    return window.localStorage.getItem(NAV_COLLAPSED_KEY) === "1";
+  } catch {
+    return false; // không đọc được lưu trữ → mặc định mở
+  }
+}
+function writeNavCollapsed(v: boolean) {
+  try {
+    window.localStorage.setItem(NAV_COLLAPSED_KEY, v ? "1" : "0");
+  } catch {
+    // trình duyệt chặn lưu trữ: chỉ không nhớ được, vẫn thu/mở bình thường
+  }
+}
+
 // ---------------------------------------------------------------- màn hẹp
 // Điểm gãy trùng .doc-layout (styles.css về 1 cột ở ≤ 860px) – gồm cả yêu cầu ≤ 768px của kế hoạch.
 const NARROW = "(max-width: 860px)";
@@ -67,6 +85,12 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
   const [project, setProject] = useState<ProjectData | null>(null);
   const [missing, setMissing] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [navCollapsed, setNavCollapsed] = useState(readNavCollapsed);
+  const toggleNav = () =>
+    setNavCollapsed((v) => {
+      writeNavCollapsed(!v);
+      return !v;
+    });
   const [creating, setCreating] = useState<string | null>(null); // tên module đang nhập, null = đóng hộp thoại
 
   const load = useCallback(
@@ -165,6 +189,7 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
   if (!project) return <div className="page muted">Đang tải…</div>;
 
   const nav = <SideNav items={items} active={active} ariaLabel="Menu dự án" testId="project-nav" />;
+  const navRail = sideNavHasRail(items); // thu gọn: còn dải icon, không có icon thì ẩn hẳn
 
   // ---- nội dung
   let content: React.ReactNode;
@@ -241,8 +266,20 @@ export function ProjectShell({ route }: { route: ProjectRoute }) {
       {narrow ? (
         <div className="project-main">{content}</div>
       ) : (
-        <div className="project-body">
-          <aside className="project-nav">{nav}</aside>
+        <div className={`project-body ${navCollapsed ? (navRail ? "nav-collapsed" : "nav-hidden") : ""}`}>
+          <aside className="project-nav" data-testid="project-nav-aside">
+            <div className="project-nav-bar">
+              <IconBtn
+                icon={navCollapsed ? "navExpand" : "navCollapse"}
+                label={navCollapsed ? "Mở rộng menu" : "Thu gọn menu"}
+                aria-expanded={!navCollapsed}
+                aria-controls="project-nav-menu"
+                onClick={toggleNav}
+                data-testid="project-nav-toggle"
+              />
+            </div>
+            <div id="project-nav-menu">{navCollapsed ? <SideNav items={items} active={active} ariaLabel="Menu dự án" testId="project-nav" collapsed /> : nav}</div>
+          </aside>
           <div className="project-main">{content}</div>
         </div>
       )}

@@ -227,7 +227,7 @@ export function DocsView({ projectId, moduleId, params }: WorkStepProps) {
             </span>
           )}
           <Btn kind={has ? "secondary" : "primary"} onClick={generate} disabled={!!lockReason || draft !== null} title={lockReason} data-testid="doc-generate">
-            <Icon name="ai" size="sm" />
+            <Icon name={has ? "regenerate" : "ai"} size="sm" />
             {has ? "Sinh lại" : "Sinh bằng AI"}
           </Btn>
           {has && (

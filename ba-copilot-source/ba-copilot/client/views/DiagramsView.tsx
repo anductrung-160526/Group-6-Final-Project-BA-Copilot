@@ -257,7 +257,7 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
             <div className="spacer" />
             {blockReason && <span className="muted small" data-testid="generate-reason">{blockReason}</span>}
             <Btn kind={exists ? "secondary" : "primary"} size="sm" disabled={!!blockReason} title={blockReason ?? ""} onClick={generate} data-testid="generate-diagram">
-              <Icon name={blockReason ? "lock" : "ai"} size="sm" />
+              <Icon name={blockReason ? "lock" : exists ? "regenerate" : "ai"} size="sm" />
               {exists ? "Sinh lại" : "Sinh bằng AI"}
             </Btn>
             {exists && (
