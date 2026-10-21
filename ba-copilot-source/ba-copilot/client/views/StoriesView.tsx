@@ -15,7 +15,7 @@
 
 import { useAqusa } from "../useAqusa.ts";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createStory, del, get, isConflict, listStories, post, reorderStories, updateStory } from "../api.ts";
+import { ApiError, createStory, del, get, isConflict, listStories, post, reorderStories, updateStory } from "../api.ts";
 import { currentMemberId, useCurrentMember, withActor } from "../currentMember.ts";
 import { usePresence } from "../presence.ts";
 import { storiesHref, type ProjectPageProps } from "../projectMenu.ts";
@@ -23,6 +23,7 @@ import { QusDetail, QusSummary, QusToggle, toIssueItem } from "../components/Qus
 import { Badge, Btn, ConflictNotice, EditingBadge, Empty, Field, Icon, IconBtn, IssueList, Modal, RowActions, ScoreBadge, Select, fmtTime, useUI } from "../components/ui.tsx";
 import { isBlankStructured, scoreStructured, storySentence, type OtherModuleStories, type QusResult, type StoryScore } from "../../shared/qus.ts";
 import type { Module, StoryPriority, UserStory } from "../../shared/types.ts";
+import { MODULE_NAME_MAX, MSG, projectNameKey } from "../../shared/projectName.ts";
 
 const NO_MODULE = "none";
 const PRIORITIES: StoryPriority[] = ["High", "Medium", "Low"];
@@ -97,7 +98,12 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
   const [pageConflict, setPageConflict] = useState(false);
   const [busy, setBusy] = useState(false);
   const [openQus, setOpenQus] = useState<Record<string, boolean>>({});
-  const [newModule, setNewModule] = useState<string | null>(null); // tên module đang nhập, null = đóng hộp thoại
+  const [newModule, setNewModuleRaw] = useState<string | null>(null); // tên module đang nhập, null = đóng hộp thoại
+  const [moduleErr, setModuleErr] = useState<string | null>(null); // lỗi máy chủ trả về cho tên module (409 trùng, 400)
+  const setNewModule = (v: string | null) => {
+    setNewModuleRaw(v);
+    setModuleErr(null);
+  };
   // Ô tiêu chí cần đặt con trỏ sau lần vẽ tới (Enter / "Thêm tiêu chí" tạo dòng mới).
   const acRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [focusAc, setFocusAc] = useState<number | null>(null);
@@ -157,10 +163,31 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
     startEdit(emptyDraft(defaultModule()));
   };
 
+  // Tên module trùng module khác của dự án: báo ngay khi gõ (cùng khoá so sánh với máy chủ – shared/projectName.ts).
+  const moduleKey = projectNameKey(newModule ?? "");
+  const moduleNameError =
+    moduleKey && modules.some((m) => projectNameKey(m.name) === moduleKey) ? MSG.duplicateModule((newModule ?? "").trim()) : moduleErr;
   const createModule = async () => {
     const name = (newModule ?? "").trim();
-    if (!name) return;
-    const m = await run("Creating module", () => post<Module>(`/api/projects/${encodeURIComponent(projectId)}/modules`, { name }));
+    if (!name || moduleNameError) return;
+    let invalid = null as string | null;
+    const m = await run("Creating module", async () => {
+      try {
+        return await post<Module>(`/api/projects/${encodeURIComponent(projectId)}/modules`, { name });
+      } catch (e) {
+        // Trùng tên / tên sai → hiện dưới ô, giữ hộp thoại mở
+        if (e instanceof ApiError && (e.status === 409 || e.status === 400) && !e.code) {
+          invalid = e.message;
+          return undefined;
+        }
+        throw e;
+      }
+    });
+    if (invalid) {
+      setModuleErr(invalid);
+      load().catch(() => {}); // cập nhật danh sách để lần sau phát hiện trùng ngay khi gõ
+      return;
+    }
     if (!m) return;
     setNewModule(null);
     window.dispatchEvent(new Event("bacopilot:modules-changed")); // ProjectShell tải lại module cho menu trái
@@ -525,17 +552,22 @@ export function StoriesView({ projectId, params }: ProjectPageProps) {
           footer={
             <>
               <Btn onClick={() => setNewModule(null)}>Cancel</Btn>
-              <Btn kind="primary" disabled={!newModule.trim()} onClick={createModule} data-testid="create-module">
+              <Btn kind="primary" disabled={!newModule.trim() || !!moduleNameError} onClick={createModule} data-testid="create-module">
                 Create module
               </Btn>
             </>
           }
         >
-          <Field label="Module name" hint="Once created, add user stories to the module right here. Documents, diagrams, prototypes… are produced under Deliverables.">
+          <Field
+            label="Module name"
+            error={moduleNameError}
+            hint="Once created, add user stories to the module right here. Documents, diagrams, prototypes… are produced under Deliverables."
+          >
             <input
               autoFocus
               value={newModule}
-              maxLength={200}
+              maxLength={MODULE_NAME_MAX}
+              aria-invalid={!!moduleNameError}
               onChange={(e) => setNewModule(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && createModule()}
               placeholder="E.g. User Authentication"

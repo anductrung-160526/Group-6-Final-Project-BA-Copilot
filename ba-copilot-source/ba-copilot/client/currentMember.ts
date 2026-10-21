@@ -67,6 +67,18 @@ export function currentMemberId(): string | undefined {
 /** Thêm `actorId` của người đang làm việc vào body gửi lên API (docs/api.md mục 0). */
 export const withActor = <T extends object>(body: T): T & { actorId?: string } => ({ ...body, actorId: currentMemberId() });
 
+/**
+ * Được xoá dự án / module (server: chỉ BA Lead, 403): người đang chọn là BA Lead, hoặc nhóm chưa có BA Lead nào.
+ * Dùng: `canDeleteAsLead(useCurrentMember())`.
+ */
+export const canDeleteAsLead = ({ me, members }: { me: Member | null; members: Member[] }) => me?.role === "BA_LEAD" || !members.some((m) => m.role === "BA_LEAD");
+
+/** `?actorId=…` cho lệnh DELETE (không có body); rỗng khi chưa chọn người. */
+export const actorQuery = () => {
+  const id = currentMemberId();
+  return id ? `?actorId=${encodeURIComponent(id)}` : "";
+};
+
 export function useCurrentMember() {
   const s = useSyncExternalStore(subscribe, () => state);
   useEffect(() => {

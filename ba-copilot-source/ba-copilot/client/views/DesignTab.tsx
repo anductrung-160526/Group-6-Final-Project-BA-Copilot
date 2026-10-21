@@ -15,7 +15,7 @@ import { findNode, nodeLabel, topMostIds, UINode } from "../../shared/design.ts"
 import { Renderer } from "../components/Renderer.tsx";
 import { SuggestionsPanel } from "../components/SuggestionsPanel.tsx";
 import { RelatedTasks } from "../components/RelatedTasks.tsx";
-import { currentMemberId, useCurrentMember, withActor } from "../currentMember.ts";
+import { actorQuery, currentMemberId, useCurrentMember, withActor } from "../currentMember.ts";
 import { SampleBadge, ApprovalBar, Badge, Btn, GitOutcome, ConflictNotice, EditingBadge, Empty, Field, Icon, Modal, RowActions, StatusBadge, fmtTime, useUI } from "../components/ui.tsx";
 
 type Mode = "select" | "region" | "prototype";
@@ -82,8 +82,10 @@ export function PrototypeStep({ projectId, moduleId, params }: WorkStepProps) {
 
 export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: ModuleDetail; reload: () => Promise<unknown>; initialScreenId?: string; onScreenChange?: (screenId: string | null) => void }) {
   const { run, toast, confirm } = useUI();
-  const { me } = useCurrentMember(); // FN-03: người thao tác gửi kèm actorId
+  const { me, members } = useCurrentMember(); // FN-03: người thao tác gửi kèm actorId
   const isLead = me?.role === "BA_LEAD";
+  // Xoá góp ý: tác giả hoặc BA Lead (server 403); nhóm chưa có BA Lead thì ai cũng được
+  const canDeleteComment = (a: Annotation) => isLead || (!!a.authorId && a.authorId === me?.id) || !members.some((x) => x.role === "BA_LEAD");
   const [screenId, setScreenId] = useState<string | null>(() => (initialScreenId && m.screens.some((s) => s.id === initialScreenId) ? initialScreenId : m.screens[0]?.id ?? null));
   const [conflict, setConflict] = useState(false);
   const [rename, setRename] = useState<string | null>(null);
@@ -500,7 +502,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
 
   const addComment = async () => {
     if (!screen || !comment.trim()) return;
-    const a = await run("Saving comment", () => post<Annotation>(`/api/screens/${screen.id}/annotations`, withActor({ nodeIds: selected, comment, bbox: unionBox(selected), author: me?.name })));
+    const a = await run("Saving comment", () => post<Annotation>(`/api/screens/${screen.id}/annotations`, withActor({ nodeIds: selected, comment, bbox: unionBox(selected) })));
     if (a) {
       setComment("");
       setChecked((c) => new Set([...c, a.id]));
@@ -1008,10 +1010,13 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                           </button>
                         )}
                         <RowActions
-                          onDelete={async () => {
-                            await del(`/api/annotations/${a.id}`);
-                            reload();
-                          }}
+                          onDelete={
+                            canDeleteComment(a)
+                              ? async () => {
+                                  if (await run("Deleting comment", () => del(`/api/annotations/${a.id}${actorQuery()}`))) reload();
+                                }
+                              : undefined
+                          }
                           deleteConfirm={{ title: "Delete comment?", message: a.comment }}
                           testId={`ann-${i + 1}`}
                         />
