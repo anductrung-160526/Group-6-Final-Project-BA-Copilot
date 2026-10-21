@@ -271,7 +271,7 @@ npm run e2e                       # end-to-end browser run of the full workflow;
 
 ## 6. Environment variables
 
-Set them in `.env` (copied from `.env.example`; `.env` is git-ignored) or under *Variables* on Railway.
+Set them in `.env` (copied from `.env.example`; `.env` is git-ignored) or under *Environment* on Render.
 
 | Variable | Description |
 | --- | --- |
@@ -294,5 +294,5 @@ Set them in `.env` (copied from `.env.example`; `.env` is git-ignored) or under 
 - Real per-member authentication (users currently pick themselves from *Select your name…*; member login exists on the server but is not yet wired into the UI). The deployment uses a single shared `APP_PASSWORD`.
 - Inline commenting on documents (Google Docs-style).
 - Encrypting GitHub tokens at rest in the DB (the `database/` export already strips them).
-- Migrating to PostgreSQL when multiple server instances are needed. SQLite currently runs on a Railway volume; the persistence layer is isolated in `repo.ts`, so only that layer needs replacing.
+- Migrating to PostgreSQL when multiple server instances are needed. SQLite currently lives at `/data` on Render (kept on a persistent disk on paid plans, reset on restart on the free plan); the persistence layer is isolated in `repo.ts`, so only that layer needs replacing.
 - Figma export and generating Playwright scripts from test cases.
