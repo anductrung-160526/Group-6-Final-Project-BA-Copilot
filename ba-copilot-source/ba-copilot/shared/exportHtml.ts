@@ -5,7 +5,7 @@
 //   screenToHtml(tree, { title: "Đăng nhập" })                       → một trang
 //   prototypeFiles([{ name, tree }, …], { title: "Module Xác thực" }) → các trang + index.html, nút điều hướng nối các trang
 
-import type { UINode } from "./design.ts";
+import { tableDataColumns, type UINode } from "./design.ts";
 
 export interface ExportHtmlOptions {
   /** Tiêu đề thẻ <title> (mặc định: props.title của Page). */
@@ -47,7 +47,7 @@ export function screenFileName(name: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 60);
-  return `${base || "man-hinh"}.html`;
+  return `${base || "screen"}.html`;
 }
 
 interface Ctx {
@@ -125,10 +125,11 @@ function render(n: UINode, ctx: Ctx): string {
       const cols = Array.isArray(p.columns) ? (p.columns as unknown[]).map(String) : [];
       const rows = Array.isArray(p.rows) ? (p.rows as unknown[][]) : [];
       const acts = Array.isArray(p.rowActions) ? (p.rowActions as unknown[]).map(String) : [];
-      const head = cols.map((c) => `<th>${esc(c)}</th>`).join("") + (acts.length ? "<th>Actions</th>" : "");
+      const shown = tableDataColumns(cols, acts); // không lặp cột "Actions"
+      const head = shown.map((i) => `<th>${esc(cols[i])}</th>`).join("") + (acts.length ? "<th>Actions</th>" : "");
       const body = (rows.length ? rows : [cols.map(() => "—")])
         .map((r) => {
-          const cells = cols.map((_, j) => `<td>${esc((Array.isArray(r) ? r : [])[j] ?? "")}</td>`).join("");
+          const cells = shown.map((j) => `<td>${esc((Array.isArray(r) ? r : [])[j] ?? "")}</td>`).join("");
           const a = acts.length ? `<td><span class="ds-row-acts">${acts.map((x) => `<span class="ds-link">${esc(x)}</span>`).join("")}</span></td>` : "";
           return `<tr>${cells}${a}</tr>`;
         })

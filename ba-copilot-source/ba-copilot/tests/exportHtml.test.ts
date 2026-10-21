@@ -1,7 +1,7 @@
 // Kiểm thử shared/exportHtml.ts (C9): HTML tĩnh tự chứa từ cây giao diện, dùng cho nút "Xuất HTML" và cho C8 (GitHub).
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import type { UINode } from "../shared/design.ts";
+import { tableDataColumns, type UINode } from "../shared/design.ts";
 import { prototypeFiles, screenFileName, screenToHtml } from "../shared/exportHtml.ts";
 import { mockScreen } from "../server/ai/mock.ts";
 
@@ -82,10 +82,17 @@ test("prototypeFiles: mỗi màn một tệp + index.html, nối điều hướn
 
 test("screenFileName và mọi loại component của bản mock đều xuất được", () => {
   assert.equal(screenFileName("Quản lý Sản phẩm / Đơn hàng"), "quan-ly-san-pham-don-hang.html");
-  assert.equal(screenFileName("!!!"), "man-hinh.html");
+  assert.equal(screenFileName("!!!"), "screen.html");
   for (const prompt of ["Dashboard tổng quan: chỉ số doanh thu, bảng đơn hàng, phân trang", "Form thêm sản phẩm: tên, giá, ngày nhập, mô tả, ảnh; nút Lưu", "Màn hình đăng nhập"]) {
     const html = screenToHtml(mockScreen(prompt, "Mẫu"));
     assert.ok(html.length > 500);
     assert.ok(!html.includes(`class="ds-unknown"`), `component chưa xuất được: ${prompt}`);
   }
+});
+
+test("Bảng có rowActions: cột \"Actions\" ghi sẵn trong columns không bị lặp", () => {
+  assert.deepEqual(tableDataColumns(["Code", "Name", "Actions"], ["Edit", "Delete"]), [0, 1]);
+  assert.deepEqual(tableDataColumns(["Code", "Actions"], []), [0, 1]);
+  const html = screenToHtml({ id: "p", type: "Page", props: { title: "T" }, children: [{ id: "t", type: "Table", props: { columns: ["Code", "Name", "Actions"], rows: [], rowActions: ["Edit", "Delete"] } }] });
+  assert.equal((html.match(/<th>Actions<\/th>/g) ?? []).length, 1);
 });

@@ -113,8 +113,8 @@ export function ProjectGitSettings({ projectId, onClose, onSaved }: { projectId:
           <p className="muted small">
             When a BA Lead clicks <b>Approve</b> on an artifact, the app pushes exactly that artifact's files (document, diagram, prototype, test cases) to a branch of this repository. "Mark as done" does not touch GitHub.
           </p>
-          <Field label="GitHub repository link" hint="Example: https://github.com/organization/repo-name">
-            <input value={repo} onChange={(e) => setRepo(e.target.value)} placeholder="https://github.com/to-chuc/ten-repo" autoFocus data-testid="git-repo" />
+          <Field label="GitHub repository link" hint="Example: https://github.com/your-org/your-repo">
+            <input value={repo} onChange={(e) => setRepo(e.target.value)} placeholder="https://github.com/your-org/your-repo" autoFocus data-testid="git-repo" />
           </Field>
           <Field
             label="Project GitHub token"

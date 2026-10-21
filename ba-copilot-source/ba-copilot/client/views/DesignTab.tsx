@@ -12,6 +12,7 @@ import type { Annotation, ArtifactStatus, ModuleDetail, ScreenVersion } from "..
 import type { WorkStepProps } from "../projectMenu.ts";
 import { usePresence } from "../presence.ts";
 import { findNode, nodeLabel, topMostIds, UINode } from "../../shared/design.ts";
+import { candidateShares, fmtPct } from "../../shared/recursive.ts";
 import { Renderer } from "../components/Renderer.tsx";
 import { SuggestionsPanel } from "../components/SuggestionsPanel.tsx";
 import { RelatedTasks } from "../components/RelatedTasks.tsx";
@@ -803,7 +804,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                       return (
                         <label key={g.tempId} className="gen-item" style={{ paddingLeft: 4 + depth * 14 }}>
                           <input type="checkbox" checked={complete.on.has(g.tempId)} onChange={() => toggleGen(g.tempId)} /> <strong>{typeName(g.type)}</strong>{" "}
-                          <span className="muted small">in {parent ? typeLabel(nodeLabel(parent)) : `${typeName(genParent?.type)} (new)`} · confidence {Math.round(g.p * 100)}%</span>
+                          <span className="muted small">in {parent ? typeLabel(nodeLabel(parent)) : `${typeName(genParent?.type)} (new)`} · confidence {fmtPct(g.p)}</span>
                         </label>
                       );
                     })}
@@ -833,18 +834,26 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                         <span className="sugg-title">in {typeLabel(cur.parentLabel)}</span>
                         <Badge tone="gray" title="Recursive Transformer Tree Decoder (Li et al. 2020)">Recursive</Badge>
                       </div>
-                      {cur.eos && <div className="muted small">This area looks complete (confidence {Math.round(cur.pEos * 100)}%). You can still add a component below.</div>}
+                      {cur.eos && (
+                        <div className="muted small" data-testid="suggest-complete">
+                          This area looks complete (confidence {fmtPct(cur.pEos)}). To add one more component anyway, pick one below – the percentages compare these options with each other.
+                        </div>
+                      )}
                       <div className="cand-list">
-                        {cur.candidates.map((c, i) => (
-                          <button key={c.type} className={`cand ${curType === c.type ? "on" : ""}`} onClick={() => setPick(i)} data-testid="candidate">
-                            <span>{typeName(c.type)}</span>
-                            <span className="cand-bar">
-                              <span style={{ width: `${Math.round(c.p * 100)}%` }} />
-                            </span>
-                            <span className="muted small">{Math.round(c.p * 100)}%</span>
-                          </button>
-                        ))}
-                        {!cur.eos && <div className="muted small">Chance the area is complete: {Math.round(cur.pEos * 100)}%</div>}
+                        {/* Vùng đã đủ (EOS áp đảo): xác suất tuyệt đối của ứng viên ~0 → hiện tỉ lệ giữa các ứng viên thay vì "0%" */}
+                        {candidateShares(cur.candidates).map((c, i) => {
+                          const v = cur.eos ? c.share : c.p;
+                          return (
+                            <button key={c.type} className={`cand ${curType === c.type ? "on" : ""}`} onClick={() => setPick(i)} data-testid="candidate">
+                              <span>{typeName(c.type)}</span>
+                              <span className="cand-bar">
+                                <span style={{ width: `${Math.round(v * 100)}%` }} />
+                              </span>
+                              <span className="muted small">{fmtPct(v)}</span>
+                            </button>
+                          );
+                        })}
+                        {!cur.eos && <div className="muted small">Chance the area is complete: {fmtPct(cur.pEos)}</div>}
                       </div>
                       <div className="sugg-actions">
                         <Btn size="sm" kind="primary" disabled={!!previewing} onClick={acceptNext} data-testid="accept-next">
@@ -888,7 +897,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                             <Badge tone="gray" title="Transformer missing-element detector (Li et al. 2020, bidirectional)">Transformer</Badge>
                           </div>
                           <div className="muted small">
-                            {gap.afterLabel ? `Between ${typeLabel(gap.afterLabel)} and ${typeLabel(gap.beforeLabel)}` : `At the start of ${typeLabel(gap.parentLabel)}`} · confidence it is missing: {Math.round(gap.pMissing * 100)}%
+                            {gap.afterLabel ? `Between ${typeLabel(gap.afterLabel)} and ${typeLabel(gap.beforeLabel)}` : `At the start of ${typeLabel(gap.parentLabel)}`} · confidence it is missing: {fmtPct(gap.pMissing)}
                           </div>
                           <div className="cand-list">
                             {gap.candidates.map((c, i) => (
@@ -897,7 +906,7 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                                 <span className="cand-bar">
                                   <span style={{ width: `${Math.round(c.p * 100)}%` }} />
                                 </span>
-                                <span className="muted small">{Math.round(c.p * 100)}%</span>
+                                <span className="muted small">{fmtPct(c.p)}</span>
                               </button>
                             ))}
                           </div>

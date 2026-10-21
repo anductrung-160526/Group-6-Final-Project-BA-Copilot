@@ -120,7 +120,7 @@ export function DiagramTab({ m }: ModuleTabProps) {
           </div>
           <div className="box">
             <div className="box-title">Preview</div>
-            {preview.trim() ? <Mermaid code={preview} name={`diagram-uc-${m.name}`} /> : <Empty title="No code to render yet" />}
+            {preview.trim() ? <Mermaid code={preview} name={`diagram-uc-${m.name}`} title="Use case diagram" /> : <Empty title="No code to render yet" />}
           </div>
         </div>
       )}

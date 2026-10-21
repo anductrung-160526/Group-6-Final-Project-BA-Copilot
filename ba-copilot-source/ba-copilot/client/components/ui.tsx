@@ -26,6 +26,7 @@ import {
   LayoutTemplate,
   Lock,
   LogOut,
+  Maximize2,
   Menu,
   Network,
   PanelLeftClose,
@@ -45,6 +46,8 @@ import {
   User,
   Workflow,
   X,
+  ZoomIn,
+  ZoomOut,
   type LucideIcon,
 } from "lucide-react";
 
@@ -88,6 +91,9 @@ const ICONS = {
   navCollapse: PanelLeftClose, // thu gọn menu trái
   navExpand: PanelLeftOpen, // mở rộng menu trái
   calendar: Calendar,
+  maximize: Maximize2, // xem cỡ lớn / toàn màn (sơ đồ)
+  zoomIn: ZoomIn,
+  zoomOut: ZoomOut,
   // Loại sản phẩm BA (R-080) – dùng chung cho task, thẻ liên quan
   screen: LayoutTemplate,
   doc: FileText,
@@ -535,13 +541,33 @@ export function SampleBadge({ provider }: { provider?: "claude" | "mock" | null 
   const server = useAiProvider();
   if ((provider === undefined ? server : provider) !== "mock") return null;
   return (
-    <Badge tone="flag" title="No Claude key is configured (ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN) – this comes from the rule-based sample generator, not Claude">
-      Sample result – Claude not connected
+    // Cột hẹp (vd khối Gợi ý tiếp theo ở cột trái Design Studio): chữ cắt "…" trong khung, câu đầy đủ ở tooltip
+    <Badge tone="flag" title="Sample result – Claude not connected. No Claude key is configured (ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN) – this comes from the rule-based sample generator, not Claude">
+      <span className="badge-text">Sample result – Claude not connected</span>
     </Badge>
   );
 }
 
-export function Modal({ title, onClose, children, footer, wide }: { title: string; onClose: () => void; children: React.ReactNode; footer?: React.ReactNode; wide?: boolean }) {
+/**
+ * Hộp thoại. Cỡ: mặc định 480px; `wide` (hoặc `size="wide"`) 720px; `size="full"` gần hết màn hình, thân hộp thoại
+ * giãn hết chiều cao còn lại – dùng cho nội dung cần không gian lớn (xem sơ đồ cỡ thật, phóng to / thu nhỏ).
+ */
+export function Modal({
+  title,
+  onClose,
+  children,
+  footer,
+  wide,
+  size,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+  wide?: boolean;
+  size?: "default" | "wide" | "full";
+}) {
+  const cls = size === "full" ? "modal-full" : wide || size === "wide" ? "modal-wide" : "";
   useEffect(() => {
     const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", h);
@@ -549,7 +575,7 @@ export function Modal({ title, onClose, children, footer, wide }: { title: strin
   }, [onClose]);
   return (
     <div className="modal-back" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={`modal ${wide ? "modal-wide" : ""}`} role="dialog" aria-modal="true" aria-label={title}>
+      <div className={`modal ${cls}`} role="dialog" aria-modal="true" aria-label={title}>
         <div className="modal-head">
           <h3>{title}</h3>
           <IconBtn icon="close" label="Close" size="lg" onClick={onClose} />
@@ -561,11 +587,13 @@ export function Modal({ title, onClose, children, footer, wide }: { title: strin
   );
 }
 
-export function Empty({ title, children }: { title: string; children?: React.ReactNode }) {
+/** Trạng thái rỗng: tiêu đề + câu hướng dẫn; `action` = nút / liên kết bước tiếp theo (vd "Back to Documents"), căn giữa dưới chữ. */
+export function Empty({ title, children, action, testId }: { title: string; children?: React.ReactNode; action?: React.ReactNode; testId?: string }) {
   return (
-    <div className="empty">
+    <div className="empty" data-testid={testId}>
       <div className="empty-title">{title}</div>
       {children && <div className="muted">{children}</div>}
+      {action && <div className="empty-action">{action}</div>}
     </div>
   );
 }
@@ -1209,6 +1237,17 @@ export function SuggestionCard({
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const pad2 = (n: number) => String(n).padStart(2, "0");
+/**
+ * Ngày không có giờ (YYYY-MM-DD: ngày nhận tệp, hạn task) dạng "Oct 21, 2026" – cùng kiểu với `fmtTime`.
+ * Đọc thẳng năm-tháng-ngày, không đổi múi giờ (new Date("2026-10-21") là nửa đêm UTC → lệch một ngày ở múi giờ âm).
+ * Chuỗi rỗng → "" (để màn tự hiện "—" / "Not recorded"); sai định dạng → giữ nguyên chuỗi.
+ */
+export const fmtDate = (ymd?: string | null) => {
+  if (!ymd) return "";
+  const m = ymd.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const mon = m ? MONTHS[Number(m[2]) - 1] : undefined;
+  return m && mon ? `${mon} ${Number(m[3])}, ${m[1]}` : ymd; // khoảng trắng không ngắt như fmtTime
+};
 /**
  * Thời điểm dạng "Oct 21, 2026 11:54" (giờ máy người xem, 24 giờ). Luôn có năm; tên tháng viết chữ để không nhầm
  * tháng/ngày. Dùng khoảng trắng không ngắt ( ) nên không bao giờ xuống dòng giữa ngày và giờ.

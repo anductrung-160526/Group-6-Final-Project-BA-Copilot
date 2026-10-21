@@ -35,13 +35,36 @@ interface Issue {
   part?: string;
 }
 
-const toKind = (s: string | undefined): DiagramKind => {
-  const k = String(s ?? "").toUpperCase() as DiagramKind;
-  return DIAGRAM_KINDS.includes(k) ? k : "CONTEXT";
+/** Loại sơ đồ trên URL: trống → Context; không có trong DIAGRAM_KINDS → null (màn báo "không tìm thấy"). */
+const toKind = (s: string | undefined): DiagramKind | null => {
+  if (!s) return "CONTEXT";
+  const k = s.toUpperCase() as DiagramKind;
+  return DIAGRAM_KINDS.includes(k) ? k : null;
 };
 
-export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
-  const kind = toKind(params[0]);
+/** Liên kết sâu tới loại sơ đồ không có (#/…/diagrams/XYZ) → báo "không tìm thấy" thay vì lặng lẽ mở Context. */
+export function DiagramsView(props: WorkStepProps) {
+  const kind = toKind(props.params[0]);
+  if (!kind)
+    return (
+      <div className="page" data-testid="diagrams-view">
+        <Empty
+          title="Diagram not found"
+          testId="diagram-kind-not-found"
+          action={
+            <Btn kind="primary" onClick={() => (window.location.hash = workHref(props.projectId, props.moduleId, "diagrams"))} data-testid="back-to-diagrams">
+              Back to Diagrams
+            </Btn>
+          }
+        >
+          There is no "{props.params[0]}" diagram. The diagrams are {DIAGRAM_KINDS.map((k) => DIAGRAM_KIND_LABEL[k]).join(", ")}.
+        </Empty>
+      </div>
+    );
+  return <DiagramsStep {...props} kind={kind} />;
+}
+
+function DiagramsStep({ projectId, moduleId, kind }: WorkStepProps & { kind: DiagramKind }) {
   const { run, toast, confirm } = useUI();
   const { me } = useCurrentMember();
   const isLead = me?.role === "BA_LEAD";
@@ -306,7 +329,7 @@ export function DiagramsView({ projectId, moduleId, params }: WorkStepProps) {
               const previewBox = (
                 <div className="box">
                   <div className="box-title">Preview</div>
-                  {preview.trim() ? <Mermaid code={preview} name={isSeq ? `sequence-${part?.key ?? ""}` : `diagram-${kind.toLowerCase()}`} /> : <Empty title="No code to render yet" />}
+                  {preview.trim() ? <Mermaid code={preview} name={isSeq ? `sequence-${part?.key ?? ""}` : `diagram-${kind.toLowerCase()}`} title={isSeq && part ? part.title : `${DIAGRAM_KIND_LABEL[kind]} diagram`} /> : <Empty title="No code to render yet" />}
                 </div>
               );
               if (!isSeq)
