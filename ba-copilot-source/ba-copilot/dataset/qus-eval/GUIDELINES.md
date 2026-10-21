@@ -1,39 +1,48 @@
-# Hướng dẫn gán nhãn lỗi QUS (5 tiêu chí AQUSA)
+# Hướng dẫn gán nhãn lỗi QUS – bản thống nhất (v2)
 
-Viết trước khi gán nhãn và trước khi chạy bộ chấm mới lên dữ liệu. Định nghĩa theo Lucassen et al. 2016, Bảng 1 và §3.
-Mỗi story gán 5 nhãn đúng/sai độc lập. Story vi phạm thì ghi lý do một dòng. Gán nhãn **không xem kết quả của bộ chấm**.
+Bản này thay thế các bản sửa dần qua 3 vòng (lưu ở `archive/GUIDELINES-v1.md`). Viết và commit **trước khi** gán lại nhãn.
+Định nghĩa theo Lucassen et al. 2016, Bảng 1 và §3. Mỗi story gán 5 nhãn đúng/sai độc lập; story vi phạm ghi lý do một dòng.
+Áp dụng quy tắc dưới đây một cách máy móc, không thêm ngoại lệ theo từng câu. Lỗi chính tả, lỗi ngữ pháp, lặp chữ ("so that that", "so that so that") **không** tính lỗi.
 
-| Tiêu chí | Vi phạm khi | Không vi phạm |
-|---|---|---|
-| **well-formed** | Thiếu vai trò (không có "As a/an/the …" hoặc tương đương) hoặc thiếu hành động ("I want/can/need/would like …"); hoặc vai trò không phải người dùng, hành động không có động từ | Thiếu "so that" (ends là tuỳ chọn) |
-| **atomic** | Phần hành động chứa từ hai tính năng trở lên nối bằng and/or/&/+/"/"/","; hoặc vai trò gồm hai loại người dùng ("admin and editor") | Danh từ ghép hay tên riêng có "&" ("R&D Manager", "Q&A page"); "and" nối hai tân ngữ của **một** động từ ("export orders and invoices" – vẫn một tính năng); "and" trong phần ends |
-| **minimal** | Có thêm nội dung ngoài role/means/ends: ghi chú hoặc ví dụ trong ngoặc, câu thứ hai, "e.g.", "note:", chữ hoặc ký hiệu thừa ở đầu ("[Analytics]", "*", "US12:") | Viết tắt trong ngoặc ngay sau tên đầy đủ ("Content Management System (CMS)"); mã story là cột riêng, không nằm trong câu |
-| **uniform** | Story dùng mẫu cụm chỉ dấu khác với mẫu chiếm đa số **trong cùng bộ** (ví dụ cả bộ dùng "As a … I want to … so that" nhưng story này dùng "As a … I can …" hoặc không có vai trò) | Chỉ khác "a"/"an"; chỉ thiếu phần ends |
-| **unique** | Trùng y hệt một story khác trong cùng bộ (bỏ qua chữ hoa, dấu câu, khoảng trắng) – story đứng sau bị tính lỗi | Gần giống nhưng khác chi tiết (bài báo cũng chỉ tính trùng chính xác, §5.1) |
+## Cụm chỉ dấu
+- **Vai trò:** "As a", "As an", "As the" (cùng một họ).
+- **Hành động:** họ "I want" = "I want", "I want to", "I want to be able to"; các họ khác: "I would like / I'd like", "I need", "I can", "I don't want / I do not want", "I only want".
+- **Lý do:** "so that" (không phân biệt hoa thường); các dạng khác: "so", "so I can", "so we can", "in order to", "since".
 
-Ca biên đã chốt:
-- Story không theo mẫu nào: well-formed = sai; uniform = sai nếu cả bộ đa số theo mẫu.
-- Một story có thể vi phạm nhiều tiêu chí.
-- "I want to be able to X and Y": atomic khi X, Y là hai hành động.
-- "As a user I want to search, filter and sort products": atomic (ba hành động).
+## 1. well-formed – vi phạm khi
+- không có cụm chỉ dấu vai trò, hoặc
+- không có cụm chỉ dấu hành động trong danh sách trên ("I'm able to", "I would be able to", "would like" thiếu chủ ngữ đều **không** phải cụm chỉ dấu hành động).
+- Phần hành động là cụm danh từ ("I want an Elasticsearch integration") **không** vi phạm. Thiếu phần lý do **không** vi phạm.
 
-## Dữ liệu và chia tập
-- 206 user story thật từ 3 bộ công khai (Dalpiaz et al., "Requirements data sets (user stories)"): g02 federalspending (98), g03 loudoun (58), g04 recycling (50). Người dùng tải lên ngày 21/10/2026.
-- Chia theo bộ gốc: **dev = g04** (dùng để chỉnh luật), **test = g02 + g03** (chấm một lần sau khi khoá luật).
-- Nhãn (`labels.jsonl`) do AI gán theo hướng dẫn này, mỗi lỗi kèm lý do, **commit trước khi chạy bộ chấm mới lên dữ liệu**.
-- Ca biên đã quyết khi gán: "Upload and Validate" (g02-012) là tên trang, không tính atomic; "enter my zip code and get a list" (g04-003), "browse … and see …" (g04-048) là một luồng tìm kiếm, không tính atomic; "I want to" và "I want to be able to" cùng mẫu "I want"; câu tách đôi ". So that" (g03-020) không tính lỗi; lỗi chính tả không tính lỗi.
-- **Sửa nhãn trên tập dev (sau lần chạy dev đầu tiên):** g04-006 uniform đổi sai → đúng, vì nhãn ban đầu mâu thuẫn với quy tắc đã áp cho g02-040 ("so I can" lệch mẫu). Không sửa nhãn nào của tập test.
+## 2. atomic – vi phạm khi
+Phần hành động **chính** chứa từ hai động từ chỉ hành động khác nhau trở lên, nối bằng "and", "or", dấu phẩy, hoặc "/" giữa hai động từ ("import/export", "copy/paste", "indent / outdent"); hoặc vai trò gồm hai loại người dùng tách biệt ("Admin & Editor", "admin and editor").
+**Không** vi phạm khi:
+- (a) các động từ nằm trong mệnh đề phụ hoặc bổ ngữ: sau "that/which/who/how/what/when/whether/if", trong cụm "to be …" bổ nghĩa danh từ, trong cụm "by …ing", hoặc trong mệnh đề mục đích ("so I can …"). Ví dụ: "ensure that attempts to correct or delete … don't create …", "determine how agencies will generate and validate …", "codes that reflect … and provide …", "extend an ad by visiting the site and updating the posting";
+- (b) động từ thứ hai là **kết quả người dùng nhận được** từ hành động thứ nhất: "get (a list)", "see which …", "find …", "pass validations", "have it (automatically) stored";
+- (c) cụm là tên riêng (tên trang, tên chức năng): "Upload and Validate (page)";
+- (d) một động từ với nhiều tân ngữ ("export orders and invoices", "update my information and the type of material");
+- (e) "/" hoặc "|" giữa hai danh từ ("query/report", "region|city", "LibreOffice/OpenOffice");
+- (f) vai trò ghép dính ("ResearcherPublisher") – một persona.
 
-## Vòng 2 (thêm dữ liệu)
-- Thêm 2 bộ: g05 openspending (53), g08 frictionless (66) → **test2** (chưa từng chạy bộ chấm). Dev vòng 2 = g02 + g03 + g04 (207; tập test vòng 1 đã dùng hết nên chuyển sang dev).
-- Nhãn test2 gán và commit trước khi chạy bộ chấm. Ca biên chốt thêm khi gán:
-  - vai trò ghép dính ("ResearcherPublisher", "DeveloperDataWrangler", "ResearcherGovernment Publisher") là **một** persona kiêm nhiều vai, không tính atomic (tiêu chí atomic xét số tính năng);
-  - cụm bổ nghĩa cho vai trò ("As a Researcher, working with data in NetCDF, …") là một phần của vai trò, không tính minimal;
-  - "/" hoặc "|" giữa hai danh từ ("LibreOffice/OpenOffice", "region|city", "file/files") không tính atomic; giữa hai động từ ("import/export") thì tính;
-  - "I would like" khác họ "I want" → uniform khi đa số bộ dùng "I want"; "So that" viết hoa vẫn cùng mẫu "so that".
+## 3. minimal – vi phạm khi
+Có nội dung ngoài vai trò, hành động, lý do:
+- ghi chú hoặc chi tiết trong ngoặc tròn, vuông, nhọn – trừ viết tắt ngay sau tên đầy đủ ("Content Management System (CMS)") và dấu số nhiều "(s)";
+- ví dụ: "such as", "e.g.", "for example", "for instance", "i.e.";
+- hai phần lý do nối tiếp hoặc lồng nhau ("…, so that …, so that …", "so parents can …, so that …", "so that I can see …, so I can ask …");
+- chữ hoặc ký hiệu thừa trước cụm vai trò ("[Analytics]", "*", "US12:");
+- một câu thêm không phải phần lý do (câu thứ hai mở bằng "So that" là phần lý do, không tính).
+**Không** vi phạm: "etc." trong danh sách tân ngữ; danh sách sau dấu hai chấm là tân ngữ ("set the following dates: A, B, C"); cụm bổ nghĩa vai trò ("As a Researcher, working with data, …").
 
-## Vòng 3 (tập test thứ ba)
-- **Sửa định nghĩa well-formed cho đúng Bảng 1 của bài báo:** chỉ cần có vai trò và cụm chỉ dấu hành động ("I want/can/need/would like …"). Phần hành động là cụm danh từ ("I want an Elasticsearch integration") **vẫn well-formed**. Bỏ vế "hành động không có động từ" ở bảng trên (đó là thêm của nhóm và gây nhãn không nhất quán ở vòng 2).
-- Thêm 5 bộ: g10 scrumalliance (97), g11 nsf (73), g12 camperplus (55), g13 planningpoker (53, mã hoá Windows-1252), g14 datahub (67) → **test3, 345 story**, gán nhãn theo định nghĩa đã sửa và commit trước khi chạy bộ chấm. Dev vòng 3 = g02, g03, g04, g05, g08.
-- Ca biên chốt thêm khi gán: "so that that" (lặp chữ) và "so that so that" là lỗi gõ, không tính lỗi; "etc." trong danh sách tân ngữ không tính minimal; "I'm able to", "I would be able to" không phải cụm chỉ dấu hành động → well-formed và uniform; chi tiết trong ngoặc nhọn tính minimal; "since …" thay "so that" tính uniform.
-- **Sửa nhãn dev cho khớp định nghĩa đã sửa:** g02-078, g02-087, g02-092 well-formed đổi đúng → sai (phần hành động là cụm danh từ). Không sửa nhãn test3.
+## 4. uniform – vi phạm khi (xét trong từng bộ)
+Story lệch mẫu đa số của bộ ở **bất kỳ** phần nào:
+- họ cụm chỉ dấu vai trò khác đa số;
+- họ cụm chỉ dấu hành động khác đa số, hoặc không có cụm chỉ dấu hành động;
+- **có** phần lý do nhưng cụm chỉ dấu lý do khác đa số của các story có lý do.
+Thiếu phần lý do **không** tính là lệch.
+
+## 5. unique – vi phạm khi
+Trùng y hệt một story khác trong cùng bộ, sau khi bỏ qua chữ hoa, dấu câu, khoảng trắng. Story đứng sau bị tính lỗi. Gần giống nhưng khác chữ không tính (như AQUSA v1, §5.1).
+
+## Ghi chú về quy trình
+- Gán lại toàn bộ 671 story của 10 bộ; nhãn cũ chuyển vào `archive/labels-v1.jsonl` chỉ để đối chiếu sau khi gán xong.
+- Hạn chế: người gán (AI) chính là người gán bản cũ và đã thấy kết quả bộ chấm ở các vòng trước, nên không độc lập hoàn toàn. Mọi nhãn khác bản cũ được liệt kê kèm quan hệ với lỗi trước đây của bộ chấm (`RELABEL.md`).
