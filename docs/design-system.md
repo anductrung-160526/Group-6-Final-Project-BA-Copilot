@@ -84,7 +84,7 @@ Xem trực quan: mở app tại `#/_gallery`.
 | `--color-orange` | `#C2410C` | Chờ người duyệt |
 | `--color-danger` | `#B42318` | Lỗi, xoá, toast lỗi |
 | `--color-violet` | `#6B3FD6` | Đã gửi AI, xem trước phiên bản |
-| `--color-ai` | `#7C5CFF` | Gợi ý của mô hình ML trên canvas: khung mờ `.ov-ghost` (Recursive) và vạch chèn `.ov-gap` (Transformer – phần tử còn thiếu ở giữa) |
+| `--color-ai` | `#7C5CFF` | Gợi ý của mô hình ML trên canvas: khung mờ `.ov-ghost` (Recursive) |
 
 ### 2.2. Chữ
 

@@ -388,7 +388,7 @@ test("gợi ý bố cục (Recursive): phần tử tiếp theo, hoàn thành b�
   assert.equal(st.data.acceptanceRate, 0.5);
 });
 
-test("gợi ý element (Transformer): phần tử còn thiếu ở giữa, chèn kèm loại con, thống kê theo mô hình", async () => {
+test("gợi ý element: chọn khe chèn ở giữa (trước/sau phần tử đang chọn), Recursive gợi ý cho đúng khe", async () => {
   const p = await api("POST", "/api/projects", { name: "Gợi ý giữa" });
   const m = await api("POST", `/api/projects/${p.data.id}/modules`, { name: "Đăng nhập" });
   const s = await api("POST", `/api/modules/${m.data.id}/screens`, { prompt: "Sign-in form: email, password, a Sign in button", name: "Sign in" });
@@ -408,44 +408,25 @@ test("gợi ý element (Transformer): phần tử còn thiếu ở giữa, chèn
 
   const r = await api("POST", `/api/screens/${sid}/suggestions`, { nodeIds: [], layout, mode: "next" });
   assert.equal(r.status, 200, JSON.stringify(r.data));
-  assert.equal(r.data.gapModel.kind, "transformer");
-  assert.ok(r.data.gapModel.trees >= 1);
-  assert.ok(Array.isArray(r.data.gaps) && r.data.gaps.length <= 3);
   assert.ok(r.data.items.every((e: any) => e.source === "recursive"));
-  // chỉ khe GIỮA: đứng trước một phần tử đã có, P(thiếu) ≥ 0.5, xếp giảm dần
-  for (const g of r.data.gaps) {
-    const parent = find(tree, g.parentId);
-    assert.equal(g.source, "transformer");
-    assert.ok(g.index < parent.children.length);
-    assert.equal(parent.children[g.index].id, g.beforeId);
-    assert.ok(g.pMissing >= 0.5 && g.pMissing <= 1);
-    assert.ok(g.candidates.length >= 1 && g.candidates.every((c: any) => c.type !== "Page" && typeof c.sub === "string"));
-  }
-  assert.deepEqual(r.data.gaps.map((g: any) => g.pMissing), [...r.data.gaps.map((g: any) => g.pMissing)].sort((a: number, b: number) => b - a));
-  // có container đang chọn → chỉ khe trong container đó
+  assert.equal(r.data.gaps, undefined);
+  // khe 0 của Form: một gợi ý, đúng container và đúng vị trí chèn
   const form = tree.children.find((c: any) => c.type === "Form") ?? tree;
-  const inForm = await api("POST", `/api/screens/${sid}/suggestions`, { nodeIds: [form.id], layout, mode: "next" });
-  assert.ok(inForm.data.gaps.every((g: any) => g.parentId === form.id));
+  const atR = await api("POST", `/api/screens/${sid}/suggestions`, { nodeIds: [], layout, mode: "next", at: { parentId: form.id, index: 0 } });
+  assert.equal(atR.status, 200, JSON.stringify(atR.data));
+  assert.equal(atR.data.items.length, 1);
+  assert.equal(atR.data.items[0].parentId, form.id);
+  assert.equal(atR.data.items[0].index, 0);
+  assert.deepEqual(atR.data.at, { parentId: form.id, index: 0 });
+  // khe ngoài phạm vi → không có gợi ý; container không tồn tại → 400
+  assert.equal((await api("POST", `/api/screens/${sid}/suggestions`, { nodeIds: [], layout, mode: "next", at: { parentId: form.id, index: 999 } })).data.items.length, 0);
+  assert.equal((await api("POST", `/api/screens/${sid}/suggestions`, { nodeIds: [], layout, mode: "next", at: { parentId: "nope", index: 0 } })).status, 400);
   // "complete" vẫn chỉ là Recursive
   assert.equal((await api("POST", `/api/screens/${sid}/suggestions`, { nodeIds: [], layout, mode: "complete" })).data.gaps, undefined);
 
-  // chèn ở giữa kèm loại con: Input email → nhãn và kiểu ô nhập theo loại con; loại con "icon" giữ props trung tính
-  const acc = await api("POST", `/api/screens/${sid}/layout/accept`, {
-    versionId: r.data.versionId,
-    source: "transformer",
-    items: [{ ref: "a", parentId: form.id, index: 0, type: "Input", sub: "email" }, { ref: "b", parentId: form.id, index: 0, type: "Button", sub: "icon" }],
-  });
+  // chấp nhận gợi ý ở khe 0 → phần tử mới đứng đầu Form
+  const acc = await api("POST", `/api/screens/${sid}/layout/accept`, { versionId: r.data.versionId, items: [{ ref: "a", parentId: form.id, index: 0, type: atR.data.items[0].candidates[0].type }] });
   assert.equal(acc.status, 200, JSON.stringify(acc.data));
-  assert.match(acc.data.version.prompt, /Transformer/);
-  const f2 = find(acc.data.version.tree, form.id);
-  assert.equal(f2.children[0].type, "Input");
-  assert.equal(f2.children[0].props.inputType, "email");
-  assert.equal(f2.children[0].props.label, "Email");
-  assert.equal(f2.children[1].type, "Button");
-  assert.equal(f2.children[1].props.icon, undefined);
-
-  await api("POST", "/api/suggestions/events", { screenId: sid, kind: "layout:transformer", targetNodeId: form.id, title: "Input", confidence: 0.8, action: "shown" });
-  await api("POST", "/api/suggestions/events", { screenId: sid, kind: "layout:transformer", targetNodeId: form.id, title: "Input", confidence: 0.8, action: "applied" });
-  const st = await api("GET", `/api/modules/${m.data.id}/suggestion-stats`);
-  assert.deepEqual(st.data.byKind["layout:transformer"], { shown: 1, applied: 1 });
+  assert.match(acc.data.version.prompt, /Recursive/);
+  assert.equal(find(acc.data.version.tree, form.id).children[0].type, atR.data.items[0].candidates[0].type);
 });

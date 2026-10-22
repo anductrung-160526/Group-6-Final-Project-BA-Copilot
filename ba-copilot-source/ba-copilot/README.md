@@ -141,7 +141,6 @@ Replaces WebSight and the Mock-generated synthetic data. Full specification in `
 - **Root screens:** authored by Claude following the coverage matrix `dataset/matrix.json`: 500 screens = 5 groups × 12 domains × permission levels × layouts. The pilot batch is 50 screens in `dataset/roots/`.
 - **Review:** BAs review screens on the **dataset review** page (`#/review`) against 6 criteria, then click export and send the JSON file to the team. In the pilot, each screen is reviewed by 2 independent BAs to measure inter-rater agreement.
 - **Sample generation:** `npm run dataset:samples -- --reviews kq1.json,kq2.json,...` builds samples from accepted screens. Each sample contains `requirement`, `partialTree`, `targetContainerId`, `acceptedPatch`, `completedTree`, `review`. There are 4 kinds: one missing element, one missing group, one missing pair, and complete screens (empty target; for permission-restricted screens these act as trap samples). Train/val/test splits are made per root screen.
-- **Training:** `npm run dataset:export && python3 scripts/train_transformer.py --samples data/dataset/tf --epochs 30`.
 
 ## 5. Testing
 

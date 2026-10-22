@@ -102,10 +102,10 @@ Quy tắc: `title` rỗng → `400`; `artifactType` và `artifactId` phải cùn
 | Nhóm | Chạy bằng | Tính năng |
 |---|---|---|
 | QUS | Bộ luật QUS + AQUSA (`shared/qus.ts`, `shared/aqusa.ts`, wink-nlp chạy tại chỗ) – không gọi AI ngoài | Chấm điểm user story (`GET /api/modules/:id/qus`, panel QUS) |
-| Mô hình (`model/`) | Chỉ mô hình đã huấn luyện, không luật, không Claude (`server/nextModel.ts`) | Gợi ý element – `POST /api/screens/:id/suggestions`: `items` + `mode: "complete"` từ **Recursive** (`recursive-layout.json`); `gaps` (phần tử còn thiếu giữa các phần tử đã có) từ **Transformer** (`next-transformer.websight.json`, `gapModel = null` nếu thiếu tệp). `POST /api/screens/:id/layout/accept` nhận thêm `source?: "recursive" \| "transformer"` và `items[].sub?` (loại con của Transformer: email, password, submit…). Sự kiện gợi ý: `kind: "layout"` (Recursive), `"layout:transformer"` (Transformer). |
+| Mô hình (`model/`) | Chỉ mô hình đã huấn luyện, không luật, không Claude (`server/nextModel.ts`) | Gợi ý element – `POST /api/screens/:id/suggestions`: `items` + `mode: "complete"` từ **Recursive** (`recursive-layout.json`); `at?: { parentId, index }` – khe chèn người dùng chọn (trước/sau phần tử đang chọn), Recursive gợi ý cho đúng khe đó từ các con đứng trước khe. Sự kiện gợi ý: `kind: "layout"`. |
 | Claude API | `server/ai/pipelines.ts`, `diagramPipelines.ts`, `docsPipelines.ts` qua `runAI` (Mock rule-based khi chưa có khoá, giao diện gắn `SampleBadge`) | Mọi tính năng còn lại: sinh / sửa màn, tài liệu (UC, SRS, FRD-NFR…), sơ đồ, test case, chỉnh tài liệu, màn còn thiếu |
 
-`next-component.json` (n-gram) và `next-transformer.json` chỉ là mô hình đối chứng cho script đánh giá, không dùng trong app.
+`next-component.json` (n-gram) chỉ là mô hình đối chứng cho script đánh giá, không dùng trong app.
 
 ## 7. Endpoint cũ
 

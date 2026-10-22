@@ -64,8 +64,7 @@ partialTree, targetContainerId, acceptedPatch[{op:"insert", parentId, index, nod
   `npm run dataset:validate`: đúng schema 28 component, id snake_case duy nhất, 10–70 node, cảnh báo vi phạm quyền.
 - `review.status = "unreviewed"`: nhóm kiểm nghiệm màn theo cách riêng. Kết quả kiểm nghiệm đưa vào bằng
   `build-samples.ts --reviews kq.json [--only-reviewed]`.
-- Không dùng dữ liệu Mock hay WebSight trong bộ này. WebSight chỉ xuất hiện dưới dạng mô hình tiền huấn luyện có sẵn
-  (`model/next-transformer.json` cũ), và kết quả được báo cáo cả có lẫn không có bước tiền huấn luyện này.
+- Không dùng dữ liệu Mock hay WebSight trong bộ này. WebSight chỉ dùng cho bước tiền huấn luyện mô hình (xem `export/eval/TRANSFORMER-RESULTS.md`).
 - Mô hình hiện **chưa** nhận cờ quyền nghiệp vụ làm đầu vào. Các mẫu bẫy chỉ dùng để đo báo động giả.
 
 ## Tái tạo
@@ -75,7 +74,6 @@ npx tsx scripts/dataset/matrix.ts                 # dataset/matrix.json (200 mà
 for f in dataset/src/batch_*.py; do python3 $f; done  # dựng lại dataset/roots từ DSL
 npm run dataset:validate                          # kiểm tra màn gốc
 npm run dataset:samples                           # data/dataset/samples.jsonl + stats.json (11.240 mẫu)
-npm run dataset:export                            # data/dataset/tf/{train,val,test}.jsonl cho Transformer
 npx tsx scripts/dataset/export-view.ts            # dataset/export/: samples.csv, roots.csv, preview.html, samples.jsonl.gz
 ```
 

@@ -257,7 +257,7 @@ route("DELETE", "/api/annotations/:id", (ctx) => {
   return { ok: true };
 });
 
-// Gợi ý element (mô hình trong model/: Recursive + Transformer, xem service.layoutSuggestions): client gửi khung bao đo trên canvas
+// Gợi ý element (mô hình trong model/: Recursive, xem service.layoutSuggestions): client gửi khung bao đo trên canvas
 route("POST", "/api/screens/:id/suggestions", ({ params, body }) => {
   const layout = body.layout && typeof body.layout === "object" ? (body.layout as svc.LayoutBoxes) : undefined;
   const boxes: svc.LayoutBoxes["boxes"] = {};
@@ -270,9 +270,8 @@ function slotOf(a: unknown) {
 }
 route("POST", "/api/screens/:id/layout/accept", (ctx) => {
   const { params, body } = ctx;
-  const items = (Array.isArray(body.items) ? body.items : []).slice(0, 100).map((x: Record<string, unknown>) => ({ ref: str(x?.ref, 60), parentId: str(x?.parentId, 120), index: Math.max(0, Math.floor(Number(x?.index) || 0)), type: str(x?.type, 30), sub: str(x?.sub, 20) || undefined }));
-  const source = body.source === "transformer" ? "transformer" : "recursive";
-  return screenWrite(ctx, () => svc.acceptLayout(params.id, { versionId: str(body.versionId, 100), items, source }, actor(body)));
+  const items = (Array.isArray(body.items) ? body.items : []).slice(0, 100).map((x: Record<string, unknown>) => ({ ref: str(x?.ref, 60), parentId: str(x?.parentId, 120), index: Math.max(0, Math.floor(Number(x?.index) || 0)), type: str(x?.type, 30) }));
+  return screenWrite(ctx, () => svc.acceptLayout(params.id, { versionId: str(body.versionId, 100), items }, actor(body)));
 });
 route("POST", "/api/screens/:id/manual", (ctx) => {
   const { params, body } = ctx;
