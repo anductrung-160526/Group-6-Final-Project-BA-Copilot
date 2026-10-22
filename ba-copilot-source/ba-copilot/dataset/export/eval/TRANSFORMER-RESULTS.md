@@ -25,11 +25,10 @@ Chạy lại ngày 21/10/2026 bằng `scripts/paper/eval_app_model.py`; kết qu
 
 ## Kết quả
 
-Mô hình tham chiếu **Vanilla** và **Pointer** (Li et al. 2020, §4.2–4.3) được huấn luyện lại trên **cùng dữ liệu** với mô hình trong app
-(785 màn gốc + tăng cường, lưới 32 × 40, hidden 256 × 4 lớp, không embedding vị trí; Pointer dropout 0,2), bằng
-`scripts/paper/strict_next_experiment.py --kind pointer|vanilla`, chấm bằng `eval_app_model.py --kind …` (kết quả `transformer/pointer.json`,
-`transformer/vanilla.json`). **Khác biệt:** Recursive trong app có thêm bước tiền huấn luyện WebSight; Pointer và Vanilla huấn luyện trực
-tiếp, không tiền huấn luyện. Vanilla chỉ có luồng DFS (như bài báo). Giá trị tốt nhất mỗi cột in đậm.
+Mô hình tham chiếu **Vanilla** và **Pointer** (Li et al. 2020, §4.2–4.3) được huấn luyện theo **cùng quy trình và cùng dữ liệu** với
+mô hình trong app (tiền huấn luyện WebSight → tinh chỉnh trên 785 màn gốc + tăng cường, lưới 32 × 40, hidden 256 × 4 lớp, không
+embedding vị trí; Pointer dropout 0,2) bằng `scripts/paper/train_reference.sh`, chấm bằng `eval_app_model.py --kind …` (kết quả `transformer/pointer.json`,
+`transformer/vanilla.json`). Vanilla chỉ có luồng DFS (như bài báo). Giá trị tốt nhất mỗi cột in đậm.
 
 **Table 1:** The prediction accuracy for the breadth-first layout design flow.
 
@@ -67,14 +66,10 @@ Số của bài báo (dữ liệu Rico): Recursive trung bình F1 54,4, Next 27,
   ở 50% và 80%. Bài báo cũng thấy lợi thế của Recursive kém rõ ở DFS và Pointer mạnh về F1.
 - **Vanilla** có Next rất thấp ở DFS 50% (2,63) – cùng xu hướng bài báo, dù không thua xa như trong bài báo.
 - **Table 3:** khi xáo thứ tự anh em, Next của cả hai mô hình giảm gần về 0 ở 50–80%; F1 và Edit giảm ít hơn.
-- **So sánh chưa hoàn toàn công bằng:** Recursive có tiền huấn luyện WebSight, hai mô hình tham chiếu thì không.
 - **Giới hạn:** tập test nhỏ (38 cây); dữ liệu do nhóm soạn, khác bài báo; chưa có ablation tách đóng góp của WebSight và tăng cường.
 
 ## Chạy lại
 ```bash
 python3 scripts/paper/eval_app_model.py --data data/sn80-G2-w7-r800-aug2   # cần trọng số data/.../models/final.pt (data/ bị gitignore)
-python3 scripts/paper/strict_next_experiment.py --data data/sn80-G2-w7-r800-aug2 --kind pointer --no-pos --grid 256:4 --dropout 0.2 --threads 3 --out /tmp/pointer.json
-python3 scripts/paper/strict_next_experiment.py --data data/sn80-G2-w7-r800-aug2 --kind vanilla --grid 256:4 --threads 3 --out /tmp/vanilla.json
-python3 scripts/paper/eval_app_model.py --data data/sn80-G2-w7-r800-aug2 --kind pointer --weights data/sn80-G2-w7-r800-aug2/models/pointer.pt --out dataset/export/eval/transformer/pointer.json
-python3 scripts/paper/eval_app_model.py --data data/sn80-G2-w7-r800-aug2 --kind vanilla --weights data/sn80-G2-w7-r800-aug2/models/vanilla.pt --out dataset/export/eval/transformer/vanilla.json
+bash scripts/paper/train_reference.sh                                       # Pointer + Vanilla: tiền huấn luyện WebSight → tinh chỉnh → chấm
 ```

@@ -132,7 +132,7 @@ for d in (map(int, ds.split(",")) if ds else []):
     for L in (map(int, ls.split(",")) if ls else []):
         s = time.time()
         if a.kind == "vanilla":
-            m, vl, hist = V.train_one(train, val, d, L, a.epochs, a.patience, a.lr, a.seed)
+            m, vl, hist = V.train_one(train, val, d, L, a.epochs, a.patience, a.lr, a.seed, init_state=torch.load(a.init)["state"] if a.init else None)
             m.eval()
         else:
             m, vl, hist = T.train_model(a.kind, train, val, d, L, a.epochs, a.patience, a.lr, a.seed, n_widths=n_w, use_pos=not a.no_pos, drop=a.dropout,

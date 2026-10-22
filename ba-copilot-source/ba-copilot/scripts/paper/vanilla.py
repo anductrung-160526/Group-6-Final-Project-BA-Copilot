@@ -318,10 +318,12 @@ def load(path):
     return [json.loads(l) for l in open(path, encoding="utf8") if l.strip()]
 
 
-def train_one(train, val, d, layers, epochs, patience, lr, seed, batch=32):
+def train_one(train, val, d, layers, epochs, patience, lr, seed, batch=32, init_state=None):
     torch.manual_seed(seed)
     rnd = random.Random(seed)
     model = Vanilla(d, layers)
+    if init_state is not None:  # tinh chỉnh từ mô hình đã tiền huấn luyện trên WebSight
+        model.load_state_dict(init_state)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
     seqs = [linearize(r["tree"]) for r in train]
     vseqs = [linearize(r["tree"]) for r in val]
