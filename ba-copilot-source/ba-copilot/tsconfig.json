@@ -12,5 +12,5 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": ["node"]
   },
-  "include": ["server", "shared", "client", "tests", "scripts"]
+  "include": ["backend/src", "backend/tests", "frontend/src", "shared", "scripts"]
 }

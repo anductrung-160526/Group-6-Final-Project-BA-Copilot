@@ -13,7 +13,7 @@ Quy ước viết hoa: **tiêu đề trang / tên mục menu / tiêu đề cột
 | Tiếng Việt | Tiếng Anh | Ghi chú |
 | --- | --- | --- |
 | Chưa có | Not started | Giá trị nội bộ `none` |
-| Bản nháp / Đang làm (sản phẩm) | Draft | Một nhãn duy nhất ở mọi chỗ, kể cả câu lý do khoá (`shared/diagrams.ts`, `shared/prereq.ts`, `server/routes/approval.ts`, xuất docx). Giá trị nội bộ `draft` |
+| Bản nháp / Đang làm (sản phẩm) | Draft | Một nhãn duy nhất ở mọi chỗ, kể cả câu lý do khoá (`shared/diagrams.ts`, `shared/prereq.ts`, `backend/src/routes/approval.ts`, xuất docx). Giá trị nội bộ `draft` |
 | Xong | Done | `done` – chờ BA Lead duyệt |
 | Đã duyệt | Approved | `approved` |
 | Bản cũ | Outdated | `outdated` |

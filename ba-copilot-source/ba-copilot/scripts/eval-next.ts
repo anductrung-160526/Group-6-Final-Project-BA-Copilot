@@ -2,7 +2,7 @@
 //  1) Che bớt cây (theo Li et al. 2020): giữ 10/50/80% node đầu theo BFS, đoán loại node kế tiếp → Top-1/Top-3, so baseline.
 //  2) Phát lại lịch sử phiên bản trong DB: node BA thật sự thêm có nằm trong top-3 gợi ý của container cha không.
 //  3) Đường cong bão hòa: đếm với 1k/5k/10k/20k/30k cây (giới hạn bởi dữ liệu có), đo Top-3 ở mức 50%.
-// Dùng: npm run eval-next -- --model model/next-component.json --test data/corpus/holdout.jsonl
+// Dùng: npm run eval-next -- --model backend/model/next-component.json --test data/corpus/holdout.jsonl
 //         [--train data/corpus/internal.jsonl,...] [--db data/ba-copilot.db] [--sec-per-insert 6]
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
@@ -93,7 +93,7 @@ export function evalReplay(model: NGramModel, dbFile: string) {
 }
 
 if (process.argv[1]?.endsWith("eval-next.ts")) {
-  const model = JSON.parse(readFileSync(arg("--model", join(root, "model", "next-component.json")), "utf8")) as NGramModel;
+  const model = JSON.parse(readFileSync(arg("--model", join(root, "backend", "model", "next-component.json")), "utf8")) as NGramModel;
   const testFile = arg("--test", join(root, "data", "corpus", "holdout.jsonl"));
   const secPerInsert = Number(arg("--sec-per-insert", "6"));
   const test = existsSync(testFile) ? readCorpus([testFile]).map((r) => cleanTree(r.tree)).filter((t): t is UINode => !!t) : [];

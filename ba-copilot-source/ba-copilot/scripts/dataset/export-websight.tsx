@@ -8,14 +8,14 @@ import { join } from "node:path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { chromium } from "playwright";
-import { Renderer } from "../../client/components/Renderer.tsx";
+import { Renderer } from "../../frontend/src/components/Renderer.tsx";
 import { loadRoots } from "./roots.ts";
 import { splitOf } from "./build-samples.ts";
 
 const root = join(import.meta.dirname, "..", "..");
 const out = join(root, "dataset", "export", "websight");
 for (const d of ["images", "html"]) mkdirSync(join(out, d), { recursive: true });
-copyFileSync(join(root, "client", "styles.css"), join(out, "styles.css"));
+copyFileSync(join(root, "frontend", "src", "styles.css"), join(out, "styles.css"));
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 
 const browser = await chromium.launch(process.env.CHROME ? { executablePath: process.env.CHROME } : {});

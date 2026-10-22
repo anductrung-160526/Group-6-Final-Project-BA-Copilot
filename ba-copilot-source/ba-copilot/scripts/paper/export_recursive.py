@@ -1,4 +1,4 @@
-"""Xuất Recursive (model/recursive-layout.pt) sang JSON cho suy luận TypeScript (shared/recursive.ts) + mẫu đối chiếu số học.
+"""Xuất Recursive (backend/model/recursive-layout.pt) sang JSON cho suy luận TypeScript (shared/recursive.ts) + mẫu đối chiếu số học.
 Mẫu đối chiếu: 3 cây test, mỗi cây lấy tiền tố DFS 50%; với mọi container đã có, sinh tham lam tối đa 6 con (đúng predictChildren).
 Dùng: python3 scripts/paper/export_recursive.py
       python3 scripts/paper/export_recursive.py --result dataset/export/eval/strict-next/G2W0-recursive-r500-s42.json
@@ -20,7 +20,7 @@ if RESULT:
     d, L, state, cell_y = ck["d"], ck["layers"], ck["state"], _st["cellY"]
 else:
     info = json.load(open("dataset/export/eval/recursive-faithful.json"))
-    d, L, state, cell_y = info["chosen"]["d"], info["chosen"]["layers"], torch.load("model/recursive-layout.pt"), 20
+    d, L, state, cell_y = info["chosen"]["d"], info["chosen"]["layers"], torch.load("backend/model/recursive-layout.pt"), 20
 m = T.Recursive(d, L, use_pos=False)
 m.load_state_dict(state)
 m.eval()
@@ -29,7 +29,7 @@ tensors = {k: {"shape": list(v.shape), "b64": base64.b64encode(v.detach().float(
 train = [json.loads(l) for l in open(f"{info['data']}/train.jsonl")]
 meta = {"builtAt": time.strftime("%Y-%m-%dT%H:%M:%S"), "method": "Recursive Transformer Tree Decoder (Li et al. 2020, §4.4)", "trees": len(train),
         "roots": len({r["rootId"] for r in train}), "params": sum(p.numel() for p in m.parameters()), "val_loss": info["chosen"]["val_loss"], "data": info["data"]}
-json.dump({"config": cfg, "meta": meta, "tensors": tensors}, open("model/recursive-layout.json", "w"))
+json.dump({"config": cfg, "meta": meta, "tensors": tensors}, open("backend/model/recursive-layout.json", "w"))
 
 
 @torch.no_grad()
@@ -110,5 +110,5 @@ for r in test:
     part = T.prefix_tree(t, V.partial_size(len(V.preorder(t)), 0.5), "dfs")
     parity.append({"tree": part, "expected": predict_children(part), "first": first_steps(part),
                    "complete": complete_order(T.recursive_complete(m, part), part)})
-json.dump(parity, open("model/recursive-layout.parity.json", "w"))
-print(f"→ model/recursive-layout.json ({os.path.getsize('model/recursive-layout.json') / 1e6:.1f} MB), parity {sum(len(p['expected']) for p in parity)} container")
+json.dump(parity, open("backend/model/recursive-layout.parity.json", "w"))
+print(f"→ backend/model/recursive-layout.json ({os.path.getsize('backend/model/recursive-layout.json') / 1e6:.1f} MB), parity {sum(len(p['expected']) for p in parity)} container")

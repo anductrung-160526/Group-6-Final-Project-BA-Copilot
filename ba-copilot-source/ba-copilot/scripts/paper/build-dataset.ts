@@ -64,7 +64,7 @@ const OUT = join(root, arg("--out", "data/paper"));
 type PNode = { c: number; t: number; b: number[]; k?: PNode[] };
 
 const js = await esbuild.build({ entryPoints: [join(import.meta.dirname, "measure-entry.tsx")], bundle: true, write: false, format: "iife", jsx: "automatic", define: { "process.env.NODE_ENV": '"production"' } });
-const css = readFileSync(join(root, "client", "styles.css"), "utf8");
+const css = readFileSync(join(root, "frontend", "src", "styles.css"), "utf8");
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>${css} body{margin:0;background:#fff}</style></head><body><div id="root"></div><script>${js.outputFiles[0].text}</script></body></html>`;
 const browser = await chromium.launch(process.env.CHROME ? { executablePath: process.env.CHROME } : {});
 

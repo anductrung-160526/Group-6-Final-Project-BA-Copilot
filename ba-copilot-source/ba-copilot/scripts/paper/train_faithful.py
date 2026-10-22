@@ -9,7 +9,7 @@ số lớp {2, 4, 6} (bài báo thêm 512 – bỏ vì CPU); dừng sớm theo v
 Dữ liệu: data/paper-w7c20-r300 (300 màn gốc web, 7 độ rộng; chia theo màn gốc) – bản 200 màn: data/paper-w7c20.
 Chỉ dữ liệu của nhóm, không WebSight.
 Dùng: python3 scripts/paper/train_faithful.py [--data=data/paper-w7c20-r300]
-      → model/recursive-layout.pt + dataset/export/eval/recursive-faithful.json
+      → backend/model/recursive-layout.pt + dataset/export/eval/recursive-faithful.json
 """
 import json, os, sys, time
 import torch
@@ -34,7 +34,7 @@ for d in (128, 256):
 m, vl, d, L = best
 print(f"chọn d={d} L={L}", flush=True)
 os.makedirs("model", exist_ok=True)
-torch.save(m.state_dict(), "model/recursive-layout.pt")
+torch.save(m.state_dict(), "backend/model/recursive-layout.pt")
 old_test = [r for r in test if int(r["rootId"][1:]) <= 200]  # cùng 22 cây test của bản 200 màn – so sánh trước/sau
 res = {"val": {"next": C.next_metrics(m, val1280, False), "insert": C.insertion_metrics(m, val1280, False)},
        "test": {"next": C.next_metrics(m, test, False), "insert": C.insertion_metrics(m, test, False)},

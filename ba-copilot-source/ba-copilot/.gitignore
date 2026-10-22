@@ -2,9 +2,9 @@ node_modules/
 data/
 .env
 *.map
-e2e/screenshots/
-e2e/demo-*/
+frontend/e2e/screenshots/
+frontend/e2e/demo-*/
 data/corpus/
 analysis/
 __pycache__/
-model/*.pt
+backend/model/*.pt

@@ -1,10 +1,10 @@
 # ERD – BA Copilot v2
 
-> **Bản ERD đầy đủ, luôn khớp DB hiện tại:** `ba-copilot-source/ba-copilot/database/ERD.md` (ảnh `ERD.png`, `ERD-day-du.png`), sinh tự động bằng `npm run erd` / `npm run export-db`. Tài liệu dưới đây là hợp đồng thiết kế theo từng đợt (lý do chọn `ON DELETE`, migration), sơ đồ ở mục 1 chưa có các cột thêm ở đợt 5 (xem mục 8).
+> **Bản ERD đầy đủ, luôn khớp DB hiện tại:** `ba-copilot-source/ba-copilot/backend/database/ERD.md` (ảnh `ERD.png`, `ERD-day-du.png`), sinh tự động bằng `npm run erd` / `npm run export-db`. Tài liệu dưới đây là hợp đồng thiết kế theo từng đợt (lý do chọn `ON DELETE`, migration), sơ đồ ở mục 1 chưa có các cột thêm ở đợt 5 (xem mục 8).
 
 Người viết: **A2**. Trạng thái: **chờ A0 duyệt**. Sau khi duyệt, tài liệu này **bị khoá**: muốn đổi phải mở yêu cầu với A0 (`docs/agents/REQUESTS.md`).
 
-Nguồn sự thật là `ba-copilot-source/ba-copilot/server/db.ts` (`SCHEMA` + `COLUMNS`). `tests/contract.test.ts` kiểm tra bảng, cột, index, khoá ngoại và `ON DELETE` khớp với tài liệu này.
+Nguồn sự thật là `ba-copilot-source/ba-copilot/backend/src/db.ts` (`SCHEMA` + `COLUMNS`). `backend/tests/contract.test.ts` kiểm tra bảng, cột, index, khoá ngoại và `ON DELETE` khớp với tài liệu này.
 
 ## 1. Sơ đồ
 
@@ -374,7 +374,7 @@ erDiagram
 
 | Bảng.cột | Kiểu | Mặc định | Phục vụ |
 |---|---|---|---|
-| `members.password_hash` | TEXT NULL | NULL | Đăng nhập thành viên (`scrypt$<salt>$<hash>`, `server/http.ts`). **Không bao giờ** trả ra API |
+| `members.password_hash` | TEXT NULL | NULL | Đăng nhập thành viên (`scrypt$<salt>$<hash>`, `backend/src/http.ts`). **Không bao giờ** trả ra API |
 | `screens.rev` | INTEGER | `1` | Chặn đè màn |
 | `screens.revision_requested` | INTEGER 0/1 | `0` | Tag "Yêu cầu sửa" |
 | `screens.updated_by` | TEXT NULL → `members(id)` SET NULL | NULL | Người sửa cuối |
@@ -390,7 +390,7 @@ erDiagram
 
 ### 8.3 Nâng cấp bảng `tasks`
 
-SQLite không sửa được CHECK, nên `upgradeTasksTable()` (trong `server/db.ts`) dựng lại bảng khi CHECK chưa có `'approved'` hoặc thiếu cột `artifact_sub`: tắt `foreign_keys` → tạo `tasks__d5` theo định nghĩa mới → chép dữ liệu (`redo` → `doing` + `revision_requested = 1`) → xoá bảng cũ → đổi tên → tạo lại 2 index → `PRAGMA foreign_key_check` → bật lại `foreign_keys`. `task_events` không bị xoá theo (đã có test). CHECK mới: `status IN ('todo','doing','done','approved','redo')`, `artifact_type IN ('screen','doc','diagram','tests','docs')`. `redo` và `docs` còn trong CHECK chỉ để mã v2 (taskRules của A7) chạy được tới khi C7 thay; mỗi lần khởi động `UPDATE tasks SET status = 'doing', revision_requested = 1 WHERE status = 'redo'`.
+SQLite không sửa được CHECK, nên `upgradeTasksTable()` (trong `backend/src/db.ts`) dựng lại bảng khi CHECK chưa có `'approved'` hoặc thiếu cột `artifact_sub`: tắt `foreign_keys` → tạo `tasks__d5` theo định nghĩa mới → chép dữ liệu (`redo` → `doing` + `revision_requested = 1`) → xoá bảng cũ → đổi tên → tạo lại 2 index → `PRAGMA foreign_key_check` → bật lại `foreign_keys`. `task_events` không bị xoá theo (đã có test). CHECK mới: `status IN ('todo','doing','done','approved','redo')`, `artifact_type IN ('screen','doc','diagram','tests','docs')`. `redo` và `docs` còn trong CHECK chỉ để mã v2 (taskRules của A7) chạy được tới khi C7 thay; mỗi lần khởi động `UPDATE tasks SET status = 'doing', revision_requested = 1 WHERE status = 'redo'`.
 
 ### 8.4 Chuyển dữ liệu cũ (`migrateData()`, chạy khi mở DB)
 
@@ -404,7 +404,7 @@ Mỗi bước chạy **một lần cho mỗi DB** (đánh dấu `migration:<bư�
 
 Module tạo sau lần chuyển (bằng màn cũ) không tự sinh story – C4 lo khi thay màn tạo module.
 
-### 8.5 Ánh xạ trạng thái sản phẩm (`getArtifactState` / `setArtifactState` / `bumpRev` trong `server/db.ts`)
+### 8.5 Ánh xạ trạng thái sản phẩm (`getArtifactState` / `setArtifactState` / `bumpRev` trong `backend/src/db.ts`)
 
 | `ArtifactRef` | Bảng | status | revisionRequested | rev |
 |---|---|---|---|---|

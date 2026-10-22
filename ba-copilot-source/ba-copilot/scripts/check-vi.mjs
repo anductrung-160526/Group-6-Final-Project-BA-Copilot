@@ -1,5 +1,5 @@
-// Soát sót tiếng Việt: quét chuỗi (không tính chú thích) trong client/, server/, shared/, scripts/seed.ts
-// và public/index.html, báo mọi chuỗi có ký tự tiếng Việt có dấu.
+// Soát sót tiếng Việt: quét chuỗi (không tính chú thích) trong frontend/src/, backend/src/, shared/, scripts/seed.ts
+// và frontend/public/index.html, báo mọi chuỗi có ký tự tiếng Việt có dấu.
 //
 // Chỗ được phép giữ tiếng Việt (mảng từ khoá NLP để nhận diện nội dung cũ trong DB…) phải đánh dấu:
 //   - cùng dòng hoặc dòng ngay trên:   // vi-keep: <lý do>
@@ -13,7 +13,7 @@ import { join, relative, extname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
-const TARGETS = ["client", "server", "shared", "scripts/seed.ts", "public/index.html"];
+const TARGETS = ["frontend/src", "backend/src", "shared", "scripts/seed.ts", "frontend/public/index.html"];
 const EXTS = new Set([".ts", ".tsx", ".mjs", ".js", ".html"]);
 const VI = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/;
 

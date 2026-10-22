@@ -34,4 +34,4 @@ if lsof -i ":$PORT" -sTCP:LISTEN >/dev/null 2>&1; then
 fi
 (sleep 2 && open "http://localhost:$PORT") &
 echo "Đang chạy BA Copilot – giữ cửa sổ này mở. Nhấn Ctrl+C để dừng."
-NODE_NO_WARNINGS=1 node dist/server.mjs
+NODE_NO_WARNINGS=1 node backend/dist/server.mjs

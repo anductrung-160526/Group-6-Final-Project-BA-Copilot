@@ -1,6 +1,6 @@
 // "Huấn luyện" mô hình gợi ý thành phần = đếm tần suất từ các file JSONL ({source, tree}).
 // Dùng: npm run build-model -- --in data/corpus/internal.jsonl,data/corpus/websight.jsonl
-//         [--out model/next-component.json] [--weights websight=1,internal=3]
+//         [--out backend/model/next-component.json] [--weights websight=1,internal=3]
 //         [--holdout 0.1 --seed 42 --holdout-out data/corpus/holdout.jsonl] [--limit 30000]
 import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -51,7 +51,7 @@ export function cleanTree(raw: unknown): UINode | null {
 
 if (import.meta.main ?? process.argv[1]?.endsWith("build-next-model.ts")) {
   const files = arg("--in", join(root, "data", "corpus", "internal.jsonl")).split(",").filter(Boolean);
-  const out = arg("--out", join(root, "model", "next-component.json"));
+  const out = arg("--out", join(root, "backend", "model", "next-component.json"));
   const weights = Object.fromEntries(arg("--weights", "websight=1,internal=3").split(",").map((kv) => [kv.split("=")[0], Number(kv.split("=")[1]) || 1]));
   const holdout = Number(arg("--holdout", "0"));
   const rand = rng(Number(arg("--seed", "42")));

@@ -39,7 +39,7 @@ const byKind = new Map<string, Sample[]>();
 for (const s of samples) byKind.set(s.kind, [...(byKind.get(s.kind) ?? []), s]);
 const pick = [...byKind.values()].flatMap((arr) => arr.map((s) => [r(), s] as const).sort((a, b) => a[0] - b[0]).slice(0, 100).map((x) => x[1])).sort((a, b) => a.id.localeCompare(b.id));
 const js = await esbuild.build({ entryPoints: [join(import.meta.dirname, "preview-entry.tsx")], bundle: true, write: false, format: "iife", jsx: "automatic", minify: true, define: { "process.env.NODE_ENV": '"production"' } });
-const css = readFileSync(join(root, "client", "styles.css"), "utf8");
+const css = readFileSync(join(root, "frontend", "src", "styles.css"), "utf8");
 const page = `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bộ dữ liệu bổ sung UI</title>
 <style>${css}
 body{background:#f5f6f8;margin:0;font-family:Inter,system-ui,sans-serif}.pv{padding:16px;max-width:1500px;margin:auto}.pv-bar{display:flex;gap:10px;align-items:center;position:sticky;top:0;background:#f5f6f8;padding:8px 0;z-index:5}
