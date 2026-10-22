@@ -6,7 +6,7 @@ A web application that supports Business Analysts across the end-to-end workflow
 
 | | |
 | --- | --- |
-| **URL** | <https://ba-copilot-vz0t.onrender.com/> |
+| **URL** | <https://ba-team-copilot.onrender.com/> |
 | **Password** | `123321` |
 
 1. Open the URL and enter the password.
