@@ -315,6 +315,18 @@ export function nextInContainer(m: RecursiveModel, tree: UINode, boxes: Record<s
 }
 
 /**
+ * Phần tử chèn vào khe `slot` (0..số con) do người dùng chọn: chỉ đưa các con ĐỨNG TRƯỚC khe vào ngữ cảnh rồi giải mã một bước
+ * như bài báo (mô hình chỉ nhìn tiền tố). Chọn khe là thao tác của người dùng – mô hình không tự dò chỗ thiếu.
+ */
+export function nextAtSlot(m: RecursiveModel, tree: UINode, boxes: Record<string, Box>, containerId: string, slot: number, k = 3): NextElement | null {
+  const ctx = contextOf(m, tree, boxes, containerId);
+  if (!ctx || slot < 0 || slot > ctx.given.length) return null;
+  const given = ctx.given.slice(0, slot);
+  const e = step(m, { ...ctx, seq: ctx.seq.slice(0, slot + 1), given }, boxes, containerId, k);
+  return { ...e, index: slot };
+}
+
+/**
  * Phần tử tiếp theo cho cả cây: một bước giải mã ở MỌI container đã có (cùng một lượt duyệt từ gốc xuống),
  * trả các container mà mô hình KHÔNG đoán EOS, xếp theo xác suất loại cao nhất giảm dần.
  */

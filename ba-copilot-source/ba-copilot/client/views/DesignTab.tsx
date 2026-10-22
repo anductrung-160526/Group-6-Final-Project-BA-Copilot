@@ -11,7 +11,7 @@ import { api, get, post, patch, del, download, approveArtifact, getArtifactState
 import type { Annotation, ArtifactStatus, ModuleDetail, ScreenVersion } from "../../shared/types.ts";
 import type { WorkStepProps } from "../projectMenu.ts";
 import { usePresence } from "../presence.ts";
-import { findNode, nodeLabel, topMostIds, UINode } from "../../shared/design.ts";
+import { findNode, findParent, nodeLabel, topMostIds, UINode } from "../../shared/design.ts";
 import { candidateShares, fmtPct } from "../../shared/recursive.ts";
 import { Renderer } from "../components/Renderer.tsx";
 import { SuggestionsPanel } from "../components/SuggestionsPanel.tsx";
@@ -114,6 +114,8 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
   const [pick, setPick] = useState(0); // loại ứng viên đang chọn trong top-3
   const [gapWhich, setGapWhich] = useState(0); // khe còn thiếu đang hiển thị (Transformer, tối đa 3)
   const [gapPick, setGapPick] = useState(0);
+  // Khe chèn người dùng chọn quanh phần tử đang chọn (trước/sau nó) – Recursive gợi ý cho đúng khe đó
+  const [slotAt, setSlotAt] = useState<{ parentId: string; index: number; where: "before" | "after"; label: string } | null>(null);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [complete, setComplete] = useState<{ versionId: string; items: GenItem[]; on: Set<string> } | null>(null);
   const shownRef = useRef<Set<string>>(new Set());
@@ -264,15 +266,26 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
     setGapWhich(0);
     setGapPick(0);
     if (!canSuggest || complete) return;
+    const at = slotAt ? { parentId: slotAt.parentId, index: slotAt.index } : undefined;
     const t = setTimeout(() => {
       const layout = measureLayout();
       if (!layout) return;
-      post<NextResult>(`/api/screens/${screen!.id}/suggestions`, { mode: "next", nodeIds: selected, layout })
+      post<NextResult>(`/api/screens/${screen!.id}/suggestions`, { mode: "next", nodeIds: selected, layout, at })
         .then((r) => setNext(r))
         .catch(() => setNext(null));
     }, 500);
     return () => clearTimeout(t);
-  }, [canSuggest, screen?.id, screen?.currentVersionId, selKey, !!complete]);
+  }, [canSuggest, screen?.id, screen?.currentVersionId, selKey, !!complete, slotAt?.parentId, slotAt?.index]);
+  useEffect(() => setSlotAt(null), [selKey, screen?.currentVersionId]);
+  // Phần tử duy nhất đang chọn (không phải gốc) → cho chọn khe trước/sau nó trong container cha
+  const slotNode = selected.length === 1 && tree ? findNode(tree, selected[0]) : null;
+  const slotParent = slotNode && tree ? findParent(tree, slotNode.id) : null;
+  const pickSlot = (where: "before" | "after") => {
+    if (!slotNode || !slotParent) return;
+    const i = (slotParent.children ?? []).findIndex((c) => c.id === slotNode.id);
+    const index = where === "before" ? i : i + 1;
+    setSlotAt(slotAt?.where === where ? null : { parentId: slotParent.id, index, where, label: nodeLabel(slotNode) });
+  };
 
   const items = (next?.items ?? []).filter((e) => !dismissed.has(`${next!.versionId}:${e.parentId}`));
   const cur: NextItem | null = items[Math.min(which, items.length - 1)] ?? null;
@@ -821,6 +834,17 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
               ) : (
                 <>
                   <div className="muted small">{selected.length ? "Suggested next component for the selected area" : "Suggested next component – select an area to see suggestions for that area only"}</div>
+                  {layoutOn && slotParent && (
+                    <div className="sugg-actions" data-testid="slot-picker">
+                      <span className="muted small">Insert position:</span>
+                      <Btn size="sm" kind={slotAt?.where === "before" ? "primary" : "ghost"} onClick={() => pickSlot("before")} data-testid="slot-before">
+                        Before this component
+                      </Btn>
+                      <Btn size="sm" kind={slotAt?.where === "after" ? "primary" : "ghost"} onClick={() => pickSlot("after")} data-testid="slot-after">
+                        After this component
+                      </Btn>
+                    </div>
+                  )}
                   {!layoutOn ? (
                     <div className="muted small pad">Suggestions are turned off.</div>
                   ) : !next ? (
@@ -831,7 +855,10 @@ export function DesignTab({ m, reload, initialScreenId, onScreenChange }: { m: M
                     <div className="sugg" data-testid="suggestion">
                       <div className="sugg-head">
                         <Badge tone="blue">Suggested next</Badge>
-                        <span className="sugg-title">in {typeLabel(cur.parentLabel)}</span>
+                        <span className="sugg-title">
+                          in {typeLabel(cur.parentLabel)}
+                          {slotAt && ` – ${slotAt.where} ${typeLabel(slotAt.label)}`}
+                        </span>
                         <Badge tone="gray" title="Recursive Transformer Tree Decoder (Li et al. 2020)">Recursive</Badge>
                       </div>
                       {cur.eos && (

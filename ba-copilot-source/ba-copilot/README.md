@@ -118,12 +118,12 @@ This feature **implements only the method of Li et al. (2020)**, *Auto Completio
 - **Limitations:**
   - no content suggestions;
   - still weak on Radio, Form and List;
-  - not designed to find elements missing from the middle of a container (the paper does not address that task);
+  - does not detect on its own where an element is missing in the middle of a container (the paper does not address that task). Instead the BA selects an element and picks **Before / After this component**; the model then decodes one step using only the siblings before that slot (`nextAtSlot`), exactly as for the next element;
   - roughly 25× less training data than the paper, and the data was authored by Claude.
 - Every impression, accept and dismiss event is logged to `suggestion_events`.
 
 Source code:
-- `shared/recursive.ts`: inference (`nextInContainer`, `nextElements`, `completeLayout`).
+- `shared/recursive.ts`: inference (`nextInContainer`, `nextAtSlot`, `nextElements`, `completeLayout`).
 - `shared/layoutDefaults.ts`: default props for inserted elements.
 - `server/service.ts`: `layoutSuggestions`, `acceptLayout`, `manualEdit`.
 - `client/views/DesignTab.tsx`: ghost boxes, panel.

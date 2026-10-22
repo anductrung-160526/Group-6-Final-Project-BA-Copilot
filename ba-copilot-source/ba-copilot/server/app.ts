@@ -262,8 +262,12 @@ route("POST", "/api/screens/:id/suggestions", ({ params, body }) => {
   const layout = body.layout && typeof body.layout === "object" ? (body.layout as svc.LayoutBoxes) : undefined;
   const boxes: svc.LayoutBoxes["boxes"] = {};
   for (const [k, v] of Object.entries(layout?.boxes ?? {})) if (Array.isArray(v) && v.length === 4 && v.every((x) => Number.isFinite(x))) boxes[String(k).slice(0, 120)] = v.map(Number) as [number, number, number, number];
-  return svc.layoutSuggestions(params.id, { layout: layout ? { pageWidth: Number(layout.pageWidth) || 0, boxes } : undefined, nodeIds: arr(body.nodeIds), mode: body.mode === "complete" ? "complete" : "next" });
+  return svc.layoutSuggestions(params.id, { layout: layout ? { pageWidth: Number(layout.pageWidth) || 0, boxes } : undefined, nodeIds: arr(body.nodeIds), mode: body.mode === "complete" ? "complete" : "next", at: slotOf(body.at) });
 });
+function slotOf(a: unknown) {
+  const o = a && typeof a === "object" ? (a as Record<string, unknown>) : null;
+  return o && typeof o.parentId === "string" && Number.isInteger(o.index) && (o.index as number) >= 0 ? { parentId: o.parentId.slice(0, 120), index: o.index as number } : undefined;
+}
 route("POST", "/api/screens/:id/layout/accept", (ctx) => {
   const { params, body } = ctx;
   const items = (Array.isArray(body.items) ? body.items : []).slice(0, 100).map((x: Record<string, unknown>) => ({ ref: str(x?.ref, 60), parentId: str(x?.parentId, 120), index: Math.max(0, Math.floor(Number(x?.index) || 0)), type: str(x?.type, 30), sub: str(x?.sub, 20) || undefined }));

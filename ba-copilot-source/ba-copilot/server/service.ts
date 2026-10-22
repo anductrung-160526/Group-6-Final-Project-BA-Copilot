@@ -10,7 +10,7 @@ import { cloneTree, collectIds, diffTrees, findNode, findParent, isContainer, ne
 import { extractModel, DesignModel } from "../shared/extract.ts";
 import { buildTrace, buildTraceMatrix } from "../shared/trace.ts";
 import { DOC_KIND_LABEL, type ArtifactEventType, type ArtifactRef, type ArtifactStatus, type DocStatus, type Requirement, type SequenceDiagram, type UseCase } from "../shared/types.ts";
-import { Box, completeLayout, nextElements, nextInContainer, RecursiveModel, toGrid } from "../shared/recursive.ts";
+import { Box, completeLayout, nextAtSlot, nextElements, nextInContainer, RecursiveModel, toGrid } from "../shared/recursive.ts";
 import { predictSlots, propsForSubtype, SUBTYPES, type Subtype, type TransformerModel } from "../shared/transformer.ts";
 import { defaultNode } from "../shared/layoutDefaults.ts";
 import { getRecursive, getTransformer } from "./nextModel.ts";
@@ -278,9 +278,10 @@ function gapSuggestions(tf: TransformerModel, tree: UINode, focus: string | null
  * mode "next": phần tử tiếp theo (Recursive, một bước giải mã) – trong container đang chọn, hoặc nếu không chọn gì thì ở các
  *              container mà mô hình không đoán EOS, xếp theo xác suất loại cao nhất (tối đa 3 vị trí);
  *              kèm `gaps` – phần tử còn thiếu giữa các con đã có (Transformer). Thiếu file Transformer thì gaps rỗng, gapModel null.
+ *              `at` (khe người dùng chọn: container + vị trí chèn): chỉ gợi ý cho khe đó, Recursive nhìn các con đứng trước khe.
  * mode "complete": hoàn thành bố cục (Recursive, giải mã tham lam tới EOS, kể cả container mới sinh) trong vùng chọn hoặc cả màn.
  */
-export function layoutSuggestions(screenId: string, input: { layout?: LayoutBoxes; nodeIds: string[]; mode: "next" | "complete" }) {
+export function layoutSuggestions(screenId: string, input: { layout?: LayoutBoxes; nodeIds: string[]; mode: "next" | "complete"; at?: { parentId: string; index: number } }) {
   const rm = mustRecursive();
   const { v } = currentVersion(screenId);
   const layout = input.layout;
@@ -293,12 +294,16 @@ export function layoutSuggestions(screenId: string, input: { layout?: LayoutBoxe
     const items = completeLayout(rm, v.tree, boxes, focus ?? v.tree.id).map((g) => ({ ...g, boxPx: toPx(rm, g.box, layout.pageWidth) }));
     return { mode: "complete" as const, versionId: v.id, focusId: focus, items, model };
   }
-  const found = focus ? [nextInContainer(rm, v.tree, boxes, focus)].filter((x) => x !== null) : nextElements(rm, v.tree, boxes).slice(0, 3);
+  const at = input.at;
+  if (at && !isContainer(findNode(v.tree, at.parentId)?.type ?? "")) throw new BizError(`Container ${at.parentId} not found`);
+  const found = at
+    ? [nextAtSlot(rm, v.tree, boxes, at.parentId, at.index)].filter((x) => x !== null)
+    : focus ? [nextInContainer(rm, v.tree, boxes, focus)].filter((x) => x !== null) : nextElements(rm, v.tree, boxes).slice(0, 3);
   const items = found.map((e) => ({ ...e, source: "recursive" as const, boxPx: toPx(rm, e.box, layout.pageWidth), parentLabel: nodeLabel(findNode(v.tree, e.parentId)!) }));
   const tf = getTransformer();
   const gaps = tf ? gapSuggestions(tf, v.tree, focus) : [];
   const gapModel = tf ? { kind: "transformer", trees: Number(tf.meta.trees ?? 0) } : null;
-  return { mode: "next" as const, versionId: v.id, focusId: focus, items, model, gaps, gapModel };
+  return { mode: "next" as const, versionId: v.id, focusId: focus, at: at ?? null, items, model, gaps, gapModel };
 }
 
 export type SuggestionSource = "recursive" | "transformer";

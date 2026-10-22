@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { ALL_TYPES, UINode } from "../shared/design.ts";
-import { Box, candidateShares, completeLayout, fmtPct, loadRecursive, nextElements, nextInContainer, predictChildren } from "../shared/recursive.ts";
+import { Box, candidateShares, completeLayout, fmtPct, loadRecursive, nextAtSlot, nextElements, nextInContainer, predictChildren } from "../shared/recursive.ts";
 
 const dir = join(import.meta.dirname, "..", "model");
 type PNode = { c: number; t: number; b: number[]; k?: PNode[] };
@@ -59,6 +59,31 @@ test("Phần tử tiếp theo (top-3) và Hoàn thành bố cục khớp PyTorch
     assert.deepEqual(all.map((e) => e.parentId).sort(), p.first.filter((f) => !f.eos).map((f) => ["n", ...f.path].join("_")).sort());
     const got = completeLayout(m, ui, boxes);
     assert.deepEqual(got.map((g) => [g.parentId, g.type, g.leaf, ...g.box]), p.complete.map((c) => [c.parent, ALL_TYPES[c.c], c.t === 1, ...c.box]));
+  }
+});
+
+test("nextAtSlot: khe cuối = nextInContainer; khe giữa = giải mã trên tiền tố trước khe, index = khe", { skip: !existsSync(join(dir, "recursive-layout.json")) }, () => {
+  const m = loadRecursive(JSON.parse(readFileSync(join(dir, "recursive-layout.json"), "utf8")));
+  const parity = JSON.parse(readFileSync(join(dir, "recursive-layout.parity.json"), "utf8")) as Parity[];
+  for (const p of parity) {
+    const { ui, boxes } = toUITree(p.tree);
+    for (const f of p.first) {
+      const id = ["n", ...f.path].join("_");
+      const node = f.path.reduce((n, i) => n.children![i], ui);
+      const n = node.children?.length ?? 0;
+      const end = nextAtSlot(m, ui, boxes, id, n)!;
+      const ref = nextInContainer(m, ui, boxes, id, 3)!;
+      assert.deepEqual(end.candidates, ref.candidates);
+      assert.equal(end.index, n);
+      if (n < 1) continue;
+      // khe 0 của container = container đó khi chưa có con nào
+      const empty = structuredClone(ui);
+      f.path.reduce((x, i) => x.children![i], empty).children = [];
+      const first = nextAtSlot(m, ui, boxes, id, 0)!;
+      assert.deepEqual(first.candidates, nextInContainer(m, empty, boxes, id, 3)!.candidates);
+      assert.equal(first.index, 0);
+      assert.equal(nextAtSlot(m, ui, boxes, id, n + 1), null);
+    }
   }
 });
 
