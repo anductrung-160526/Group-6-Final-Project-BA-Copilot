@@ -69,6 +69,8 @@ Số của bài báo (dữ liệu Rico): Recursive trung bình F1 54,4, Next 27,
 - **Giới hạn:** tập test nhỏ (38 cây); dữ liệu do nhóm soạn, khác bài báo; chưa có ablation tách đóng góp của WebSight và tăng cường.
 
 ## Chạy lại
+Toàn bộ quy trình (dữ liệu → huấn luyện → Bảng 1–3 → xuất cho app, và NLP Bảng 4–5) có chú giải từng bước trong một file:
+`python3 scripts/run_pipeline.py --list` (xem các bước), `--steps all|transformer|nlp|eval|…`.
 ```bash
 python3 scripts/paper/eval_app_model.py --data data/sn80-G2-w7-r800-aug2   # cần trọng số data/.../models/final.pt (data/ bị gitignore)
 bash scripts/paper/train_reference.sh                                       # Pointer + Vanilla: tiền huấn luyện WebSight → tinh chỉnh → chấm
