@@ -19,7 +19,7 @@ Yêu cầu:
   - Python 3.10+, torch (pip install torch); bước 1 cần thêm: pip install datasets beautifulsoup4.
   - Bước 2–3 render màn bằng Chromium qua Playwright: đặt biến CHROME trỏ tới chrome (vd /opt/pw-browsers/.../chrome).
   - Thư mục data/ bị gitignore: dữ liệu và trọng số (.pt) chỉ có sau khi chạy bước 1–5. Mô hình đã xuất cho app
-    (model/recursive-layout.json) và bộ dữ liệu NLP (dataset/qus-eval/) có sẵn trong repo.
+    (backend/model/recursive-layout.json) và bộ dữ liệu NLP (dataset/qus-eval/) có sẵn trong repo.
 """
 import argparse
 import os
@@ -82,8 +82,8 @@ def steps():
          [[PY, "scripts/paper/eval_app_model.py", "--data", FT, "--kind", "recursive", "--weights", f"{FT}/models/final.pt",
            "--out", f"{OUT}/app-model.json"]]),
         ("7", "export", "Xuất trọng số sang JSON cho app",
-         "scripts/paper/export_recursive.py – ghi model/recursive-layout.json (tensor float32 base64 + cấu hình lưới) và mẫu đối chiếu\n"
-         "model/recursive-layout.parity.json. App suy luận bằng TypeScript (shared/recursive.ts); tests/recursive.test.ts kiểm tra\n"
+         "scripts/paper/export_recursive.py – ghi backend/model/recursive-layout.json (tensor float32 base64 + cấu hình lưới) và mẫu đối chiếu\n"
+         "backend/model/recursive-layout.parity.json. App suy luận bằng TypeScript (shared/recursive.ts); backend/tests/recursive.test.ts kiểm tra\n"
          "kết quả TypeScript khớp PyTorch (sai số xác suất < 1e-3).",
          [[PY, "scripts/paper/export_recursive.py", "--result", f"{LOG}/final.json"]]),
         # ------------------------------------------------------------------ TRANSFORMER: MÔ HÌNH THAM CHIẾU
@@ -114,8 +114,8 @@ def steps():
          [[NPX, "tsx", "scripts/qus-eval/eval.ts", "--split", "test3"]]),
         # ------------------------------------------------------------------ KIỂM THỬ
         ("12", "test", "Kiểm thử đơn vị của hai mô hình",
-         "tests/aqusa.test.ts (mỗi luật của nhóm có ví dụ) và tests/recursive.test.ts (TypeScript khớp PyTorch, chèn theo khe).",
-         [[NPX, "tsx", "--test", "tests/aqusa.test.ts", "tests/recursive.test.ts"]]),
+         "backend/tests/aqusa.test.ts (mỗi luật của nhóm có ví dụ) và backend/tests/recursive.test.ts (TypeScript khớp PyTorch, chèn theo khe).",
+         [[NPX, "tsx", "--test", "backend/tests/aqusa.test.ts", "backend/tests/recursive.test.ts"]]),
     ]
 
 
