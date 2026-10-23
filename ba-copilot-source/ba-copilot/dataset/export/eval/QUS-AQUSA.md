@@ -11,17 +11,17 @@ nhóm đã thử. Tài liệu này chỉ mô tả phiên bản đó; các phiên
 ## 1. Phương pháp
 **Quy trình (§4):** tách story thành vai trò / hành động / lý do theo cụm chỉ dấu → gán nhãn từ loại (wink-nlp) → 5 bộ phân tích →
 danh sách lỗi (tiêu chí, đoạn chữ, gợi ý sửa, mục bài báo) → hiển thị trên màn Business Requirements. Mã nguồn: `shared/aqusa.ts`
-(bộ phân tích), `shared/qus.ts` (tích hợp vào tính năng chấm QUS), `client/useAqusa.ts` (tải mô hình NLP khi cần).
+(bộ phân tích), `shared/qus.ts` (tích hợp vào tính năng chấm QUS), `frontend/src/useAqusa.ts` (tải mô hình NLP khi cần).
 
 | Lớp | Nội dung | Căn cứ |
 |---|---|---|
 | AQUSA v1 | Well-formed (có vai trò và hành động), Atomic (hai hành động nối bằng and/or), Minimal (ngoặc, câu thêm, ví dụ, chữ thừa ở đầu), Uniform (lệch mẫu đa số của module), Unique (trùng chính xác) | Bài báo §3–§4 |
 | Cải tiến v2 | Cụm chỉ dấu mở rộng ("I would like", "I need", "in order to"…), lặp cụm chỉ dấu trong vai trò/hành động, "/" và ">" là liên từ, danh sách ngoại lệ động từ (select, support…), ký hiệu "&" trong vai trò ("R&D Manager"), viết tắt trong ngoặc | Bài báo §6 |
-| Luật của nhóm | Bỏ qua liên từ trong mệnh đề phụ; vế sau "and/or" phải mở đầu bằng động từ; "/" sau mạo từ/tính từ là danh từ ghép; "+" dính chữ không phải liên từ; vai trò phải có danh từ; "I want to (be able to)" cùng họ "I want"; uniform xét mẫu đa số riêng từng phần; "(s)", "such as", câu thứ hai mở bằng "So that"; hai phần lý do lồng nhau | Ngoài bài báo – rút ra từ phân tích lỗi, mỗi luật có ví dụ trong `tests/aqusa.test.ts` |
+| Luật của nhóm | Bỏ qua liên từ trong mệnh đề phụ; vế sau "and/or" phải mở đầu bằng động từ; "/" sau mạo từ/tính từ là danh từ ghép; "+" dính chữ không phải liên từ; vai trò phải có danh từ; "I want to (be able to)" cùng họ "I want"; uniform xét mẫu đa số riêng từng phần; "(s)", "such as", câu thứ hai mở bằng "So that"; hai phần lý do lồng nhau | Ngoài bài báo – rút ra từ phân tích lỗi, mỗi luật có ví dụ trong `backend/tests/aqusa.test.ts` |
 
 - **Bộ gán nhãn từ loại:** wink-nlp. Đã đối chứng với Stanford CoreNLP (bộ bài báo dùng): chênh lệch khoảng ±1 điểm F1, nên chọn wink-nlp vì nhanh hơn khoảng 40 lần, nhẹ hơn khoảng 140 lần và chạy được trên trình duyệt.
 - **Không kiểm:** 8 tiêu chí ngữ nghĩa và thực dụng còn lại của QUS (bài báo cũng loại vì cần hiểu nội dung).
-- **Tích hợp:** chạy ngay trên trình duyệt khi BA gõ (khoảng 0,2 ms mỗi story); mô hình NLP (~3,5 MB) tách ra `public/nlp.js`, chỉ tải khi mở màn Business Requirements. Chỉ cảnh báo, không chặn lưu (nguyên tắc "Perfect Recall", §1). Story tiếng Việt cũ vẫn chấm bằng bộ luật cũ.
+- **Tích hợp:** chạy ngay trên trình duyệt khi BA gõ (khoảng 0,2 ms mỗi story); mô hình NLP (~3,5 MB) tách ra `frontend/public/nlp.js`, chỉ tải khi mở màn Business Requirements. Chỉ cảnh báo, không chặn lưu (nguyên tắc "Perfect Recall", §1). Story tiếng Việt cũ vẫn chấm bằng bộ luật cũ.
 
 ## 2. Dữ liệu và đáp án
 - **671 user story thật** từ 10 bộ công khai (Dalpiaz et al., *Requirements data sets – user stories*): g02 federalspending, g03 loudoun, g04 recycling, g05 openspending, g08 frictionless, g10 scrumalliance, g11 nsf, g12 camperplus, g13 planningpoker, g14 datahub (`dataset/qus-eval/stories.jsonl`).
@@ -114,5 +114,5 @@ npx tsx scripts/qus-eval/eval.ts --split test3   # → dataset/export/eval/qus/t
 python3 scripts/qus-eval/tables.py dataset/export/eval/qus/all.json   # in Bảng 4–5
 python3 scripts/qus-eval/agreement.py /tmp/majority.jsonl A1=dataset/qus-eval/independent/agent1.jsonl A2=dataset/qus-eval/independent/agent2.jsonl A3=dataset/qus-eval/independent/agent3.jsonl
 python3 scripts/qus-eval/kappa.py dataset/qus-eval/kappa-sample.csv  # sau khi người gán điền file
-npx tsx --test tests/aqusa.test.ts
+npx tsx --test backend/tests/aqusa.test.ts
 ```

@@ -13,7 +13,7 @@ Ba cách dựng phần còn thiếu của một cây test, bắt đầu từ câ
       phần tử luôn được đặt về đúng loại/vị trí thật trước bước sau (người dùng sửa nếu sai);
   (c) "Hoàn thành bố cục": M (xem lại) + Edit (KLM) từ cây mô hình sinh tới cây đúng – đúng thang đo Edit của bài báo (nới lỏng: chỉ loại).
 Độ chính xác theo loại: ở chế độ (b), loại thật của phần tử kế tiếp có là top-1 / nằm trong top-3 hay không (container đã biết).
-Dùng: python3 scripts/paper/klm_sim.py [--data=data/paper-w7c20-r400] [--model=model/recursive-layout.pt] [--out=klm-sim.json]
+Dùng: python3 scripts/paper/klm_sim.py [--data=data/paper-w7c20-r400] [--model=backend/model/recursive-layout.pt] [--out=klm-sim.json]
 """
 import json, os, sys, time
 from collections import defaultdict
@@ -137,7 +137,7 @@ def main():
     info = json.load(open("dataset/export/eval/recursive-faithful.json"))
     d, L = info["chosen"]["d"], info["chosen"]["layers"]
     model = T.Recursive(d, L, use_pos=False)
-    model.load_state_dict(torch.load(arg("model", "model/recursive-layout.pt")))
+    model.load_state_dict(torch.load(arg("model", "backend/model/recursive-layout.pt")))
     model.eval()
     test = load(f"{data}/test.jsonl")[: int(arg("limit", "100000"))]
     old = [r for r in test if int(r["rootId"][1:]) <= 200]

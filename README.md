@@ -6,7 +6,7 @@ A web application that supports Business Analysts across the end-to-end workflow
 
 | | |
 | --- | --- |
-| **URL** | <https://ba-copilot-vz0t.onrender.com/> |
+| **URL** | <https://ba-team-copilot.onrender.com/> |
 | **Password** | `123321` |
 
 1. Open the URL and enter the password.
@@ -28,7 +28,7 @@ Then open **http://localhost:3000**. Without a Claude API key the app runs in **
 
 ## Database
 
-The app uses Node's built-in SQLite driver — no database server required. The submitted data snapshot lives in [`ba-copilot-source/ba-copilot/database/`](ba-copilot-source/ba-copilot/database/):
+The app uses Node's built-in SQLite driver — no database server required. The submitted data snapshot lives in [`ba-copilot-source/ba-copilot/backend/database/`](ba-copilot-source/ba-copilot/backend/database/):
 
 - `ba-copilot.db` — the full dataset as a single SQLite file; open it with [DB Browser for SQLite](https://sqlitebrowser.org/dl/) → *Open Database* → *Browse Data*.
 - `ba-copilot.sql` — the same data as a SQL dump (schema + `INSERT` statements).
@@ -38,11 +38,14 @@ The app uses Node's built-in SQLite driver — no database server required. The 
 
 | Path | Contents |
 | --- | --- |
-| [`ba-copilot-source/ba-copilot/`](ba-copilot-source/ba-copilot/) | Application source (React client, Node server, shared code, tests, e2e, database snapshot) |
+| [`ba-copilot-source/ba-copilot/`](ba-copilot-source/ba-copilot/) | Application root: `package.json`, `Dockerfile`, build scripts, research dataset |
+| [`…/frontend/`](ba-copilot-source/ba-copilot/frontend/) | Browser side: React UI source (`src/`), static files and built bundle (`public/`), end-to-end tests (`e2e/`) |
+| [`…/backend/`](ba-copilot-source/ba-copilot/backend/) | Server side: Node server source (`src/`), tests, prebuilt bundle (`dist/`), layout model, database snapshot |
+| [`…/shared/`](ba-copilot-source/ba-copilot/shared/) | Code used by both frontend and backend (data types, design model, QUS, traceability, …) |
 | [`docs/`](docs/) | Design documentation: design system, project plans, QUS docs |
 
 ## Further reading
 
 - [Application README](ba-copilot-source/ba-copilot/README.md) — usage, business rules, architecture, layout suggestion, testing, environment variables.
 - [DEPLOY.md](ba-copilot-source/ba-copilot/DEPLOY.md) — deploying to Render.
-- [database/README.md](ba-copilot-source/ba-copilot/database/README.md) — browsing the data and sample queries.
+- [backend/database/README.md](ba-copilot-source/ba-copilot/backend/database/README.md) — browsing the data and sample queries.

@@ -1,6 +1,6 @@
 # Design System – BA Copilot
 
-Người sở hữu: **A1** (đợt 5: **C1**). Mã nguồn: `client/styles.css` (token + class), `client/components/ui.tsx` (component).
+Người sở hữu: **A1** (đợt 5: **C1**). Mã nguồn: `frontend/src/styles.css` (token + class), `frontend/src/components/ui.tsx` (component).
 Xem trực quan: mở app tại `#/_gallery`.
 
 > **Bắt buộc với người và AI làm giao diện:** đọc hết tệp này **trước khi** tạo hoặc sửa bất kỳ màn hình nào.
@@ -132,7 +132,7 @@ App chưa có chế độ tối nên chưa có bộ token tối.
 
 ---
 
-## 3. Component (`client/components/ui.tsx`)
+## 3. Component (`frontend/src/components/ui.tsx`)
 
 | Component | Props chính | Khi nào dùng |
 |---|---|---|
@@ -143,10 +143,10 @@ App chưa có chế độ tối nên chưa có bộ token tối.
 | `EditingBadge` | `names: string[]`, `max?` (2) | "Being edited by A, B and N others" (badge tím). Danh sách rỗng thì không hiện. Đặt cạnh tiêu đề màn / tài liệu. |
 | `ConflictNotice` | `onReload`, `message?`, `busy?` | Khung vàng khi lưu bị 409. Mặc định: "Bản đã thay đổi – có người vừa sửa. Tải lại để xem bản mới." + nút **Tải lại**. Đặt ngay trên vùng đang sửa. |
 | `ScoreBadge` | `score` 0–100, `showLabel?` | Điểm QUS: ≥ 80 xanh "Good", 60–79 vàng "Fair", < 60 đỏ "Poor" (khớp `shared/qus.ts`). |
-| `SampleBadge` | `provider?` (`"claude"` \| `"mock"` \| `null`) | "Sample result – Claude not connected" (badge `flag`). Đặt cạnh **mọi** nút / kết quả của tính năng dùng Claude (sinh/sửa màn, tài liệu, sơ đồ, test case, màn còn thiếu). Chỉ hiện khi máy chủ chạy Mock (chưa có khoá Claude); bỏ trống `provider` thì theo `/api/settings` (`useAiProvider()`), truyền `provider` khi biết nguồn của một kết quả đã lưu. **Không** đặt cạnh QUS (bộ luật) hay gợi ý element (mô hình trong `model/`). Chữ bọc sẵn `badge-text`: ở cột hẹp (khối Gợi ý tiếp theo cột trái Design Studio) badge không tràn mà cắt "…", câu đầy đủ nằm ở tooltip. |
+| `SampleBadge` | `provider?` (`"claude"` \| `"mock"` \| `null`) | "Sample result – Claude not connected" (badge `flag`). Đặt cạnh **mọi** nút / kết quả của tính năng dùng Claude (sinh/sửa màn, tài liệu, sơ đồ, test case, màn còn thiếu). Chỉ hiện khi máy chủ chạy Mock (chưa có khoá Claude); bỏ trống `provider` thì theo `/api/settings` (`useAiProvider()`), truyền `provider` khi biết nguồn của một kết quả đã lưu. **Không** đặt cạnh QUS (bộ luật) hay gợi ý element (mô hình trong `backend/model/`). Chữ bọc sẵn `badge-text`: ở cột hẹp (khối Gợi ý tiếp theo cột trái Design Studio) badge không tràn mà cắt "…", câu đầy đủ nằm ở tooltip. |
 | `Field` | `label`, `hint?` (chữ / React), `required?`, `count?` (`{ value, max }`), `error?`, `children` | Bọc mọi ô nhập có nhãn. `required` → dấu `*` đỏ sau nhãn (ô nhập đặt thêm `aria-required`). `count` → bộ đếm "12/200" góc phải dưới ô (số kiểu Anh: "…/2,000"; chạm giới hạn chữ vàng, vượt giới hạn – dữ liệu cũ – chữ đỏ); luôn đặt kèm `maxLength={max}` trên ô nhập. `error` → dòng lỗi đỏ dưới ô, viền ô đỏ, thay chỗ `hint` (ô nhập đặt `aria-invalid`). Quy tắc dùng: mục 3.4. |
 | `Select` | `value`, `options`, `onChange`, `placeholder?` | Mọi ô chọn một giá trị. |
-| `MemberPicker` | `members`, `value`, `onChange` | Chọn người phụ trách. Truyền `role` là nhãn đã dịch (`ROLE_LABEL` trong `client/currentMember.ts`: "BA", "BA Lead"), không truyền mã thô. |
+| `MemberPicker` | `members`, `value`, `onChange` | Chọn người phụ trách. Truyền `role` là nhãn đã dịch (`ROLE_LABEL` trong `frontend/src/currentMember.ts`: "BA", "BA Lead"), không truyền mã thô. |
 | `Avatar` | `name?`, `size?` | Chữ cái đầu tên, dùng trên thẻ, danh sách. |
 | `Tabs` | `items` (`key`, `label`, `extra?`, `href?`), `active`, `onChange?`, `variant?`: `line` (mặc định) \| `pill` | Thanh tab ngang. `line`: tab chọn chữ mint-700 đậm, gạch chân mint-500 – dùng trong trang (tab module, tab dự án). `pill`: nút bo tròn viền xám, tab chọn nền mint-50 + chữ mint-700 đậm – dùng cho **menu thanh trên** và bộ lọc nhanh. |
 | `Modal` | `title`, `onClose`, `footer?`, `wide?`, `size?`: `default` (480px) \| `wide` (720px, như `wide`) \| `full` | **Mọi hộp thoại.** Esc / bấm nền để đóng. Nút chính đặt cuối footer. `size="full"` (`.modal-full`): gần hết màn hình, thân hộp thoại giãn hết chiều cao còn lại – chỉ cho nội dung cần không gian lớn (xem sơ đồ cỡ thật trong `Mermaid`). |
@@ -285,8 +285,8 @@ Trong cả hai trường hợp, **không** tự gọi `confirm` trước `onDele
 | SCR-12 Test case, SCR-13 Truy vết, SCR-14 Nhật ký AI | Bảng `.tbl`, thẻ chỉ số `.meter` (số Space Grotesk). |
 | SCR-03 Kho tài liệu | Bảng `.tbl`, nút tải lên primary. A4 chuyển vùng tải lên sang `FileDrop`, xem tệp sang `Drawer`. |
 | SCR-15 Panel QUS | Nền `bg-sub`, điểm theo ngưỡng ScoreBadge, lỗi theo kiểu `IssueList`. |
-| Trang đăng nhập (cổng `APP_PASSWORD`, `LOGIN_HTML` trong `server/auth.ts`) | Trang HTML do máy chủ trả (không qua React) nhưng dùng chung `/app-style.css` – tệp tĩnh **duy nhất** mở công khai khi chưa đăng nhập (`PUBLIC_PATHS`; `app.js`, `*.map`, `/api/*` vẫn bị chặn). Khung bọc `.login-page` căn giữa trên nền `--color-bg` (**không** đặt bố cục lên `<body>`: tiện ích trình duyệt như trình quản lý mật khẩu chèn phần tử vào body làm lệch). Thẻ `.login-card`: nền surface, viền `--color-border`, bo `--radius-lg`, bóng `--shadow-md`, rộng tối đa `--login-card-w`. Logo + tên app như thanh trên (`.brand`, `.logo` gradient mint). H1 "Sign in" Space Grotesk cỡ H2 + câu "Enter the access password to continue." (`.muted`). Ô mật khẩu theo `.field` / `.field-label` với nhãn **"Password"**. Nút **Sign in** `.btn .btn-primary` rộng hết thẻ (`.login-submit`); đang gửi thì khoá nút và đổi chữ "Signing in…". Lỗi `.login-error` màu `--color-danger`, `role="alert"` (để trống → "Please enter the password"; mất mạng → "Could not reach the server. Please try again."; còn lại hiện đúng thông báo của máy chủ). Stylesheet không tải được → khối `<style>` dự phòng tối giản (lớp `.no-css`). Class bố cục ở khối "Sign-in page" cuối `styles.css`. |
-| Biểu tượng tab (favicon) | Ô bo góc gradient mint (`#16A6AE` → `#0F5A6E`) chữ "BA" trắng, ở `public/index.html` và trang đăng nhập (`FAVICON` trong `server/auth.ts`). Là data-URI SVG nên không đọc được biến CSS – mã màu ghi thẳng, phải khớp `--color-mint-500` / `--color-mint-700`. |
+| Trang đăng nhập (cổng `APP_PASSWORD`, `LOGIN_HTML` trong `backend/src/auth.ts`) | Trang HTML do máy chủ trả (không qua React) nhưng dùng chung `/app-style.css` – tệp tĩnh **duy nhất** mở công khai khi chưa đăng nhập (`PUBLIC_PATHS`; `app.js`, `*.map`, `/api/*` vẫn bị chặn). Khung bọc `.login-page` căn giữa trên nền `--color-bg` (**không** đặt bố cục lên `<body>`: tiện ích trình duyệt như trình quản lý mật khẩu chèn phần tử vào body làm lệch). Thẻ `.login-card`: nền surface, viền `--color-border`, bo `--radius-lg`, bóng `--shadow-md`, rộng tối đa `--login-card-w`. Logo + tên app như thanh trên (`.brand`, `.logo` gradient mint). H1 "Sign in" Space Grotesk cỡ H2 + câu "Enter the access password to continue." (`.muted`). Ô mật khẩu theo `.field` / `.field-label` với nhãn **"Password"**. Nút **Sign in** `.btn .btn-primary` rộng hết thẻ (`.login-submit`); đang gửi thì khoá nút và đổi chữ "Signing in…". Lỗi `.login-error` màu `--color-danger`, `role="alert"` (để trống → "Please enter the password"; mất mạng → "Could not reach the server. Please try again."; còn lại hiện đúng thông báo của máy chủ). Stylesheet không tải được → khối `<style>` dự phòng tối giản (lớp `.no-css`). Class bố cục ở khối "Sign-in page" cuối `styles.css`. |
+| Biểu tượng tab (favicon) | Ô bo góc gradient mint (`#16A6AE` → `#0F5A6E`) chữ "BA" trắng, ở `frontend/public/index.html` và trang đăng nhập (`FAVICON` trong `backend/src/auth.ts`). Là data-URI SVG nên không đọc được biến CSS – mã màu ghi thẳng, phải khớp `--color-mint-500` / `--color-mint-700`. |
 | Màn mới (SCR-01, 04, 05, 06, 07) | Bắt buộc ghép từ component mục 3. |
 
 Bố cục, nội dung và chức năng các màn cũ **không đổi**; chỉ màu, font và kiểu badge đổi theo design system này.

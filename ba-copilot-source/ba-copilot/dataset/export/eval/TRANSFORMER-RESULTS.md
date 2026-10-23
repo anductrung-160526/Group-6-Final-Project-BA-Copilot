@@ -1,6 +1,6 @@
 # Gợi ý bố cục (Transformer) – kết quả mô hình trong app
 
-Mô hình đang chạy trong app (`model/recursive-layout.json`): **Recursive Transformer Tree Decoder** (Li et al. 2020,
+Mô hình đang chạy trong app (`backend/model/recursive-layout.json`): **Recursive Transformer Tree Decoder** (Li et al. 2020,
 *Auto Completion of User Interface Layout Design Using Transformer-Based Tree Decoders*, arXiv:2001.05308, §4.4).
 Chạy lại ngày 21/10/2026 bằng `scripts/paper/eval_app_model.py`; kết quả gốc: `transformer/app-model.json`.
 Đây là kết quả duy nhất được giữ; các báo cáo thí nghiệm cũ đã gỡ khỏi repo (còn trong lịch sử git).
@@ -11,7 +11,7 @@ Chạy lại ngày 21/10/2026 bằng `scripts/paper/eval_app_model.py`; kết qu
   tinh chỉnh trên 785 màn gốc của nhóm (13.168 cây train, 7 độ rộng màn hình, chia 80/10/10 theo màn gốc), tăng cường bố cục ×2,
   dropout 0,2. Lưới 32 cột × ô cao 40 px.
 - **Ngoài bài báo (thiết kế của nhóm):** tiền huấn luyện WebSight, tăng cường bố cục, dropout 0,2, lưới thô 32 × 40.
-- Suy luận trong app bằng TypeScript (`shared/recursive.ts`), khớp số học với PyTorch (`tests/recursive.test.ts`).
+- Suy luận trong app bằng TypeScript (`shared/recursive.ts`), khớp số học với PyTorch (`backend/tests/recursive.test.ts`).
 
 ## Thiết lập đánh giá (như §5 của bài báo)
 - Tập test: 38 cây (38 màn gốc, độ rộng 1280 px), không dùng khi huấn luyện hay chọn cấu hình.

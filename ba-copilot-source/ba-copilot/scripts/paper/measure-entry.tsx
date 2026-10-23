@@ -2,7 +2,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
-import { Renderer } from "../../client/components/Renderer.tsx";
+import { Renderer } from "../../frontend/src/components/Renderer.tsx";
 import type { UINode } from "../../shared/design.ts";
 
 const root = createRoot(document.getElementById("root")!);

@@ -18,10 +18,10 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { AddressInfo } from "node:net";
-import { getDb, openDb, tx } from "../server/db.ts";
-import * as repo from "../server/repo.ts";
-import { removeFileFromDisk } from "../server/files.ts";
-import { createApp } from "../server/app.ts";
+import { getDb, openDb, tx } from "../backend/src/db.ts";
+import * as repo from "../backend/src/repo.ts";
+import { removeFileFromDisk } from "../backend/src/files.ts";
+import { createApp } from "../backend/src/app.ts";
 import { DOC_KINDS, DIAGRAM_KINDS, type DocKind, type DiagramKind } from "../shared/types.ts";
 
 const root = join(import.meta.dirname, "..");
@@ -101,7 +101,7 @@ tx(() => {
 console.log(`Members: ${MEMBERS.map((m) => `${m.name}${m.role === "BA_LEAD" ? " (BA Lead)" : " (BA)"}`).join(", ")}`);
 
 // ------------------------------------------------------------- 3. Bật app trong tiến trình, gọi API như giao diện
-const server = createApp({ publicDir: join(root, "public") });
+const server = createApp({ publicDir: join(root, "frontend", "public") });
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 
@@ -267,7 +267,7 @@ try {
     await createTask(t);
 
   // ----------------------------------------------------------- 6. Tài liệu module 1: sinh lần lượt 5 bước (Mock), bấm Xong từng bước
-  // (bước N chỉ sinh / Xong được khi bước N−1 đã Xong – shared/prereq.ts; tests/seedRules.test.ts kiểm lại dữ liệu)
+  // (bước N chỉ sinh / Xong được khi bước N−1 đã Xong – shared/prereq.ts; backend/tests/seedRules.test.ts kiểm lại dữ liệu)
   for (const kind of DOC_KINDS) {
     await api("POST", `/api/modules/${P}/docs/${kind}/generate`, { actorId: kind === "SRS" || kind === "FRD_NFR" ? ANH : DUC });
     await done("doc", P, kind, kind === "SRS" || kind === "FRD_NFR" ? ANH : DUC);
@@ -318,7 +318,7 @@ try {
   await approve("doc", P, "BRD");
   await approve("doc", P, "UC_SPEC");
   // Yêu cầu sửa bước cuối (API Spec) – không bước nào dựa trên nó, nên chuỗi BRD → FRD-NFR, sơ đồ, test case vẫn Xong.
-  // (Yêu cầu sửa bước giữa sẽ làm các bước sau đang Xong thành Bản cũ – server/prereq.ts cascadeOutdated.)
+  // (Yêu cầu sửa bước giữa sẽ làm các bước sau đang Xong thành Bản cũ – backend/src/prereq.ts cascadeOutdated.)
   await requestChange("doc", P, "API_SPEC"); // API Spec về Đang làm + tag "Yêu cầu sửa"; task "Viết API Spec" lùi về Đang làm
 
   // ----------------------------------------------------------- 11. Module 2: task Cần làm / Đang làm

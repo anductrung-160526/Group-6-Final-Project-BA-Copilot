@@ -16,22 +16,22 @@ npm start          # build the client and start the server
 
 Open **http://localhost:3000** and pick a user from the *Select your name…* dropdown in the top bar (e.g. **Lan Nguyen**, BA Lead).
 
-- To run against the submitted dataset instead of fresh seed data: skip `npm run seed`, copy `database/ba-copilot.db` to `data/ba-copilot.db` (and `database/files/` to `data/files/`), then run `npm start`.
+- To run against the submitted dataset instead of fresh seed data: skip `npm run seed`, copy `backend/database/ba-copilot.db` to `data/ba-copilot.db` (and `backend/database/files/` to `data/files/`), then run `npm start`.
 - **Enabling Claude:** copy `.env.example` to `.env` and fill in your key (see section 6). Without a key the app runs in **Mock mode** (a rule-based generator): the full workflow still works, it is suitable for offline demos, and it serves as the baseline when comparing against the LLM in the evaluation chapter. The top bar shows either *Claude · model name* or *Mock mode*.
 - `npm run dev` starts development mode with automatic rebuilds on file changes.
 
 ## 2. Database
 
-The app uses Node's built-in **SQLite** driver (`node:sqlite`), so no database server is required. Runtime data lives in `data/` (git-ignored). The snapshot submitted with the source code lives in **`database/`**:
+The app uses Node's built-in **SQLite** driver (`node:sqlite`), so no database server is required. Runtime data lives in `data/` (git-ignored). The snapshot submitted with the source code lives in **`backend/database/`**:
 
 | File | Contents |
 | --- | --- |
-| `database/ba-copilot.db` | The full dataset as a single SQLite file |
-| `database/ba-copilot.sql` | The same data as a SQL dump (schema + `INSERT` statements), readable in any text editor |
-| `database/files/` | Files stored in the Document Repository |
-| `database/ERD.md`, `ERD.png`, `ERD-day-du.png` | Entity-relationship diagrams (overview and full), plus a table list with row counts |
+| `backend/database/ba-copilot.db` | The full dataset as a single SQLite file |
+| `backend/database/ba-copilot.sql` | The same data as a SQL dump (schema + `INSERT` statements), readable in any text editor |
+| `backend/database/files/` | Files stored in the Document Repository |
+| `backend/database/ERD.md`, `ERD.png`, `ERD-day-du.png` | Entity-relationship diagrams (overview and full), plus a table list with row counts |
 
-**Browsing the data:** install [DB Browser for SQLite](https://sqlitebrowser.org/dl/) (free) → *Open Database* → select `database/ba-copilot.db` → *Browse Data* tab. More details and sample queries: [database/README.md](database/README.md).
+**Browsing the data:** install [DB Browser for SQLite](https://sqlitebrowser.org/dl/) (free) → *Open Database* → select `backend/database/ba-copilot.db` → *Browse Data* tab. More details and sample queries: [backend/database/README.md](backend/database/README.md).
 
 **Refreshing the snapshot** after using the app: `npm run export-db`. It takes a consistent snapshot of the database (safe to run while the server is up), writes the `.sql` dump, copies the Document Repository files and regenerates the ERD. The export **strips** GitHub tokens, member passwords and the session signing key. `npm run erd` only regenerates the ERD from the current schema.
 
@@ -66,31 +66,37 @@ There is no login screen: pick yourself from the **Select your name…** dropdow
 ## 4. Architecture
 
 ```
-client/            React UI (bundled with esbuild → public/)
-  views/DesignTab  Design Studio: canvas, region selection, comments, versions
-  views/DocsTab    UC / SRS / Sequence / requirements + refinement prompt
-  views/TestsTab   Test cases · TraceTab: traceability · LogsTab: AI log
-  components/      Renderer (component tree → UI), Mermaid, Markdown
-shared/            Code shared by client and server
-  design.ts        Component-tree model, validation, diff
-  patch.ts         Patch engine + region-scope enforcement
-  extract.ts       Extracts the intermediate model (fields, constraints, actions, navigation)
-  trace.ts         Traceability matrix + coverage metrics
-server/
-  app.ts           REST API (plain Node http, no framework)
-  service.ts       Business layer (BR-01..04, pipeline orchestration)
-  repo.ts, db.ts   Persistence on Node's built-in SQLite (node:sqlite)
-  ai/client.ts     Claude API client (API key, or Bearer token via a gateway): tool use for schema-constrained JSON, one self-repair retry, logging
-  ai/pipelines.ts  Prompts + schemas per task
-  ai/mock.ts       Rule-based generator (Mock / baseline)
-  export/          DOCX export (docx library) and XLSX export (OOXML + JSZip)
+frontend/              Everything that runs in the browser
+  src/                 React UI (bundled with esbuild → frontend/public/)
+    views/DesignTab    Design Studio: canvas, region selection, comments, versions
+    views/DocsTab      UC / SRS / Sequence / requirements + refinement prompt
+    views/TestsTab     Test cases · TraceTab: traceability · LogsTab: AI log
+    components/        Renderer (component tree → UI), Mermaid, Markdown
+  public/              index.html + built bundle (app.js, app-style.css, vendor/)
+  e2e/                 End-to-end browser tests (Playwright)
+backend/               Everything that runs on the server
+  src/
+    app.ts             REST API (plain Node http, no framework)
+    service.ts         Business layer (BR-01..04, pipeline orchestration)
+    repo.ts, db.ts     Persistence on Node's built-in SQLite (node:sqlite)
+    ai/client.ts       Claude API client (API key, or Bearer token via a gateway): tool use for schema-constrained JSON, one self-repair retry, logging
+    ai/pipelines.ts    Prompts + schemas per task
+    ai/mock.ts         Rule-based generator (Mock / baseline)
+    export/            DOCX export (docx library) and XLSX export (OOXML + JSZip)
+  tests/               Unit + integration tests (node:test)
+  dist/                Prebuilt server bundle (npm run bundle → server.mjs)
+  model/               Trained layout-suggestion model (recursive-layout.json)
+  database/            DB snapshot submitted with the source: .db, .sql, repository files, ERD
+shared/                Code shared by frontend and backend
+  design.ts            Component-tree model, validation, diff
+  patch.ts             Patch engine + region-scope enforcement
+  extract.ts           Extracts the intermediate model (fields, constraints, actions, navigation)
+  trace.ts             Traceability matrix + coverage metrics
 scripts/
-  seed.ts          Sample data (npm run seed)
-  export-db.ts     Exports the DB to database/ (npm run export-db)
-  erd.ts           Generates the ERD from the live schema (npm run erd)
-database/          DB snapshot submitted with the source: .db, .sql, repository files, ERD
-tests/             Unit + integration tests (node:test)
-e2e/               End-to-end browser tests (Playwright)
+  seed.ts              Sample data (npm run seed)
+  export-db.ts         Exports the DB to backend/database/ (npm run export-db)
+  erd.ts               Generates the ERD from the live schema (npm run erd)
+data/                  Runtime data (SQLite DB, uploaded files) – git-ignored
 ```
 
 **Key design decisions (referenced in the thesis methodology chapter):**
@@ -111,8 +117,8 @@ This feature **implements only the method of Li et al. (2020)**, *Auto Completio
 - **Complete layout:** greedy decoding until EOS (including containers generated along the way) within the selected region or the whole screen; each generated element can then be accepted individually.
 - **Input:** the current design tree plus each element's bounding box measured on the canvas, discretised onto a grid of 32 columns × 40 px rows (grid parameters are read from the model config).
 - **Output:** type, leaf flag, bounding box. Inserted elements get neutral default props; text content is changed via the design-editing prompt.
-- **Model:** `model/recursive-layout.json`, hidden size 256, 4 layers, 4.3M parameters, **32-column × 40 px-row** grid, paper architecture (no position embedding). Trained in two steps: **pre-trained on 23,382 WebSight trees**, then **fine-tuned on the team's 785 root screens** (13,168 training trees, 80/10/10 split) with ×2 layout augmentation and dropout 0.2. On the 38-screen test set: **strict Next accuracy 19.7%** (previous 500-screen model: 8.8%), IoU ≥ 0.5 at 33.8%, Edit 37.0 s (no suggestions: 60.5 s). Beyond the paper: WebSight, coarse grid, augmentation, dropout. Full results in the format of Tables 1–3 of the paper: `dataset/export/eval/TRANSFORMER-RESULTS.md`.
-  - Inference is pure TypeScript (`shared/recursive.ts`) and matches PyTorch output (`tests/recursive.test.ts`).
+- **Model:** `backend/model/recursive-layout.json`, hidden size 256, 4 layers, 4.3M parameters, **32-column × 40 px-row** grid, paper architecture (no position embedding). Trained in two steps: **pre-trained on 23,382 WebSight trees**, then **fine-tuned on the team's 785 root screens** (13,168 training trees, 80/10/10 split) with ×2 layout augmentation and dropout 0.2. On the 38-screen test set: **strict Next accuracy 19.7%** (previous 500-screen model: 8.8%), IoU ≥ 0.5 at 33.8%, Edit 37.0 s (no suggestions: 60.5 s). Beyond the paper: WebSight, coarse grid, augmentation, dropout. Full results in the format of Tables 1–3 of the paper: `dataset/export/eval/TRANSFORMER-RESULTS.md`.
+  - Inference is pure TypeScript (`shared/recursive.ts`) and matches PyTorch output (`backend/tests/recursive.test.ts`).
   - CPU latency (42 test screens): querying one container takes ~20–60 ms; a full-screen pass has a median of 0.3 s (max 0.9 s); Complete layout has a median of 0.4 s (max ~6 s on large screens).
 - **Results** (`dataset/export/eval/TRANSFORMER-RESULTS.md`, re-run with `scripts/paper/eval_app_model.py`): average over the 6 BFS/DFS settings, strict metrics – F1 49.0 (paper 54.4), Next 19.7 (paper 27.8), Edit 48.7 s (paper 49.0; no suggestions 60.5 s). Table 3 (random sibling order) is reported too.
 - **Limitations:**
@@ -125,8 +131,8 @@ This feature **implements only the method of Li et al. (2020)**, *Auto Completio
 Source code:
 - `shared/recursive.ts`: inference (`nextInContainer`, `nextAtSlot`, `nextElements`, `completeLayout`).
 - `shared/layoutDefaults.ts`: default props for inserted elements.
-- `server/service.ts`: `layoutSuggestions`, `acceptLayout`, `manualEdit`.
-- `client/views/DesignTab.tsx`: ghost boxes, panel.
+- `backend/src/service.ts`: `layoutSuggestions`, `acceptLayout`, `manualEdit`.
+- `frontend/src/views/DesignTab.tsx`: ghost boxes, panel.
 - `scripts/paper/train_final.sh`, `export_recursive.py`, `eval_app_model.py`: training, export, evaluation.
 
 ```bash
@@ -147,7 +153,7 @@ Replaces WebSight and the Mock-generated synthetic data. Full specification in `
 ```bash
 npm test                          # 291 unit + integration tests (incl. a mocked Claude API and Recursive TS ↔ PyTorch parity checks)
 npx playwright install chromium   # first run only
-npm run e2e                       # end-to-end browser run of the full workflow; screenshots saved to e2e/screenshots/
+npm run e2e                       # end-to-end browser run of the full workflow; screenshots saved to frontend/e2e/screenshots/
 ```
 
 ## 6. Environment variables
@@ -166,7 +172,7 @@ Set them in `.env` (copied from `.env.example`; `.env` is git-ignored) or under 
 | `PORT` | Server port, default 3000. |
 | `DB_FILE` | Path to the SQLite file, default `data/ba-copilot.db`. |
 | `DATA_DIR` | Directory for Document Repository files (`files/`), defaults to the directory of `DB_FILE`. |
-| `RECURSIVE_FILE` | Path to the layout suggestion model, default `model/recursive-layout.json`. |
+| `RECURSIVE_FILE` | Path to the layout suggestion model, default `backend/model/recursive-layout.json`. |
 | `GITHUB_TOKEN` | (Optional) Fallback GitHub token for projects without their own token. Use a token scoped to write access on the target repository only. |
 | `GITHUB_API_URL` | (Optional) GitHub API base URL, default `https://api.github.com`. |
 
@@ -174,6 +180,6 @@ Set them in `.env` (copied from `.env.example`; `.env` is git-ignored) or under 
 
 - Real per-member authentication (users currently pick themselves from *Select your name…*; member login exists on the server but is not yet wired into the UI). The deployment uses a single shared `APP_PASSWORD`.
 - Inline commenting on documents (Google Docs-style).
-- Encrypting GitHub tokens at rest in the DB (the `database/` export already strips them).
+- Encrypting GitHub tokens at rest in the DB (the `backend/database/` export already strips them).
 - Migrating to PostgreSQL when multiple server instances are needed. SQLite currently lives at `/data` on Render (kept on a persistent disk on paid plans, reset on restart on the free plan); the persistence layer is isolated in `repo.ts`, so only that layer needs replacing.
 - Figma export and generating Playwright scripts from test cases.

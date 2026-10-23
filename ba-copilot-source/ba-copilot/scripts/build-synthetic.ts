@@ -4,7 +4,7 @@
 // Dùng: npm run build-synthetic -- [--n 4000] [--seed 7] [--out data/corpus/synthetic.jsonl]
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { mockScreen } from "../server/ai/mock.ts";
+import { mockScreen } from "../backend/src/ai/mock.ts";
 import { rng } from "./build-next-model.ts";
 
 const root = join(import.meta.dirname, "..");

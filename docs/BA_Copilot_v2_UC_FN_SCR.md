@@ -59,10 +59,10 @@ Hiện trạng code đã có sẵn trên nhánh:
 
 | Tính năng | Nhánh | Trạng thái |
 |---|---|---|
-| QUS (`shared/qus.ts`, `client/components/QusPanel.tsx`, `tests/qus.test.ts`) | `chi_task` (lấy từ `manh/c1-qus`) | Đã sửa theo G1–G4, panel gắn vào popup Tạo module và Sửa yêu cầu |
-| Kho tài liệu (`server/files.ts`, `FilesTab.tsx`, `tests/files.test.ts`) | `htrung-c4-kho-tai-lieu` | Đã có, cần gộp |
+| QUS (`shared/qus.ts`, `frontend/src/components/QusPanel.tsx`, `backend/tests/qus.test.ts`) | `chi_task` (lấy từ `manh/c1-qus`) | Đã sửa theo G1–G4, panel gắn vào popup Tạo module và Sửa yêu cầu |
+| Kho tài liệu (`backend/src/files.ts`, `FilesTab.tsx`, `backend/tests/files.test.ts`) | `htrung-c4-kho-tai-lieu` | Đã có, cần gộp |
 | Gợi ý thành phần ML (`recursive.ts`, `transformer.ts`, `nextComponent.ts`) | `trung_ba` | Đã có, ngoài phạm vi tài liệu này |
-| Gợi ý màn tiếp theo (`shared/suggest.ts`, `tests/suggest.test.ts`) | `chi_task` | Đã có theo G5–G6, khối "Gợi ý tiếp theo" ở cột trái tab Thiết kế. Danh sách *Bỏ qua* (FN-61) tạm lưu trên trình duyệt, chưa dùng bảng `suggestion_dismissals` |
+| Gợi ý màn tiếp theo (`shared/suggest.ts`, `backend/tests/suggest.test.ts`) | `chi_task` | Đã có theo G5–G6, khối "Gợi ý tiếp theo" ở cột trái tab Thiết kế. Danh sách *Bỏ qua* (FN-61) tạm lưu trên trình duyệt, chưa dùng bảng `suggestion_dismissals` |
 
 ---
 
@@ -195,8 +195,8 @@ Các mục FN-01 → FN-49 giữ nguyên như bản 4 ngày. Tóm tắt theo ph�
 
 ### 3.4. Tiêu chí nghiệm thu cho `shared/qus.ts` và `shared/suggest.ts`
 
-- `tests/qus.test.ts`: mỗi tiêu chí trong 8 tiêu chí có ít nhất 1 ca **đạt** và 1 ca **vi phạm**. Có ca kiểm tra công thức điểm, chặn đáy 0, chuỗi rỗng và văn bản tiếng Việt.
-- `tests/suggest.test.ts`:
+- `backend/tests/qus.test.ts`: mỗi tiêu chí trong 8 tiêu chí có ít nhất 1 ca **đạt** và 1 ca **vi phạm**. Có ca kiểm tra công thức điểm, chặn đáy 0, chuỗi rỗng và văn bản tiếng Việt.
+- `backend/tests/suggest.test.ts`:
   - Có các ca: (a) FR chưa phủ; (b) link gãy; (c) không còn khoảng trống; (d) chưa có FR thì dùng story; (e) gợi ý đã bị bỏ qua.
   - Hàm phải là **hàm thuần** (không gọi DB, không gọi AI), nhận vào `DesignModel`, danh sách FR, danh sách story và danh sách đã bỏ qua.
 

@@ -1,17 +1,17 @@
-// ERD sinh tự động từ chính cấu trúc DB (sqlite_master + PRAGMA), nên không bao giờ lệch với server/db.ts.
+// ERD sinh tự động từ chính cấu trúc DB (sqlite_master + PRAGMA), nên không bao giờ lệch với backend/src/db.ts.
 //   - Bảng, cột, kiểu, PK, FK, UNIQUE, giá trị CHECK đọc từ DB
 //   - Cạnh liền: khoá ngoại thật (nhãn = cột FK + ON DELETE); cạnh nét đứt: tham chiếu logic (LOGICAL_REFS)
 //   - Bản số: cột FK NOT NULL → "||", cho phép NULL → "|o"; FK trùng PK/UNIQUE của bảng con → 1-1 ("o|"), còn lại 1-n ("o{")
 //
 // Hai sơ đồ: tổng quan (bảng nghiệp vụ, chỉ cột khoá/trạng thái) và đầy đủ (mọi bảng, mọi cột).
-// Dùng: npm run erd   → database/ERD.md + ảnh ERD.* (tổng quan), ERD-day-du.* (đầy đủ); dựng từ schema trống, không cần DB thật
+// Dùng: npm run erd   → backend/database/ERD.md + ảnh ERD.* (tổng quan), ERD-day-du.* (đầy đủ); dựng từ schema trống, không cần DB thật
 // npm run export-db gọi lại các hàm ở đây trên bản DB vừa xuất.
 import { DatabaseSync } from "node:sqlite";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { initSchema } from "../server/db.ts";
+import { initSchema } from "../backend/src/db.ts";
 
 /** Nhóm và mô tả nghiệp vụ của từng bảng (bảng chưa khai báo vẫn được vẽ, xếp vào nhóm "Khác"). */
 const GROUPS: { name: string; tables: Record<string, string> }[] = [
@@ -183,7 +183,7 @@ export function erdMarkdown(tables: TableInfo[], diagrams: { overview: string; f
   const logicRows = LOGICAL_REFS.map((r) => `| \`${r.table}.${r.column}\` | \`${r.parent}\` |`);
   return `# ${opts.title}
 
-Sinh tự động bởi \`${opts.source}\` từ cấu trúc thật của cơ sở dữ liệu SQLite, nên luôn khớp với \`server/db.ts\`. Không sửa tay tệp này: chạy lại lệnh để cập nhật.
+Sinh tự động bởi \`${opts.source}\` từ cấu trúc thật của cơ sở dữ liệu SQLite, nên luôn khớp với \`backend/src/db.ts\`. Không sửa tay tệp này: chạy lại lệnh để cập nhật.
 
 ${opts.images ? "Ảnh: [ERD.png](ERD.png) (tổng quan) · [ERD-day-du.png](ERD-day-du.png) (đầy đủ). Bản `.svg` cùng tên phóng to không vỡ nét.\n\n" : ""}Cách đọc:
 - **Cạnh liền**: khoá ngoại thật trong DB. Nhãn là cột khoá ngoại và hành vi khi xoá bản ghi cha (\`CASCADE\` = xoá theo, \`SET NULL\` = bỏ trống).
@@ -278,9 +278,9 @@ export async function writeErd(db: DatabaseSync, outDir: string, opts: { title: 
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const root = join(import.meta.dirname, "..");
-  const outDir = join(root, "database");
+  const outDir = join(root, "backend", "database");
   const db = new DatabaseSync(":memory:");
   initSchema(db);
   const r = await writeErd(db, outDir, { title: "ERD – cơ sở dữ liệu BA Copilot", source: "npm run erd" });
-  console.log(`Đã vẽ ERD (${r.tables} bảng): database/ERD.md${r.images ? " + ảnh ERD.png, ERD-day-du.png (kèm .svg)" :" (không có ảnh – thiếu trình duyệt Playwright)"}`);
+  console.log(`Đã vẽ ERD (${r.tables} bảng): backend/database/ERD.md${r.images ? " + ảnh ERD.png, ERD-day-du.png (kèm .svg)" :" (không có ảnh – thiếu trình duyệt Playwright)"}`);
 }

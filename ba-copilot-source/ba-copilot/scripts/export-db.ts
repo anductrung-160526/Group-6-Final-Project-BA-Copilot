@@ -1,4 +1,4 @@
-// Xuất cơ sở dữ liệu ra thư mục database/ (không bị .gitignore) để nộp kèm mã nguồn:
+// Xuất cơ sở dữ liệu ra thư mục backend/database/ (không bị .gitignore) để nộp kèm mã nguồn:
 //   ba-copilot.db   bản sao một tệp, chụp nhất quán bằng VACUUM INTO (không kèm -wal/-shm), mở bằng DB Browser for SQLite
 //   ba-copilot.sql  cấu trúc + dữ liệu dạng lệnh SQL (đọc được bằng mắt; nạp lại: sqlite3 moi.db < ba-copilot.sql)
 //   files/          tệp của Kho tài liệu (cột files.stored_name trỏ tới)
@@ -17,7 +17,7 @@ import { readSchema, writeErd } from "./erd.ts";
 const root = join(import.meta.dirname, "..");
 const src = process.env.DB_FILE ?? join(root, "data", "ba-copilot.db");
 const dataDir = process.env.DATA_DIR ?? dirname(src);
-const outDir = join(root, "database");
+const outDir = join(root, "backend", "database");
 const outDb = join(outDir, "ba-copilot.db");
 
 if (!existsSync(src)) {
@@ -138,5 +138,5 @@ Bản xuất đã xoá token GitHub, mật khẩu thành viên và khoá ký phi
 
 console.log(`Đã xuất DB vào ${relative(root, outDir)}/`);
 console.log(`  ba-copilot.db (${kb(outDb)}), ba-copilot.sql, ERD.md${erd.images ? " + ảnh" : ""}, README.md – ${tables.length} bảng, ${totalRows} dòng`);
-console.log(`  Kho tài liệu: ${fileCount} tệp (bảng files), chép vào database/files/`);
+console.log(`  Kho tài liệu: ${fileCount} tệp (bảng files), chép vào backend/database/files/`);
 console.log(`  Đã xoá bí mật: ${scrubbed.join(", ") || "không có"}`);

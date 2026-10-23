@@ -1,7 +1,7 @@
 """Chấm mô hình gợi ý bố cục ĐANG DÙNG TRONG APP (Recursive) – hoặc mô hình tham chiếu Pointer / Vanilla huấn luyện trên cùng dữ liệu
 (--kind, --weights) – theo đúng 3 bảng của Li et al. 2020:
 Table 1 (BFS), Table 2 (DFS), Table 3 (BFS, thứ tự anh em xáo ngẫu nhiên). Thang đo chặt: F1 cặp cha–con, Next, Edit (giây KLM).
-Trọng số: <data>/models/final.pt (cùng trọng số với model/recursive-layout.json – xuất bằng export_recursive.py).
+Trọng số: <data>/models/final.pt (cùng trọng số với backend/model/recursive-layout.json – xuất bằng export_recursive.py).
 Vanilla chỉ có DFS (như bài báo); Table 3 chỉ chấm Recursive và Pointer.
 Dùng: python3 scripts/paper/eval_app_model.py --data data/sn80-G2-w7-r800-aug2 [--kind recursive|pointer|vanilla] [--weights …pt] [--out …json]
 """

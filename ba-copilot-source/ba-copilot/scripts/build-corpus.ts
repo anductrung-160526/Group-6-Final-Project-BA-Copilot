@@ -3,7 +3,7 @@
 // Dùng: npm run build-corpus -- [--llm] [--out data/corpus/internal.jsonl]
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { mockScreen } from "../server/ai/mock.ts";
+import { mockScreen } from "../backend/src/ai/mock.ts";
 
 const root = join(import.meta.dirname, "..");
 const arg = (name: string, def: string) => {
@@ -43,8 +43,8 @@ if (useLlm) {
       const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
       if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
     }
-  const { openDb } = await import("../server/db.ts");
-  const ai = await import("../server/ai/pipelines.ts");
+  const { openDb } = await import("../backend/src/db.ts");
+  const ai = await import("../backend/src/ai/pipelines.ts");
   openDb(process.env.DB_FILE ?? join(root, "data", "ba-copilot.db"));
   generate = async (prompt, name) => (await ai.generateScreen({ moduleId: "", prompt, name, requirementInput: "", otherScreens: [] })).tree;
 }

@@ -1,7 +1,7 @@
 // Trang xem trước bộ mẫu: mỗi mẫu hiện yêu cầu, màn thiếu (đầu vào) và màn đầy đủ (đáp án), phần bị thiếu được tô.
 import React, { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Renderer } from "../../client/components/Renderer.tsx";
+import { Renderer } from "../../frontend/src/components/Renderer.tsx";
 import type { UINode } from "../../shared/design.ts";
 
 interface S {
